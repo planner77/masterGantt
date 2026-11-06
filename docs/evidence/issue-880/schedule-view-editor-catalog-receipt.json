@@ -1,0 +1,11 @@
+{
+  "canonicalTaskId": "db833295-2f08-4b83-ba50-bb9cc19fc962",
+  "originalKey": "[\"resource\",\"[\\\"resource\\\",\\\"group\\\",\\\"645165c0-d196-4b75-82d1-6114793c064e\\\",\\\"resource\\\",\\\"a2307fce-ce4a-4ec8-9ef7-4d2ecf3df4a4\\\"]\",\"task\",\"db833295-2f08-4b83-ba50-bb9cc19fc962\"]",
+  "beforeRevision": 23,
+  "afterRevision": 24,
+  "projectWrites": [
+    "PATCH /api/projects/a1984b03-3f11-45fe-bbef-6ef0cb9bb5d4/tasks/db833295-2f08-4b83-ba50-bb9cc19fc962"
+  ],
+  "sourceAfterMembershipRows": 2,
+  "groupName": "같은 탭에서 갱신한 Group"
+}

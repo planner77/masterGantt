@@ -1,3 +1,11 @@
+## Issue #880 — 일정 View 전환
+
+Gantt 상단의 표시 단위 앞에 `View` label과 `WBS / Resource / 설비` 선택을 둔다. 기본 WBS는 기존 기능을 유지한다. Resource·설비는 같은 원본 Task의 날짜/진척/상태를 다른 계층으로 조회하며 가상 분기는 접기/펼치기만 제공한다. 같은 업무가 여러 경로에 보일 수 있고 이는 원본 복제나 합계 증가가 아니다. Group-only 업무를 멤버에게 배분하지 않으며 Fleet는 등록 설비 한 건이다. Summary 직접 Assignment의 원본 확인은 기존 WBS Task Editor/담당자 경로에 남고 일반 Task의 개인 배정으로 전파하지 않는다.
+
+비-WBS 실제 Task의 작업 정보 열기는 기존 Editor를 사용한다. 가상 Group/개인/유형/모델/설비 행은 Task Editor나 WBS 문맥 메뉴를 열지 않는다. 직접 drag/resize/progress/link/inline/키보드·clipboard·구조 편집은 차단한다. Editor 실제 저장은 기존 Project session/권한/dirty·pending/revision 정책이 결정한다. 편집 중이나 복구 잠금에서는 View 선택을 잠그고 이유를 제공한다.
+
+조회 중/실패/자료 변경은 정상 최신 View와 구별하며 retry 또는 WBS로 복귀할 수 있다. 선택 복귀는 원본 Task를 기준으로 유효 경로와 fallback을 사용한다. View/표시 단위/검색·필터/범위/Fullscreen·밀도는 독립 상태이며 기존 WBS Core는 보존한다. 데이터 및 SVG/PNG Export는 기존 canonical WBS 계약이고 활성 Resource/설비 화면의 스크린샷 출력 기능은 추가하지 않는다. 실제 폭·keyboard·성능·미검증은 [Work Packet](exec-plans/active/ISSUE_880.md)과 [원장](ISSUE_880_FAILURE_ANALYSIS.md)을 따른다.
+
 ## Issue #866 Phase B — 프로젝트별 공정/WorkArea 표시명 (2026-11-05)
 
 - Project Process, Project WorkArea의 수동 표시명 번역값은 해당 Project 범위의 owner row에 부착한다. 다른 Project의 이름·번역을 복제 연결하거나 원본 name/ID를 변경하지 않는다. Global Process Type/표준/현장 공정 원본과 프로젝트 사본의 소유권·권한을 구별한다.

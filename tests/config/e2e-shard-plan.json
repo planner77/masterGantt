@@ -108,6 +108,7 @@
         "tests/e2e/projection-row-alignment.spec.ts",
         "tests/e2e/resource-error-recovery.spec.ts",
         "tests/e2e/resource-milestone-views.spec.ts",
+        "tests/e2e/schedule-views.spec.ts",
         "tests/e2e/task-context-menu-hierarchy.spec.ts"
       ]
     },
@@ -1730,5 +1731,37 @@
       18
     ],
     "validation": "REMOTE_PENDING"
+  },
+  "issue880ExplicitPlacement": {
+    "issue": 880,
+    "file": "tests/e2e/schedule-views.spec.ts",
+    "shard": 3,
+    "basis": "기존146개 배치를 유지하고 신규 일정 View spec1개만 명시 등록한다. 현재18개로 최소 count인 Shard2~7 중 보존된 historical projectedMs가 최소인 Shard3을 선택했다. 과거 추정값은 신규147개 실행시간이나35분 이내 완료의 근거가 아니다.",
+    "newSpecDuration": "REMOTE_UNMEASURED",
+    "previousExplicitSpecs": 146,
+    "currentExplicitSpecs": 147,
+    "beforeCounts": [
+      19,
+      18,
+      18,
+      18,
+      18,
+      18,
+      18,
+      19
+    ],
+    "afterCounts": [
+      19,
+      18,
+      19,
+      18,
+      18,
+      18,
+      18,
+      19
+    ],
+    "historicalMetadata": "generatedAt/sourceRunIds/metrics/모든 projectedMs와 과거 수동 배치 기록은 변경하지 않는다. 신규 실행시간을 추정값에 더하거나 성능 개선을 주장하지 않는다.",
+    "validation": "STATIC_PLAN_INVENTORY_VERIFIED; NEW_HEAD_FULL_E2E_8_SHARDS_NOT_TESTED",
+    "scope": "기존146개 위치·8샤드·workers=1·35분 timeout·PR 첫 실패/Main 전체 수집·Required3·Trusted QA·Owner·릴리스 gate 유지. 테스트 제외·skip·retry·fallback 정책 변경 없음."
   }
 }

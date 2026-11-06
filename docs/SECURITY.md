@@ -1,3 +1,9 @@
+## Issue #880 — 일정 View source와 canonical 편집
+
+`GET /api/projects/{publicId}/schedule-view-source`는 기존 Project read gate를 적용하고 service의 동일 SQLite 읽기 snapshot에서 public/private·same-project session 권한을 다시 확인한다. Project에 배정된 개인 및 직접 배정/그 개인 소속 Group만 반환하며 관계 없는 전역 개인 정보/관리자 catalog 권한을 노출하지 않는다. 모든 설비와 유효 관계는 같은 Project에 한정한다. 응답은 private/no-store/nosniff이고 조회는 Project revision·원본 Task/Assignment/설비·session을 쓰지 않는다.
+
+조회 전용 UI는 권한 근거가 아니다. 비-WBS adapter는 native mutation API를 가지지 않고 hidden WBS의 keyboard/context/native writer 진입도 차단한다. 실제 작업 정보 열기만 canonical Task ID로 기존 Editor에 전달하며 server session/Origin/strong If-Match/Project 격리는 유지한다. stale/실패 자료로 잘못된 원본을 열거나 권한 만료를 편집 허용으로 처리하지 않는다. API/SQLite/HTTP와 실제 브라우저 결과는 [#880 실행 계획](exec-plans/active/ISSUE_880.md) 및 [원장](ISSUE_880_FAILURE_ANALYSIS.md)에서 구분한다.
+
 ## Issue #866 Phase B — 원본 owner별 번역 쓰기 경계 (2026-11-05)
 
 - translations는 기존 CRUD DTO의 선택 필드이고 별도 공개 writer 없음. Global master/logistics type/process/resource group 쓰기에는 해당 글로벌 관리자 인증, project logistics/workarea에는 해당 Project edit session을 재사용하며 기존 Origin/CSRF, If-Match/Revision CAS, project isolation, password/session/KDF와 감사 계약을 변경하지 않는다.

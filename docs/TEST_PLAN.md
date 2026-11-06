@@ -1,3 +1,13 @@
+## Issue #880 — 일정 View projection·원본 불변
+
+정적8shard plan에 신규 spec만3번으로 등록해 발견147개=명시147개·중복0·누락0을 검증한다. 기존146개 배치와 실행/Required 정책은 유지하며 timing은 미측정이다. planner/optimizer Unit12개를 EXTEND/KEEP_UNIQUE한다.
+
+TEST_LIFECYCLE_REVIEW=ADD 새 `schedule-view-projection` Unit, project read-gated source SQLite/HTTP 및 `schedule-views` Chromium. 기존 scale/fullscreen/selection·canonical projection/viewport·Editor/private visibility·equipment/resource dashboard 및 직접/subtree/legacy resolver는 KEEP_UNIQUE이며 같은 제목/표시 원칙으로 삭제하지 않는다. 별도 AC 표는 [Work Packet AC_TEST_COVERAGE](exec-plans/active/ISSUE_880.md#ac_test_coverage)가 단일 매핑이다.
+
+직접 사례는 공동 개인·복수 Group·Group-only/그룹 미소속/완전 미할당, 설비 direct/subtree/legacy dedupe·다중설비·빈 모델·Fleet quantity>1·Task0, canonicalTaskId/viewRowKey 분리·경로별 중복총계0, 5폭/키보드/day-week/fullscreen·80+row window/Y·같은 WBS instance/원본 수정0이다. 음성은 가상 Summary Editor 금지·native mouse/touch/key/context/inline/clipboard/drag/link/write 차단, private/foreign source·stale/revision/응답 역전·실패/dirty/pending을 포함한다. 기존 Task Editor session/If-Match와 canonical Export는 별도 고유 회귀를 유지한다.
+
+로컬 선정 결과는 원격 Full Required3/Chromium8·Trusted/Owner PASS가 아니다. 실행/실패/미실행·source fingerprint·성능 수치는 [단일 원장](ISSUE_880_FAILURE_ANALYSIS.md)에 기록한다. 실제 AT/터치 기기/native125%·장기 대용량 운영 검증은 NOT TESTED다.
+
 ## Issue #836 — Docker 데몬 로드 시 OCI Config/Runtime 동일성 회귀 (REWORK #3, 2026-10-28)
 
 - 최신 Full PR CI #3377.1: 원본 OCI index/child/config/SBOM·provenance 검증 PASS, Docker daemon ImageID != OCI Config Digest 조건에서 Docker Smoke 직접 FAIL. Quality 및 Chromium 8/8 PASS, Required Docker·자동 QA는 파생 FAIL.

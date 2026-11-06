@@ -1,0 +1,170 @@
+{
+  "projectRevision": 23,
+  "sharedResourceRows": [
+    "[\"resource\",\"[\\\"resource\\\",\\\"group\\\",\\\"7e5c250e-0ebd-465c-b6da-255abd733457\\\",\\\"resource\\\",\\\"7d948a59-8ff7-40ee-bfd2-e06520c4cb10\\\"]\",\"task\",\"06e38f08-6043-4167-ad3a-4a9535c90182\"]",
+    "[\"resource\",\"[\\\"resource\\\",\\\"group\\\",\\\"7e5c250e-0ebd-465c-b6da-255abd733457\\\",\\\"resource\\\",\\\"afbdd4dc-e81e-4973-9fa2-65bc3e59157b\\\"]\",\"task\",\"06e38f08-6043-4167-ad3a-4a9535c90182\"]",
+    "[\"resource\",\"[\\\"resource\\\",\\\"group\\\",\\\"493133a1-4c9d-4e5b-8e07-5adc52226c92\\\",\\\"resource\\\",\\\"7d948a59-8ff7-40ee-bfd2-e06520c4cb10\\\"]\",\"task\",\"06e38f08-6043-4167-ad3a-4a9535c90182\"]"
+  ],
+  "sharedEquipmentRows": [
+    "[\"equipment\",\"[\\\"equipment\\\",\\\"type\\\",\\\"amr\\\",\\\"model\\\",null,\\\"equipment\\\",\\\"e0c0f308-3e35-4bba-bb37-90125497b1ae\\\"]\",\"task\",\"06e38f08-6043-4167-ad3a-4a9535c90182\"]",
+    "[\"equipment\",\"[\\\"equipment\\\",\\\"type\\\",\\\"amr\\\",\\\"model\\\",\\\"A10\\\",\\\"equipment\\\",\\\"ddcf1bde-2f5d-4e12-8974-4b44a4b15212\\\"]\",\"task\",\"06e38f08-6043-4167-ad3a-4a9535c90182\"]"
+  ],
+  "canonicalTaskId": "06e38f08-6043-4167-ad3a-4a9535c90182",
+  "remounts": 0,
+  "projectWrites": [],
+  "geometries": [
+    {
+      "width": 390,
+      "barHit": {
+        "width": 72,
+        "x": 228,
+        "y": 783.4921875,
+        "ownerLeft": 12,
+        "ownerRight": 378,
+        "hit": true
+      }
+    },
+    {
+      "width": 390,
+      "viewport": 390,
+      "document": 390,
+      "left": 12,
+      "right": 378,
+      "controlHeight": 44
+    },
+    {
+      "width": 768,
+      "viewport": 768,
+      "document": 768,
+      "left": 24,
+      "right": 744,
+      "controlHeight": 44
+    },
+    {
+      "width": 1024,
+      "viewport": 1024,
+      "document": 1024,
+      "left": 24,
+      "right": 1000,
+      "controlHeight": 44
+    },
+    {
+      "width": 1440,
+      "viewport": 1440,
+      "document": 1440,
+      "left": 24,
+      "right": 1416,
+      "controlHeight": 44
+    },
+    {
+      "width": 1920,
+      "viewport": 1920,
+      "document": 1920,
+      "left": 24,
+      "right": 1896,
+      "controlHeight": 44
+    }
+  ],
+  "rowAlignment": [
+    {
+      "gridY": 399,
+      "chartY": 399,
+      "gridHeight": 33,
+      "chartHeight": 33
+    },
+    {
+      "gridY": 433,
+      "chartY": 433,
+      "gridHeight": 33,
+      "chartHeight": 33
+    },
+    {
+      "gridY": 467,
+      "chartY": 467,
+      "gridHeight": 33,
+      "chartHeight": 33
+    },
+    {
+      "gridY": 501,
+      "chartY": 501,
+      "gridHeight": 33,
+      "chartHeight": 33
+    },
+    {
+      "gridY": 535,
+      "chartY": 535,
+      "gridHeight": 33,
+      "chartHeight": 33
+    },
+    {
+      "gridY": 569,
+      "chartY": 569,
+      "gridHeight": 33,
+      "chartHeight": 33
+    },
+    {
+      "gridY": 603,
+      "chartY": 603,
+      "gridHeight": 33,
+      "chartHeight": 33
+    },
+    {
+      "gridY": 637,
+      "chartY": 637,
+      "gridHeight": 33,
+      "chartHeight": 33
+    },
+    {
+      "gridY": 671,
+      "chartY": 671,
+      "gridHeight": 33,
+      "chartHeight": 33
+    },
+    {
+      "gridY": 705,
+      "chartY": 705,
+      "gridHeight": 33,
+      "chartHeight": 33
+    },
+    {
+      "gridY": 739,
+      "chartY": 739,
+      "gridHeight": 33,
+      "chartHeight": 33
+    },
+    {
+      "gridY": 773,
+      "chartY": 773,
+      "gridHeight": 33,
+      "chartHeight": 33
+    },
+    {
+      "gridY": 807,
+      "chartY": 807,
+      "gridHeight": 33,
+      "chartHeight": 33
+    },
+    {
+      "gridY": 841,
+      "chartY": 841,
+      "gridHeight": 33,
+      "chartHeight": 33
+    }
+  ],
+  "axisMeasurements": [
+    {
+      "mode": "day",
+      "expectedLeft": 36,
+      "expectedWidth": 72,
+      "left": 36,
+      "width": 72
+    },
+    {
+      "mode": "week",
+      "expectedLeft": 87.42857142857142,
+      "expectedWidth": 19.428571428571427,
+      "left": 87.4286,
+      "width": 19.421875
+    }
+  ]
+}

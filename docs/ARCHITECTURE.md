@@ -1,3 +1,9 @@
+## Issue #880 — 일정 View projection의 독립 읽기 경계
+
+Resource·설비 View는 app-owned 조회 전용 Grid+Chart를 사용한다. 기존 mounted WBS Core와 canonical Reconciler/Viewport Coordinator 소유권을 유지하고 synthetic row key를 canonical tasks/links/writer에 넣지 않는다. 표시행은 `viewRowKey`, 원본 열기·선택 의미는 `canonicalTaskId`를 사용한다. Grid/Chart는 동일 row/window·세로 scroll을 공유하고 기존 날짜축/표시단위/밀도를 읽는다. 독립 projection은 업무 날짜·공수·Capacity를 계산하는 새 엔진이 아니다.
+
+전용 project-scoped source GET은 Route Handler→Service→기존 Repository/SQLite 읽기 경계를 따르며 같은 transaction에서 read authorization/revision·Assignment·실제 Group membership·설비/type·effective binding provenance를 수집한다. 관련 없는 전역 개인 목록은 반환하지 않는다. frontend는 canonical revision/project와 수집 generation을 확인하고 stale/실패를 정상 자료와 분리한다. [API](API.md)·[Adapter ADR](GANTT_ADAPTER_ADR.md)·[실행 계획](exec-plans/active/ISSUE_880.md)을 따른다.
+
 ## Issue #865 — 선택형 사내 LLM 서버 모듈 (2026-11-04)
 
 `src/server/llm`은 서버 전용 entrypoint(`index.ts`), runtime 설정 및 provider/model resolver, bounded Chat Completions client, 사설망 DNS/HTTP(S) transport, typed result/error로 구성한다. `LLM_ENABLED` 미설정/false는 비활성이며 시작·readiness·기본 Gantt/DB 경로에서는 호출하지 않는다. 소비 기능은 별도 승인 Issue에서 사용자 명시 동작과 기존 프로젝트 조회 권한을 검사한 뒤 내부 모듈을 호출한다. 공개 범용 prompt API/LLM UI·Gantt 일정/DB 스키마 변경 없음. [설정/보안 문서](LLM_CONFIGURATION.md).

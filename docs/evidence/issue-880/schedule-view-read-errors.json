@@ -1,0 +1,39 @@
+{
+  "scope": "UI transport failures injected over real source GET; HTTP status origin contracts are verified separately in server integration tests",
+  "observations": [
+    {
+      "injected": 401,
+      "rows": 0
+    },
+    {
+      "injected": 403,
+      "rows": 0
+    },
+    {
+      "injected": 409,
+      "rows": 0
+    },
+    {
+      "injected": 412,
+      "rows": 0
+    },
+    {
+      "injected": 429,
+      "rows": 0
+    },
+    {
+      "injected": 500,
+      "rows": 0
+    },
+    {
+      "injected": "wrong-project",
+      "rows": 0
+    },
+    {
+      "injected": "stale",
+      "rows": 0
+    }
+  ],
+  "lateResponseView": "equipment",
+  "projectWrites": []
+}

@@ -1,3 +1,11 @@
+## Issue #880 — 비-WBS app-owned 조회 전용 adapter 채택
+
+결정: Resource·설비 계층은 별도 read-only Grid+Chart renderer에서 표시하고 기존 WBS Core는 mounted/hidden/inert 상태로 유지한다. 설치 Core2.7.3의 canonical projection/recovery·selection/link 전제를 바꾸지 않기 위해 가상 ID를 Core tasks/links에 주입하지 않는다. PRO 전용 groupBy/group-tasks를 호출하거나 구현을 복제하지 않는다. 이는 #569의 실험 adapter A/B/C 또는 비문서화 Core writer를 채택하는 결정이 아니다.
+
+새 adapter의 `viewRowKey`는 path별 표시 identity, `canonicalTaskId`는 기존 Task Editor 대상이다. 가상 Summary는 표시행이며 원본 Summary type/parent/siblingOrder·Export를 만들지 않는다. 동일 canonical 일반 Task의 확정 날짜/progress/status만 표시하고 분기 내 고유 Task로 집계를 제한한다. 단일 세로 scroll owner·논리 row window로 Grid/Chart Y를 맞추며 기존 axis/day-week·density를 읽는다. WBS 복귀의 원본 scroll/선택은 기존 Coordinator에 맡기고 두 번째 WBS scroll writer를 추가하지 않는다.
+
+2026-11-07 공식 [Grouping tasks](https://docs.svar.dev/react/gantt/guides/data-operations/grouping-tasks/)·[groupBy](https://docs.svar.dev/react/gantt/api/properties/groupby/)의 PRO 표시를 확인했다. 문서 URL 조회는 demo 실제 조작이나 제품 runtime 성공이 아니다. 명시 대안의 instance/axis/viewport·80+row/5폭·조회 오류/역전·직접 mutation0은 [#880 Work Packet](exec-plans/active/ISSUE_880.md)과 [누적 원장](ISSUE_880_FAILURE_ANALYSIS.md)의 실행별 증거로 판정한다.
+
 ## Issue #852 — 일반 Grid 클릭의 시작점 정렬 의도
 
 일반 Grid 좌클릭만 기존 `TASK_REVEAL`에 시작점 정렬 의도를 명시한다. port는 canonical start가 실제 Core 날짜축 안에 있는지와 실제 Task geometry/native capacity를 확인한 후 같은 단일 Coordinator에서 적용한다. 화면 안 오른쪽에 보이는 시작점도 Chart 왼쪽으로 배치하되 왼쪽 한 셀 이내이면 유지한다. Editor locate·Context Menu `show:false`·modifier/checkbox/keyboard·canonical mirror를 정렬 요청으로 일반화하지 않는다. native와 app이 같은 클릭의 수평 scroll을 중복 쓰지 않으며 별도 DOM writer/private store/remount를 도입하지 않는다.

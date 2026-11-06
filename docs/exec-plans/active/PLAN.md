@@ -1,3 +1,7 @@
+## Issue #880 — 일정 WBS / Resource / 설비 View (2026-11-07)
+
+[Work Packet](ISSUE_880.md) 기준 최신 main `22960452` / `0.142.0`에서 `feat/issue-880-schedule-views`, 후보 `0.143.0`으로 구현한다. WBS Core를 보존하는 조회 전용 Grid+Chart adapter와 project read-gated source를 추가하며 canonical 원본/Export·일정 엔진을 유지한다. HIGH/OWNER_MANAGED/qa_required=true, release_required=true/release_authorized=false다. 요청 종료점은 문서·리뷰/충돌·[실패 원장](../../ISSUE_880_FAILURE_ANALYSIS.md) 정리 후 Ready PR Full CI 시작이며 모니터링·병합·GHCR·Issue 종료 제외. 구현·문서/실패원장·명시 수동 LFF(Unit3,738·Chromium45/45·build/type/lint/정책) PASS이며 자동Pre-PR UNKNOWN7은 BLOCKED로 유지한다. 별도 사전 기술검토 후 Ready PR CI 시작으로 인계하며 새 Head Required3/Trusted·Owner/Manager NOT TESTED, MERGE_READY BLOCKED.
+
 ## Issue #866 — PR #879 Full #3526.1 실패 보완 (2026-11-06)
 
 현재 단계는 [Work Packet C005](ISSUE_866.md)다. Unit의 prototype-key 직접3실패를 재현했고 같은 C004 WBS/Phase C Import의 상속 조회 및 국가 캘린더 local fallback 출처를 함께 보완한다. 누적 CI28회/전체53workflow와 이전 실패 전체를 대조하고 최종 source31spec·Unit/type/docs 및 별도 Agent 기술검토 뒤 새 Full CI 시작까지만 진행한다. 기존 성공의 새 Head 승계·assertion/skip/retry/timeout·Required3/Chromium8 완화 없음. 최종source1cdd6e.../1322동일입력의31spec=192PASS/기존2SKIP/FAIL0,Unit3714PASS/기존3SKIP·build/type/lint/문서구조PASS이며자동Pre-PR UNKNOWN94는BLOCKED를유지한다. HIGH/OWNER_MANAGED/qa_required=true/release_authorized=false, 새 원격 gate·Owner/Manager NOT TESTED/MERGE_READY BLOCKED. 시작 뒤 모니터링·병합·GHCR·Issue 종료 없음.
