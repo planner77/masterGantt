@@ -51,7 +51,7 @@ Core의 Task·Link 표현, 편집, Tree, Grid·Timeline을 공식 API로 사용�
 | WBS 코드 | PRO. [Changelog 2.7](https://docs.svar.dev/react/gantt/whats-new/changelog/) | Parent와 Sibling Order에서 자체 생성 | W24 Pure Domain 계산 구현; HTTP DTO·Grid 표시와 Reparent는 후속 |
 | Web → Excel Export | PRO의 내장 Export. [Overview](https://docs.svar.dev/react/gantt/overview/) | Backend 내부 OOXML/ZIP writer로 Gantt/Tasks/Project와 선택적 Dependencies sheet 생성 | [EXCEL_EXPORT](EXCEL_EXPORT.md) 구현 |
 | SS·FF·SF 일정 계산, Lag·Lead | Core Link 표현과 별개. 위 공개 설명만으로 모든 계산 지원을 단정하지 않음 | 독립 Constraint 모델로 향후 검토. v1에서는 명시적 거부 | Scheduler / 후속 |
-| Baseline | PRO. [README](https://github.com/svar-widgets/react-gantt) | 불변 Snapshot 설계 후 독립 비교 계산 | Scheduler + Backend / 후속 |
+| Baseline | Chart Baselines는 PRO. [README](https://github.com/svar-widgets/react-gantt) | #202에서 프로젝트 소유 저장·편집·Summary 파생·Grid 표시 구현. Chart는 #253 Core 공개 API 정렬 POC 통과가 선행 조건 | Scheduler + Backend 구현 / Chart POC 별도 |
 | Critical Path·Total/Free Slack | Critical Path와 Slack 표현은 PRO. [Overview](https://docs.svar.dev/react/gantt/overview/) | CPM·근무일 Slack 의미 확정 후 독립 구현 | Scheduler / 후속 |
 | Grouping | PRO. [Changelog 2.7](https://docs.svar.dev/react/gantt/whats-new/changelog/) | 표시 그룹과 Parent 관계를 분리하여 검토 | Frontend + Scheduler / 후속 |
 | Resource Assignment·Workload·Calendar | PRO. [Changelog 2.7](https://docs.svar.dev/react/gantt/whats-new/changelog/) | 자체 API·SQLite 할당, M/D·M/M workload, Project < Group < Resource 날짜 예외 | Scheduler + Backend + Frontend / #19/#56/#57 기반, #261 WORKING 확장(PR 검증 대상); PRO API 미사용 |
