@@ -1,3 +1,12 @@
+## Issue #881 — 프로젝트별 화면 표시 설정 (2026-11-07)
+
+- **Owner 결정 A안:** Project Workspace의 Issue/대시보드/기준정보 ON/OFF는 동일 프로젝트의 유효한 edit session 보유자가 관리한다. Owner-only 인증은 #882 후속(본 이슈 선행조건 아님). `owner_name` 표시용 문자열은 인증 증거로 사용 금지.
+- SQLite migration 0037에서 세 플래그 DEFAULT ON. Project Copy는 원본 설정을 보존하고 신규 프로젝트는 모두 ON. 일정은 항상 표시한다. 값은 Project canonical snapshot으로 읽으며 UI/URL/localStorage에 단독 저장하지 않는다.
+- 프로젝트 metadata PATCH의 exact Origin, strong If-Match, project binding, revision/transaction 안의 edit session 재검증을 재사용. 표시 설정은 탭 탐색만 제어하며 Project read/API ACL·Issue 비밀번호·DB 업무 데이터를 변경하지 않는다.
+- 숨긴 peer 탭/복원된 legacy URL/키보드/내부 drill은 일정으로 안전하게 fallback, Gantt/Task 원본·미저장 초안/selection/scroll 보존. 상세 계약 [#881 Work Packet](docs/exec-plans/active/ISSUE_881.md). 새 Head Full PR CI 전 NOT TESTED, HIGH/OWNER_MANAGED/qa_required=true/release_required=true/release_authorized=false.
+
+---
+
 ## Issue #874 — Release Runner 이미지 차이에서 PR/Main builder 출처 분리 (2026-11-04)
 
 - Release #216.1(41779185247, candidate Job 126417402392)는 PR/Main ImageVersion 20261101.186.1과 Release ImageVersion 20261025.179.1 차이를 잘못 빌드 입력 drift로 판정하여 BLOCKED. Main #3489.1/Finalizer #1346.1 PASS는 게시 성공이 아니며 v0.141.0 annotated tag/실패 이력은 불변이다.

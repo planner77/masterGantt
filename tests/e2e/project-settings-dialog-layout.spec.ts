@@ -93,3 +93,39 @@ test("Issue #232: 프로젝트 설정 다이얼로그 정보 구조, 탭 전환 
   await expect(dialog).toHaveCount(0);
   await expect(settingsButton).toBeFocused();
 });
+
+test("Issue #881: 프로젝트 편집 세션에서 표시 저장, 복원 및 숨김 링크 차단", async ({ page, baseURL }) => {
+  if (!baseURL) throw new Error("격리 E2E origin 누락");
+  const create = await page.request.post("/api/projects", {
+    headers: { Origin: baseURL },
+    data: { name: "Workspace visibility", ownerName: E2E_PROJECT_OWNER, description: "", editPassword: "password123" },
+  });
+  expect(create.status()).toBe(201);
+  const publicId = (await create.json()).data.project.publicId as string;
+  await page.goto(`/projects/${publicId}`);
+  await expect(page.getByRole("tab", { name: "Issue", exact: true })).toBeVisible();
+  const settings = page.getByRole("button", { name: "프로젝트 설정", exact: true });
+  await settings.click();
+  const dialog = page.getByRole("dialog", { name: "프로젝트 설정", exact: true });
+  await dialog.getByRole("tab", { name: "화면 표시" }).click();
+  await dialog.getByRole("checkbox", { name: "Issue" }).uncheck();
+  await dialog.getByRole("checkbox", { name: "대시보드" }).uncheck();
+  await dialog.getByRole("checkbox", { name: "기준정보" }).uncheck();
+  await dialog.getByRole("button", { name: "화면 표시 저장" }).click();
+  await expect(dialog).toHaveCount(0);
+  await expect(page.getByRole("tab", { name: "일정", exact: true })).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByRole("tab", { name: "Issue", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("tab", { name: "대시보드", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("tab", { name: "기준정보", exact: true })).toHaveCount(0);
+  const persisted = await page.request.get(`/api/projects/${publicId}`);
+  expect(persisted.ok()).toBe(true);
+  expect((await persisted.json()).data.project.workspaceTabs).toEqual({ issue: false, dashboard: false, master: false });
+  await page.goto(`/projects/${publicId}?screen=issue`);
+  await expect(page.getByRole("tab", { name: "일정", exact: true })).toHaveAttribute("aria-selected", "true");
+  await settings.click();
+  const reopened = page.getByRole("dialog", { name: "프로젝트 설정", exact: true });
+  await reopened.getByRole("tab", { name: "화면 표시" }).click();
+  await reopened.getByRole("checkbox", { name: "Issue" }).check();
+  await reopened.getByRole("button", { name: "화면 표시 저장" }).click();
+  await expect(page.getByRole("tab", { name: "Issue", exact: true })).toBeVisible();
+});

@@ -1,3 +1,9 @@
+## Issue #881 — Project workspace tabs visibility
+
+프로젝트 편집 권한자는 Issue, 대시보드, 기준정보 상위 탭을 프로젝트별로 독립 표시·숨김 설정할 수 있다. 일정은 항상 표시, 기본은 모두 ON. 설정은 모든 조회자에게 공통으로 DB 저장되고 Project Copy 시 승계된다. 숨겨진 탭의 직접 URL/저장 화면/내부 navigation은 일정으로 복귀하며 프로젝트 업무 데이터/API 권한을 변경하지 않는다. Owner 전용 인증은 #882 범위이다.
+
+---
+
 ## Issue #866 Phase B — 관리형 번역 저장 및 UI (2026-11-05)
 
 - FR-I18N-03: global/project별 기존 owner ID+locale에 귀속되는 ko/en/vi 표시명 저장; 기존 id/code/name/UNIQUE/참조·수량/권한·Free Text 불변. 관리자 수동 CRUD, 원본 fallback, ID 선택, Owner/Project Edit 권한 및 revision CAS 유지. migration 0036/Copy/Template6/Export guard를 구현한다.

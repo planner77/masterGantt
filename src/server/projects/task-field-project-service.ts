@@ -329,6 +329,7 @@ export class TaskFieldProjectService extends ProjectService {
         ...(input.description !== undefined ? { description: input.description } : {}),
         ...(input.status !== undefined ? { status: input.status } : {}),
         ...(input.visibility !== undefined ? { visibility: input.visibility } : {}),
+        ...(input.workspaceTabs !== undefined ? { workspaceTabs: input.workspaceTabs } : {}),
       };
       const current = this.projectsForFields.findById(authorization.projectId);
       if (!current) throw new Error("Project not found.");

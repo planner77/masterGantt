@@ -5,14 +5,14 @@ import { useI18n } from "../../lib/i18n/provider";
 
 import { useId, useRef, useState, type FormEvent, type KeyboardEvent, type RefObject } from "react";
 import { WorkspaceDialog } from "../../components/workspace-dialog";
-import type { ProjectStatus, ProjectVisibility } from "../../contracts/projects";
+import type { ProjectStatus, ProjectVisibility, ProjectWorkspaceTabs } from "../../contracts/projects";
 import type { ProjectMasterItemDto } from "../../contracts/project-master";
 import { PROJECT_STATUS_OPTIONS } from "./project-status";
 import { ProjectWorkCalendarEditor } from "./project-work-calendar-editor";
 import styles from "./project-settings-dialog.module.css";
 import { ProjectMasterSelectFields, useProjectMasterSelectionCatalog, type ProjectMasterSelectionValue } from "./project-master-select-fields";
 
-export type ProjectSettingsTabId = "general" | "calendar" | "security";
+export type ProjectSettingsTabId = "general" | "calendar" | "security" | "display";
 
 interface ProjectSettingsDialogProps {
   open: boolean;
@@ -25,6 +25,9 @@ interface ProjectSettingsDialogProps {
   metadataDescription: string;
   metadataStatus: ProjectStatus;
   metadataVisibility: ProjectVisibility;
+  metadataWorkspaceTabs: ProjectWorkspaceTabs;
+  onMetadataWorkspaceTabsChange: (value: ProjectWorkspaceTabs) => void;
+  onSaveWorkspaceTabs: (event: FormEvent<HTMLFormElement>) => void;
   onMetadataNameChange: (value: string) => void;
   onMetadataDescriptionChange: (value: string) => void;
   onMetadataStatusChange: (value: ProjectStatus) => void;
@@ -50,6 +53,7 @@ const TABS: Array<{ id: ProjectSettingsTabId; label: string }> = [
   { id: "general", label: "기본 정보" },
   { id: "calendar", label: "작업 캘린더" },
   { id: "security", label: "편집·보안" },
+  { id: "display", label: "화면 표시" },
 ];
 
 export function ProjectSettingsDialog({
@@ -63,6 +67,9 @@ export function ProjectSettingsDialog({
   metadataDescription,
   metadataStatus,
   metadataVisibility,
+  metadataWorkspaceTabs,
+  onMetadataWorkspaceTabsChange,
+  onSaveWorkspaceTabs,
   onMetadataNameChange,
   onMetadataDescriptionChange,
   onMetadataStatusChange,
@@ -214,6 +221,26 @@ export function ProjectSettingsDialog({
             <div className={styles.formActions}>
               <button className="primary-button" disabled={busy} type="submit">
                 {isSavingMetadata ? t("저장 중…") : t("프로젝트 정보 저장")}
+              </button>
+            </div>
+          </form>
+        </div>
+
+        {/* Issue #881: server-persisted, project-wide display settings. */}
+        <div id={`${baseId}-panel-display`} role="tabpanel" aria-labelledby={`${baseId}-tab-display`}
+          hidden={activeTab !== "display"} className={styles.panel}>
+          <form className="project-form compact-form" noValidate onSubmit={onSaveWorkspaceTabs}>
+            <p>{t("이 프로젝트의 모든 조회자에게 적용되는 화면 표시 설정입니다.")}</p>
+            {([{ key: "issue", label: "Issue" }, { key: "dashboard", label: "대시보드" }, { key: "master", label: "기준정보" }] as const).map(({ key, label }) => (
+              <label key={key} className="form-field">
+                <span><input type="checkbox" disabled={busy} checked={metadataWorkspaceTabs[key]}
+                  onChange={event => onMetadataWorkspaceTabsChange({ ...metadataWorkspaceTabs, [key]: event.target.checked })} /> {t(label)}</span>
+              </label>
+            ))}
+            <p>{t("일정은 항상 표시됩니다. 이 설정은 접근 권한이나 데이터를 변경하지 않습니다.")}</p>
+            <div className={styles.formActions}>
+              <button type="submit" className="primary-button" disabled={busy}>
+                {isSavingMetadata ? t("저장 중…") : t("화면 표시 저장")}
               </button>
             </div>
           </form>

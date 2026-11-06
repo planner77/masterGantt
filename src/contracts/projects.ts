@@ -5,6 +5,9 @@ import type { ProjectAssignmentDto } from "./resources";
 
 export type ProjectStatus = "planned" | "in_progress" | "completed";
 export type ProjectVisibility = "public" | "private";
+/** Project-wide navigation flags; hiding a tab does not change server ACLs. */
+export interface ProjectWorkspaceTabs { issue: boolean; dashboard: boolean; master: boolean; }
+export const DEFAULT_PROJECT_WORKSPACE_TABS: Readonly<ProjectWorkspaceTabs> = Object.freeze({ issue: true, dashboard: true, master: true });
 export type TaskStatus = "not_started" | "in_progress" | "completed";
 
 export interface ProjectHolidayDto {
@@ -29,6 +32,8 @@ export interface ProjectCalendarDto {
 export interface ProjectDto {
   /** Present on canonical responses; optional in historical fixtures. */
   visibility?: ProjectVisibility;
+  /** Server-owned navigation flags, optional only for historical fixtures. */
+  workspaceTabs?: ProjectWorkspaceTabs;
   publicId: string;
   name: string;
   description: string;
@@ -185,6 +190,7 @@ export interface CurrentEditSessionResponse {
 
 export interface UpdateProjectRequest {
   visibility?: ProjectVisibility;
+  workspaceTabs?: ProjectWorkspaceTabs;
   name?: string;
   description?: string;
   status?: ProjectStatus;
@@ -203,7 +209,7 @@ export interface ProjectMetadataMutationResponse {
     warnings: [];
     operation: {
       kind: "projectMetadata";
-      changedFields: ("name" | "description" | "status" | "visibility" | "businessUnitId" | "productId" | "siteEntityId")[];
+      changedFields: ("name" | "description" | "status" | "visibility" | "workspaceTabs" | "businessUnitId" | "productId" | "siteEntityId")[];
     };
   };
 }

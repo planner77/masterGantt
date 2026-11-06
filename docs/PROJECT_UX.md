@@ -1,3 +1,9 @@
+## Issue #881 — Project workspace 표시 설정 (2026-11-07)
+
+기본 일정 / Issue / 대시보드 / 기준정보 주 탭의 표시 여부는 프로젝트별 canonical `workspaceTabs`를 따른다. Issue·대시보드·기준정보는 각각 숨길 수 있고 일정은 항상 남는다. 표시 설정 UI는 프로젝트 설정의 네 번째 탭이며 편집 세션 보유자가 저장한다(Owner-only 후속 #882). DB 저장값은 모든 조회자에게 동일하며 비활성화된 탭의 URL/legacy navigation/브라우저 복원/내부 목적지 요청은 일정으로 안전하게 fallback한다. 현재 dirty/pending 상태와 Gantt/Editor/Task 선택은 비정상 종료되거나 remount되어서는 안 된다. 탭 숨김은 서버 ACL이나 데이터 삭제가 아니다.
+
+---
+
 ## Issue #866 Phase B — 프로젝트별 공정/WorkArea 표시명 (2026-11-05)
 
 - Project Process, Project WorkArea의 수동 표시명 번역값은 해당 Project 범위의 owner row에 부착한다. 다른 Project의 이름·번역을 복제 연결하거나 원본 name/ID를 변경하지 않는다. Global Process Type/표준/현장 공정 원본과 프로젝트 사본의 소유권·권한을 구별한다.

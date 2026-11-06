@@ -1,3 +1,9 @@
+## v0.144.0 (Issue #881, 2026-11-07) — Project workspace 표시 설정
+
+- Project edit session 보유자는 프로젝트별 Issue, 대시보드, 기준정보 표시를 ON/OFF 설정할 수 있다. 일정은 항상 표시, 모든 프로젝트 기본 ON, Copy는 원본 설정 보존, DB migration 0037 적용.
+- Project metadata PATCH에 workspaceTabs strict Boolean과 기존 Origin/If-Match/session/revision 보호를 재사용한다. 숨김은 서버 ACL 변경이나 데이터 삭제가 아니며 Owner-only 인증은 #882로 분리한다.
+- 화면 설정 네 번째 탭, 숨겨진 메뉴/URL 복원·내부 탐색 fallback, 서버/클라이언트 회귀 테스트 및 문서를 갱신한다. 전체 PR CI 결과는 아직 확인되지 않았다.
+
 ## Unreleased — Issue #866 Phase C 통합 (2026-11-05)
 
 - Project/Issue/Task Editor/Gantt/Resource/Milestone/Logistics/관리·Calendar의 고정 UI·도움말·접근성 이름·검증·날짜/숫자 및 관리형 표시명을 ko/en/vi로 연결합니다. 사용자 내용·ID·일정/권한/revision 계약은 유지합니다.

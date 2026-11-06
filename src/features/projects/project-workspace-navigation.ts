@@ -1,3 +1,5 @@
+import { DEFAULT_PROJECT_WORKSPACE_TABS, type ProjectWorkspaceTabs } from "../../contracts/projects";
+
 /** Navigation only: canonical scope, filters and viewport remain owned by the project host. */
 export const DASHBOARD_SCREENS = [
   { key: "dashboard.kpi", label: "KPI" },
@@ -47,4 +49,12 @@ export function normalizeWorkspaceScreen(value: unknown): WorkspaceScreen | null
   if (value === "master") return "master.processes";
   if (["issue", "milestones", "resources", "logistics", "resource-master"].includes(value)) return legacyWorkspaceScreen(value as WorkspaceView);
   return null;
+}
+
+/** Reused by tabs, URL restore, keyboard navigation and internal drill destinations. */
+export function isWorkspaceSectionVisible(section: WorkspaceSection, tabs: Readonly<ProjectWorkspaceTabs> = DEFAULT_PROJECT_WORKSPACE_TABS): boolean {
+  return section === "schedule" || (section === "issue" ? tabs.issue : section === "dashboard" ? tabs.dashboard : tabs.master);
+}
+export function availableWorkspaceScreen(screen: WorkspaceScreen, tabs: Readonly<ProjectWorkspaceTabs>): WorkspaceScreen {
+  return isWorkspaceSectionVisible(workspaceSection(screen), tabs) ? screen : "schedule";
 }

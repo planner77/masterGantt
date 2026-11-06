@@ -1,3 +1,9 @@
+## Issue #881 — Project workspace display flags / migration 0037
+
+프로젝트 테이블에 `workspace_issue_visible`, `workspace_dashboard_visible`, `workspace_master_visible` 3개 SQLite `INTEGER NOT NULL DEFAULT 1 CHECK (value IN (0,1))` 컬럼 추가. 기존 행과 신규 생성 기본 ON, Project Copy는 원본 플래그 보존. Project DTO에서 `workspaceTabs.issue|dashboard|master` Boolean으로 표현. Project revision CAS는 기존 metadata transaction을 사용하며 `owner_name`은 인증되지 않은 표시값이다. 이전 migration/checksum은 변경하지 않는다.
+
+---
+
 ## Issue #866 Phase B — migration 0036 owner별 표시명 (2026-11-05)
 
 - `db/migrations/0036_display_name_translations.sql`은 0035 이하 checksum/DDL을 바꾸지 않는 추가형 변경. 12개 분리 테이블의 owner FK(CASCADE) + locale(ko/en/vi) + name 및 복합 PK로 저장한다. owner 테이블은 project_master_items, logistics_equipment_types, logistics_system_types, process_types, product_standard_processes, site_product_processes, work_areas, project_work_areas, project_processes, project_equipment, project_logistics_systems, resource_groups.

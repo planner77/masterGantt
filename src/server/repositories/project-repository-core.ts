@@ -1,5 +1,5 @@
 import type Database from "better-sqlite3";
-import type { ProjectStatus, ProjectVisibility } from "../../contracts/projects";
+import type { ProjectStatus, ProjectVisibility, ProjectWorkspaceTabs } from "../../contracts/projects";
 
 export interface ProjectRecord {
   id: number;
@@ -8,6 +8,7 @@ export interface ProjectRecord {
   description: string;
   status: ProjectStatus;
   visibility: ProjectVisibility;
+  workspaceTabs: ProjectWorkspaceTabs;
   calendarTimezone: string;
   authVersion: number;
   revision: number;
@@ -42,6 +43,7 @@ export interface NewProjectRecord {
   description: string;
   status?: ProjectStatus;
   visibility?: ProjectVisibility;
+  workspaceTabs?: ProjectWorkspaceTabs;
   passwordKdf: "scrypt";
   passwordSalt: Buffer;
   passwordHash: Buffer;
@@ -69,6 +71,9 @@ interface ProjectRow {
   description: string;
   status: ProjectStatus;
   visibility: ProjectVisibility;
+  workspace_issue_visible: number;
+  workspace_dashboard_visible: number;
+  workspace_master_visible: number;
   calendar_timezone: string;
   auth_version: number;
   revision: number;
@@ -104,6 +109,11 @@ function mapProject(row: ProjectRow): ProjectRecord {
     description: row.description,
     status: row.status,
     visibility: row.visibility,
+    workspaceTabs: {
+      issue: row.workspace_issue_visible === 1,
+      dashboard: row.workspace_dashboard_visible === 1,
+      master: row.workspace_master_visible === 1,
+    },
     calendarTimezone: row.calendar_timezone,
     authVersion: row.auth_version,
     revision: row.revision,
@@ -165,6 +175,7 @@ export class ProjectRepository {
             description,
             status,
             visibility,
+            workspace_issue_visible, workspace_dashboard_visible, workspace_master_visible,
             calendar_timezone,
             auth_version,
             revision,
@@ -184,7 +195,7 @@ export class ProjectRepository {
       .prepare(
         `
           SELECT
-            id, public_id, name, description, status, visibility, calendar_timezone,
+            id, public_id, name, description, status, visibility, workspace_issue_visible, workspace_dashboard_visible, workspace_master_visible, calendar_timezone,
             auth_version, revision, created_at, updated_at,
             password_kdf, password_salt, password_hash,
             scrypt_n, scrypt_r, scrypt_p, scrypt_key_length
@@ -201,7 +212,7 @@ export class ProjectRepository {
       .prepare(
         `
           SELECT
-            id, public_id, name, description, status, visibility, calendar_timezone,
+            id, public_id, name, description, status, visibility, workspace_issue_visible, workspace_dashboard_visible, workspace_master_visible, calendar_timezone,
             auth_version, revision, created_at, updated_at,
             password_kdf, password_salt, password_hash,
             scrypt_n, scrypt_r, scrypt_p, scrypt_key_length
@@ -223,6 +234,7 @@ export class ProjectRepository {
             description,
             status,
             visibility,
+            workspace_issue_visible, workspace_dashboard_visible, workspace_master_visible,
             password_kdf,
             password_salt,
             password_hash,
@@ -239,6 +251,7 @@ export class ProjectRepository {
             @description,
             @status,
             @visibility,
+            @workspaceIssueVisible, @workspaceDashboardVisible, @workspaceMasterVisible,
             @passwordKdf,
             @passwordSalt,
             @passwordHash,
@@ -252,7 +265,12 @@ export class ProjectRepository {
           )
         `,
       )
-      .run({ ...project, status: project.status ?? "planned", visibility: project.visibility ?? "public" });
+      .run({
+        ...project, status: project.status ?? "planned", visibility: project.visibility ?? "public",
+        workspaceIssueVisible: project.workspaceTabs?.issue === false ? 0 : 1,
+        workspaceDashboardVisible: project.workspaceTabs?.dashboard === false ? 0 : 1,
+        workspaceMasterVisible: project.workspaceTabs?.master === false ? 0 : 1,
+      });
 
     const inserted = this.findById(Number(result.lastInsertRowid));
     if (!inserted) {
@@ -273,6 +291,7 @@ export class ProjectRepository {
             description,
             status,
             visibility,
+            workspace_issue_visible, workspace_dashboard_visible, workspace_master_visible,
             calendar_timezone,
             auth_version,
             revision,
@@ -289,7 +308,7 @@ export class ProjectRepository {
 
   updateMetadata(
     projectId: number,
-    input: { name?: string; description?: string; status?: ProjectStatus; visibility?: ProjectVisibility },
+    input: { name?: string; description?: string; status?: ProjectStatus; visibility?: ProjectVisibility; workspaceTabs?: ProjectWorkspaceTabs },
     updatedAt: string,
   ): ProjectRecord {
     const assignments: string[] = [];
@@ -309,6 +328,10 @@ export class ProjectRepository {
     if (input.visibility !== undefined) {
       assignments.push("visibility = ?");
       values.push(input.visibility);
+    }
+    if (input.workspaceTabs !== undefined) {
+      assignments.push("workspace_issue_visible = ?", "workspace_dashboard_visible = ?", "workspace_master_visible = ?");
+      values.push(Number(input.workspaceTabs.issue), Number(input.workspaceTabs.dashboard), Number(input.workspaceTabs.master));
     }
     if (assignments.length === 0) {
       throw new Error("At least one metadata field is required.");

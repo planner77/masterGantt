@@ -1,3 +1,9 @@
+## Issue #881 — Project Workspace 화면 표시 설정 (2026-11-07)
+
+프로젝트 설정의 네 번째 `화면 표시` 탭은 Issue/대시보드/기준정보를 개별 체크박스로 제공한다. 일정은 상시 표시하고 각 값은 모든 프로젝트 조회자에 공통 적용한다. 설정 변경은 유효한 **Project edit session**에서만 가능하며 Owner-only 인증은 #882 별도 기능이다. 숨긴 섹션은 주 tablist·roving keyboard에서 제외하고 URL/저장 화면 복원도 일정을 기본 경로로 전환한다. API read ACL/업무 데이터는 영향받지 않으며 #866 한국어/영어/베트남어, keyboard/ARIA/dirty·focus 및 Gantt continuity 정책을 유지한다.
+
+---
+
 ## Issue #866 Phase C — 전체 화면 표시 언어 (2026-11-05)
 
 [Phase C 설계](docs/I18N_PHASE_C.md)에 따라 고정 문구·ARIA·도움말·상태/검증·읽기용 날짜/수량을 ko/en/vi로 표시한다. 관리형 name은 현재 locale의 표시명→원본 name으로 fallback하며 ID·선택·자유 입력은 보존한다. 언어 전환은 화면 identity가 아니므로 Gantt/Editor를 remount하거나 draft/scroll/filter/selection을 초기화하지 않는다.

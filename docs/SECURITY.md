@@ -1,3 +1,9 @@
+## Issue #881 — Project workspace 표시/권한 경계 (2026-11-07)
+
+설정의 조회는 #479 Project read gate, 변경은 유효한 해당 Project edit session + exact Origin + strong If-Match + revision transaction 내 auth 재검증을 요구한다. 타 Project·조회 세션만 있음·만료·위조 owner_name·전역 관리자 credential·Issue 비밀번호로는 저장할 수 없다. 탭 숨김/URL fallback은 사용자 화면 탐색일 뿐 API ACL을 변경하지 않는다. Owner-only 인증은 #882 별도 과제이며 이번 버전의 보안 보장은 '프로젝트 편집 세션'이다.
+
+---
+
 ## Issue #866 Phase B — 원본 owner별 번역 쓰기 경계 (2026-11-05)
 
 - translations는 기존 CRUD DTO의 선택 필드이고 별도 공개 writer 없음. Global master/logistics type/process/resource group 쓰기에는 해당 글로벌 관리자 인증, project logistics/workarea에는 해당 Project edit session을 재사용하며 기존 Origin/CSRF, If-Match/Revision CAS, project isolation, password/session/KDF와 감사 계약을 변경하지 않는다.
