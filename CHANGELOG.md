@@ -4,6 +4,10 @@
 
 - 일정 Gantt에 WBS / Resource / 설비 View를 추가한다. Resource·설비는 원본 Task의 조회 전용 계층이며 복수 Group/설비·미할당·모델 미지정·Fleet/작업0 원본을 보존한다. 원본 작업 정보는 기존 Editor로 열고 canonical 일정·Export와 WBS 편집은 유지한다. (#880)
 
+### Fixed
+
+- 일정 View 왕복에서 다중 선택·Copy/Shift 기준과 Resource·설비 재조회/원본 Editor 복귀의 viewport를 보존한다. (#880 R1)
+
 ## Unreleased — Issue #866 Phase C 통합 (2026-11-05)
 
 - Project/Issue/Task Editor/Gantt/Resource/Milestone/Logistics/관리·Calendar의 고정 UI·도움말·접근성 이름·검증·날짜/숫자 및 관리형 표시명을 ko/en/vi로 연결합니다. 사용자 내용·ID·일정/권한/revision 계약은 유지합니다.

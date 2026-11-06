@@ -1,3 +1,9 @@
+## Issue #880 R1 — 재조회 공간 보존과 선택 ingress
+
+기존 Core/WBS selection·Viewport Coordinator 소유권은 유지한다. 표시 View에서 돌아왔다는 이유로 app single-selection gesture를 실행하지 않으며, 실제 Task를 새로 선택한 경우에만 기존 선택 ingress로 anchor를 갱신한다. 필요한 Core primary mirror는 기존 project-owned 경로를 사용하고 새 WBS scroll writer/private store/remount를 추가하지 않는다.
+
+앱 전용 조회 Scroller는 마지막 검증 표시의 geometry와 활성 데이터의 권위를 구분한다. pending/error의 빈 canvas가 scroll capacity를0으로 만들지 않도록 이전 공간만 보존하며, 이전 Task 행은 현재 검증 데이터처럼 렌더하거나 조작하지 않는다. same project/view/scale/scope/filter/layout 및 최신 request/user-intent에 묶인 원본 행/날짜 bookmark만 같은 Scroller에 복구한다. 새 검증 응답 세대는 sourceKey의 왕복과 구별한다. locale·밀도는 표시 변화로 취급하고 같은 검증 자료의 행/날짜 앵커를 새 geometry에 해석한다. 원래 Core의 좌표/날짜축은 관측 권위로 유지하고 새 입력·문맥 변경이 과거 복원을 취소한다. [R1 실패·실증](ISSUE_880_FAILURE_ANALYSIS.md)과 [Packet](exec-plans/active/ISSUE_880.md) 참조.
+
 ## Issue #880 — 비-WBS app-owned 조회 전용 adapter 채택
 
 결정: Resource·설비 계층은 별도 read-only Grid+Chart renderer에서 표시하고 기존 WBS Core는 mounted/hidden/inert 상태로 유지한다. 설치 Core2.7.3의 canonical projection/recovery·selection/link 전제를 바꾸지 않기 위해 가상 ID를 Core tasks/links에 주입하지 않는다. PRO 전용 groupBy/group-tasks를 호출하거나 구현을 복제하지 않는다. 이는 #569의 실험 adapter A/B/C 또는 비문서화 Core writer를 채택하는 결정이 아니다.

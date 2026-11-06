@@ -1,0 +1,644 @@
+{
+  "schema": "issue-880-rework-r1-local/1",
+  "issue": 880,
+  "pr": 883,
+  "dateKst": "2026-11-07",
+  "baselineMain": "229604522969133d1ccc6de0477e373252670c86",
+  "originalHead": "f9bdd26df8196c11f24b4ab90223a3ada00d4cbd",
+  "scope": "로컬 빠른 검증만 해당하며 원격 CI·Owner·Manager 승인이 아니다.",
+  "source": {
+    "format": "sorted-path-sha256-map/json-compact/sort-keys",
+    "sha256": "1b165cd33266318c0e2b8c6e598a574e527b08ca7d01ced4759ebf536a09f280",
+    "fileCount": 1310,
+    "scope": "src/·tests/·scripts/·db/·package.json·package-lock.json·next.config.ts. 자동 생성 Next 진입점은 게시 전 baseline으로 복원한다.",
+    "initialPrChangedInputCount": 22,
+    "changedInputSha256": {
+      "package-lock.json": "6cca360fbe47965887111e1f6fb25bad7bc545b200ab65a40ba554de1fdf01de",
+      "package.json": "b8ea5325483c0b62bea236b4406564f24983393a031a6dea37a62f32b11024fc",
+      "src/app/api/projects/[publicId]/schedule-view-source/route.ts": "3a35e989a90082eba750e5a28d14daf7defd5fba2dcd14c55b8d670bccb19d08",
+      "src/contracts/schedule-views.ts": "5a80e7d75b141c66cf3fd2bc1bdf018d4115f43dcb5b8e2426d3f0872194cad2",
+      "src/features/gantt/project-gantt.tsx": "a12a1b230a7423df47775ba63be2e451f62b9a94d4868268f2576aa28819f8ba",
+      "src/features/gantt/schedule-view-panel.css": "1131c2492a7842397d1cebe93db5f68198a573b9070622d4d056cf9bb25fa076",
+      "src/features/gantt/schedule-view-panel.tsx": "24399c8b23abbbd0c4228d2ae372a5575517929cc680950166099654f9c1d8bb",
+      "src/features/gantt/schedule-view-projection.ts": "bde7044632a2f5ffa2b28dc0069daa7614ef8221237542701f6550a745716fa2",
+      "src/features/projects/project-readonly-view.tsx": "cfa19a5d078428ffd69b9a5506cfd9c4d401a62210b99fa58b1f2ba002661d82",
+      "src/lib/i18n/catalogs/schedule-views.ts": "f650b2ca157fdf1426f9aaf4c39c140888123101c3f46dc80ba4ed2dbfc78486",
+      "src/lib/i18n/index.ts": "d60e9be53c42f4dc8eab7d7132108c729bd24dbae829dc8519572ab292ecd12d",
+      "src/server/projects/schedule-view-source-handler-core.ts": "e601ad87eb18ecc76acf14ef378cb83a4d8f8e100fed6db00469ccbfb91cb0ff",
+      "src/server/projects/schedule-view-source-service-core.ts": "adc0b0aa425ae57b81162e86ced5afbcb510c8cfdaba353631b191e654b24769",
+      "src/server/repositories/schedule-view-source-repository-core.ts": "656247ed22666ee5b6f062e34ff2a176a66ea454cce130e99178c0743386ae58",
+      "src/server/security/route-security-inventory.ts": "ef21e647d7f85b4713ff2342514f6b9c07771006bf4b2a1a8a7bead6cc74c828",
+      "tests/config/e2e-shard-plan.json": "ad14c9b181be6646d04360ec2e171594c9b5f638a230f8a659bc94af93fcd4f5",
+      "tests/e2e/fixtures/schedule-views.ts": "fedad8f0fbfb299577437bbc3ca4fd549c9708e28fa91e993a647b96a4819e3e",
+      "tests/e2e/schedule-views.spec.ts": "549f7ed0b84fadb1ccb14e15c6918e0306829a2e5b2b87c74d854c98b516c053",
+      "tests/features/gantt/schedule-view-projection.test.ts": "52341c5b61aaea360a9d3aa41586009ff7313d1c74a6eafbf9a4672841fcb198",
+      "tests/scripts/e2e-shard-planner.test.ts": "f2df4b3bd8a0bc236f899eab76695f9dbfe2b973dc073818f19b3aa091716522",
+      "tests/server/projects/edit-authorization-handlers.test.ts": "35465b8d99d19d331eb44caf06a3c58eeb60fc48d034cf90e610f38fbe091d92",
+      "tests/server/projects/schedule-view-source.test.ts": "4656650b656fedf3c869a3b8f06b8f192486a7b2579bacd37811f9c2a093993d"
+    },
+    "reworkDeltaInputs": [
+      "src/features/gantt/project-gantt.tsx",
+      "src/features/gantt/schedule-view-panel.tsx",
+      "tests/e2e/schedule-views.spec.ts"
+    ],
+    "p2GreenStartEqualsEnd": true,
+    "finalBrowserStartEqualsEnd": true
+  },
+  "originalRemote": {
+    "runId": 42301302919,
+    "attempt": 1,
+    "result": "FAIL",
+    "directFailure": "QA_REQUIRED",
+    "derivedFailure": "PATH_POLICY",
+    "productAssertionsRun": false,
+    "evidence": "ci3533-source.json"
+  },
+  "checks": {
+    "typecheck": "PASS",
+    "changedFileLint": {
+      "status": "PASS",
+      "errors": 0,
+      "warnings": 4,
+      "existingWarnings": 3,
+      "newWarnings": 1,
+      "newWarning": "react-hooks/exhaustive-deps: useLayoutEffect의 captureBookmark 의존성 경고. 실제 캡처 값은 명시 deps에 포함되며 별도 기술검토에서 P1/P2로 판정하지 않았다.",
+      "policyChanged": false
+    },
+    "selectedUnit": {
+      "status": "PASS",
+      "files": 7,
+      "passed": 175,
+      "failed": 0,
+      "skipped": 0,
+      "maxWorkers": 2,
+      "tests": [
+        "tests/features/gantt/task-selection-model.test.ts",
+        "tests/features/gantt/viewport-coordinator.test.ts",
+        "tests/features/gantt/canonical-projection.test.ts",
+        "tests/features/gantt/projection-settled.test.ts",
+        "tests/features/gantt/peer-viewport-capture.test.ts",
+        "tests/features/gantt/schedule-view-projection.test.ts",
+        "tests/server/projects/schedule-view-source.test.ts"
+      ]
+    },
+    "version": "PASS",
+    "cacheContract": "PASS",
+    "basePreflightFixture": {
+      "status": "PASS",
+      "tests": 11
+    },
+    "discovery": {
+      "status": "PASS",
+      "unitFiles": 303,
+      "browserCases": 890,
+      "rootAndExternalCwd": true
+    },
+    "markdown": "PASS",
+    "finalMetadataReplay": {
+      "status": "PASS",
+      "deterministicFailures": 0,
+      "deferred": 5,
+      "changedPaths": 47,
+      "validatorBase": "229604522969133d1ccc6de0477e373252670c86",
+      "scope": "최종 제안 PR 본문·현재 Issue AC·전체 작업 트리 경로/Packet을 unchanged base checker에 로컬 재생했다. Head anchor는 원본 f9이며 새 원격 Head 출처 검증이나 CI·Owner 판정이 아니다. 게시 전 실제 local commit에도 별도 재생하여 Issue STATUS에 연결한다.",
+      "checks": [
+        {
+          "name": "PRIMARY_ISSUE",
+          "status": "PASS",
+          "where": "PR title 및 PR 본문 단일 Refs #N"
+        },
+        {
+          "name": "RISK_LEVEL",
+          "status": "PASS",
+          "where": "PR body: risk_level"
+        },
+        {
+          "name": "QA_METHOD",
+          "status": "PASS",
+          "where": "PR body: qa_method"
+        },
+        {
+          "name": "QA_REQUIRED",
+          "status": "PASS",
+          "where": "PR body: qa_required"
+        },
+        {
+          "name": "RELEASE_REQUIRED",
+          "status": "PASS",
+          "where": "PR body: release_required (선택)"
+        },
+        {
+          "name": "RELEASE_AUTHORIZED",
+          "status": "PASS",
+          "where": "PR body: release_authorized (선택)"
+        },
+        {
+          "name": "PATH_POLICY",
+          "status": "PASS",
+          "where": "PR diff (rename 원본 포함), risk_level/qa_required/release 플래그"
+        },
+        {
+          "name": "ISSUE_AC",
+          "status": "PASS",
+          "where": "Issue #880 Acceptance Criteria"
+        },
+        {
+          "name": "DOCUMENTATION_SYNC",
+          "status": "PASS",
+          "where": "docs/exec-plans/active/ISSUE_880.md: DOCUMENTATION_SYNC / AC_TEST_COVERAGE"
+        },
+        {
+          "name": "MERGE_CONFLICT",
+          "status": "DEFERRED",
+          "where": "GitHub PR mergeability",
+          "reason": "사전 시점의 계산은 최종 test-merge 증거가 아님"
+        },
+        {
+          "name": "LATEST_FULL_CI",
+          "status": "DEFERRED",
+          "where": "Final QA/Owner gate",
+          "reason": "세 required aggregate/run/attempt는 아직 완료되지 않음"
+        },
+        {
+          "name": "REVIEW_OWNER",
+          "status": "DEFERRED",
+          "where": "Final QA/Owner gate",
+          "reason": "최종 review thread·Trusted QA·Owner ACCEPT는 사후 검증"
+        },
+        {
+          "name": "BASE_TEST_MERGE",
+          "status": "DEFERRED",
+          "where": "Final QA/Owner gate",
+          "reason": "최신 main, 정확한 test merge는 마지막 QA에서 재확인"
+        },
+        {
+          "name": "DOCUMENT_MEANING",
+          "status": "DEFERRED",
+          "where": "Final QA/Owner gate",
+          "reason": "문서 영향 의미 적합성은 Owner 수동 검토"
+        }
+      ]
+    }
+  },
+  "p2Before": {
+    "status": "FAIL",
+    "passed": 0,
+    "failed": 2,
+    "exitCode": 1,
+    "testSeconds": [
+      20.1,
+      38.5
+    ],
+    "raw": "/tmp/issue880-pr883-red"
+  },
+  "reworkFailures": {
+    "syntaxAndType": {
+      "lintExit": 1,
+      "syntax": "Parsing error: '}' expected",
+      "setupExit": 1,
+      "bodyNotRun": 2,
+      "typecheckExit": 2,
+      "type": "TS2322",
+      "ledger": "F880-R1-LOCAL-001"
+    },
+    "metadataVirtualRowPreparation": {
+      "exitCode": 1,
+      "passed": 1,
+      "failed": 1,
+      "timeoutMs": 180000,
+      "ledger": "F880-R1-LOCAL-002"
+    }
+  },
+  "p2After": {
+    "status": "PASS",
+    "passed": 2,
+    "failed": 0,
+    "skipped": 0,
+    "exitCode": 0,
+    "testSeconds": [
+      6.9,
+      27.6
+    ],
+    "duration": "1.2분",
+    "workers": 1,
+    "retries": 0,
+    "maxFailures": 0,
+    "raw": "/tmp/issue880-pr883-green-3",
+    "proofs": {
+      "schedule-view-selection-roundtrip": {
+        "selectedBefore": {
+          "instance": "svar-api-1",
+          "app": [
+            "0536130d-6a63-4161-b973-7230214190a3",
+            "8b6dea8b-544c-4852-b55f-f4f6aa7a5916"
+          ],
+          "primary": [
+            "8b6dea8b-544c-4852-b55f-f4f6aa7a5916"
+          ],
+          "clipboard": [
+            "0536130d-6a63-4161-b973-7230214190a3",
+            "8b6dea8b-544c-4852-b55f-f4f6aa7a5916"
+          ]
+        },
+        "afterRoundTrip": {
+          "instance": "svar-api-1",
+          "app": [
+            "0536130d-6a63-4161-b973-7230214190a3",
+            "8b6dea8b-544c-4852-b55f-f4f6aa7a5916"
+          ],
+          "primary": [
+            "8b6dea8b-544c-4852-b55f-f4f6aa7a5916"
+          ],
+          "clipboard": [
+            "0536130d-6a63-4161-b973-7230214190a3",
+            "8b6dea8b-544c-4852-b55f-f4f6aa7a5916"
+          ]
+        },
+        "afterRangeGesture": {
+          "instance": "svar-api-1",
+          "app": [
+            "66e617c0-6d1d-4254-8ce4-1163b18235e5",
+            "8b6dea8b-544c-4852-b55f-f4f6aa7a5916"
+          ],
+          "primary": [
+            "66e617c0-6d1d-4254-8ce4-1163b18235e5"
+          ],
+          "clipboard": [
+            "0536130d-6a63-4161-b973-7230214190a3",
+            "8b6dea8b-544c-4852-b55f-f4f6aa7a5916"
+          ]
+        },
+        "afterExplicitSelection": {
+          "instance": "svar-api-1",
+          "app": [
+            "66e617c0-6d1d-4254-8ce4-1163b18235e5"
+          ],
+          "primary": [
+            "66e617c0-6d1d-4254-8ce4-1163b18235e5"
+          ],
+          "clipboard": [
+            "0536130d-6a63-4161-b973-7230214190a3",
+            "8b6dea8b-544c-4852-b55f-f4f6aa7a5916"
+          ]
+        },
+        "afterExplicitRange": {
+          "instance": "svar-api-1",
+          "app": [
+            "66e617c0-6d1d-4254-8ce4-1163b18235e5",
+            "8b6dea8b-544c-4852-b55f-f4f6aa7a5916"
+          ],
+          "primary": [
+            "8b6dea8b-544c-4852-b55f-f4f6aa7a5916"
+          ],
+          "clipboard": [
+            "0536130d-6a63-4161-b973-7230214190a3",
+            "8b6dea8b-544c-4852-b55f-f4f6aa7a5916"
+          ]
+        },
+        "projectWrites": []
+      },
+      "schedule-view-viewport-refresh": {
+        "phases": [
+          {
+            "name": "다시 조회",
+            "before": {
+              "x": 120,
+              "y": 512
+            },
+            "after": {
+              "x": 120,
+              "y": 512
+            }
+          },
+          {
+            "name": "Editor 취소",
+            "before": {
+              "x": 120,
+              "y": 512
+            },
+            "after": {
+              "x": 120,
+              "y": 512
+            }
+          },
+          {
+            "name": "Editor 저장",
+            "before": {
+              "x": 120,
+              "y": 512
+            },
+            "after": {
+              "x": 120,
+              "y": 512
+            }
+          },
+          {
+            "name": "workspace 복귀",
+            "before": {
+              "x": 120,
+              "y": 512
+            },
+            "after": {
+              "x": 120,
+              "y": 512
+            }
+          },
+          {
+            "name": "새 wheel 우선",
+            "before": {
+              "x": 160,
+              "y": 576
+            },
+            "after": {
+              "x": 160,
+              "y": 576
+            }
+          }
+        ],
+        "logicalIndex": 2,
+        "anchorTop": 68,
+        "originalAnchor": {
+          "canonicalTaskId": "c894fbb6-f324-40a2-8688-2d8e5b0c8693",
+          "viewRowKey": "[\"resource\",\"[\\\"resource\\\",\\\"group\\\",\\\"19ee47fa-8e14-4601-9c83-d24ff32b6fa9\\\",\\\"resource\\\",\\\"060e7090-b61c-4422-9178-4aa75cbb7dfe\\\"]\",\"task\",\"c894fbb6-f324-40a2-8688-2d8e5b0c8693\"]",
+          "y": 65
+        },
+        "afterRename": {
+          "canonicalTaskId": "c894fbb6-f324-40a2-8688-2d8e5b0c8693",
+          "viewRowKey": "[\"resource\",\"[\\\"resource\\\",\\\"group\\\",\\\"19ee47fa-8e14-4601-9c83-d24ff32b6fa9\\\",\\\"resource\\\",\\\"060e7090-b61c-4422-9178-4aa75cbb7dfe\\\"]\",\"task\",\"c894fbb6-f324-40a2-8688-2d8e5b0c8693\"]",
+          "y": 65
+        },
+        "afterMembership": {
+          "canonicalTaskId": "c894fbb6-f324-40a2-8688-2d8e5b0c8693",
+          "viewRowKey": "[\"resource\",\"[\\\"resource\\\",\\\"group\\\",\\\"e77e19c2-af4e-41c8-b4f0-dd5b747a17b1\\\",\\\"resource\\\",\\\"060e7090-b61c-4422-9178-4aa75cbb7dfe\\\"]\",\"task\",\"c894fbb6-f324-40a2-8688-2d8e5b0c8693\"]",
+          "y": 65
+        },
+        "localeBefore": {
+          "x": 120,
+          "y": 68
+        },
+        "localeAfter": {
+          "x": 120,
+          "y": 68
+        }
+      }
+    }
+  },
+  "finalBrowser": {
+    "status": "PASS",
+    "plannedUniqueCases": 47,
+    "specs": [
+      "tests/e2e/schedule-views.spec.ts",
+      "tests/e2e/project-gantt-fullscreen.spec.ts",
+      "tests/e2e/project-gantt-scale.spec.ts",
+      "tests/e2e/project-task-editor.spec.ts"
+    ],
+    "workers": 1,
+    "retries": 0,
+    "maxFailures": 0,
+    "uniqueCases": 47,
+    "passed": 47,
+    "failed": 0,
+    "skipped": 0,
+    "exitCode": 0,
+    "duration": "10.3분",
+    "newViewCases": 6,
+    "existingAdjacentCases": 41,
+    "sourceStartEqualsEnd": true,
+    "sourceSha256": "1b165cd33266318c0e2b8c6e598a574e527b08ca7d01ced4759ebf536a09f280",
+    "raw": "/tmp/issue880-pr883-final47",
+    "newCaseTestSeconds": [
+      31.2,
+      22.4,
+      32.0,
+      25.5,
+      12.2,
+      49.6
+    ],
+    "proofs": {
+      "schedule-view-selection-roundtrip": {
+        "selectedBefore": {
+          "instance": "svar-api-1",
+          "app": [
+            "69d7f405-04de-49fa-9bf2-7ed87ef6f444",
+            "84272e0a-37b6-4cc9-8ee1-27e7a15ddd26"
+          ],
+          "primary": [
+            "69d7f405-04de-49fa-9bf2-7ed87ef6f444"
+          ],
+          "clipboard": [
+            "69d7f405-04de-49fa-9bf2-7ed87ef6f444",
+            "84272e0a-37b6-4cc9-8ee1-27e7a15ddd26"
+          ]
+        },
+        "afterRoundTrip": {
+          "instance": "svar-api-1",
+          "app": [
+            "69d7f405-04de-49fa-9bf2-7ed87ef6f444",
+            "84272e0a-37b6-4cc9-8ee1-27e7a15ddd26"
+          ],
+          "primary": [
+            "69d7f405-04de-49fa-9bf2-7ed87ef6f444"
+          ],
+          "clipboard": [
+            "69d7f405-04de-49fa-9bf2-7ed87ef6f444",
+            "84272e0a-37b6-4cc9-8ee1-27e7a15ddd26"
+          ]
+        },
+        "afterRangeGesture": {
+          "instance": "svar-api-1",
+          "app": [
+            "15ca1ba1-3b39-4d0c-a217-a6fee7b2dd20",
+            "69d7f405-04de-49fa-9bf2-7ed87ef6f444"
+          ],
+          "primary": [
+            "15ca1ba1-3b39-4d0c-a217-a6fee7b2dd20"
+          ],
+          "clipboard": [
+            "69d7f405-04de-49fa-9bf2-7ed87ef6f444",
+            "84272e0a-37b6-4cc9-8ee1-27e7a15ddd26"
+          ]
+        },
+        "afterExplicitSelection": {
+          "instance": "svar-api-1",
+          "app": [
+            "15ca1ba1-3b39-4d0c-a217-a6fee7b2dd20"
+          ],
+          "primary": [
+            "15ca1ba1-3b39-4d0c-a217-a6fee7b2dd20"
+          ],
+          "clipboard": [
+            "69d7f405-04de-49fa-9bf2-7ed87ef6f444",
+            "84272e0a-37b6-4cc9-8ee1-27e7a15ddd26"
+          ]
+        },
+        "afterExplicitRange": {
+          "instance": "svar-api-1",
+          "app": [
+            "15ca1ba1-3b39-4d0c-a217-a6fee7b2dd20",
+            "69d7f405-04de-49fa-9bf2-7ed87ef6f444"
+          ],
+          "primary": [
+            "69d7f405-04de-49fa-9bf2-7ed87ef6f444"
+          ],
+          "clipboard": [
+            "69d7f405-04de-49fa-9bf2-7ed87ef6f444",
+            "84272e0a-37b6-4cc9-8ee1-27e7a15ddd26"
+          ]
+        },
+        "projectWrites": []
+      },
+      "schedule-view-viewport-refresh": {
+        "phases": [
+          {
+            "name": "다시 조회",
+            "before": {
+              "x": 120,
+              "y": 512
+            },
+            "after": {
+              "x": 120,
+              "y": 512
+            }
+          },
+          {
+            "name": "Editor 취소",
+            "before": {
+              "x": 120,
+              "y": 512
+            },
+            "after": {
+              "x": 120,
+              "y": 512
+            }
+          },
+          {
+            "name": "Editor 저장",
+            "before": {
+              "x": 120,
+              "y": 512
+            },
+            "after": {
+              "x": 120,
+              "y": 512
+            }
+          },
+          {
+            "name": "workspace 복귀",
+            "before": {
+              "x": 120,
+              "y": 512
+            },
+            "after": {
+              "x": 120,
+              "y": 512
+            }
+          },
+          {
+            "name": "새 wheel 우선",
+            "before": {
+              "x": 160,
+              "y": 576
+            },
+            "after": {
+              "x": 160,
+              "y": 576
+            }
+          }
+        ],
+        "logicalIndex": 2,
+        "anchorTop": 68,
+        "originalAnchor": {
+          "canonicalTaskId": "5d37bb6f-cbd1-45be-bbcb-e470f0295715",
+          "viewRowKey": "[\"resource\",\"[\\\"resource\\\",\\\"group\\\",\\\"29774a74-a981-4873-a4b3-ebd32f4eff87\\\",\\\"resource\\\",\\\"619aa093-3f87-41ef-9b22-4709b86960ff\\\"]\",\"task\",\"5d37bb6f-cbd1-45be-bbcb-e470f0295715\"]",
+          "y": 65
+        },
+        "afterRename": {
+          "canonicalTaskId": "5d37bb6f-cbd1-45be-bbcb-e470f0295715",
+          "viewRowKey": "[\"resource\",\"[\\\"resource\\\",\\\"group\\\",\\\"29774a74-a981-4873-a4b3-ebd32f4eff87\\\",\\\"resource\\\",\\\"619aa093-3f87-41ef-9b22-4709b86960ff\\\"]\",\"task\",\"5d37bb6f-cbd1-45be-bbcb-e470f0295715\"]",
+          "y": 65
+        },
+        "afterMembership": {
+          "canonicalTaskId": "5d37bb6f-cbd1-45be-bbcb-e470f0295715",
+          "viewRowKey": "[\"resource\",\"[\\\"resource\\\",\\\"group\\\",\\\"369abbac-e6cd-4eea-ab02-2eca6e5f5ebe\\\",\\\"resource\\\",\\\"619aa093-3f87-41ef-9b22-4709b86960ff\\\"]\",\"task\",\"5d37bb6f-cbd1-45be-bbcb-e470f0295715\"]",
+          "y": 65
+        },
+        "localeBefore": {
+          "x": 120,
+          "y": 68
+        },
+        "localeAfter": {
+          "x": 120,
+          "y": 68
+        }
+      }
+    },
+    "cleanup": {
+      "ownNext": 0,
+      "port3100Listeners": 0,
+      "isolatedDist": 0,
+      "isolatedDb": 0,
+      "generatedTrackedFilesPreservedThenRestored": 3
+    }
+  },
+  "automaticPrepr": {
+    "status": "BLOCKED",
+    "runs": [
+      {
+        "mode": "fast",
+        "status": "BLOCKED",
+        "unknown": 7,
+        "missing": 0,
+        "sourceStable": true,
+        "errors": [
+          "BLOCKED: unknown/missing impacted tests; Manager must map scope before local PASS"
+        ]
+      },
+      {
+        "mode": "targeted",
+        "status": "BLOCKED",
+        "unknown": 7,
+        "missing": 0,
+        "sourceStable": true,
+        "errors": [
+          "BLOCKED: unknown/missing impacted tests; Manager must map scope before local PASS"
+        ]
+      }
+    ],
+    "policyChanged": false
+  },
+  "localExcluded": {
+    "wholeUnit": "R1은 클라이언트 선택·viewport만 수정했다. 직접·인접 Unit과 Chromium47을 선정하며 server/domain/dependency/build 정책은 불변이다. 이전3738 PASS/기존3SKIP은 역사이며 새 Head Full CI가 필수다.",
+    "productionBuild": "이전 소스 PASS를 승계하지 않는다. 최종 브라우저는 실제 Next·HTTP·SQLite를 실행하며 정확 Head의 production build는 GitHub Quality에서 필수다.",
+    "docker": "Docker·배포 변경 없음. 원격 Required Docker는 필수이며 NOT TESTED다."
+  },
+  "remote": {
+    "quality": "NOT TESTED",
+    "chromium8": "NOT TESTED",
+    "docker": "NOT TESTED",
+    "trusted": "NOT TESTED",
+    "owner": "NOT TESTED",
+    "manager": "NOT TESTED",
+    "mergeReady": "BLOCKED",
+    "monitorAfterRegistration": false
+  },
+  "risk": {
+    "riskLevel": "HIGH",
+    "qaRequired": true,
+    "qaMethod": "OWNER_MANAGED",
+    "releaseRequired": true,
+    "releaseAuthorized": false
+  },
+  "preQa": {
+    "status": "PASS",
+    "reviewer": "/root/preqa",
+    "method": "별도 read-only qa_docs의 사전 기술검토이며 인간 QA_FINAL·Owner 승인과 구별한다.",
+    "unresolvedDirectP1P2": 0,
+    "sourceSha256": "1b165cd33266318c0e2b8c6e598a574e527b08ca7d01ced4759ebf536a09f280",
+    "sourceDrift": 0,
+    "scope": "동결 1310입력·최종47실행·직접/인접Unit·문서 의미·보안 경계에 한정한 사전 기술검토. 인간 QA_FINAL·Owner 승인·Manager ACCEPT가 아니다."
+  },
+  "residualRisks": [
+    "실제 screen reader·터치 기기·native125%·장기 대용량 운영은 NOT TESTED다.",
+    "새 Head 공식 원격 회귀와 Owner·Manager 승인은 NOT TESTED다."
+  ]
+}

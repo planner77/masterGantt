@@ -1,4 +1,16 @@
+## REWORK R1 — Full #3533.1 metadata 실패와 P2 상태 보존 (현재 단계)
+
+사용자 요청 종료점은 PR #883 새 Full CI 등록이다. 원본 Run42301302919.1은 Preflight의 QA_REQUIRED 독립 줄 누락 직접FAIL/PATH_POLICY파생이며 실제 품질·8Chromium·Docker는 SKIPPED/NOT RUN이다. 본문 flag형식은 검증기를 바꾸지 않고 실제 captured PR payload→base preflight 전체 replay로 beforeFAIL2/afterPASS(실패0)·최종5DEFERRED를 확인했다. [누적 원장 R1](../../ISSUE_880_FAILURE_ANALYSIS.md)의 원본결과를 보존한다.
+
+미해결P2 다중선택/Copy왕복 손실과 projected source재조회/Editor/peer복귀 viewport손실을 수정전실제RED로 재현하고 frontend가 보완한다. TEST_LIFECYCLE_REVIEW=EXTEND 기존 schedule-views의 공유 fixture/선택/viewport·readonly/error·85Task/준비 경계, KEEP_UNIQUE 기존 scale/fullscreen/Editor/canonical/Coordinator·HTTP/SQLite·preflight11이다. Manager 문서·원장/통합,frontend 제품,테스트Agent spec/fixture,qa_docs read-only 기술검토,infra 원격이력·GitData게시를 소유하고 Issue댓글은Manager만 작성한다.
+
+baseline/head=f9bdd26df8196c11f24b4ab90223a3ada00d4cbd,main=229604522969133d1ccc6de0477e373252670c86. 후보0.143.0/HIGH/OWNER_MANAGED/qa_required=true/release_required=true/release_authorized=false 유지. 새 Head의 이전CI/QA판정은stale이며 동결 소스의 재검증·문서 의미/리뷰/충돌을 확인한 뒤 CI를 시작한다. 이후모니터링·병합·GHCR·Issue종료는수행하지 않는다. 현재PR_READY/LOCAL_VALIDATED,MERGE_READY BLOCKED/새원격·Owner/Manager NOT TESTED다. 아래 최초 구현 검증은 역사이며 재사용 범위는 새 보완의 영향 선정에서 명시한다.
+
+R1의동결입력1310 SHA256은 `1b165cd33266318c0e2b8c6e598a574e527b08ca7d01ced4759ebf536a09f280`(sorted-path-sha256-map/json-compact/sort-keys)이며원래PR의변경입력22개중추가delta는Gantt/panel/spec3개뿐이다. P2직접2/2PASS·전체typecheck·변경lint0error/4warning(기존3+새captureBookmark dependency1)·선정Unit7파일175PASS·discovery303Unit/890browser(root/externalcwd)·version/cache/preflight11PASS다. wholeUnit/productionbuild/Docker의로컬반복제외는코드영향선정이며이전Head전체PASS승계가아니다. 정제근거는 [R1 local](../../evidence/issue-880/rework-r1-local.json)에서이전실패와분리한다. 최종47case는47/47PASS/FAIL0/SKIP0(exit0,10.3분),1310입력시작=종료이며기존45와합산하지않는다. 최종제안본문·현재Issue AC·전체47경로·Packet의base checker replay는PASS(실패0)/최종5DEFERRED,자동fast/targeted는UNKNOWN7/missing0/sourceStable=true/BLOCKED다. 원격Head 검증/Owner판정으로확대하지않으며별도read-only `/root/preqa`의동결소스·실제47증거·문서/보안사전기술검토PASS/직접P1·P2=0이다. 인간QA_FINAL·Owner/Manager승인이아니며공개candidate수정근거로기존두리뷰thread를처리하고최신main/head/충돌lease및실제localcommit의base checker를재확인후동일Tree를게시한다.
+
 # Issue #880 — 일정 WBS / Resource / 설비 View
+
+다음 최초 Work Packet과 수치는 초기 Head의 이력이다. R1의 현재 판정·소스·선정 및 증거는 위 R1 절과 누적 원장을 우선한다.
 
 ## Issue Work Packet
 
@@ -78,6 +90,9 @@ Design Delta B: 기존 파란 Light/system font/semantic token/내부 scroll/키
 - `docs/exec-plans/active/PLAN.md`: UPDATED
 - `docs/ISSUE_880_FAILURE_ANALYSIS.md`: UPDATED
 - `docs/evidence/issue-880/local-validation.json`: UPDATED
+- `docs/evidence/issue-880/ci3533-source.json`: UPDATED
+- `docs/evidence/issue-880/preflight-r1-replay.json`: UPDATED
+- `docs/evidence/issue-880/rework-r1-local.json`: UPDATED
 - `docs/REQUIREMENTS.md`: UPDATED
 - `docs/ARCHITECTURE.md`: UPDATED
 - `docs/PROJECT_UX.md`: UPDATED

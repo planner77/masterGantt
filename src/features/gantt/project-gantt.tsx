@@ -4636,8 +4636,17 @@ export function ProjectGantt({
               setTaskMenu(null); setRelationMenu(null); setColumnMenuPosition(null);
               setScheduleView(next);
               if (next === "wbs") requestAnimationFrame(() => {
-                const id = selectedTaskIdsReference.current[0];
-                if (id && tasksByIdReference.current.has(id)) applySelectionGesture(id, "single", true, true);
+                const api = apiReference.current;
+                if (!api || scheduleViewReference.current !== "wbs") return;
+                const selected = selectedTaskIdsReference.current.filter(id => tasksByIdReference.current.has(id));
+                // A presentation transition is not a new selection gesture.
+                // Keep the existing primary, Copy roots and Shift anchor when
+                // they still belong to the application selection.
+                if ((api.getState().selected ?? []).some(id => selected.includes(String(id)))) return;
+                const primary = selected.at(-1);
+                if (!primary) return;
+                void api.exec("select-task", { id: primary, show: false, eventSource: "project-owned-selection" });
+                void viewportCoordinatorReference.current?.request({ kind: "TASK_REVEAL", taskId: primary });
               });
             }}>
             <option value="wbs">WBS</option><option value="resource">Resource</option><option value="equipment">{t("설비")}</option>
@@ -4673,10 +4682,10 @@ export function ProjectGantt({
       </div>
       {scheduleView !== "wbs" ? <ScheduleViewPanel
         key={projectPublicId} view={scheduleView} projectPublicId={projectPublicId} projectRevision={projectRevision}
-        tasks={tasks} visibleTaskIds={projection.membershipIds}
+        tasks={tasks} visibleTaskIds={projection.membershipIds} contextKey={viewportContinuityKey}
         scaleMode={scaleMode} cellHeight={ganttCellHeight} readApi={readScheduleApi}
         selectedTaskIds={selectedTaskIds} active={projectViewVisible} blocked={projectMutationLocked || mutationPending || canonicalRecoveryBlocked}
-        onSelect={id => updateSelection([id])}
+        onSelect={id => applySelectionGesture(id, "single", false, false)}
         onOpenTask={id => { if (!projectMutationLocked && !mutationPending && !canonicalRecoveryBlocked && tasksByIdReference.current.has(id)) onTaskEditorOpenReference.current(id); }}
       /> : null}
       <div hidden={scheduleView !== "wbs"} inert={scheduleView !== "wbs"}

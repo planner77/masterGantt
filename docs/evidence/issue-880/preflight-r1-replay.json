@@ -1,0 +1,216 @@
+{
+  "schema": "mastergantt-preflight-data-replay/1",
+  "issue": 880,
+  "pr": 883,
+  "originalRun": 42301302919,
+  "runAttempt": 1,
+  "scope": "실제 PR883 metadata·Issue AC·원본 Head Work Packet과 변경 경로를 변경하지 않은 base 검증기에 로컬 재생했다. GitHub CI·Trusted·Owner 판정이 아니다.",
+  "validatorBase": "229604522969133d1ccc6de0477e373252670c86",
+  "validatorBlobs": {
+    "qa_preflight.py": "fddc59869040da25d61cfff79e08c86e267b1b17",
+    "qa_final_automated.py": "03d2f4151a5c98f70c94b0fd490b7b03b2b94d8f"
+  },
+  "before": {
+    "status": "FAIL",
+    "issue": 880,
+    "pr": 883,
+    "head_sha": "f9bdd26df8196c11f24b4ab90223a3ada00d4cbd",
+    "base_sha": "229604522969133d1ccc6de0477e373252670c86",
+    "protected_paths": [
+      "docs/CI_CD.md",
+      "docs/REMOTE_VALIDATION.md",
+      "docs/SECURITY.md",
+      "package-lock.json",
+      "package.json",
+      "tests/config/e2e-shard-plan.json"
+    ],
+    "risk_floor": null,
+    "qa_method": "OWNER_MANAGED",
+    "rule_version": "629-preflight-v1",
+    "checks": [
+      {
+        "name": "PRIMARY_ISSUE",
+        "status": "PASS",
+        "where": "PR title 및 PR 본문 단일 Refs #N"
+      },
+      {
+        "name": "RISK_LEVEL",
+        "status": "PASS",
+        "where": "PR body: risk_level"
+      },
+      {
+        "name": "QA_METHOD",
+        "status": "PASS",
+        "where": "PR body: qa_method"
+      },
+      {
+        "name": "QA_REQUIRED",
+        "status": "FAIL",
+        "where": "PR body: qa_required",
+        "reason": "qa_required: 정확히 한 개의 선언 필요"
+      },
+      {
+        "name": "RELEASE_REQUIRED",
+        "status": "PASS",
+        "where": "PR body: release_required (선택)"
+      },
+      {
+        "name": "RELEASE_AUTHORIZED",
+        "status": "PASS",
+        "where": "PR body: release_authorized (선택)"
+      },
+      {
+        "name": "PATH_POLICY",
+        "status": "FAIL",
+        "where": "PR diff (rename 원본 포함), risk_level/qa_required/release 플래그",
+        "reason": "위험도/QA 선언 오류를 먼저 수정"
+      },
+      {
+        "name": "ISSUE_AC",
+        "status": "PASS",
+        "where": "Issue #880 Acceptance Criteria"
+      },
+      {
+        "name": "DOCUMENTATION_SYNC",
+        "status": "PASS",
+        "where": "docs/exec-plans/active/ISSUE_880.md: DOCUMENTATION_SYNC / AC_TEST_COVERAGE"
+      },
+      {
+        "name": "MERGE_CONFLICT",
+        "status": "DEFERRED",
+        "where": "GitHub PR mergeability",
+        "reason": "사전 시점의 계산은 최종 test-merge 증거가 아님"
+      },
+      {
+        "name": "LATEST_FULL_CI",
+        "status": "DEFERRED",
+        "where": "Final QA/Owner gate",
+        "reason": "세 required aggregate/run/attempt는 아직 완료되지 않음"
+      },
+      {
+        "name": "REVIEW_OWNER",
+        "status": "DEFERRED",
+        "where": "Final QA/Owner gate",
+        "reason": "최종 review thread·Trusted QA·Owner ACCEPT는 사후 검증"
+      },
+      {
+        "name": "BASE_TEST_MERGE",
+        "status": "DEFERRED",
+        "where": "Final QA/Owner gate",
+        "reason": "최신 main, 정확한 test merge는 마지막 QA에서 재확인"
+      },
+      {
+        "name": "DOCUMENT_MEANING",
+        "status": "DEFERRED",
+        "where": "Final QA/Owner gate",
+        "reason": "문서 영향 의미 적합성은 Owner 수동 검토"
+      }
+    ],
+    "deterministic_failures": 2,
+    "decision": "Preflight is not QA_FINAL PASS or MERGE_READY"
+  },
+  "afterMetadataCorrection": {
+    "status": "PASS",
+    "issue": 880,
+    "pr": 883,
+    "head_sha": "f9bdd26df8196c11f24b4ab90223a3ada00d4cbd",
+    "base_sha": "229604522969133d1ccc6de0477e373252670c86",
+    "protected_paths": [
+      "docs/CI_CD.md",
+      "docs/REMOTE_VALIDATION.md",
+      "docs/SECURITY.md",
+      "package-lock.json",
+      "package.json",
+      "tests/config/e2e-shard-plan.json"
+    ],
+    "risk_floor": "HIGH",
+    "qa_method": "OWNER_MANAGED",
+    "rule_version": "629-preflight-v1",
+    "checks": [
+      {
+        "name": "PRIMARY_ISSUE",
+        "status": "PASS",
+        "where": "PR title 및 PR 본문 단일 Refs #N"
+      },
+      {
+        "name": "RISK_LEVEL",
+        "status": "PASS",
+        "where": "PR body: risk_level"
+      },
+      {
+        "name": "QA_METHOD",
+        "status": "PASS",
+        "where": "PR body: qa_method"
+      },
+      {
+        "name": "QA_REQUIRED",
+        "status": "PASS",
+        "where": "PR body: qa_required"
+      },
+      {
+        "name": "RELEASE_REQUIRED",
+        "status": "PASS",
+        "where": "PR body: release_required (선택)"
+      },
+      {
+        "name": "RELEASE_AUTHORIZED",
+        "status": "PASS",
+        "where": "PR body: release_authorized (선택)"
+      },
+      {
+        "name": "PATH_POLICY",
+        "status": "PASS",
+        "where": "PR diff (rename 원본 포함), risk_level/qa_required/release 플래그"
+      },
+      {
+        "name": "ISSUE_AC",
+        "status": "PASS",
+        "where": "Issue #880 Acceptance Criteria"
+      },
+      {
+        "name": "DOCUMENTATION_SYNC",
+        "status": "PASS",
+        "where": "docs/exec-plans/active/ISSUE_880.md: DOCUMENTATION_SYNC / AC_TEST_COVERAGE"
+      },
+      {
+        "name": "MERGE_CONFLICT",
+        "status": "DEFERRED",
+        "where": "GitHub PR mergeability",
+        "reason": "사전 시점의 계산은 최종 test-merge 증거가 아님"
+      },
+      {
+        "name": "LATEST_FULL_CI",
+        "status": "DEFERRED",
+        "where": "Final QA/Owner gate",
+        "reason": "세 required aggregate/run/attempt는 아직 완료되지 않음"
+      },
+      {
+        "name": "REVIEW_OWNER",
+        "status": "DEFERRED",
+        "where": "Final QA/Owner gate",
+        "reason": "최종 review thread·Trusted QA·Owner ACCEPT는 사후 검증"
+      },
+      {
+        "name": "BASE_TEST_MERGE",
+        "status": "DEFERRED",
+        "where": "Final QA/Owner gate",
+        "reason": "최신 main, 정확한 test merge는 마지막 QA에서 재확인"
+      },
+      {
+        "name": "DOCUMENT_MEANING",
+        "status": "DEFERRED",
+        "where": "Final QA/Owner gate",
+        "reason": "문서 영향 의미 적합성은 Owner 수동 검토"
+      }
+    ],
+    "deterministic_failures": 0,
+    "decision": "Preflight is not QA_FINAL PASS or MERGE_READY"
+  },
+  "onlyDataMutation": [
+    "qa_required=true 독립 줄",
+    "release_required=true 독립 줄",
+    "release_authorized=false 독립 줄"
+  ],
+  "regressionPolicyChanged": false,
+  "remoteFinalResults": "NOT TESTED"
+}

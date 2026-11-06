@@ -2,6 +2,10 @@
 
 Primary Issue: [#880](https://github.com/planner77/masterGantt/issues/880). Source of truth: [PR CI 실패 처리](PR_CI_FAILURE_TRIAGE.md). 갱신일: 2026-11-07.
 
+## 현재 판정 — R1
+
+PR #883 원본 Full #3533.1/42301302919.1은 qa_required 독립 줄 누락으로 FAIL했다. 실제 Quality/E2E/Docker 구현은 SKIPPED/NOT RUN이다. 문서 하단 R1에 원본 출처·실제 P2 RED·보완 중 실패와 재검증을 누적한다. 새 Head 원격/Owner/Manager는 NOT TESTED이며 요청 종료점은 새 Full CI 등록이다. 다음 최초 등록 전 이력은 당시 snapshot으로 보존한다.
+
 ## Run/Attempt 전체 목록
 
 착수 시 GitHub Issue 본문/전체 댓글 및 `880` 관련 PR 검색 결과 기존 PR·CI 이력은 없다. 이는 제품 테스트 PASS가 아니다. 신규 PR Full CI 시작까지만 수행하며 이후 결과는 수집하지 않는다.
@@ -127,3 +131,97 @@ Primary Issue: [#880](https://github.com/planner77/masterGantt/issues/880). Sour
 - Manager는 연결 GitHub 앱의 GitData API로 같은 최종 파일 Tree를 게시하는 대안을 승인했다. 이미 만든 content-addressed blob은 실행/branch가 아니며 원격commit/branch/PR 전에 이 운영 실패를 문서·원장에 반영한다. 전역 git/gh 인증이나 Secret을 임의 변경하지 않는다.
 - GitData create_commit 도구는 author/date를 지정하지 못하므로 원격 commit SHA가 로컬 SHA와 달라질 수 있다. 원본 로컬commit을 보존하고 최종 로컬 Tree SHA·변경입력22개/PNG3개 blob·부모 main을 원격에서 재검증한 뒤 실제 PR 원격Head를 본문/CI 조회/Issue STATUS에 사용한다. SHA 동일성을 추정하거나 결과를 혼합하지 않는다.
 - 본 커밋은 GitData 재개 직전 snapshot이다. 최종 로컬commit/원격Head·Tree 동등성/PR/CI Run·attempt는 Issue STATUS에서 이어 기록한다. 원격 gate/Owner/Manager ACCEPT는 여전히 NOT TESTED다.
+
+
+## R1 — PR #883 Full #3533.1 및 미해결 P2 보완 (2026-11-07)
+
+본 절부터는 최초 PR 등록 뒤 사용자의 CI 실패 보완 요청으로 재개한 이력이다. 앞의 등록 전 snapshot과 L001~011은 당시 근거로 보존한다. 기존 로컬 PASS를 새 Head/원격 PASS로 바꾸지 않는다.
+
+### 원본 Run/Attempt 및 파생 실패
+
+- 원본 Full: [#3533.1 / Run42301302919](https://github.com/planner77/masterGantt/actions/runs/42301302919),pull_request/opened,attempt1,최종 FAILURE. Head `f9bdd26df8196c11f24b4ab90223a3ada00d4cbd` / base `229604522969133d1ccc6de0477e373252670c86` / 등록 PR test merge `0d4ecddd7f46550cf8caf7c4e9cacb9547734d51`. 원본 ci-pr-source artifact와 GitHub 전체 실행 provenance는 별도 정제 증거로 추가한다.
+- FAST_DEVELOPMENT #288.1/42301302977 SKIPPED는 공식 회귀 근거가 아니다. 현재 조회에서 metadata run0이며 infra가 pagination/attempt/Trusted 전체를 교차 확인한다.
+- 직접 실패: QA Preflight Job128179660470,step4 `원본 base SHA의 QA Preflight 실행 (read-only)`,2026-11-06T22:01:14Z. FAIL2는 QA_REQUIRED `qa_required: 정확히 한 개의 선언 필요` 및 그 파생 PATH_POLICY `위험도/QA 선언 오류를 먼저 수정`. elapsed2.107초,DEFERRED5. PRIMARY_ISSUE/RISK_LEVEL/QA_METHOD/선택release플래그/ISSUE_AC/DOCUMENTATION_SYNC는 PASS였다.
+- 파생: Fast Gate128179832051,Required Quality128179955262/E2E128179955381/Docker128179955126,QA Final Automated128180005623 FAILURE. 실제 Type128179833063/Vitest128179833274/ESLint128179833435/Policy128179833853/Build128179957482/Chromium128179957032/Docker128179956983는 SKIPPED/NOT RUN이다. 원본에는 실제 테스트 assertion 실패가 없다.
+- 원본 Preflight artifact: [13543668166](https://github.com/planner77/masterGantt/actions/runs/42301302919/artifacts/13543668166),ZIP SHA256 `093b0c9b71a6b8bf02f13db399198f1bdd304a8971acf6bac711aa3bbca7bf23`. 원본 FAIL은 불변이다.
+
+### F880-CI-001 — PR 기계 선언 형식 누락
+
+분류 POLICY_CI/PR_METADATA. 본문의 `qa_required=true`는 prose의 backtick 안에만 있고 `_unique_field`가 요구하는 독립 줄 선언이0개였다. release_required/release_authorized도 선택 parser에서 선언으로 인식되지 않은 상태였다. 중복 선언/지원값 오류를 후보로 배제했고 inline 선언0개가 exact원인임을 재현했다.
+
+실제 PR 본문·Issue AC·Head/base·전체 변경 파일44개·원본 Head Packet을 unchanged base `qa_preflight.check`에 replay했다. `/tmp/issue880-preflight-replay.py`: before FAIL2 `[QA_REQUIRED,PATH_POLICY]` → 독립 줄 `qa_required=true`, `release_required=true`, `release_authorized=false`를 데이터에만 추가한 after PASS(실패0)/최종QA5개DEFERRED,exit0. local `.prepr-reports/issue880-rework-r1/preflight-{before,after}.json`에 정제 결과를 보존했다. rawPR본문/로컬 재생 harness는 공개 소스 실행이나 서버 원격 QA PASS가 아니다. 검증기/정책은 수정하지 않는다. PR 본문은 게시 직전 한 번에 교정한다.
+
+### 리뷰 실제 실패 집합 및 보완 계획
+
+| 실패/리뷰 ID | 원본 증상·파일 | 전체 이력 관계와 검증 계획 |
+| --- | --- | --- |
+| F880-CI-001 | 실제 PR 본문 qa_required 독립줄0,Preflight128179660470 | 이전 로컬은docs_gate만 확인해 이 metadata 계약을 놓쳤다. 전체 base preflight에 실제 payload replay하여 sibling flags/docs/AC까지 확인한다. |
+| R880-P2-001 · discussion4498098345 | project-gantt.tsx WBS복귀가firstTask single-selection gesture로다중선택축소 | 이전45case의 WBS instance/viewport 검사에는 실제 multi-selection·Copy왕복이 없어 검출되지 않았다. 수정 전 실제선택/Copy RED,같은 canonical 전체선택/anchor/clipboard 유지·readonly/no-write 회귀를 확장한다. |
+| R880-P2-002 · discussion4498098352 | schedule-view-panel.tsx blocked/refresh/active source무효화로canvas제거·scroll0 | 이전검사는Editor focus/단일PATCH와WBSviewport였으며 projected뷰nonzeroX/Y재조회 보존이빠졌다. 수정 전 Editor/refresh/peer 재조회 RED,stale/권한실패 차단·의미앵커/최신입력/축변경 음성을 함께검증한다. |
+
+원격 실제 테스트 실패 합집합은 아직0이고 metadata직접실패1종과 제품리뷰2종을 구별한다. 누적 로컬 실패 L005/L007/L008/L009의 동일 schedule-views fixture/오라클 경계도 새 후보의 재검증 합집합에 포함하며 timeout/retry/허용오차·skip·Required3/8shard를 완화하지 않는다. 현재 재현/보완 중,새 Head QA/CI/Owner/Manager는 NOT TESTED다.
+
+
+### R1 원격 출처 전체 대조 완료
+
+[ci3533-source.json](evidence/issue-880/ci3533-source.json)은 관련PR883만·branch Full1/metadata0/FAST1,모두attempt1을 확인했다. Full23jobs=SUCCESS3/FAILURE6/SKIPPED14이며 취소0·실제품질/E2E8/Docker구현실행0이다. 원본 source artifact13544197575는ZIPdigest/JSON정적읽기만으로 repository/run/attempt/PR883·Head/base/test-merge와두부모(base2296+headf9)·Tree69930b86fb316a4d87871fc44899add72520e928·commit→PR단일귀속을 교차확인했다. 원본 Trusted #1180.1/Run42301509594(Job128180179625)은 main validator229604522969133d1ccc6de0477e373252670c86에서 원본CI FAIL로 조기종료했고 report head/base=null이다. 원격source검증PASS나독립QA로확대하지 않는다. metadata reconcile#1080/진단#375 SUCCESS는보조 실행이며 metadataCI0/FullFAIL불변이다.
+
+
+### R1 제품 RED 실증 및 가설
+
+명령: `npx playwright test --config tests/config/playwright.config.ts tests/e2e/schedule-views.spec.ts --project chromium --workers=1 --retries=0 --max-failures=0 --grep '#880 P2'`. 원래제품f9bdd26d에서2 FAIL(exit1,20.1/38.5초),제품3파일+테스트5입력 before/after SHA동일. 원본 log/context/trace는 `/tmp/issue880-pr883-red`로보존하고정상종료후ownNext/isolateddist/DB잔여0을확인했다.
+
+- R880-P2-001: app선택[A,B]→[A],Core primary[B]→[A]. 기존clipboard[A,B]는직후남아도재Copy[A]로축소되고Shift+C가[B,C]대신[A,B,C]가된다. canonical write0·sameinstance는유지돼저장/마운트실패와구별한다.
+- R880-P2-002: 실제projectedX120/Y512→refresh0/0,Editor취소·PATCH200저장·workspace복귀후0/714. pendingGET중실제wheel로기대160/576을만들어도0/0이며응답후에도0/0. loadingcanvas제거와자동selectedreveal이사용자위치를덮는실제증상이다.
+- 검증 전 가설순위:①WBSreturn single gesture가선택/anchor/Core를새로정의,②source무효화의canvas부재로capacity0/nativeclamp,③재조회selectedreveal/일회X초기화가clamp된좌표를보존하지못함. Core readonly재초기화/별도selection boundary축소도대조후배제한다.
+- 교정범위:무Task조작왕복은전체선택·primary·anchor·clipboard보존,비WBS명시Task선택은새선택의도우선. 재수집중이전source는geometry만제공하고실제Taskrows/Editor활성0을유지한다. 현재project/view/scale/scope/filter/layout·request/intent가맞을때만원본행/날짜북마크를복구하며새wheel/key/권한/stale/응답역전은우선한다. WBS에새좌표writer를추가하지않는다.
+
+TEST_LIFECYCLE_REVIEW=EXTEND 기존spec에고유P2두case만추가(6case=기존4+추가2),KEEP_UNIQUE 기존fullscreen6/scale2/TaskEditor33. 최종고유회귀47case/4spec로검증한다. RED2는이전45나향후47PASS와합산하지않는다. 현재제품교정중,원본RED·원격FAIL은불변이다.
+
+
+### F880-R1-LOCAL-001 — 첫 보완의 TSX 구문 오류와 준비 단계 실패
+
+첫 보완의 P2 두 case GREEN 시도는 setup warmup의 Project 페이지 HTTP500/health500으로 각1ms에 종료했다(exit1,본문2개NOT RUN). 동시에 수행한 변경파일ESLint는 `schedule-view-panel.tsx:320 Parsing error: '}' expected`를 검출했다. 새 `visibleRows` 함수의닫는 `};` 누락이 직접원인이다. fixture transport/환경장애로확정하거나제품assertion실패로합산하지않는다. 원본 `/tmp/issue880-pr883-green`과 `.prepr-reports/issue880-rework-r1/changed-lint.log`를보존했고 ownNext/orphan/dist/DB잔여0이다.
+
+Manager가문법검사를브라우저보다먼저완료했어야했다. frontend가구문을수정한뒤 lint/typecheck를선행한다. timeout/retry/skip/허용오차는바꾸지않는다. 별도read-only검토에서같은P2의freshGET receipt동일성(Editor/peer sourceKey왕복)과locale을화면identity로취급해geometry를제거하는경로를추가검출했다. 새source당검증세대를구별하고locale표시만갱신하면서semantic row/date앵커를유지하도록같은보완에포함한다.
+
+후속 선행typecheck는ancestor loop의 `string|null`에 `undefined`를대입한TS2322로exit2였다. `byKey.get(parent)?.parentViewRowKey ?? null`로종료값을명시한뒤전체typecheck exit0/PASS했다. `any`나컴파일옵션완화없이수정했고첫실패log도그대로보존한다. 변경파일lint는교정후exit0/기존warning3이었다.
+
+
+### R1 Local Fast Feedback 선정·제외
+
+R1의제품변경은클라이언트2파일의선택/조회viewport다. sourceAPI/DB/Scheduling/의존성/build·CI정책은변경하지않았다. 직접·인접Unit7파일175개(task-selection/viewport-coordinator/canonical-projection/projection-settled/peer-viewport-capture/schedule-view-projection/sourceHTTP·SQLite)PASS,전체typecheck교정후PASS,변경lintPASS/기존warning3,version/cache/Pythonpreflight11PASS다.
+
+wholeUnit/production build/Docker의로컬반복은영향선정상제외한다. 이전Head의3738Unit/build PASS를새소스PASS로승계하지않는다. 실제Next·HTTP/SQLite를사용하는P2회귀및최종47case,base metadata전체replay·문서검사로직접소비자를검증하고,새Head Full Quality의전체Unit/productionbuild·Chromium8/Docker는원격필수/NOT TESTED로유지한다. qa_docs는이선정범위와원격gate유지조건을read-only로교차검토했다.
+
+
+### F880-R1-LOCAL-002 — 추가 metadata 검사에서 가상 행 준비 누락
+
+두번째보완GREEN시도는선택case1PASS(7.4초),viewportcase1FAIL(timeout180초),전체3.8분이다. viewport의원래refresh/Editor취소·PATCH200저장/workspace복귀/실제wheel160·576유지는모두PASS했으며,새metadata단계의Task20/G1작업정보button대기(line520)에서실패했다. 원본 `/tmp/issue880-pr883-green-2`와제품/test지문을보존한다.
+
+분류TEST_FIXTURE/VIRTUAL_ROW_PREPARATION. projection은첫Task의첫분기부터행을만든다. 첫Task미할당으로unassigned가먼저생겼고Task20의Group분기는끝쪽인데metadata준비를Y34에두어Task20은virtualDOM밖이었다. 또한Y34의toplogicalanchor는개인행이라Taskcanonicalfallback오라클과불일치했다. 별도metadata검사대상을첫Task0(Alice배정)로선정해Group분기를앞에만들고,실제Task의logicalindex/cellHeight로topanchor를준비한다. 제품코드·원래120/512 및새wheel160/576의단언·85Task수/6·47case·timeout/retry는변경하지않는다. 실행전원본과cleanup을확인한뒤같은P2두case를재검증한다.
+
+
+### R1 P2 직접 GREEN
+
+fixture교정후동일P2두case는2/2PASS(exit0,6.9/27.6초,전체1.2분),workers1/retries0/max-failures0이다. 제품/test/script/db/package/Next config1310개입력의동결SHA256(sorted-path-sha256-map/json-compact/sort-keys) `1b165cd33266318c0e2b8c6e598a574e527b08ca7d01ced4759ebf536a09f280`은시작=종료다. raw는 `/tmp/issue880-pr883-green-3`에보존한다. 최초RED2·준비구문실패·추가fixture실패를삭제하거나이PASS와합산하지않는다. 최종47case는별도실행으로판정한다.
+
+실제무Task조작복수선택/원래Coreprimary/Copy/Shiftanchor보존과명시새TaskC→WBSapp/CoreC·새anchor우선,nonzero재조회/Editor취소·PATCH200저장/peer복귀·pendingGET중실제wheel160/576·카탈로그정렬/경로삭제의Task앵커fallback·KO/EN/KO위치보존이통과했다. 추가metadata검사의catalog변경은Projectcanonical snapshot을바꾸지않음을확인한다.
+
+최종lint수치정정: `.prepr-reports/issue880-rework-r1/lint-final.log`의실제결과는exit0/0error/4warning이다. 기존Gantt3개외새panel의`captureBookmark` hook dependency경고1개가있다. 앞의기존3개만표기한중간요약은최종총수를나타내지않는다. read-onlyqa_docs가closure의실제값이명시deps에포함되고새loaded는unique receipt로구별됨을검토해직접P1/P2로판정하지않았다. 경고나lint규칙을숨기지않고최종source동결을유지한다.
+
+
+### R1 최종 동결 회귀
+
+`schedule-views.spec.ts`6 + fullscreen6 + scale2 + TaskEditor33의최종단일Chromium은47/47PASS/FAIL0/SKIP0(exit0,10.3분),workers1/retries0/max-failures0이다. 신규6개는31.2/22.4/32.0/25.5/12.2/49.6초다. 시작과종료1310입력SHA256 `1b165cd33266318c0e2b8c6e598a574e527b08ca7d01ced4759ebf536a09f280`을Manager도재해시하여동일함을확인했다. raw전체는 `/tmp/issue880-pr883-final47`,정제근거는 [rework-r1-local.json](evidence/issue-880/rework-r1-local.json)에보존한다. 기존45범위·새P2둘과readonly/stale/응답역전·실제HTTP/SQLite음성은이같은동결실행에서통과했다. 기존단독GREEN2및과거45와합산해표본/성능을늘리지않는다.
+
+최종fast/targeted자동Pre-PR의두실제실행은각exit1/BLOCKED,UNKNOWN7/missing0/sourceStable=true였다. `.prepr-reports/issue880-r1-final-{fast,targeted}`에원본을보존한다. 수동선정PASS와분리하며정책/매핑catch-all은추가하지않았다. final47정상종료후ownNext/3100/isolateddist/DB잔여0이며Next생성2파일과기존Issue461pickerJSON은 `/tmp/issue880-r1-generated-final`에보존하고HEAD bytes로복원했다.
+
+최종제안PR본문/최신IssueAC(원본captured와동일)/전체47변경경로/현재Packet을 unchangedbase preflight에로컬재생해PASS(실패0)/최종5DEFERRED를확인했다. 이는worktree데이터검사이며원본f9를Head anchor로사용했다. 새원격Head의provenance나Trusted/OwnerPASS가아니다. 최종로컬commit생성후그commit의본문·경로·Packet에도다시재생하여게시STATUS에실제commit을연결한다. 검증기blob은base와불변이다.
+
+별도read-only `/root/preqa`가최종47raw/정제receipt·before/after/current1310지문·Unit/type/lint·전체47경로문서의미/AC·보안음성·제외범위를교차검토해PRE_QA기술검토PASS/미해결직접P1·P2=0을반환했다. 인간QA_FINAL·Owner승인·ManagerACCEPT와구분한다. 기존원격P2두thread는공개candidatecommit의수정·실제검증근거로댓글후resolve하고현재main/headlease와충돌을재확인한뒤같은Tree의새FullCI등록으로넘긴다. 게시후CI결과를모니터링하지않는다.
+
+
+### F880-R1-LOCAL-003 — 최종 재생 명령의 축약 SHA 인수
+
+최초localcandidate `c5d2c4279fe7462cd0dc8568bdaf54750cb7cd3d`에대한사후재생명령에Manager가축약8자리SHA를넘겨exit1/Blocked `원본 이벤트의 PR/Head/base 출처 불일치`였다. 검증기는정확40자리SHA를요구하므로정상fail-closed이며제품/원격CI실패가아니다. 같은commit의40자리전체SHA로인수를교정한실제재생은PASS(실패0)/최종5DEFERRED/exit0이었다. verifier나원격자료를수정하지않았다. 이추가기록은문서전용이며제품/test1310지문은동일하다. 게시대상최종commit도전체SHA로재생하고실제값은Issue STATUS에서연결한다.

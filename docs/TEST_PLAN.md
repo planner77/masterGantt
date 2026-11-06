@@ -1,3 +1,9 @@
+## Issue #880 R1 — PR 선언 형식과 두 상태 보존 회귀
+
+원본 Full #3533.1은 필수 `qa_required` 독립 줄 누락으로 Preflight에서 FAIL했고 제품 테스트는 미실행이다. unchanged base의 실제 PR metadata/Issue AC/전체diff/Packet replay로 before FAIL2→flags 데이터 교정 after PASS(실패0)/최종5DEFERRED를 검증한다. 검증기·QA/Required/skip/retry 정책은 바꾸지 않는다.
+
+TEST_LIFECYCLE_REVIEW=EXTEND 기존 schedule-views의4case를 보존하고 고유P2두case를 추가한다. 무조작 WBS 왕복의app[A,B]/Core primaryB·재Copy2개·Shift anchorB와 명시새Task 선택 우선, projected nonzero120/512의재조회·Editor취소/If-Match저장·작업면복귀·pendingGET중실제wheel의새위치우선(160/576),stale/401/412/응답역전·빈행/쓰기차단을 검사한다. 같은P2안에서카탈로그이름정렬·소속삭제후canonicalfallback/offset과KO→EN→KO위치보존도확인한다. 기존 fullscreen6/scale2/TaskEditor33은KEEP_UNIQUE이며총47case/4spec로동결회귀한다. source API/SQLite·KPI/일정 산식은 변경하지 않아 기존 고유 Unit을 보존한다. 실제 실행/실패·선정/제외와 원본의 미실행을 [원장](ISSUE_880_FAILURE_ANALYSIS.md)·[Packet](exec-plans/active/ISSUE_880.md)에 구분한다.
+
 ## Issue #880 — 일정 View projection·원본 불변
 
 정적8shard plan에 신규 spec만3번으로 등록해 발견147개=명시147개·중복0·누락0을 검증한다. 기존146개 배치와 실행/Required 정책은 유지하며 timing은 미측정이다. planner/optimizer Unit12개를 EXTEND/KEEP_UNIQUE한다.

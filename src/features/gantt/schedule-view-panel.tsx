@@ -7,7 +7,7 @@ import type { ScheduleViewSourceResponse } from "@/contracts/schedule-views";
 import { taskStatusFromProgress } from "@/domain/task-status";
 import { displayName } from "@/lib/i18n";
 import { useI18n } from "@/lib/i18n/provider";
-import { projectScheduleView } from "./schedule-view-projection";
+import { projectScheduleView, type ScheduleViewRow } from "./schedule-view-projection";
 import { GANTT_CELL_WIDTH, type GanttScaleMode } from "./timeline-range";
 import "./schedule-view-panel.css";
 
@@ -16,10 +16,31 @@ const dateOrdinal = (date: string) => Date.parse(`${date}T00:00:00Z`) / DAY;
 const localOrdinal = (date: Date) => Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) / DAY;
 
 type Source = ScheduleViewSourceResponse["data"];
+type ProjectionBookmark = {
+  context: string;
+  presentation: string;
+  receipt: number;
+  intent: number;
+  rowKey: string | null;
+  canonicalTaskId: string | null;
+  ancestors: string[];
+  offset: number;
+  date: number;
+};
+const visibleRows = (rows: readonly ScheduleViewRow[], collapsed: ReadonlySet<string>) => {
+  const hidden = new Set<string>();
+  return rows.filter(row => {
+    if (row.parentViewRowKey && (collapsed.has(row.parentViewRowKey) || hidden.has(row.parentViewRowKey))) {
+      hidden.add(row.viewRowKey); return false;
+    }
+    return true;
+  });
+};
 type Props = {
   view: "resource" | "equipment";
   projectPublicId?: string;
   projectRevision: number;
+  contextKey: string;
   tasks: readonly ProjectTaskDto[];
   visibleTaskIds: readonly string[];
   scaleMode: GanttScaleMode;
@@ -38,13 +59,18 @@ export function ScheduleViewPanel(props: Props) {
   const { view, projectPublicId, projectRevision, readApi, scaleMode, cellHeight } = props;
   const [refresh, setRefresh] = useState(0);
   const sourceKey = `${projectPublicId}:${projectRevision}:${view}:${props.active}:${props.blocked}:${refresh}`;
-  const [loaded, setLoaded] = useState<{ key: string; data?: Source; error?: string; intent?: number } | null>(null);
+  const projectionContext = JSON.stringify([projectPublicId, view, props.contextKey, scaleMode]);
+  const [loaded, setLoaded] = useState<{
+    key: string; data: Source; intent: number; context: string; receipt: number;
+    tasks: readonly ProjectTaskDto[]; visibleTaskIds: readonly string[]; chartWidth: number;
+  } | null>(null);
+  const [requestState, setRequestState] = useState<{ key: string; pending: boolean; error?: string } | null>(null);
   const scroller = useRef<HTMLDivElement>(null);
   const [viewport, setViewport] = useState({ top: 0, left: 0, height: 500, width: 1000 });
   const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(new Set());
   const [axis, setAxis] = useState<{ start: number; width: number; grid: number; left: number } | null>(null);
   const focusRow = useRef<string | null>(null);
-  const horizontalInitialized = useRef(false);
+  const bookmark = useRef<ProjectionBookmark | null>(null);
   const requestSequence = useRef(0);
   const userIntent = useRef(0);
 
@@ -55,8 +81,8 @@ export function ScheduleViewPanel(props: Props) {
     const load = async () => {
       try {
         // A hidden workspace or open Editor cannot validate an active View.
-        if (!props.active || props.blocked) { if (!controller.signal.aborted) setLoaded({ key: sourceKey }); return; }
-        setLoaded({ key: sourceKey });
+        setRequestState({ key: sourceKey, pending: true });
+        if (!props.active || props.blocked) return;
         if (!projectPublicId) throw new Error("source");
         const response = await fetch(`/api/projects/${encodeURIComponent(projectPublicId)}/schedule-view-source`, {
           cache: "no-store", credentials: "same-origin", signal: controller.signal,
@@ -74,14 +100,21 @@ export function ScheduleViewPanel(props: Props) {
             !data.equipmentTypes.every(item => item && typeof item.code === "string" && typeof item.name === "string") ||
             !data.assignments.every(item => item && typeof item.taskId === "string" && item.target && ["resource", "group"].includes(item.target.kind) && typeof item.target.id === "string") ||
             !data.taskEquipment.every(item => item && typeof item.taskId === "string" && Array.isArray(item.effectiveEquipmentIds))) throw new Error("stale");
-        if (!controller.signal.aborted && request === requestSequence.current) setLoaded({ key: sourceKey, data, intent });
+        if (!controller.signal.aborted && request === requestSequence.current) {
+          // Keep a matched canonical/source snapshot for geometry only while
+          // later requests are unverified. Never combine it with newer Tasks.
+          setLoaded({ key: sourceKey, data, intent, context: projectionContext, receipt: request,
+            tasks: props.tasks, visibleTaskIds: props.visibleTaskIds,
+            chartWidth: readApi()?.getState()._scales?.width ?? 0 });
+          setRequestState({ key: sourceKey, pending: false });
+        }
       } catch {
-        if (!controller.signal.aborted && request === requestSequence.current) setLoaded({ key: sourceKey, error: "View 데이터를 확인할 수 없습니다. 최신 일정을 확인한 뒤 다시 조회해 주세요." });
+        if (!controller.signal.aborted && request === requestSequence.current) setRequestState({ key: sourceKey, pending: false, error: "View 데이터를 확인할 수 없습니다. 최신 일정을 확인한 뒤 다시 조회해 주세요." });
       }
     };
     void load();
     return () => controller.abort();
-  }, [projectPublicId, projectRevision, sourceKey, props.active, props.blocked]);
+  }, [projectPublicId, projectRevision, sourceKey, props.active, props.blocked, projectionContext, props.tasks, props.visibleTaskIds, readApi]);
 
   useEffect(() => {
     const refreshSource = () => { if (document.visibilityState === "visible") setRefresh(value => value + 1); };
@@ -115,7 +148,8 @@ export function ScheduleViewPanel(props: Props) {
     return () => { cancelAnimationFrame(first); cancelAnimationFrame(second); };
   }, [readApi, scaleMode, projectRevision]);
 
-  const source = loaded?.key === sourceKey ? loaded.data : undefined;
+  const source = props.active && !props.blocked && loaded?.key === sourceKey && requestState?.key === sourceKey &&
+    !requestState.pending && !requestState.error ? loaded.data : undefined;
   const projectionResult = useMemo(() => {
     if (!source) return { projection: null, error: false };
     try { return { projection: projectScheduleView({
@@ -129,27 +163,14 @@ export function ScheduleViewPanel(props: Props) {
   }, [source, view, props.tasks, props.visibleTaskIds, locale, t]);
   const projection = projectionResult.projection;
 
-  useLayoutEffect(() => {
-    if (!projection || !axis || horizontalInitialized.current) return;
-    const frame = requestAnimationFrame(() => {
-      const root = scroller.current;
-      if (!root || horizontalInitialized.current) return;
-      horizontalInitialized.current = true;
-      root.scrollLeft = axis.left;
-    });
-    return () => cancelAnimationFrame(frame);
-  }, [axis, projection]);
-
-
-  const rows = useMemo(() => {
-    const hidden = new Set<string>();
-    return (projection?.rows ?? []).filter(row => {
-      if (row.parentViewRowKey && (collapsed.has(row.parentViewRowKey) || hidden.has(row.parentViewRowKey))) {
-        hidden.add(row.viewRowKey); return false;
-      }
-      return true;
-    });
-  }, [projection, collapsed]);
+  const retainedGeometry = useMemo(() => {
+    if (source || !loaded || loaded.context !== projectionContext) return null;
+    try {
+      const previous = projectScheduleView({ ...loaded.data, view, tasks: loaded.tasks, visibleTaskIds: loaded.visibleTaskIds });
+      return { rowCount: visibleRows(previous.rows, collapsed).length, chartWidth: loaded.chartWidth };
+    } catch { return null; }
+  }, [source, loaded, projectionContext, view, collapsed]);
+  const rows = useMemo(() => visibleRows(projection?.rows ?? [], collapsed), [projection, collapsed]);
   const startRow = Math.max(0, Math.floor(Math.max(0, viewport.top - 64) / cellHeight) - 4);
   const endRow = Math.min(rows.length, Math.ceil((viewport.top + viewport.height) / cellHeight) + 4);
   const visible = rows.slice(startRow, endRow);
@@ -163,19 +184,55 @@ export function ScheduleViewPanel(props: Props) {
   const lastTick = Math.min(Math.ceil(chartWidth / cellWidth), firstTick + Math.ceil(viewport.width / cellWidth) + 4);
   const openTask = (id: string) => {
     if (props.blocked || !source || !props.tasks.some(task => task.taskId === id && task.type === "task")) return;
+    const root = scroller.current;
+    if (root) captureBookmark(root);
     props.onSelect(id); props.onOpenTask(id);
   };
 
-  useEffect(() => {
+  const presentation = `${sourceKey}:${loaded?.receipt}:${axis?.start}:${axis?.width}:${locale}:${cellHeight}`;
+  const captureBookmark = (root: HTMLDivElement) => {
+    if (!source || !axis || !loaded || !props.active || props.blocked || root.clientWidth === 0 || root.clientHeight === 0) return;
+    const index = Math.min(rows.length - 1, Math.floor(root.scrollTop / cellHeight));
+    const row = rows[index];
+    const byKey = new Map(rows.map(entry => [entry.viewRowKey, entry]));
+    const ancestors: string[] = [];
+    let parent = row?.parentViewRowKey;
+    while (parent) { ancestors.push(parent); parent = byKey.get(parent)?.parentViewRowKey ?? null; }
+    bookmark.current = { context: projectionContext, presentation, receipt: loaded.receipt, intent: userIntent.current,
+      rowKey: row?.viewRowKey ?? null, canonicalTaskId: row?.canonicalTaskId ?? null, ancestors,
+      offset: root.scrollTop - Math.max(0, index) * cellHeight, date: axis.start + root.scrollLeft / pixelsPerDay };
+  };
+
+  useLayoutEffect(() => {
     const root = scroller.current;
-    if (!root || !source || !projection || !axis || loaded?.intent !== userIntent.current) return;
-    const id = props.selectedTaskIds[0];
-    const selected = focusRow.current ? rows.findIndex(row => row.viewRowKey === focusRow.current && row.canonicalTaskId === id) : -1;
-    const index = selected >= 0 ? selected : rows.findIndex(row => row.canonicalTaskId === id);
-    if (index < 0) return;
-    const top = 64 + index * cellHeight;
-    if (top < root.scrollTop + 64 || top + cellHeight > root.scrollTop + root.clientHeight) root.scrollTop = Math.max(0, top - 64);
-  }, [source, projection, rows, props.selectedTaskIds, cellHeight, loaded?.intent, axis]);
+    if (!root || !source || !projection || !axis || !props.active || props.blocked) return;
+    const previous = bookmark.current;
+    // Locale/density changes reuse the same verified source. A new GET
+    // receipt must additionally retain its original request's input generation.
+    const currentIntent = previous?.receipt === loaded?.receipt || loaded?.intent === userIntent.current;
+    if (previous?.context === projectionContext && previous.presentation !== presentation &&
+        currentIntent && previous.intent === userIntent.current) {
+      let index = rows.findIndex(row => row.viewRowKey === previous.rowKey);
+      if (index < 0 && previous.canonicalTaskId) index = rows.findIndex(row => row.canonicalTaskId === previous.canonicalTaskId);
+      for (const ancestor of previous.ancestors) {
+        if (index >= 0) break;
+        index = rows.findIndex(row => row.viewRowKey === ancestor);
+      }
+      // Reinterpret the original Task/path and date against fresh geometry;
+      // deleted branches may clamp naturally rather than reopening stale rows.
+      root.scrollLeft = Math.max(0, (previous.date - axis.start) * pixelsPerDay);
+      if (index >= 0) root.scrollTop = Math.max(0, index * cellHeight + Math.min(cellHeight - 1, previous.offset));
+    } else if (previous?.context !== projectionContext && currentIntent) {
+      root.scrollLeft = axis.left;
+      const id = props.selectedTaskIds[0];
+      const index = rows.findIndex(row => row.canonicalTaskId === id);
+      if (index >= 0) {
+        const top = 64 + index * cellHeight;
+        if (top < root.scrollTop + 64 || top + cellHeight > root.scrollTop + root.clientHeight) root.scrollTop = Math.max(0, top - 64);
+      }
+    }
+    captureBookmark(root);
+  }, [source, projection, axis, rows, projectionContext, presentation, loaded?.intent, loaded?.receipt, props.active, props.blocked, props.selectedTaskIds, cellHeight, pixelsPerDay]);
 
   const navigateRow = (index: number) => {
     const root = scroller.current;
@@ -195,12 +252,12 @@ export function ScheduleViewPanel(props: Props) {
       {view === "resource" && projection?.diagnostics.summaryAssignmentIds.length ? <span>{t("Summary 직접 배정은 WBS 작업 정보에서 확인하며 하위 작업에 자동 배정하지 않습니다.")}</span> : null}
       <button type="button" onClick={() => setRefresh(value => value + 1)} disabled={props.blocked}>{t("다시 조회")}</button>
     </div>
-    {loaded?.key === sourceKey && loaded.error ? <div role="alert">{t(loaded.error)}</div> : !source ? <p role="status">{t("View 데이터를 불러오는 중…")}</p> : null}
+    {requestState?.key === sourceKey && requestState.error ? <div role="alert">{t(requestState.error)}</div> : !source ? <p role="status">{t("View 데이터를 불러오는 중…")}</p> : null}
     {projectionResult.error ? <div role="alert">{t("View 데이터를 확인할 수 없습니다. 최신 일정을 확인한 뒤 다시 조회해 주세요.")}</div> : null}
     {projection && !axis ? <p role="status">{t("일정 축을 확인하는 중…")}</p> : null}
     <div ref={scroller} className="project-schedule-view-scroll" data-schedule-view-scroll
-      data-ready={Boolean(projection && axis)} data-logical-row-count={rows.length} data-visible-row-count={visible.length}
-      onScroll={event => { const root = event.currentTarget; setViewport({ top: root.scrollTop, left: root.scrollLeft, height: root.clientHeight, width: root.clientWidth }); }}
+      aria-busy={!projection || !axis} data-ready={Boolean(projection && axis)} data-logical-row-count={rows.length} data-visible-row-count={visible.length}
+      onScroll={event => { const root = event.currentTarget; captureBookmark(root); setViewport({ top: root.scrollTop, left: root.scrollLeft, height: root.clientHeight, width: root.clientWidth }); }}
       onWheelCapture={() => { userIntent.current++; }} onPointerDownCapture={() => { userIntent.current++; }}
       onKeyDown={event => {
         userIntent.current++;
@@ -259,7 +316,8 @@ export function ScheduleViewPanel(props: Props) {
           </div>;
         })}
         {!rows.length ? <p className="project-schedule-view-empty">{t("하위 작업 없음")}</p> : null}
-      </div> : null}
+      </div> : retainedGeometry ? <div className="project-schedule-view-canvas" data-pending-view-geometry aria-hidden="true" inert
+        style={{ width: gridWidth + retainedGeometry.chartWidth, height: 64 + retainedGeometry.rowCount * cellHeight }} /> : null}
     </div>
   </section>;
 }
