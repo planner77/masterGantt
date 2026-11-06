@@ -314,7 +314,13 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
   const workspaceTabs = state.status === "ready" ? state.snapshot.data.project.workspaceTabs ?? DEFAULT_PROJECT_WORKSPACE_TABS : DEFAULT_PROJECT_WORKSPACE_TABS;
   const [requestedScreen, setActiveScreen] = useState<WorkspaceScreen>("schedule");
   const activeScreen = availableWorkspaceScreen(requestedScreen, workspaceTabs);
-  useEffect(() => { if (requestedScreen !== activeScreen) setActiveScreen("schedule"); }, [requestedScreen, activeScreen]);
+  useEffect(() => {
+    if (requestedScreen === activeScreen) return;
+    // Reconcile legacy URL/hidden destination after the canonical read; never set state synchronously in the effect.
+    let cancelled = false;
+    queueMicrotask(() => { if (!cancelled) setActiveScreen("schedule"); });
+    return () => { cancelled = true; };
+  }, [requestedScreen, activeScreen]);
   const [workspaceMigrationNotice, setWorkspaceMigrationNotice] = useState(false);
   const activeView = workspaceView(activeScreen);
   const activeSection = workspaceSection(activeScreen);
@@ -694,7 +700,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
     setMetadataWorkspaceTabs({ ...(value.data.project.workspaceTabs ?? DEFAULT_PROJECT_WORKSPACE_TABS) });
     setMasterSelection({ businessUnitId: value.data.project.businessUnit?.id ?? "", productId: value.data.project.product?.id ?? "", siteEntityId: value.data.project.siteEntity?.id ?? "" });
     return true;
-  }, [publicId, setMasterSelection, setMetadataDescription, setMetadataName, setMetadataStatus, setMetadataVisibility]);
+  }, [publicId, setMasterSelection, setMetadataDescription, setMetadataName, setMetadataStatus, setMetadataVisibility, setMetadataWorkspaceTabs]);
 
   useEffect(() => {
     const controller = new AbortController();

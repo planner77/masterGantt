@@ -145,6 +145,7 @@ describe("SQLite connection and schema", () => {
       expect(migrated.migrations.applied).toEqual(["0022_task_milestone_memberships.sql", "0023_deprecate_task_assignment_roles.sql", "0024_project_master_relations.sql", "0025_process_catalog.sql","0026_logistics_targets.sql","0027_task_target_bindings.sql","0028_process_context.sql", "0029_project_resource_memberships.sql", "0030_project_work_areas.sql", "0031_project_visibility.sql", "0032_project_issues.sql", "0033_project_issue_credentials_soft_delete.sql", "0034_project_issue_business_status.sql", "0035_country_calendar_catalog.sql", "0036_display_name_translations.sql"]);
       expect(state(migrated.database)).toEqual(before);
       expect(migrated.database.prepare("SELECT visibility FROM projects WHERE id = ?").pluck().get(projectId)).toBe("public");
+      expect(migrated.database.prepare("SELECT workspace_issue_visible, workspace_dashboard_visible, workspace_master_visible FROM projects WHERE id = ?").get(projectId)).toEqual({ workspace_issue_visible: 1, workspace_dashboard_visible: 1, workspace_master_visible: 1 });
       expect(migrated.database.prepare("SELECT * FROM task_milestone_memberships").all()).toEqual([]);
       expect(migrated.database.prepare("PRAGMA foreign_key_check").all()).toEqual([]);
     } finally { migrated.database.close(); }

@@ -29,3 +29,11 @@
 - Exact PR Head의 Quality(TypeScript/Lint/Vitest/Build), Chromium E2E8, Docker smoke, Trusted QA, GitHub PR 리뷰/충돌 판정은 각각 별도 증거다.
 - 최초 Full #3534.1은 Preflight에서 중단됐고 제품 테스트는 SKIPPED, PASS가 아니다.
 - 제품 변경이 merge 되었을 때도 실제 배포·native125%·screenreader는 별도 OWNER_MANAGED 인수 대상이며 미실행을 PASS로 기록하지 않는다.
+
+## F881-002 — 0037 migration E2E/Unit 실패 보완 (2026-11-07)
+
+- Full #3538.1 / 42308983093 attempt1의 QA Preflight·정책은 PASS, TypeScript+Lint+Vitest 직접 FAIL. 15/3722 단위 테스트 실패와 원인을 [F881-002 원장](ISSUE_881_FAILURE_ANALYSIS.md)에서 정확히 구분한다.
+- Historical SQL Fixture는 기존 스키마 버전 0034까지 INSERT하는 경우 프로젝트 신설 컬럼을 강제하지 않는다. Migration 후 원래 칼럼 동등성·추가 세 플래그 ON을 별개 검사한다.
+- 전역 latest migration 시점의 test fixtures/expected migration lists/count만 0037까지 추가한다. migration source 파일/checksum/구버전<=24/25/26/27/28/32/33/35 이전 DB fixture는 변조하지 않는다.
+- 실패했던 11개 test files: `tests/server/migration-cli.test.ts`, `tests/server/calendars/country-calendar-integration.test.ts`, `tests/server/db/database.test.ts`, `tests/server/db/issue-623-target-migration.test.ts`, `tests/server/i18n/managed-display-names.test.ts`, `tests/server/logistics/logistics-targets-acceptance.test.ts`, `tests/server/logistics/task-target-bindings.test.ts`, `tests/server/process-catalog/process-catalog-service.test.ts`, `tests/server/process-catalog/process-context-service.test.ts`, `tests/server/projects/project-issues.test.ts`, `tests/server/resources/project-resource-memberships.test.ts`; 15 assertion failures end-to-end. `tests/fixtures/legacy-project.ts` DTO defaults와 Gantt React-hook 오류를 함께 보완한다.
+- Test Lifecycle: existing tests EXTEND or KEEP_UNIQUE; no skipped tests, no Expected failure marking, no disabled assertions. Actual new HEAD local Node/npm/Vitest/ESLint/Playwright unavailable; GitHub exact Full8/Required3 result NOT TESTED until run.

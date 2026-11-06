@@ -63,6 +63,16 @@ The following explicit per-path status is checked by trusted `scripts/qa_final_a
 - New exact PR HEAD and Run/Attempt are recorded only after a real source update and kickoff. Owner-only #882 remains separate.
 - Review threads / mergeability are rechecked before new CI kickoff; no monitor/merge/release/finalize.
 
+## F881-002 — 2026-11-07 #3538.1 실제 실패·보완 계획
+
+- **Run:** [Full #3538.1 / 42308983093](https://github.com/planner77/masterGantt/actions/runs/42308983093), attempt 1, HEAD `dce7decd73f9ca5cb8f2c0880238fddbf36e44af`, Base `229604522969133d1ccc6de0477e373252670c86`, 결론 FAILURE. 정책 Preflight·QA 경로·정책 계약은 SUCCESS.
+- **직접 원인:** TS2741 pre-0037 fixture missing `workspaceTabs`; React-hooks ESLint error 2건(sync setState effect, useCallback dependency); Vitest 15 failed/3704 pass/3 skipped (10 suites의 마이그레이션 0037 반영 누락, 1 historical calendar test가 pre-0037 컬럼 INSERT). E2E8·Docker·Production Build SKIPPED로 원인 단정 금지. 자세한 직접 Job ID와 중간 결과는 [누적 원장](../../ISSUE_881_FAILURE_ANALYSIS.md) F881-002.
+- **보완:** TypeScript legacy ProjectRecord DTO에 default ON, effect microtask 안전 복원+memo deps, 기존 exact migration history 기준 37 목록/개수·최종 버전 갱신. 추가된 checked columns는 이전 원본 row 비교에서만 제외하며 원본 기존 필드는 계속 deep equal, 새 플래그 default1을 직접 assert. 0034 calendar fixture는 historical writer로 INSERT, 원본 row projection + 0037 플래그를 각각 독립 검증한다.
+- **TEST_LIFECYCLE_REVIEW:** EXTEND 기존 11개 파일의 역사 DB 업그레이드/SQLite/CLI 회귀 및 Project fixture, KEEP_UNIQUE 전 원본 보존·0 skip·0 assertion 축소. 새 migration 0037을 포함한 마지막 버전 반영이 실패 은폐가 아니도록 원본 SHA·schema_migrations checksum/foreign-key/rollback 검사 유지.
+- **AC_TEST_COVERAGE:** AC1/AC8 SQLite 0037 forward migrate, legacy rows·default1·reopen, AC2/AC7 Project metadata session/revision/Boolean, AC4/AC5 safe UI Effect/URL restore, AC6 original unchanged, AC9 multi-language and E2E, AC10 original test-lifecycle conformance. 모든 AC의 기존 위 매핑 계속 유효하며 결과는 새 CI에서 별도 판정.
+- **DOCUMENTATION_SYNC:** `docs/ISSUE_881_FAILURE_ANALYSIS.md`: UPDATED; `docs/exec-plans/active/ISSUE_881.md`: UPDATED; `docs/ISSUE_881_TEST_PLAN.md`: UPDATED. 기존 AGENTS/DESIGN/API/DB/SECURITY의 기술 계약 변경 없음. Build/CI/QA gate, 기존 migration 파일 및 #882 owner-only 구분 불변.
+- **경계:** 새 HEAD PR Full CI kickoff만 승인. 미해결 리뷰/충돌은 새 커밋의 pre-CI 읽기 결과 기록; CI 결과 모니터링·merge/Main/Release/Finalizer/GHCR/Issue close는 수행하지 않음.
+
 ## Verification & release boundary
 
 Remote GitHub connector edits only. There is no locally mounted repository or dependency tree; full TypeScript/Vitest/Playwright/Docker local execution NOT TESTED. Work performed is implementation+commit+new PR to begin full CI; requested stop after kickoff. Existing review threads/mergeable state to be read at PR creation, no monitor after. No merge/Main/GHCR/tag/Issue close/Owner release approval.

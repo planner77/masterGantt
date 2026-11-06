@@ -75,7 +75,7 @@ describe("migration CLI", () => {
         "0025_process_catalog.sql",
         "0026_logistics_targets.sql",
         "0027_task_target_bindings.sql",
-        "0028_process_context.sql", "0029_project_resource_memberships.sql", "0030_project_work_areas.sql", "0031_project_visibility.sql", "0032_project_issues.sql", "0033_project_issue_credentials_soft_delete.sql", "0034_project_issue_business_status.sql", "0035_country_calendar_catalog.sql", "0036_display_name_translations.sql",
+        "0028_process_context.sql", "0029_project_resource_memberships.sql", "0030_project_work_areas.sql", "0031_project_visibility.sql", "0032_project_issues.sql", "0033_project_issue_credentials_soft_delete.sql", "0034_project_issue_business_status.sql", "0035_country_calendar_catalog.sql", "0036_display_name_translations.sql", "0037_project_workspace_tabs.sql",
       ],
     });
     expect(diagnosticEvents(first.stderr).map((entry) => entry.event)).toEqual([
@@ -94,9 +94,9 @@ describe("migration CLI", () => {
     const database = new Database(filename, { readonly: true });
     try {
       expect(database.prepare("SELECT count(*) AS count FROM schema_migrations").get())
-        .toEqual({ count: 36 });
-      expect(database.prepare("SELECT name FROM schema_migrations WHERE version=36").pluck().get())
-        .toBe("0036_display_name_translations.sql");
+        .toEqual({ count: 37 });
+      expect(database.prepare("SELECT name FROM schema_migrations WHERE version=37").pluck().get())
+        .toBe("0037_project_workspace_tabs.sql");
       expect(database.prepare("SELECT count(*) AS count FROM projects").get())
         .toEqual({ count: 0 });
       expect(database.prepare("SELECT revision FROM resource_catalog_state WHERE id = 1").get())

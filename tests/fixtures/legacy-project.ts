@@ -24,7 +24,7 @@ export function insertHistoricalPublicProject(database: Database.Database, input
   return {
     id: row.id, publicId: input.publicId, name: input.name,
     description: input.description, status: row.status,
-    visibility: "public", calendarTimezone: input.calendarTimezone,
+    visibility: "public", workspaceTabs: { issue: true, dashboard: true, master: true }, calendarTimezone: input.calendarTimezone,
     revision: row.revision, authVersion: row.auth_version,
     createdAt: input.createdAt, updatedAt: input.updatedAt,
   };
