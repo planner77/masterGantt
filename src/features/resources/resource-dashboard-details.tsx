@@ -1,4 +1,7 @@
 "use client";
+import { formatLocaleDateOnly } from "../../lib/date-display";
+import { useI18n } from "../../lib/i18n/provider";
+
 
 import { PhysicalConnectionSources } from "./physical-connection-sources";
 import { IdentifierDetails } from "@/components/identifier-details";
@@ -28,6 +31,7 @@ export function ResourceDashboardDetails({
   onStale: () => void;
   view?: "tasks" | "assignments";
 }) {
+  const { t, formatNumber } = useI18n();
   const { binding, onSchedule, onOpenTask, onOpenAssignment, locked } = useResourceDrill();
   const [offset, setOffset] = useState(0);
   const [pageNotice, setPageNotice] = useState<string | null>(null);
@@ -138,15 +142,13 @@ export function ResourceDashboardDetails({
           })
         }
       >
-        전체 범위 일정 보기
-      </button>
+        {t("전체 범위 일정 보기")}</button>
       {pageNotice ? <p role="status">{pageNotice}</p> : null}
       {stale ? (
         <p role="status">
-          이전 결과 · 최신 조건 확인 대기. 상세와 페이지 이동이 잠겨 있습니다.
-        </p>
+          {t("이전 결과 · 최신 조건 확인 대기. 상세와 페이지 이동이 잠겨 있습니다.")}</p>
       ) : renderedPhase === "loading" ? (
-        <p role="status">Task 상세 조회 중…</p>
+        <p role="status">{t("Task 상세 조회 중…")}</p>
       ) : null}
       {state.error ? (
         <p role="alert">
@@ -157,8 +159,7 @@ export function ResourceDashboardDetails({
             disabled={stale}
             onClick={() => setRetry((value) => value + 1)}
           >
-            상세 다시 시도
-          </button>
+            {t("상세 다시 시도")}</button>
         </p>
       ) : null}
       {value ? (
@@ -168,7 +169,7 @@ export function ResourceDashboardDetails({
             tabIndex={0}
             role="region"
             aria-label={
-              view === "tasks" ? "고유 Task 상세" : "Assignment Task 상세"
+              view === "tasks" ? t("고유 Task 상세") : t("Assignment Task 상세")
             }
           >
             <table
@@ -176,18 +177,18 @@ export function ResourceDashboardDetails({
             >
               <thead>
                 <tr>
-                  <th>작업명 / 안정 ID / WBS</th>
-                  <th>상태</th>
-                  <th>진행률</th>
-                  <th>작업 일정</th>
+                  <th>{t("작업명 / 안정 ID / WBS")}</th>
+                  <th>{t("상태")}</th>
+                  <th>{t("진행률")}</th>
+                  <th>{t("작업 일정")}</th>
                   {view === "assignments" ? (
                     <>
-                      <th>Assignment 투입 구간</th>
-                      <th>투입률</th>
-                      <th>계획 공수</th>
+                      <th>{t("Assignment 투입 구간")}</th>
+                      <th>{t("투입률")}</th>
+                      <th>{t("계획 공수")}</th>
                     </>
                   ) : null}
-                  <th>Milestone 소속</th>
+                  <th>{t("Milestone 소속")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -225,11 +226,10 @@ export function ResourceDashboardDetails({
                           })
                         }
                       >
-                        이 Task 일정
-                      </button>
-                      {row.assignment ? <button type="button" data-resource-assignment-edit disabled={actionLocked || locked || !onOpenAssignment || !row.assignment.active} title={!row.assignment.active ? "비활성 리소스의 기존 배정은 조회 전용입니다." : undefined} onClick={event => onOpenAssignment?.(row.taskId, row.assignment!.assignmentId, row.assignment!.resourceId, event.currentTarget)}>배정 편집: {row.assignment.resourceName}</button> : null}
-                      <IdentifierDetails label={`${row.taskName} 식별 정보`} identifiers={[{label: "외부 ID", value: row.externalId}, {label: "작업 ID", value: row.taskId}, ...(row.assignment ? [{label: "Assignment ID", value: row.assignment.assignmentId}, {label: "Resource ID", value: row.assignment.resourceId}] : [])]} />
-                      {row.assignment && !row.assignment.active ? <small>비활성 리소스 · 기존 배정 조회 전용</small> : null}
+                        {t("이 Task 일정")}</button>
+                      {row.assignment ? <button type="button" data-resource-assignment-edit disabled={actionLocked || locked || !onOpenAssignment || !row.assignment.active} title={!row.assignment.active ? t("비활성 리소스의 기존 배정은 조회 전용입니다.") : undefined} onClick={event => onOpenAssignment?.(row.taskId, row.assignment!.assignmentId, row.assignment!.resourceId, event.currentTarget)}>{t("배정 편집:")}{" "}{row.assignment.resourceName}</button> : null}
+                      <IdentifierDetails label={t("{value0} 식별 정보", {value0: row.taskName})} identifiers={[{label: "외부 ID", value: row.externalId}, {label: "작업 ID", value: row.taskId}, ...(row.assignment ? [{label: "Assignment ID", value: row.assignment.assignmentId}, {label: "Resource ID", value: row.assignment.resourceId}] : [])]} />
+                      {row.assignment && !row.assignment.active ? <small>{t("비활성 리소스 · 기존 배정 조회 전용")}</small> : null}
                       <PhysicalConnectionSources sources={row.targetSources} catalog={data.catalog.targetOptions} />
                       <small>
                         {row.wbsPath.map((part) => part.name).join(" / ") ||
@@ -238,15 +238,15 @@ export function ResourceDashboardDetails({
                     </td>
                     <td>
                       {row.status === "completed"
-                        ? "완료"
+                        ? t("완료")
                         : row.status === "in_progress"
-                          ? "진행 중"
-                          : "시작 전"}
+                          ? t("진행 중")
+                          : t("시작 전")}
                       {row.progress !== null &&
                       row.progress < 100 &&
                       row.taskEnd &&
                       row.taskEnd < data.asOfDate
-                        ? " · 지연"
+                        ? t(" · 지연")
                         : ""}
                     </td>
                     <td>{row.progress === null ? "—" : `${row.progress}%`}</td>
@@ -261,7 +261,7 @@ export function ResourceDashboardDetails({
                             to={row.assignment?.to}
                           />
                           <small>
-                            저장 구간:{" "}
+                            {t("저장 구간:")}{" "}
                             <DateRange
                               from={
                                 row.assignment?.assignmentStart ?? "작업 상속"
@@ -270,21 +270,20 @@ export function ResourceDashboardDetails({
                             />
                           </small>
                           {row.assignment?.allocationOverlapsReport === false || row.assignment?.effortRangeBasis === "raw-allocation" ?
-                            <small>조회 기간 밖 · 원래 배정 기간 기준</small> : null}
+                            <small>{t("조회 기간 밖 · 원래 배정 기간 기준")}</small> : null}
                           <small>
-                            {row.assignment?.resourceName} · 유효 근무{" "}
-                            {row.assignment?.effectiveWorkingDays}일
-                          </small>
+                            {row.assignment?.resourceName} {t("· 유효 근무")}{" "}
+                            {row.assignment?.effectiveWorkingDays}{t("일")}</small>
                         </td>
                         <td>
                           {row.assignment?.allocationPercent === null
-                            ? "미설정"
+                            ? t("미설정")
                             : `${row.assignment?.allocationPercent}%`}
                         </td>
                         <td>
                           {row.assignment?.plannedMd === null
-                            ? "공수 미설정"
-                            : `${(unit === "md" ? row.assignment?.plannedMd : row.assignment?.plannedMm)?.toFixed(2) ?? "—"} ${unit === "md" ? "M/D" : "M/M"}`}
+                            ? t("공수 미설정")
+                            : `${(unit === "md" ? row.assignment?.plannedMd : row.assignment?.plannedMm) == null ? "—" : formatNumber((unit === "md" ? row.assignment?.plannedMd : row.assignment?.plannedMm)!,{minimumFractionDigits:2,maximumFractionDigits:2})} ${unit === "md" ? "M/D" : "M/M"}`}
                         </td>
                       </>
                     ) : null}
@@ -294,13 +293,13 @@ export function ResourceDashboardDetails({
                             (milestone) =>
                               milestone.id === row.effectiveMilestoneTaskId,
                           )?.name ?? row.effectiveMilestoneTaskId)
-                        : "Milestone 미지정"}
+                        : t("Milestone 미지정")}
                       <small>
                         {row.inheritedFromTaskId
-                          ? `상속: ${row.inheritedFromTaskId}`
+                          ? t("상속: {value0}", {value0: row.inheritedFromTaskId})
                           : row.explicitMilestoneTaskId
-                            ? "직접 지정"
-                            : "소속 없음"}
+                            ? t("직접 지정")
+                            : t("소속 없음")}
                       </small>
                     </td>
                   </tr>
@@ -309,14 +308,14 @@ export function ResourceDashboardDetails({
             </table>
           </div>
           {value.rows.length === 0 ? (
-            <p>이 상세 범위에 Task가 없습니다.</p>
+            <p>{t("이 상세 범위에 Task가 없습니다.")}</p>
           ) : null}
           <div
             className="resource-dashboard-pagination"
-            aria-label="Task 상세 페이지"
+            aria-label={t("Task 상세 페이지")}
           >
             <span>
-              {value.totalCount}건 중 {value.rows.length ? offset + 1 : 0}–
+              {formatNumber(value.totalCount)}{t("건 중")}{" "}{value.rows.length ? offset + 1 : 0}–
               {offset + value.rows.length}
             </span>
             <button
@@ -325,16 +324,14 @@ export function ResourceDashboardDetails({
               disabled={actionLocked || offset === 0}
               onClick={() => setOffset(Math.max(0, offset - 50))}
             >
-              이전
-            </button>
+              {t("이전")}</button>
             <button
               className="secondary-button"
               type="button"
               disabled={actionLocked || value.nextOffset === null}
               onClick={() => setOffset(value.nextOffset!)}
             >
-              다음
-            </button>
+              {t("다음")}</button>
           </div>
         </>
       ) : null}
@@ -349,10 +346,12 @@ function DateRange({
   from: string | null | undefined;
   to: string | null | undefined;
 }) {
+  const { t, formatLocale } = useI18n();
+  const date = (value: string | null | undefined) => value ? (/^\d{4}-\d{2}-\d{2}$/.test(value) ? formatLocaleDateOnly(value,formatLocale) : t(value)) : "—";
   return (
     <>
-      <span className="resource-dashboard-date">{from ?? "—"}</span> ~{" "}
-      <span className="resource-dashboard-date">{to ?? "—"}</span>
+      <span className="resource-dashboard-date">{date(from)}</span> ~{" "}
+      <span className="resource-dashboard-date">{date(to)}</span>
     </>
   );
 }

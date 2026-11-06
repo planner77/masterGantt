@@ -1,3 +1,29 @@
+## Unreleased — Issue #866 Phase C 통합 (2026-11-05)
+
+- Project/Issue/Task Editor/Gantt/Resource/Milestone/Logistics/관리·Calendar의 고정 UI·도움말·접근성 이름·검증·날짜/숫자 및 관리형 표시명을 ko/en/vi로 연결합니다. 사용자 내용·ID·일정/권한/revision 계약은 유지합니다.
+- locale 전환 시 SVAR2.7.3 재초기화에 대비해 최신 renderer 입력과 기존 상태 복구 queue/lease를 보존합니다. 알림과 이동 설명은 현재 언어에서 렌더하고 원래 초안·선택·이력을 유지합니다.
+- 기존 PR #879에 A+B+C를 통합하여 새 Full CI를 시작합니다. 아래 Phase A/B 미구현 기록은 당시 상태이며 현재 검증은 Work Packet을 따릅니다. 후보0.142.0·release_authorized=false, 새 원격 결과/Owner ACCEPT·병합·정식 GHCR·Issue 종료는 별도입니다.
+
+## Unreleased — Issue #866 Phase B (staged, not published)
+
+- Phase A #878 기반: 12-owner 번역 migration 0036, 관리형 원본 name·ID 보존/언어별 표시명, Admin/Project owner revision 경계, Copy/Template6 보존, 손실 Export 차단, 관리자 수동 편집 및 새 i18n-master-data E2E 샤드7 추가.
+- 본 종속 PR은 Phase C 전체 UI/실환경 검증 이전이므로 정식 v0.142.0 GHCR 게시나 #866 종료의 근거가 아니다. 정확 Source PR CI 미실행 상태로 NOT TESTED.
+
+## [0.142.0] — Unreleased / Issue #866 i18n Phase A only (2026-11-05)
+
+### Added (Phase A)
+
+- 한국어·영어·베트남어를 선택하는 공통 헤더 UI, 브라우저 저장·SSR 한국어 fallback, 정적 core/shell 메시지 및 Gantt SVAR 2.7.3 Locale words 확장.
+- 상단 Navigation·안전한 ARIA/Skip Link·기본 숫자/날짜 표시 언어 선택, 기존 알림 포털·Gantt 인스턴스/요일·ISO W##/데이터/권한 불변.
+- 기존 한국어 UI E2E의 결정적 ko-KR browser locale과 신규 en-US/ko/en/vi 브라우저 전환·저장·Source/Plaintext Unit/Playwright 테스트.
+
+### Pending
+
+- **Phase B**: 기존 관리형 기준정보의 owner별 ko/en/vi 표시명 별도 저장·수동 수정/읽기·스키마/보안/호환/이관/검색/복제.
+- **Phase C**: Project/Workspace/Issue/Dashboard/TaskEditor/관리자/Calendar/전 영역 3개 언어 및 5폭·SVAR native/SQLite/HTTP 완성 검증.
+- 위 AC의 미구현을 인수 완료로 취급하지 않는다. `release_required=true` / **`release_authorized=false`**. 이전 `v0.141.1` 정식 태그/이미지는 그대로 보존하며 Phase A만으로 정식 GHCR 게시·Issue 종료 금지.
+- 원본 혼합 [PR #870](https://github.com/planner77/masterGantt/pull/870)은 이미 병합된 #865 LLM/#869 Issue UI까지 포함하므로 현재 Main에 직접 병합하지 않는다. [Phase A 설계](docs/I18N_PHASE_A.md) / [#866 Work Packet](docs/exec-plans/active/ISSUE_866.md).
+
 ## [0.141.1] — Unreleased / Issue #865 · 실패 v0.141.0 릴리스 안전 복구 (2026-11-04)
 
 ### Fixed

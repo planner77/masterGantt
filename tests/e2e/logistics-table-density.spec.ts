@@ -86,7 +86,7 @@ test("#454 after 두 유형·dialog 5폭 정렬과 마지막 action keyboard 접
       await page.locator("table").evaluate(table=>{table.parentElement!.scrollLeft=0;});
       const facts=await geometry(page);
       await expect(page.getByRole("table")).toHaveCSS("font-size","14px");
-      for(const label of ["유형명","코드","정렬"]){const input=page.getByLabel(label,{exact:true});const density=await input.evaluate(element=>({height:element.getBoundingClientRect().height,font:getComputedStyle(element).fontSize}));expect(density.height).toBe(40);expect(density.font).toBe("14px");}
+      for(const label of ["유형명","코드","정렬","이름 또는 코드 검색"]){const input=page.getByLabel(label,{exact:true});const density=await input.evaluate(element=>({height:element.getBoundingClientRect().height,font:getComputedStyle(element).fontSize}));expect(density.height).toBe(40);expect(density.font).toBe("14px");}
       expect(facts.documentWidth).toBeLessThanOrEqual(width);
       expect(facts.table.width).toBeGreaterThanOrEqual(824);
       expect(facts.headers[0].width).toBeGreaterThanOrEqual(240);
@@ -154,9 +154,19 @@ for(const afterGet of [200,500,401])test(`#454 이름 412 뒤 GET${afterGet}는 
   await expect.poll(()=>mock.requests.filter(r=>r.method==="PATCH").length).toBe(1);
   if(afterGet===401){await expect(page.getByRole("heading",{name:"관리자 로그인",exact:true})).toBeVisible();await expect(page.getByLabel("관리자 비밀번호",{exact:true})).toBeFocused();await expect(page.getByRole("alert").first()).toContainText("세션이 만료");return;}
   await expect(dialog.getByLabel("표시명",{exact:true})).toHaveValue("412 draft");
-  if(afterGet===500){await page.setViewportSize({width:390,height:900});assertDialogFacts(await geometry(page));await expect(dialog.getByRole("alert")).toContainText("목록을 불러오지 못했습니다");await expect(dialog.getByRole("button",{name:"저장",exact:true})).toBeDisabled();await dialog.getByRole("button",{name:"최신 목록 조회",exact:true}).click();await expect(dialog.getByRole("button",{name:"저장",exact:true})).toBeEnabled();}
-  else await expect(dialog.getByRole("alert")).toContainText("다른 관리 변경");
-  expect(mock.requests.filter(r=>r.method==="PATCH")).toHaveLength(1);await dialog.getByRole("button",{name:"저장",exact:true}).click();await expect(dialog).toHaveCount(0);expect(mock.requests.filter(r=>r.method==="PATCH").map(r=>r.ifMatch)).toEqual(['"7"','"8"']);
+  if(afterGet===500){await page.setViewportSize({width:390,height:900});assertDialogFacts(await geometry(page));await expect(dialog.getByRole("alert").filter({hasText:"목록을 불러오지 못했습니다"})).toBeVisible();await expect(dialog.getByRole("button",{name:"저장",exact:true})).toBeDisabled();await dialog.getByRole("button",{name:"최신 목록 조회",exact:true}).click();}
+  else await expect(dialog.getByRole("alert").filter({hasText:"다른 관리 변경"})).toBeVisible();
+  await expect(dialog.getByRole("alert").filter({hasText:"기준정보가 변경되었습니다"})).toBeVisible();
+  await expect(dialog.getByLabel("표시명",{exact:true})).toHaveValue("412 draft");
+  await expect(dialog.getByRole("button",{name:"저장",exact:true})).toBeDisabled();
+  await dialog.locator("form").evaluate(form=>(form as HTMLFormElement).requestSubmit());
+  expect(mock.requests.filter(r=>r.method==="PATCH")).toHaveLength(1);
+  // A successful refresh does not give an old translation snapshot a new revision.
+  await dialog.getByRole("button",{name:"취소",exact:true}).click();await expect(dialog).toHaveCount(0);
+  await page.getByRole("button",{name:"이름 수정",exact:true}).first().click();
+  await expect(dialog.getByLabel("표시명",{exact:true})).toHaveValue("AGV");
+  await dialog.getByLabel("표시명",{exact:true}).fill("412 draft");await expect(dialog.getByRole("button",{name:"저장",exact:true})).toBeEnabled();
+  await dialog.getByRole("button",{name:"저장",exact:true}).click();await expect(dialog).toHaveCount(0);expect(mock.requests.filter(r=>r.method==="PATCH").map(r=>r.ifMatch)).toEqual(['"7"','"8"']);
 });
 
 for(const failure of ["network","malformed","401"])test(`#454 이름 ${failure} 실패는 성공·자동 retry 없이 명시 복구`,async({page})=>{

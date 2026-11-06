@@ -1,5 +1,8 @@
 "use client";
 
+import { useI18n } from "../../lib/i18n/provider";
+
+
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 
@@ -53,6 +56,7 @@ function hasEditPermission(value: unknown): boolean {
 }
 
 export function ProjectCopyButton({ publicId, autoOpen = false, busy = false, onAutoOpen }: Props) {
+  const { t } = useI18n();
   const router = useRouter();
   const { notify } = useWorkspaceNotifications();
   const [snapshot, setSnapshot] = useState<ProjectSnapshotResponse | null>(null);
@@ -70,7 +74,7 @@ export function ProjectCopyButton({ publicId, autoOpen = false, busy = false, on
   const [error, setError] = useState<string | null>(null);
   const [sourceState, setSourceState] = useState<"loading" | "ready" | "loadError" | "conflict">("loading");
   const [sourceId, setSourceId] = useState("");
-  const [sourceNotice, setSourceNotice] = useState<string | null>(null);
+  const [sourceNotice, setSourceNotice] = useState<number | null>(null);
   const trigger = useRef<HTMLButtonElement | null>(null);
   const autoOpened = useRef(false);
   const pending = useRef(false);
@@ -155,7 +159,7 @@ export function ProjectCopyButton({ publicId, autoOpen = false, busy = false, on
         setResetProgress(false);
         initialized.current = true;
       } else {
-        setSourceNotice(`최신 원본 revision ${projectBody.data.project.revision}을 확인했습니다. 내용을 검토한 후 복사본 생성을 다시 선택해 주세요.`);
+        setSourceNotice(projectBody.data.project.revision);
       }
       clearPasswords();
       return projectBody;
@@ -330,23 +334,23 @@ export function ProjectCopyButton({ publicId, autoOpen = false, busy = false, on
 
   return <>
     <button ref={trigger} type="button" className="secondary-button" disabled={busy || loading || copying} onClick={() => void show()}>
-      {loading ? "확인 중…" : "프로젝트 복사"}
+      {loading ? t("확인 중…") : t("프로젝트 복사")}
     </button>
-    {open ? <WorkspaceDialog title="프로젝트 복사" onClose={close} busy={copying} restoreFocusRef={trigger}>
-      {loading ? <p role="status">원본 프로젝트를 확인하는 중…</p> : null}
-      {sourceNotice ? <p role="status">{sourceNotice}</p> : null}
-      {!loading && (sourceState === "loadError" || sourceState === "conflict") ? <div className="standalone-actions"><button className="secondary-button" type="button" disabled={copying} onClick={() => void refreshForCopy()}>{sourceState === "conflict" ? "최신 원본 확인" : "다시 시도"}</button></div> : null}
-      {project ? <p>원본 revision {project.revision}{!ready ? " · 이전 조회 정보 · 최신 상태 확인 필요" : ""} · 작업 {tasks.length} · 연결 {links.length} · 휴일 {project.calendar.holidays.length}{hasLogistics ? ` · 공정 ${logistics?.processes.length} · 설비 ${logistics?.equipment.length} · 시스템 ${logistics?.systems.length}` : ""}. 서버에 저장된 일정·물류 구조를 독립 복사하며, 글로벌 리소스 참조는 그대로 유지됩니다.</p> : null}
-      {error ? <p role="alert">{error}</p> : null}
+    {open ? <WorkspaceDialog title={t("프로젝트 복사")} onClose={close} busy={copying} restoreFocusRef={trigger}>
+      {loading ? <p role="status">{t("원본 프로젝트를 확인하는 중…")}</p> : null}
+      {sourceNotice ? <p role="status">{t("최신 원본 revision {revision}을 확인했습니다. 내용을 검토한 후 복사본 생성을 다시 선택해 주세요.", { revision: String(sourceNotice) })}</p> : null}
+      {!loading && (sourceState === "loadError" || sourceState === "conflict") ? <div className="standalone-actions"><button className="secondary-button" type="button" disabled={copying} onClick={() => void refreshForCopy()}>{sourceState === "conflict" ? t("최신 원본 확인") : t("다시 시도")}</button></div> : null}
+      {project ? <p>{t("원본 revision ")}{project.revision}{!ready ? t(" · 이전 조회 정보 · 최신 상태 확인 필요") : ""} {t(" · 작업 ")}{tasks.length} {t(" · 연결 ")}{links.length} {t(" · 휴일 ")}{project.calendar.holidays.length}{hasLogistics ? t(" · 공정 {value0} · 설비 {value1} · 시스템 {value2}", { value0: logistics?.processes.length, value1: logistics?.equipment.length, value2: logistics?.systems.length }) : ""}{t(". 서버에 저장된 일정·물류 구조를 독립 복사하며, 글로벌 리소스 참조는 그대로 유지됩니다.")}</p> : null}
+      {error ? <p role="alert">{t(error)}</p> : null}
       {project ? <form className="project-form compact-form" noValidate onSubmit={submit}>
-        {!authorized ? <div className="form-field"><label htmlFor="detail-copy-source-password">원본 편집 비밀번호</label><input ref={sourceInput} id="detail-copy-source-password" type="password" autoComplete="current-password" value={sourcePassword} disabled={copying || !ready} onChange={(event) => setSourcePassword(event.target.value)} /></div> : null}
-        <div className="form-field"><label htmlFor="detail-copy-name">새 프로젝트명</label><input id="detail-copy-name" value={name} disabled={copying} onChange={(event) => setName(event.target.value)} /></div>
-        <div className="form-field"><label htmlFor="detail-copy-owner">소유자</label><input id="detail-copy-owner" value={ownerName} disabled={copying} onChange={(event) => setOwnerName(event.target.value)} /></div>
-        <div className="form-field"><label htmlFor="detail-copy-description">설명</label><textarea id="detail-copy-description" rows={3} value={description} disabled={copying} onChange={(event) => setDescription(event.target.value)} /></div>
-        <div className="form-field"><label htmlFor="detail-copy-password">새 편집 비밀번호</label><input id="detail-copy-password" type="password" autoComplete="new-password" minLength={1} maxLength={12} value={password} disabled={copying} onChange={(event) => setPassword(event.target.value)} /></div>
-        <div className="form-field"><label htmlFor="detail-copy-password-confirm">새 편집 비밀번호 확인</label><input id="detail-copy-password-confirm" type="password" autoComplete="new-password" minLength={1} maxLength={12} value={confirm} disabled={copying} onChange={(event) => setConfirm(event.target.value)} /></div>
-        <label><input type="checkbox" checked={resetProgress} disabled={copying} onChange={(event) => setResetProgress(event.target.checked)} /> 진척률 0%로 초기화</label>
-        <button className="primary-button" type="submit" disabled={copying || !ready || busy}>{copying ? "복사 중…" : "복사본 생성"}</button>
+        {!authorized ? <div className="form-field"><label htmlFor="detail-copy-source-password">{t("원본 편집 비밀번호")}</label><input ref={sourceInput} id="detail-copy-source-password" type="password" autoComplete="current-password" value={sourcePassword} disabled={copying || !ready} onChange={(event) => setSourcePassword(event.target.value)} /></div> : null}
+        <div className="form-field"><label htmlFor="detail-copy-name">{t("새 프로젝트명")}</label><input id="detail-copy-name" value={name} disabled={copying} onChange={(event) => setName(event.target.value)} /></div>
+        <div className="form-field"><label htmlFor="detail-copy-owner">{t("소유자")}</label><input id="detail-copy-owner" value={ownerName} disabled={copying} onChange={(event) => setOwnerName(event.target.value)} /></div>
+        <div className="form-field"><label htmlFor="detail-copy-description">{t("설명")}</label><textarea id="detail-copy-description" rows={3} value={description} disabled={copying} onChange={(event) => setDescription(event.target.value)} /></div>
+        <div className="form-field"><label htmlFor="detail-copy-password">{t("새 편집 비밀번호")}</label><input id="detail-copy-password" type="password" autoComplete="new-password" minLength={1} maxLength={12} value={password} disabled={copying} onChange={(event) => setPassword(event.target.value)} /></div>
+        <div className="form-field"><label htmlFor="detail-copy-password-confirm">{t("새 편집 비밀번호 확인")}</label><input id="detail-copy-password-confirm" type="password" autoComplete="new-password" minLength={1} maxLength={12} value={confirm} disabled={copying} onChange={(event) => setConfirm(event.target.value)} /></div>
+        <label><input type="checkbox" checked={resetProgress} disabled={copying} onChange={(event) => setResetProgress(event.target.checked)} /> {t(" 진척률 0%로 초기화")}</label>
+        <button className="primary-button" type="submit" disabled={copying || !ready || busy}>{copying ? t("복사 중…") : t("복사본 생성")}</button>
       </form> : null}
     </WorkspaceDialog> : null}
   </>;

@@ -1,0 +1,125 @@
+{
+  "schema": "issue866-ci3526-original-source-proof-v1",
+  "repository": "planner77/masterGantt",
+  "run_id": 42100064413,
+  "run_number": 3526,
+  "run_attempt": 1,
+  "pr_number": 879,
+  "head_sha": "8f1335cf96d1de8bb3dc767e72683bb8d0148a05",
+  "base_sha": "364aa3bdfde16fd3ca79add61c35a1cde21f6395",
+  "test_merge_sha": "e0e77f06469e978c53fb55cc103b7f0b8fa07175",
+  "head_ref": "feat/issue-866-i18n-phase-b-owner-data",
+  "base_ref": "main",
+  "source_job_id": 127500200971,
+  "source_job_url": "https://github.com/planner77/masterGantt/actions/runs/42100064413/job/127500200971",
+  "raw_log_lines": [
+    {
+      "line": 87,
+      "text": "2026-11-05T20:05:30.8508225Z Artifact ci-pr-source-42100064413-1 successfully finalized. Artifact ID 13449701384"
+    },
+    {
+      "line": 96,
+      "text": "2026-11-05T20:05:32.1864126Z ##[group]Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1"
+    },
+    {
+      "line": 229,
+      "text": "2026-11-05T20:06:06.6436984Z HEAD is now at e0e77f0 Merge 8f1335cf96d1de8bb3dc767e72683bb8d0148a05 into 364aa3bdfde16fd3ca79add61c35a1cde21f6395"
+    },
+    {
+      "line": 1684,
+      "text": "2026-11-05T20:06:09.8024386Z   PR_HEAD: 8f1335cf96d1de8bb3dc767e72683bb8d0148a05"
+    },
+    {
+      "line": 1685,
+      "text": "2026-11-05T20:06:09.8024790Z   PR_BASE: 364aa3bdfde16fd3ca79add61c35a1cde21f6395"
+    },
+    {
+      "line": 1686,
+      "text": "2026-11-05T20:06:09.8025150Z   PR_TEST_MERGE: e0e77f06469e978c53fb55cc103b7f0b8fa07175"
+    }
+  ],
+  "artifact": {
+    "id": 13449701384,
+    "name": "ci-pr-source-42100064413-1",
+    "size_in_bytes": 421,
+    "url": "https://api.github.com/repos/planner77/masterGantt/actions/artifacts/13449701384",
+    "archive_download_url": "https://api.github.com/repos/planner77/masterGantt/actions/artifacts/13449701384/zip",
+    "expired": false,
+    "created_at": "2026-11-05T20:05:30Z",
+    "expires_at": "2026-12-05T20:05:29Z",
+    "digest": "sha256:47bc64d0dc05d5ca4ba2379a88d501ed0288cb31f93fffb9a3ef0492032b4ace",
+    "unique_matching_count": 1,
+    "downloaded_zip_sha256": "47bc64d0dc05d5ca4ba2379a88d501ed0288cb31f93fffb9a3ef0492032b4ace",
+    "zip_members": [
+      "ci-pr-source.json"
+    ]
+  },
+  "artifact_payload": {
+    "schema": "mastergantt-ci-pr-source-v1",
+    "repository": "planner77/masterGantt",
+    "run_id": 42100064413,
+    "run_attempt": 1,
+    "pr_number": 879,
+    "head_sha": "8f1335cf96d1de8bb3dc767e72683bb8d0148a05",
+    "head_ref": "feat/issue-866-i18n-phase-b-owner-data",
+    "head_repository": "planner77/masterGantt",
+    "base_sha": "364aa3bdfde16fd3ca79add61c35a1cde21f6395",
+    "base_ref": "main",
+    "base_repository": "planner77/masterGantt",
+    "test_merge_sha": "e0e77f06469e978c53fb55cc103b7f0b8fa07175"
+  },
+  "crosschecks": {
+    "public_run_api": {
+      "run_id": 42100064413,
+      "attempt": 1,
+      "event": "pull_request",
+      "head_sha": "8f1335cf96d1de8bb3dc767e72683bb8d0148a05",
+      "workflow_path": ".github/workflows/ci.yml",
+      "pull_requests": [
+        {
+          "number": 879,
+          "head": "8f1335cf96d1de8bb3dc767e72683bb8d0148a05",
+          "base": "364aa3bdfde16fd3ca79add61c35a1cde21f6395"
+        }
+      ]
+    },
+    "current_pr_api": {
+      "number": 879,
+      "head": "8f1335cf96d1de8bb3dc767e72683bb8d0148a05",
+      "base": "364aa3bdfde16fd3ca79add61c35a1cde21f6395",
+      "head_ref": "feat/issue-866-i18n-phase-b-owner-data",
+      "base_ref": "main",
+      "repository": "planner77/masterGantt",
+      "mergeable": true,
+      "test_merge": "e0e77f06469e978c53fb55cc103b7f0b8fa07175"
+    },
+    "immutable_test_merge": {
+      "sha": "e0e77f06469e978c53fb55cc103b7f0b8fa07175",
+      "parent_shas": [
+        "364aa3bdfde16fd3ca79add61c35a1cde21f6395",
+        "8f1335cf96d1de8bb3dc767e72683bb8d0148a05"
+      ],
+      "tree_sha": "81345aa9cc76c5609c4fc933facf05d780c7abbf"
+    },
+    "commit_to_pr": {
+      "head_sha": "8f1335cf96d1de8bb3dc767e72683bb8d0148a05",
+      "single_attribution_count": 1,
+      "pr_numbers": [
+        879
+      ]
+    }
+  },
+  "checks": {
+    "artifact_created_before_checkout": true,
+    "artifact_schema_and_repository_match": true,
+    "run_id_attempt_match": true,
+    "all_head_base_merge_values_match": true,
+    "branch_and_repository_match": true,
+    "merge_parents_match_base_head": true,
+    "commit_pr_single_attribution": true
+  },
+  "status": "PASS",
+  "scope": "원본3526의 역사적 출처 필드에 대한 직접 읽기 전용 대조. PR artifact는 비신뢰 자료이며단독근거가아니다. 공개GitHubREST+인증연결도구를사용했으며개별API인증여부와Trusted승인을혼동하지않는다.",
+  "trusted_qa": "NOT TESTED",
+  "approval": "NOT TESTED"
+}

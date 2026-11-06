@@ -1,3 +1,9 @@
+## Issue #866 Phase B — 관리형 번역 저장 및 UI (2026-11-05)
+
+- FR-I18N-03: global/project별 기존 owner ID+locale에 귀속되는 ko/en/vi 표시명 저장; 기존 id/code/name/UNIQUE/참조·수량/권한·Free Text 불변. 관리자 수동 CRUD, 원본 fallback, ID 선택, Owner/Project Edit 권한 및 revision CAS 유지. migration 0036/Copy/Template6/Export guard를 구현한다.
+- AC04/05/06의 정적 구현과 관련 unit/SQLite/E2E 후보를 Phase B에 연결했으나 정확 Head Full CI/HTTP/실제 DB/5폭 테스트 전 NOT TESTED. AC02/03/07/08/09 및 전체 제품 현지화는 Phase C 잔여, Issue #866 OPEN/release_authorized=false.
+- UI 키·원문 값과 기술 식별자를 구별하고 외부 번역 서버/LLM 자동 호출은 금지한다. [Phase B](I18N_PHASE_B.md).
+
 ## Issue #865 — 명시적 사내 LLM 공급자·모델 선택 (2026-11-04)
 
 OpenAI 호환 서버 전용 호출 기반을 제공한다. 하나 이상의 사설망 provider를 등록하고 각 provider에 여러 model을 명시, `(providerId,modelId)` 쌍으로 선택한다. 기본 OFF, runtime secret 격리, 허용 대상/모델 검증 실패는 fail-closed, 비스트리밍·bounded 호출/표준 오류·timeout/abort, 자동 외부 연결·데이터 전송·AI UI/공개 API 없음. 모델 자동 탐색, 서비스/DB 자동 차단 또는 임의 provider failover 없음. [#865 요구사항](https://github.com/planner77/masterGantt/issues/865)과 [운영 가이드](LLM_CONFIGURATION.md)를 따른다.
@@ -694,3 +700,15 @@ Project Template은 공정 occurrence/선택 WorkArea와 Target/typed members를
 ## Issue #342 — 국가 캘린더 관리
 
 KR/CN/VN/PH/TH/MX/US의2026~2037을84개 슬롯으로 관리한다. 검증된 공식 자료만 Scheduling에 사용하고 미확보/부분 자료는 UNAVAILABLE로 유지한다. 관리자 JSON/CSV Preview→전체 연도 원자적 교체와 날짜/출처 CRUD를 제공하며, 수동 날짜 변경은 공식 출처를 무효화한다. 국가 원본 갱신은 기존 Project Calendar/Task/revision을 바꾸지 않는다. 자세한 계약은 [국가 데이터 운영](COUNTRY_CALENDAR_DATA.md) 및 [API](API.md)의 #342 절을 따른다.
+
+## Issue #866 — i18n Phase A (ko/en/vi) / 전체 적용 전제 (2026-11-05)
+
+- **R34 현행:** 브라우저에 저장된 유효한 선택 `ko/en/vi` 우선, 없으면 브라우저 선호의 첫 지원 언어, 지원되지 않으면 `ko`; 선택은 탭 이동·새로고침에 지속. `<html lang>`/SSR 첫 렌더/ARIA와 static locale/숫자·날짜 표시를 동기화한다.
+- Phase A는 앱 Shell/Header/상단 주요 메뉴·SVAR Gantt static locale의 적용과 안전한 오류 코드 처리만 제공한다. 저장되는 date-only/UTC, Project/task/Issue 이름·사용자 자유 입력, 근무일·W##, ID/name/code/enum/SQLite/API 권한·revision은 불변이다.
+- 사용자 요구 완성은 **Phase B/C**의 관리형 기준정보 표시명 별도 저장·수동 관리·원문 fallback 및 Project/Editor/Issue/Dashboard/Administrator 모든 화면 3언어·실제 DB/HTTP/화면 E2E까지 포함한다. Phase A 이행만으로 Issue #866 AC02~09 전체 완료/정식 release 승인으로 취급하지 않는다. [세부 계획](exec-plans/active/ISSUE_866.md).
+
+## Issue #866 — Phase C 전체 화면 표시와 원문 보존 (2026-11-05)
+
+R34의 전체 적용은 Project/Task Editor/Issue/물류·Resource·Milestone/관리 화면의 고정 UI·도움말·ARIA·validation과 날짜·숫자 표시를 ko/en/vi로 제공하는 범위다. 사용자 이름·본문·설명·사람 이름은 불투명 원문이며 사전 key와 같아도 자동 번역하지 않는다. 관리형 이름은 현재 언어의 선택적 translations만 사용하고 없으면 원본 name을 표시한다. 선택·저장·관계는 기존 ID/code/enum·권한·revision/CAS를 유지한다.
+
+locale 변경은 데이터 mutation이나 Gantt/Editor 재초기화의 근거가 아니며 dirty 초안·선택·scroll·401/412 stale 잠금을 보존해야 한다. 알림은 고정 key/parameter descriptor를 현재 언어로 표시하고 canonical date-only·timestamp·근무일·KPI 산식은 변경하지 않는다. [Phase C 설계](I18N_PHASE_C.md)의 오류 신뢰 경계와 검증 인계를 따른다. HIGH / OWNER_MANAGED의 새 Head 원격 검증은 현재 NOT TESTED이며 로컬 구현 PASS는 독립 인간 QA·Owner ACCEPT가 아니다.

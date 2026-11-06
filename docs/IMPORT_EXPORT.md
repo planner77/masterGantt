@@ -1,3 +1,9 @@
+## Issue #866 Phase B — 수동 번역 및 무손실 전송 (2026-11-05)
+
+- 기준정보의 원본 name/code/ID/FK는 번역 표시명으로 대체하지 않는다. Project Copy 시 새 owner ID별 번역 재매핑, Template snapshot version 6에서 ko/en/vi 관리형 표시명 보존을 구현한다.
+- Schedule JSON/Excel은 관리형 기준정보 번역 및 기존 공정 문맥을 표현하지 못할 경우 조용히 삭제하지 않고 409 DISPLAY_NAME_TRANSLATIONS_EXPORT_UNSUPPORTED 또는 기존 PROCESS_CONTEXT_EXPORT_UNSUPPORTED로 차단한다. 임의 손실 import/restore 자동 백필 없음. 이전 template 소비자의 하위호환성은 새 Head CI/실운영 복구에서 검증 필요.
+- 데이터 복구는 0035↔0036 DB migration checksum 불변·원본 backup 전제. 테이블만 삭제하는 다운 마이그레이션으로 번역 보존을 주장하지 않는다. [Phase B](I18N_PHASE_B.md).
+
 ## Issue #553 — marker OFF 운영에서 JSON 교환 원본 보존 (2026-10-25)
 
 화면 Grid/Chart의 Milestone 행 제거·검색/접힘/필터는 JSON 1.1 **프로젝트 전체 원본**의 Task·Milestone·Link·명시 Membership을 줄이지 않는다. 신규 Project Import는 원본→신규 UUID/FK 매핑으로 의미를 비교하며 유효·상속 소속은 재계산한다. 혼합 endpoint legacy Link의 Export는 원형 기록 가능하나 재Import는 기존 원자 거부 정책이고 Resource/Logistics 전체 백업으로 취급하지 않는다. 실제 회귀 경계는 [#553 가이드](MILESTONE_USER_GUIDE.md)와 [추적표](MILESTONE_TIMELINE_TRACEABILITY.md)를 따른다. API/schema/권한·If-Match 계약은 변경하지 않는다.

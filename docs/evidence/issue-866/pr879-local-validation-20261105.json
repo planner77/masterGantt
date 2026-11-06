@@ -1,0 +1,169 @@
+{
+  "schema": "mastergantt-pr879-local-validation-v1",
+  "issue": 866,
+  "pr": 879,
+  "baseline_head": "a7cbef53bd0c89f4f3a7a3c3ed5a76ba7cb2266e",
+  "base": "364aa3bdfde16fd3ca79add61c35a1cde21f6395",
+  "code_test_config_source": {
+    "sha256": "4ffddace573d3504b165c2212fc52f1dc177e045df849ce3709479ce0e75d068",
+    "tracked_files": 1283,
+    "end_matches_start": true,
+    "changed_paths_at_end": [],
+    "generated_next_config_and_captures_restored": true
+  },
+  "environment": {
+    "node": "v22.14.0",
+    "npm": "11.10.0",
+    "playwright": "1.63.0",
+    "chromium_revision": "1243",
+    "observed_browser_version": "153.0.8010.12"
+  },
+  "verification": {
+    "typecheck": {
+      "status": "PASS",
+      "exit_code": 0,
+      "original_config_rechecked": true
+    },
+    "eslint": {
+      "status": "PASS",
+      "exit_code": 0,
+      "scope": "1118 fresh-checkout Git-tracked JS/TS files, same ESLint config",
+      "errors": 0,
+      "existing_warnings": 18
+    },
+    "vitest": {
+      "status": "PASS",
+      "files_passed": 293,
+      "files_preexisting_skipped": 1,
+      "tests_passed": 3541,
+      "tests_preexisting_skipped": 3,
+      "duration_seconds": 84.99,
+      "command": "npm test -- --maxWorkers=2"
+    },
+    "production_build_and_runtime_tools": {
+      "status": "PASS",
+      "exit_code": 0,
+      "command": "NEXT_DIST_DIR=.next-prepr-final npm run build"
+    },
+    "chromium": {
+      "status": "PASS",
+      "planned": 88,
+      "passed": 86,
+      "failed": 0,
+      "preexisting_capture_only_skipped": 2,
+      "workers": 1,
+      "retries": 0,
+      "max_failures": 0,
+      "parts": [
+        {
+          "part": "A",
+          "exit_code": 0,
+          "source_fingerprint": "4ffddace573d3504b165c2212fc52f1dc177e045df849ce3709479ce0e75d068",
+          "files": 13,
+          "planned": 68,
+          "passed": 66,
+          "skipped": 2,
+          "failed": 0,
+          "duration": "5.1m"
+        },
+        {
+          "part": "B",
+          "exit_code": 0,
+          "source_fingerprint": "4ffddace573d3504b165c2212fc52f1dc177e045df849ce3709479ce0e75d068",
+          "files": 2,
+          "planned": 6,
+          "passed": 6,
+          "skipped": 0,
+          "failed": 0,
+          "duration": "5.7m"
+        },
+        {
+          "part": "C",
+          "exit_code": 0,
+          "source_fingerprint": "4ffddace573d3504b165c2212fc52f1dc177e045df849ce3709479ce0e75d068",
+          "files": 1,
+          "planned": 4,
+          "passed": 4,
+          "skipped": 0,
+          "failed": 0,
+          "duration": "3.2m"
+        },
+        {
+          "part": "D",
+          "exit_code": 0,
+          "source_fingerprint": "4ffddace573d3504b165c2212fc52f1dc177e045df849ce3709479ce0e75d068",
+          "files": 1,
+          "planned": 10,
+          "passed": 10,
+          "skipped": 0,
+          "failed": 0,
+          "duration": "4.6m"
+        }
+      ],
+      "files_by_part": {
+        "A": [
+          "tests/e2e/admin-auth-layout.spec.ts",
+          "tests/e2e/country-calendar-admin.spec.ts",
+          "tests/e2e/cross-screen-regression.spec.ts",
+          "tests/e2e/i18n-master-data.spec.ts",
+          "tests/e2e/issue-866-language-shell.spec.ts",
+          "tests/e2e/logistics-table-density.spec.ts",
+          "tests/e2e/logistics-type-catalog-admin.spec.ts",
+          "tests/e2e/master-controls-density.spec.ts",
+          "tests/e2e/new-project-draft-preservation.spec.ts",
+          "tests/e2e/project-create-layout.spec.ts",
+          "tests/e2e/project-master-relations.spec.ts",
+          "tests/e2e/project-workspace-layout.spec.ts",
+          "tests/e2e/resource-catalog-delete.spec.ts"
+        ],
+        "B": [
+          "tests/e2e/issue-725-process-workareas.spec.ts",
+          "tests/e2e/issue-726-task-logistics.spec.ts"
+        ],
+        "C": [
+          "tests/e2e/issue-732-milestone-dashboard.spec.ts"
+        ],
+        "D": [
+          "tests/e2e/project-multi-task-copy-paste.spec.ts"
+        ]
+      }
+    },
+    "automatic_prepr": {
+      "status": "BLOCKED",
+      "reason": "UNKNOWN producer-consumer mappings; manual full cumulative failure/adjacent/negative mapping in Work Packet; no selector/policy bypass"
+    }
+  },
+  "earlier_local_runs": [
+    {
+      "source": "b0b631baa30f9c6455908a71ae66b0d62f201bc3a7aae682bc472746d075e371",
+      "planned": 65,
+      "passed": 61,
+      "failed": 3,
+      "preexisting_skipped": 1,
+      "status": "FAIL",
+      "classification": "TEST_CONTRACT: stale 412 recovery expectations and global alert locator"
+    },
+    {
+      "source": "4ffddace573d3504b165c2212fc52f1dc177e045df849ce3709479ce0e75d068",
+      "planned": 88,
+      "observed_passed_before_interruption": 12,
+      "exit_code": 143,
+      "status": "CANCELLED",
+      "reason": "daemon/server restart; not counted as final success"
+    }
+  ],
+  "review": {
+    "separate_agent_static_precheck": "PASS",
+    "independent_human_qa": "N/A(OWNER_MANAGED)",
+    "manager_decision": "NOT TESTED",
+    "merge_ready": "BLOCKED",
+    "release_authorized": false
+  },
+  "remote_new_head": {
+    "quality": "NOT TESTED",
+    "e2e": "NOT TESTED",
+    "docker": "NOT TESTED",
+    "trusted_qa": "NOT TESTED",
+    "main_ghcr_release": "NOT TESTED / outside requested CI-start scope"
+  }
+}

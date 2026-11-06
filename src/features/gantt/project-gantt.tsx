@@ -8,6 +8,7 @@ import { createInlineNameSession, type InlineNameSubmitCause } from "./inline-na
 
 import { createViewportCoordinator, type ViewportCoordinator, type ViewportController, type ViewportStamp, type ViewportContext } from "./viewport/viewport-coordinator";
 import { copyViewportHandoffSource, createCopyViewportRevocation, type CanonicalMutationRequest } from "./viewport/copy-viewport-continuity";
+import { canRestoreLocaleInitColumns } from "./viewport/locale-presentation";
 import { createSvarViewportPort } from "./viewport/svar-viewport-port";
 
 import { createCoreActionTrace, traceFingerprint, type TraceContext } from "./diagnostics/core-action-trace";
@@ -25,7 +26,9 @@ import "@svar-ui/react-gantt/all.css";
 import { Locale } from "@svar-ui/react-core";
 import { weekCalendarInterval, weekCalendarScaleClass, weekCalendarIntervalFromClass, weekTimelineScaleClass } from "./week-calendar-interval";
 import { weekTimelineTooltip, type WeekTimelineTooltipData } from "./week-timeline-tooltip";
-const ganttIsoLocale = { calendar: { weekStart: 1 } };
+import { SVAR_LOCALES } from "./svar-locales";
+import { useI18n } from "@/lib/i18n/provider";
+import { LocaleSelector } from "@/lib/i18n/locale-selector";
 import {
   createContext,
   useContext,
@@ -108,6 +111,7 @@ import {
 import {
   projectLinksToSvarLinks,
   projectTasksToSvarTasks,
+  refreshNativeLocaleInputs,
   translateProjectTaskUpdate,
   normalizeInlineTaskName,
   type ProjectTaskCreateCommand,
@@ -161,6 +165,7 @@ const CopySelectionContext = createContext<CopySelectionContextValue | null>(nul
 
 /** Stable public Grid renderer reads React context, never mutable refs. */
 function ProjectTaskSelectionCell({ row }: { row: Record<string, unknown> }) {
+  const { t } = useI18n();
     const context = useContext(CopySelectionContext);
     if (!context) return null;
     const id = String(row.id);
@@ -171,7 +176,7 @@ function ProjectTaskSelectionCell({ row }: { row: Record<string, unknown> }) {
       onMouseDown={(event) => event.stopPropagation()}
       onClick={(event) => event.stopPropagation()}>
       <input type="checkbox" data-copy-selection={id}
-        aria-label={`${context.tasksById.get(id)?.name ?? String(row.text ?? "작업")} 복사 대상으로 선택`}
+        aria-label={t("{name} 복사 대상으로 선택", { name: context.tasksById.get(id)?.name ?? String(row.text ?? t("작업")) })}
         checked={context.selectedTaskIds.includes(id)}
         onPointerDown={(event) => event.stopPropagation()}
         onClick={(event) => event.stopPropagation()}
@@ -183,6 +188,7 @@ function ProjectTaskSelectionCell({ row }: { row: Record<string, unknown> }) {
 }
 
 function ProjectStageCell({ row }: { row: Record<string, unknown> }) {
+  const { t } = useI18n();
   const context = useContext(CopySelectionContext);
   if (!context) return null;
   const task = context.tasksById.get(String(row.id));
@@ -191,8 +197,8 @@ function ProjectStageCell({ row }: { row: Record<string, unknown> }) {
   const membership = context.stageMembership.get(task.taskId);
   const target = tasks.find((candidate) => candidate.taskId === membership?.effectiveMilestoneTaskId);
   const source = tasks.find((candidate) => candidate.taskId === membership?.inheritedFromTaskId);
-  const detail = `${membershipDescription(task, tasks, membership)}${target ? ` · ${target.externalId} · ${target.taskId}` : ""}${source ? ` · 출처 ${source.externalId} · ${source.taskId}` : ""}`;
-  return <button type="button" className="project-stage-membership-cell" disabled={context.stageLocked} title={detail} aria-label={`${task.name} Milestone: ${detail}`} onPointerDown={(event) => event.stopPropagation()} onClick={(event) => { event.stopPropagation(); context.onStageOpen(task.taskId); }}>{target?.name ?? "미지정"}{target ? membership?.inheritedFromTaskId ? " · 상속" : " · 직접" : ""}</button>;
+  const detail = `${membershipDescription(task, tasks, membership, t)}${target ? ` · ${target.externalId} · ${target.taskId}` : ""}${source ? ` · ${t("출처")} ${source.externalId} · ${source.taskId}` : ""}`;
+  return <button type="button" className="project-stage-membership-cell" disabled={context.stageLocked} title={detail} aria-label={`${task.name} Milestone: ${detail}`} onPointerDown={(event) => event.stopPropagation()} onClick={(event) => { event.stopPropagation(); context.onStageOpen(task.taskId); }}>{target?.name ?? t("미지정")}{target ? membership?.inheritedFromTaskId ? t(" · 상속") : t(" · 직접") : ""}</button>;
 }
 
 export type ProjectGridDataColumnId =
@@ -241,6 +247,7 @@ function TaskHoverTooltipLayer({
   readonly tasks: readonly ProjectTaskDto[];
   readonly locales: Intl.LocalesArgument;
 }) {
+  const { t } = useI18n();
   const [tooltip, setTooltip] = useState<TaskHoverTooltipState | null>(null);
 
   useEffect(() => {
@@ -313,7 +320,7 @@ function TaskHoverTooltipLayer({
     >
       <div className="project-task-hover-tooltip-content">
         <span className="project-task-hover-tooltip-name">{tooltip.data.name}</span>
-        <span className="project-task-hover-tooltip-dates">시작일: {tooltip.data.start} · 종료일: {tooltip.data.end}</span>
+        <span className="project-task-hover-tooltip-dates">{t("시작일: {start} · 종료일: {end}", { start: tooltip.data.start, end: tooltip.data.end })}</span>
       </div>
     </div>
   );
@@ -387,9 +394,9 @@ const baseProjectColumns: IColumnConfig[] = [
   // localized local-date and canonical working-day duration contract.
   { id: "projectStart", header: "시작", width: 104, align: "center" },
   { id: "projectDuration", header: "기간", width: 56, align: "center" },
-  { id: "baselineStart", header: "기준 시작", width: 104, align: "center", getter: (task) => String((task as Record<string, unknown>).baselineStart ?? "—") },
+  { id: "baselineStart", header: "기준 시작", width: 104, align: "center", getter: (task) => typeof task.baselineStart === "string" ? formatLocaleDateOnly(task.baselineStart, browserLocales()) : "—" },
   { id: "milestoneStage", header: "Milestone", width: 180, cell: ProjectStageCell },
-  { id: "baselineEnd", header: "기준 종료", width: 104, align: "center", getter: (task) => String((task as Record<string, unknown>).baselineEnd ?? "—") },
+  { id: "baselineEnd", header: "기준 종료", width: 104, align: "center", getter: (task) => typeof task.baselineEnd === "string" ? formatLocaleDateOnly(task.baselineEnd, browserLocales()) : "—" },
   // The Core recognizes this documented ID and renders its native header/row
   // plus controls. Their `add-task` event is intercepted below.
   { id: "add-task", header: "작업 추가", width: 37, align: "center" },
@@ -466,6 +473,8 @@ export function ProjectGantt({
   viewRootTaskId = null,
   projectPublicId,
 }: ProjectGanttProps) {
+  const { locale, t, formatLocale: locales } = useI18n();
+  const ganttWords = SVAR_LOCALES[locale];
   const { notify } = useWorkspaceNotifications();
   const [density, setDensity] = useState({ level: 0, coarse: false });
   const ganttCellHeight = densityHeight(density.level, density.coarse);
@@ -628,7 +637,7 @@ export function ProjectGantt({
   const selectionAnchorReference = useRef<string | null>(null);
   const visibleTaskIdsReference = useRef(visibleTaskIds);
   const matchingTaskIdsReference = useRef(matchingTaskIds);
-  const [selectionMessage, setSelectionMessage] = useState("");
+  const [selectionMessage, setSelectionMessage] = useState<string | { key: string; parameters: Record<string, string | number> }>("");
   const [selectionHiddenCount, setSelectionHiddenCount] = useState(0);
   const selectionProjectReference = useRef(projectPublicId);
   // Content equality prevents ordinary React renders from clearing clipboard.
@@ -651,8 +660,6 @@ export function ProjectGantt({
   const [startDatePicker, setStartDatePicker] = useState<StartDatePickerState | null>(null);
   const [inlineStartMessage, setInlineStartMessage] = useState("");
   const [inlineStartError, setInlineStartError] = useState(false);
-  // This browser-only component is dynamically imported with SSR disabled.
-  const [locales] = useState<Intl.LocalesArgument>(() => browserLocales());
   const dayHeaderTooltipId = `${instanceId}-day-header-tooltip`;
   const weekHeaderTooltipId = `${instanceId}-week-header-tooltip`;
   const highlightWeekend = useCallback(
@@ -736,7 +743,7 @@ export function ProjectGantt({
     if (changed) {
       setTaskClipboard(null);
       setSelectionMessage(current.length > next.length
-        ? `표시 범위 밖의 선택 ${current.length - next.length}개를 해제했습니다.`
+        ? { key: "표시 범위 밖의 선택 {count}개를 해제했습니다.", parameters: { count: current.length - next.length } }
         : "표시 범위가 변경되어 이전 클립보드를 비웠습니다.");
     }
   }, [projectPublicId, selectionBoundary, tasks, updateSelection, visibleTaskIds, matchingTaskIds, wbsDisplayMode]);
@@ -1227,8 +1234,8 @@ export function ProjectGantt({
           : null;
         if (nameCell && summaryState) {
           nameCell.dataset.summaryState = summaryState;
-          nameCell.setAttribute("aria-description", `요약 작업: ${summaryState}`);
-          nameCell.title = `${task!.name} · ${summaryState}`;
+          nameCell.setAttribute("aria-description", t("요약 작업: {state}", { state: t(summaryState) }));
+          nameCell.title = `${task!.name} · ${t(summaryState)}`;
         } else if (nameCell) {
           delete nameCell.dataset.summaryState;
           nameCell.removeAttribute("aria-description");
@@ -1251,7 +1258,7 @@ export function ProjectGantt({
     const observer = new MutationObserver(markRows);
     observer.observe(root, { childList: true, subtree: true, attributes: true, attributeFilter: ["aria-readonly"] });
     return () => observer.disconnect();
-  }, [editable, links, mutationLocked, tasks, tasksById]);
+  }, [editable, links, mutationLocked, tasks, tasksById, t]);
 
   useEffect(() => {
     const frame = fullscreenFrameReference.current;
@@ -1492,6 +1499,7 @@ export function ProjectGantt({
       source: "header",
     });
     const setNativeAddAccessibility = () => {
+      root.querySelectorAll<HTMLElement>(".wx-header .wx-grip").forEach(grip => grip.setAttribute("aria-label", t("열 너비 조정")));
       root.querySelectorAll<HTMLElement>('[data-action="add-task"]').forEach((action) => {
         const row = action.closest<HTMLElement>(".wx-row[data-id]");
         const taskId = row ? taskIdFromElement(row) : null;
@@ -1506,7 +1514,7 @@ export function ProjectGantt({
         action.tabIndex = disabled ? -1 : 0;
         if (!action.hasAttribute("role")) action.setAttribute("role", "button");
         if (source === "header") {
-          const label = viewRootTaskId === null ? "프로젝트 최상위 작업 추가" : "범위 최상위 작업 추가";
+          const label = t(viewRootTaskId === null ? "프로젝트 최상위 작업 추가" : "범위 최상위 작업 추가");
           action.setAttribute("aria-label", label);
           action.setAttribute("title", label);
         }
@@ -1516,7 +1524,7 @@ export function ProjectGantt({
     const observer = new MutationObserver(setNativeAddAccessibility);
     observer.observe(root, { childList: true, subtree: true });
     return () => observer.disconnect();
-  }, [editable, mutationLocked, tasks, tasksById, viewRootTaskId]);
+  }, [editable, mutationLocked, tasks, tasksById, viewRootTaskId, t]);
   const svarTasks = useMemo(() => projectTasksToSvarTasks(tasks, viewRootTaskId), [tasks, viewRootTaskId]);
   const svarLinks = useMemo(() => projectLinksToSvarLinks(links, tasks), [links, tasks]);
   const taskUpdateGateway = useMemo(
@@ -1552,7 +1560,7 @@ export function ProjectGantt({
             },
             getter: (task: ITask) => {
               const start = typeof task.id === "string" ? tasksByIdReference.current.get(task.id)?.start : null;
-              return start ? formatLocaleDateOnly(start, locales) : "—";
+              return start ? formatLocaleDateOnly(start, browserLocales()) : "—";
             },
           }
           : column.id === "projectDuration"
@@ -1564,7 +1572,7 @@ export function ProjectGantt({
                 // the Grid contract truthful by reading the scheduler's
                 // canonical working-day duration from the snapshot instead.
                 typeof task.id === "string" && typeof tasksByIdReference.current.get(task.id)?.duration === "number"
-                  ? String(tasksByIdReference.current.get(task.id)!.duration)
+                  ? new Intl.NumberFormat(browserLocales()).format(tasksByIdReference.current.get(task.id)!.duration!)
                   : "—"
               ),
             }
@@ -1584,8 +1592,9 @@ export function ProjectGantt({
             : column
     ))],
     // Row updates refresh getters from the latest canonical DTO map. Column
-    // definitions only change with actual layout preferences or locale.
-    [columnVisibility, locales],
+    // definitions only change with actual layout preferences. Locale is read
+    // at render time so changing language cannot replace native columns.
+    [columnVisibility],
   );
   const columnDefinitionsReference = useRef(columns);
   useLayoutEffect(() => { columnDefinitionsReference.current = columns; }, [columns]);
@@ -1977,7 +1986,7 @@ export function ProjectGantt({
     };
   }, [apiInstanceId, installMilestoneProbe]);
 
-  const projection = useMemo(() => buildProjection({ revision: projectRevision, tasks: svarTasks, links: svarLinks, displayTasks: tasks }, { scope: viewRootTaskId, filter: visibleTaskIds, displayMode: wbsDisplayMode, columnPrefs: [columnVisibility, locales], scale: scaleMode }), [projectRevision, svarTasks, svarLinks, tasks, viewRootTaskId, visibleTaskIds, columnVisibility, locales, scaleMode, wbsDisplayMode]);
+  const projection = useMemo(() => buildProjection({ revision: projectRevision, tasks: svarTasks, links: svarLinks, displayTasks: tasks }, { scope: viewRootTaskId, filter: visibleTaskIds, displayMode: wbsDisplayMode, columnPrefs: [columnVisibility], scale: scaleMode }), [projectRevision, svarTasks, svarLinks, tasks, viewRootTaskId, visibleTaskIds, columnVisibility, scaleMode, wbsDisplayMode]);
   const projectionReference = useRef(projection);
   useLayoutEffect(() => { projectionReference.current = projection; }, [projection]);
   const appliedProjectionReference = useRef<CanonicalProjection | null>(null);
@@ -2386,6 +2395,91 @@ export function ProjectGantt({
     }).catch(() => onCanonicalSyncFailureReference.current());
   }, [canonicalViewportGeometry, canonicalViewportMetadata, ensureTimelineEnd, svarLinks, svarTasks, visibleTaskFilterKey, projection.keys.data, projection.keys.structure, projectRevision, apiInstanceId, restoreCanonicalMetadataViewport, projection, mutationPending, canonicalRecoveryBlocked]);
 
+  // Core 2.7.3 reinitializes its store when Locale words change. Refresh its
+  // stable input arrays before the child passive effect, then restore only
+  // presentation state through public APIs and the existing viewport lease.
+  const nativeLocaleReference = useRef(locale);
+  const localePresentationReference = useRef<{
+    locale: typeof locale; api: IApi; projection: CanonicalProjection; coordinator: ViewportCoordinator | null;
+    columns: IColumnConfig[]; gridWidth: number; selected: string[];
+    summaries: Map<string, boolean>; source: ViewportStamp | null;
+    position: { left: number; top: number };
+  } | null>(null);
+  useLayoutEffect(() => {
+    if (nativeLocaleReference.current === locale) return;
+    nativeLocaleReference.current = locale;
+    const api = apiReference.current;
+    if (!api) return;
+    const state = api.getState();
+    const summaries = new Map(svarTasks.filter(task => tasksByIdReference.current.get(String(task.id))?.type === "summary")
+      .map(task => [String(task.id), Boolean(api.getTask(task.id!)?.open)] as const));
+    const sample = viewportPortReference.current?.read();
+    const saved = { locale, api, projection, coordinator: viewportCoordinatorReference.current, columns: (state.columns ?? []).map(column => ({ ...column })),
+      gridWidth: state.gridWidth ?? 480, selected: (state.selected ?? []).map(String), summaries,
+      source: viewportCoordinatorReference.current?.stamp() ?? null,
+      position: sample?.measurable ? { ...sample.core } : { left: state.scrollLeft, top: state.scrollTop } };
+    localePresentationReference.current = saved;
+    // prepareColumns keeps these custom column objects by reference. Update
+    // their layout fields before Core's queued init so the original viewport
+    // stamp remains valid even after a user resized the Grid columns.
+    for (const column of initialConfig.columns) {
+      const current = saved.columns.find(candidate => candidate.id === column.id);
+      if (current) Object.assign(column, { width: current.width, hidden: current.hidden, flexgrow: current.flexgrow });
+    }
+    refreshNativeLocaleInputs(initialConfig, tasks, links, viewRootTaskId, summaries);
+    projectionReceiptReference.current = null;
+    consistencyReference.current?.observation.invalidate();
+  }, [locale, projection, svarTasks, tasks, links, viewRootTaskId, initialConfig]);
+  useEffect(() => {
+    const saved = localePresentationReference.current;
+    if (!saved || saved.locale !== locale) return;
+    let cancelled = false;
+    let restoringInitColumns = true;
+    const current = () => {
+      const coordinator = viewportCoordinatorReference.current;
+      return !cancelled && localePresentationReference.current === saved && apiReference.current === saved.api &&
+        projectionReference.current === saved.projection && coordinator === saved.coordinator &&
+        (!saved.source || coordinator?.validSource(saved.source) === true ||
+          (restoringInitColumns && coordinator !== null && canRestoreLocaleInitColumns(saved.source, coordinator.stamp())));
+    };
+    canonicalSyncQueueReference.current = canonicalSyncQueueReference.current.then(async () => {
+      if (!current()) return;
+      const api = saved.api;
+      canonicalSyncDepthReference.current += 1;
+      try {
+        await api.exec("set-columns", { columns: saved.columns });
+        if (!current()) return;
+        await api.exec("resize-grid", { width: saved.gridWidth });
+        // The init-only exception ends here. Filter, selection, and viewport
+        // restoration require the original, unmodified strict source lease.
+        restoringInitColumns = false;
+        if (!current()) return;
+        const visible = wbsDisplayMode === "compatibility" && visibleTaskIds === null ? null : new Set(saved.projection.membershipIds);
+        await api.exec("filter-tasks", { open: false, filter: visible ? (task: ITask) => visible.has(String(task.id)) : undefined });
+        for (const [id, open] of saved.summaries) {
+          if (!current()) return;
+          if (api.getTask(id)?.open !== open) await api.exec("open-task", { id, mode: open });
+        }
+        for (const id of saved.selected) {
+          if (!current()) return;
+          if (!(api.getState().selected ?? []).map(String).includes(id))
+            await api.exec("select-task", { id, toggle: true, show: false, eventSource: "project-owned-selection" });
+        }
+        if (!current()) return;
+        requestProjectionObservationReference.current?.();
+        // Viewport completion must not join the canonical data queue: its
+        // projection receipt is published only after this queue settles.
+        if (saved.source) void viewportCoordinatorReference.current?.request({ kind: "PASSIVE_RESTORE", position: saved.position,
+          compatibility: true, protect: false, sourceCurrent: current }, saved.source);
+      } catch {
+        if (current()) onCanonicalSyncFailureReference.current();
+      } finally {
+        canonicalSyncDepthReference.current -= 1;
+      }
+    });
+    return () => { cancelled = true; };
+  }, [locale, visibleTaskIds, wbsDisplayMode]);
+
   useEffect(() => {
     const request = mutationRequest, coordinator = viewportCoordinatorReference.current;
     if (!request?.copyViewport || mutationPending || consumedCopyViewportReference.current === request.requestId) return;
@@ -2422,7 +2516,14 @@ export function ProjectGantt({
   }, [mutationRequest, mutationPending, canonicalRecoveryBlocked, apiInstanceId, readCopyEnvironment]);
 
   const appliedTaskFilterReference = useRef<{ api: IApi; key: string; structure: string } | null>(null);
+  const membershipRunReference = useRef<{ locale: typeof locale; signature: string } | null>(null);
   useEffect(() => {
+    const signature = JSON.stringify([apiInstanceId, viewVisible, visibleTaskFilterKey, projection.keys,
+      projectRevision, scaleMode, viewRootTaskId, wbsDisplayMode, ganttCellHeight]);
+    const previous = membershipRunReference.current;
+    const localeChanged = previous !== null && previous.locale !== locale;
+    const localeOnly = localeChanged && previous.signature === signature;
+    membershipRunReference.current = { locale, signature };
     // A hidden SVAR chart can discard its filter when native layout/axis is
     // reconstituted. Visibility is an application of WBS presentation, not a
     // canonical data revision: recheck the actual Core rows whenever the
@@ -2433,9 +2534,11 @@ export function ProjectGantt({
     const requestedProjection = projection;
     const requestedApi = apiReference.current;
     diagnosticTraceReference.current?.record("effect-request", "filter-tasks");
+    let membershipChecked = false;
     canonicalSyncQueueReference.current = canonicalSyncQueueReference.current.then(async () => {
       const api = apiReference.current;
       if (!viewVisible || !peerViewportContext.current.visible || !api || api !== requestedApi || !apiInstanceId || projectionReference.current.revision !== requestedProjection.revision || projectionReference.current.keys.membership !== requestedProjection.keys.membership || projectionReference.current.keys.structure !== requestedProjection.keys.structure || projectRevisionReference.current !== requestedProjection.revision) return;
+      membershipChecked = true;
       const applied = appliedTaskFilterReference.current;
       // Parent renders produce fresh arrays; avoid reapplying the same
       // filter while the project editor owns focus.
@@ -2445,6 +2548,9 @@ export function ProjectGantt({
       const actualVisibleIds = api.getState()._tasks.map(task => String(task.id));
       const membershipCorrect = JSON.stringify(actualVisibleIds) === JSON.stringify(expected.logicalVisibleIds);
       const resetEmptyFilter = async () => {
+        // Locale is presentation-only. An unchanged empty query has no new
+        // authority to reset a timeline the user has subsequently panned.
+        if (localeOnly) return;
         const coordinator = viewportCoordinatorReference.current;
         const viewport = viewportPortReference.current?.read();
         // #822 CI #3326.1: an empty active query must discard stale x=120.
@@ -2483,8 +2589,14 @@ export function ProjectGantt({
       taskFilterAppliedReference.current = visible !== null;
       appliedTaskFilterReference.current = { api, key: requestedProjection.keys.membership, structure: requestedProjection.keys.structure };
       await resetEmptyFilter();
+    }).then(() => {
+      // Locale invalidates the receipt even when membership was already
+      // correct and no open/select event was needed to restore presentation.
+      if (localeChanged && membershipChecked && apiReference.current === requestedApi &&
+        projectionReference.current === requestedProjection && peerViewportContext.current.visible &&
+        !consistencyBlockedReference.current) requestProjectionObservationReference.current?.();
     }).catch(() => onCanonicalSyncFailureReference.current());
-  }, [apiInstanceId, viewVisible, visibleTaskFilterKey, projection.keys.structure, projection.keys.membership, projectRevision, scaleMode, columns, projection, viewRootTaskId, visibleTaskIds, wbsDisplayMode, ganttCellHeight]);
+  }, [apiInstanceId, viewVisible, visibleTaskFilterKey, projection.keys.structure, projection.keys.membership, projectRevision, scaleMode, columns, projection, viewRootTaskId, visibleTaskIds, wbsDisplayMode, ganttCellHeight, locale]);
   useEffect(() => {
     if (process.env.NODE_ENV === "production") return;
     const request = milestoneProbeRequest.current;
@@ -2977,12 +3089,12 @@ export function ProjectGantt({
     const tooltipData = (cell: HTMLElement): WeekTimelineTooltipData | null => {
       const date = dateOnlyFromGanttWeekScaleClassName(cell.className);
       if (!date) return null;
-      return weekTimelineTooltip(date, calendar);
+      return weekTimelineTooltip(date, calendar, locale);
     };
 
     const markCells = () => {
       root.querySelectorAll<HTMLElement>(".project-gantt-week-calendar-scale").forEach(cell => {
-        const interval = weekCalendarIntervalFromClass(cell.className);
+        const interval = weekCalendarIntervalFromClass(cell.className, locale);
         if (interval) { cell.setAttribute("aria-label", interval.description); cell.setAttribute("role", "group"); cell.title = interval.description; }
       });
       root.querySelectorAll<HTMLElement>(selector).forEach((cell) => {
@@ -2992,7 +3104,7 @@ export function ProjectGantt({
         cell.setAttribute("aria-label", data.ariaLabel);
         cell.dataset.workingDays = String(data.workingDays);
 
-        const labelText = data.workingDays === null ? "미산정" : formatGanttWeekWorkingDaysLabel(data.workingDays);
+        const labelText = data.workingDays === null ? t("미산정") : formatGanttWeekWorkingDaysLabel(data.workingDays, locale);
         let label = cell.querySelector<HTMLElement>(".project-gantt-week-working-days");
         if (!label) {
           label = document.createElement("span");
@@ -3115,7 +3227,7 @@ export function ProjectGantt({
       });
       setWeekHeaderTooltip(null);
     };
-  }, [calendar, scaleMode, weekHeaderTooltipId]);
+  }, [calendar, locale, t, scaleMode, weekHeaderTooltipId]);
 
   useLayoutEffect(() => {
     const tooltip = weekHeaderTooltipReference.current;
@@ -3632,7 +3744,7 @@ export function ProjectGantt({
     }
     setTaskClipboard({ mode: "copy", taskIds, revision: projectRevision });
     const impact = canonicalSubtreeImpact(tasks, taskIds);
-    setSelectionMessage(`선택한 ${taskIds.length}개 작업을 복사했습니다. 요약 작업의 하위 작업도 포함됩니다.${wbsDisplayMode !== "compatibility" && impact.milestoneTaskIds.length ? ` 숨겨진 Milestone ${impact.milestoneTaskIds.length}개가 포함됩니다.` : ""}`);
+    setSelectionMessage({ key: wbsDisplayMode !== "compatibility" && impact.milestoneTaskIds.length ? "선택한 {count}개 작업을 복사했습니다. 요약 작업의 하위 작업도 포함됩니다. 숨겨진 Milestone {milestoneCount}개가 포함됩니다." : "선택한 {count}개 작업을 복사했습니다. 요약 작업의 하위 작업도 포함됩니다.", parameters: { count: taskIds.length, milestoneCount: impact.milestoneTaskIds.length } });
   }
 
   function runTaskShortcut(event: ReactKeyboardEvent<HTMLDivElement>): boolean {
@@ -4459,26 +4571,26 @@ export function ProjectGantt({
   const submenuCommands = taskMenu && menuCapabilities && taskSubmenu ? (() => {
     switch (taskSubmenu.name) {
       case "Add": return <>
-        <button className="project-task-context-submenu-command" disabled={!menuCapabilities.canAddChild} onClick={() => createTaskFromMenu("child")} role="menuitem" type="button">Child task</button>
+        <button className="project-task-context-submenu-command" disabled={!menuCapabilities.canAddChild} onClick={() => createTaskFromMenu("child")} role="menuitem" type="button">{ganttWords.gantt["Child task"] ?? "Child task"}</button>
         <button className="project-task-context-submenu-command" disabled={!menuCapabilities.canAddChild} onClick={() => {
           executeHierarchyCommand({ kind: "create", anchorTaskId: taskMenu.taskId, placement: "child", task: { name: "새 요약 작업", type: "summary" } });
-        }} role="menuitem" type="button">요약 작업 추가</button>
-        <button className="project-task-context-submenu-command" disabled={!canMutate || taskMenu.taskId === viewRootTaskId} onClick={() => createTaskFromMenu("before")} role="menuitem" type="button">Task above</button>
-        <button className="project-task-context-submenu-command" disabled={!canMutate || taskMenu.taskId === viewRootTaskId} onClick={() => createTaskFromMenu("after")} role="menuitem" type="button">Task below</button>
+        }} role="menuitem" type="button">{t("요약 작업 추가")}</button>
+        <button className="project-task-context-submenu-command" disabled={!canMutate || taskMenu.taskId === viewRootTaskId} onClick={() => createTaskFromMenu("before")} role="menuitem" type="button">{ganttWords.gantt["Task above"] ?? "Task above"}</button>
+        <button className="project-task-context-submenu-command" disabled={!canMutate || taskMenu.taskId === viewRootTaskId} onClick={() => createTaskFromMenu("after")} role="menuitem" type="button">{ganttWords.gantt["Task below"] ?? "Task below"}</button>
       </>;
       case "Convert to": return <>
-        <button className="project-task-context-submenu-command" disabled={!menuCapabilities.canConvertToTask} onClick={() => executeHierarchyCommand({ kind: "convert", taskId: taskMenu.taskId, targetType: "task" })} role="menuitem" type="button">Task</button>
-        <button className="project-task-context-submenu-command" disabled={!menuCapabilities.canConvertToSummary} onClick={() => executeHierarchyCommand({ kind: "convert", taskId: taskMenu.taskId, targetType: "summary" })} role="menuitem" type="button">Summary task</button>
-        <button className="project-task-context-submenu-command" disabled={!menuCapabilities.canConvertToMilestone} onClick={() => executeHierarchyCommand({ kind: "convert", taskId: taskMenu.taskId, targetType: "milestone" })} role="menuitem" type="button">Milestone</button>
+        <button className="project-task-context-submenu-command" disabled={!menuCapabilities.canConvertToTask} onClick={() => executeHierarchyCommand({ kind: "convert", taskId: taskMenu.taskId, targetType: "task" })} role="menuitem" type="button">{ganttWords.gantt["Task"] ?? "Task"}</button>
+        <button className="project-task-context-submenu-command" disabled={!menuCapabilities.canConvertToSummary} onClick={() => executeHierarchyCommand({ kind: "convert", taskId: taskMenu.taskId, targetType: "summary" })} role="menuitem" type="button">{ganttWords.gantt["Summary task"] ?? "Summary task"}</button>
+        <button className="project-task-context-submenu-command" disabled={!menuCapabilities.canConvertToMilestone} onClick={() => executeHierarchyCommand({ kind: "convert", taskId: taskMenu.taskId, targetType: "milestone" })} role="menuitem" type="button">{ganttWords.gantt["Milestone"] ?? "Milestone"}</button>
       </>;
       case "Paste": return <>
-        <button className="project-task-context-submenu-command" disabled={!menuCapabilities.canPaste || !menuCapabilities.canAddChild} onClick={() => pasteFromMenu("child")} role="menuitem" type="button">As child</button>
-        <button className="project-task-context-submenu-command" disabled={!menuCapabilities.canPaste || taskMenu.taskId === viewRootTaskId} onClick={() => pasteFromMenu("before")} role="menuitem" type="button">Above</button>
-        <button className="project-task-context-submenu-command" disabled={!menuCapabilities.canPaste || taskMenu.taskId === viewRootTaskId} onClick={() => pasteFromMenu("after")} role="menuitem" type="button">Below</button>
+        <button className="project-task-context-submenu-command" disabled={!menuCapabilities.canPaste || !menuCapabilities.canAddChild} onClick={() => pasteFromMenu("child")} role="menuitem" type="button">{t("하위로 붙여넣기")}</button>
+        <button className="project-task-context-submenu-command" disabled={!menuCapabilities.canPaste || taskMenu.taskId === viewRootTaskId} onClick={() => pasteFromMenu("before")} role="menuitem" type="button">{t("위에 붙여넣기")}</button>
+        <button className="project-task-context-submenu-command" disabled={!menuCapabilities.canPaste || taskMenu.taskId === viewRootTaskId} onClick={() => pasteFromMenu("after")} role="menuitem" type="button">{t("아래에 붙여넣기")}</button>
       </>;
       case "Move": return <>
-        <button className="project-task-context-submenu-command" disabled={!menuCapabilities.canMoveUp} onClick={() => executeHierarchyCommand(createHierarchyCommand("move-up", taskMenu.taskId))} role="menuitem" type="button">Move up</button>
-        <button className="project-task-context-submenu-command" disabled={!menuCapabilities.canMoveDown} onClick={() => executeHierarchyCommand(createHierarchyCommand("move-down", taskMenu.taskId))} role="menuitem" type="button">Move down</button>
+        <button className="project-task-context-submenu-command" disabled={!menuCapabilities.canMoveUp} onClick={() => executeHierarchyCommand(createHierarchyCommand("move-up", taskMenu.taskId))} role="menuitem" type="button">{ganttWords.gantt["Move up"] ?? "Move up"}</button>
+        <button className="project-task-context-submenu-command" disabled={!menuCapabilities.canMoveDown} onClick={() => executeHierarchyCommand(createHierarchyCommand("move-down", taskMenu.taskId))} role="menuitem" type="button">{ganttWords.gantt["Move down"] ?? "Move down"}</button>
       </>;
     }
   })() : null;
@@ -4501,37 +4613,38 @@ export function ProjectGantt({
       {operationNotice}
       <CopySelectionContext.Provider value={selectionContext}><Willow>
       <div className="project-gantt-scale-toolbar">
-        {process.env.NODE_ENV !== "production" && milestoneTimeline ? <button type="button" aria-pressed={timelinePreview} onClick={() => setTimelinePreview(value => !value)}>Milestone Timeline 기술 미리보기</button> : null}
-        <div aria-label="Gantt 표시 단위" className="project-gantt-scale-controls" role="group">
-          <span aria-hidden="true" className="project-gantt-scale-label">표시 단위</span>
-          <button aria-pressed={scaleMode === "day"} onClick={() => changeScaleMode("day")} type="button">일</button>
-          <button aria-pressed={scaleMode === "week"} onClick={() => changeScaleMode("week")} type="button">주</button>
+        {isFullscreen ? <LocaleSelector /> : null}
+        {process.env.NODE_ENV !== "production" && milestoneTimeline ? <button type="button" aria-pressed={timelinePreview} onClick={() => setTimelinePreview(value => !value)}>{t("Milestone Timeline 기술 미리보기")}</button> : null}
+        <div aria-label={t("Gantt 표시 단위")} className="project-gantt-scale-controls" role="group">
+          <span aria-hidden="true" className="project-gantt-scale-label">{t("표시 단위")}</span>
+          <button aria-pressed={scaleMode === "day"} onClick={() => changeScaleMode("day")} type="button">{t("일")}</button>
+          <button aria-pressed={scaleMode === "week"} onClick={() => changeScaleMode("week")} type="button">{t("주")}</button>
         </div>
-        <div className="project-copy-selection-controls" role="group" aria-label="복사 대상 선택">
-          <span role="status" aria-atomic="true">선택 {selectedTaskIds.length}개{selectionHiddenCount ? ` · 접힌 하위 ${selectionHiddenCount}개` : ""}</span>
-          <button type="button" disabled={!selectedTaskIds.length || !editable || mutationLocked} onClick={() => copyCurrentSelection()}>선택 복사</button>
+        <div className="project-copy-selection-controls" role="group" aria-label={t("복사 대상 선택")}>
+          <span role="status" aria-atomic="true">{t("선택 {count}개", { count: selectedTaskIds.length })}{selectionHiddenCount ? t(" · 접힌 하위 {count}개", { count: selectionHiddenCount }) : ""}</span>
+          <button type="button" disabled={!selectedTaskIds.length || !editable || mutationLocked} onClick={() => copyCurrentSelection()}>{t("선택 복사")}</button>
           <button type="button" disabled={!selectedTaskIds.length} onClick={() => {
             selectionAnchorReference.current = null;
             updateSelection([]);
             setSelectionMessage("선택을 해제했습니다.");
             ganttScrollReference.current?.focus({ preventScroll: true });
-          }}>선택 해제</button>
-          <span className="project-copy-selection-help">체크박스 · Ctrl/Cmd · Shift로 선택</span>
+          }}>{t("선택 해제")}</button>
+          <span className="project-copy-selection-help">{t("체크박스 · Ctrl/Cmd · Shift로 선택")}</span>
         </div>
         {editable && viewRootTaskId === null ? (
-              <button className="project-gantt-fullscreen-button" disabled={mutationLocked} onClick={() => onTaskCreateReference.current({ name: "새 요약 작업", type: "summary" })} type="button">요약 작업 추가</button> ) : null}
+              <button className="project-gantt-fullscreen-button" disabled={mutationLocked} onClick={() => onTaskCreateReference.current({ name: "새 요약 작업", type: "summary" })} type="button">{t("요약 작업 추가")}</button> ) : null}
         <button className="project-gantt-fullscreen-button" ref={fullscreenButtonReference} type="button"
-          aria-label={isFullscreen ? "Gantt 전체 화면 종료" : "Gantt 전체 화면"} aria-pressed={isFullscreen}
+          aria-label={isFullscreen ? t("Gantt 전체 화면 종료") : t("Gantt 전체 화면")} aria-pressed={isFullscreen}
           aria-keyshortcuts="Control+Shift+F Meta+Shift+F"
-          title={isFullscreen ? "전체 화면 종료 (Esc)" : "전체 화면 (Ctrl/Cmd+Shift+F)"}
+          title={isFullscreen ? t("전체 화면 종료 (Esc)") : t("전체 화면 (Ctrl/Cmd+Shift+F)")}
           aria-busy={fullscreenPending || undefined} aria-disabled={fullscreenPending || undefined}
           onClick={() => void toggleFullscreen()}>
-          {isFullscreen ? "전체 화면 종료" : "전체 화면"}
+          {isFullscreen ? t("전체 화면 종료") : t("전체 화면")}
         </button>
-        <span className="project-gantt-fullscreen-status" role="status" aria-live="polite">{fullscreenMessage}</span>
+        <span className="project-gantt-fullscreen-status" role="status" aria-live="polite">{t(fullscreenMessage)}</span>
       </div>
       <div
-        aria-label="프로젝트 일정 Grid와 Gantt 차트"
+        aria-label={t("프로젝트 일정 Grid와 Gantt 차트")}
           className="project-gantt-scroll"
           onContextMenu={handleHeaderContextMenu}
           onMouseDownCapture={handleChartMouseDownCapture}
@@ -4587,7 +4700,7 @@ export function ProjectGantt({
               geometry={viewVisible && laneSource?.model === milestoneTimeline.timelineModel && laneSource.context === viewportContinuityKey && laneSource.scale === scaleMode && laneSource.api === apiInstanceId && laneSource.display === timelinePreviewDisplay ? laneGeometry : null}
               points={viewVisible && laneSource?.model === milestoneTimeline.timelineModel && laneSource.context === viewportContinuityKey && laneSource.scale === scaleMode && laneSource.api === apiInstanceId && laneSource.display === timelinePreviewDisplay ? lanePoints : []}
               contextKey={`${viewportContinuityKey}:${viewVisible}`} busy={mutationLocked} readOnly={!editable} onGuide={setLaneGuide} /> : null}
-            <div className="project-gantt-native-owner"><Locale words={ganttIsoLocale}><Gantt
+            <div className="project-gantt-native-owner"><Locale words={ganttWords}><Gantt
               cellHeight={ganttCellHeight}
               cellWidth={GANTT_CELL_WIDTH[scaleMode]}
               columns={initialConfig.columns}
@@ -4614,15 +4727,15 @@ export function ProjectGantt({
         />
         {startDatePicker ? (
           <div
-            aria-label="시작일 날짜 선택"
+            aria-label={t("시작일 날짜 선택")}
             className="project-gantt-start-date-picker"
             ref={startDatePickerReference}
             role="dialog"
             style={{ left: startDatePicker.left, top: startDatePicker.top, width: startDatePicker.width }}
           >
-            <label htmlFor={`${instanceId}-start-date-input`}>시작일</label>
+            <label htmlFor={`${instanceId}-start-date-input`}>{t("시작일")}</label>
             <input
-              aria-label="시작일 선택"
+              aria-label={t("시작일 선택")}
               autoFocus
               id={`${instanceId}-start-date-input`}
               max="2199-12-31"
@@ -4649,7 +4762,7 @@ export function ProjectGantt({
           </div>
         ) : null}
         {selectionMessage ? (
-            <p className="project-copy-selection-status" role="status">{selectionMessage}</p> ) : null}
+            <p className="project-copy-selection-status" role="status">{typeof selectionMessage === "string" ? t(selectionMessage) : t(selectionMessage.key, selectionMessage.parameters)}</p> ) : null}
         {weekHeaderTooltip ? (
           <div
             className="project-gantt-week-header-tooltip"
@@ -4658,12 +4771,12 @@ export function ProjectGantt({
             role="tooltip"
             style={{ left: weekHeaderTooltip.left, top: weekHeaderTooltip.top }}
           >
-            <span>{weekCalendarInterval(localDateFromDateOnly(weekHeaderTooltip.data.start)).description}</span>
-            <span className="project-gantt-week-header-tooltip-working">근무일: {weekHeaderTooltip.data.workingDays === null ? "미산정" : `${weekHeaderTooltip.data.workingDays}일`}</span>
+            <span>{weekCalendarInterval(localDateFromDateOnly(weekHeaderTooltip.data.start), locale).description}</span>
+            <span className="project-gantt-week-header-tooltip-working">{t("근무일: {value}", { value: weekHeaderTooltip.data.workingDays === null ? t("미산정") : t("{count}일", { count: weekHeaderTooltip.data.workingDays }) })}</span>
             {weekHeaderTooltip.data.reason ? <span>{weekHeaderTooltip.data.reason}</span> : null}
             {weekHeaderTooltip.data.holidays.length > 0 ? (
               <span className="project-gantt-week-header-tooltip-holidays">
-                <span className="project-gantt-week-header-tooltip-label">공휴일:</span>
+                <span className="project-gantt-week-header-tooltip-label">{t("공휴일:")}</span>
                 {weekHeaderTooltip.data.holidays.flatMap((holiday) =>
                   holiday.names.map((name) => (
                     <span className="project-gantt-week-header-tooltip-holiday" key={holiday.date + "-" + name}>
@@ -4677,19 +4790,19 @@ export function ProjectGantt({
           </div>
         ) : null}
         {inlineNameMessage ? (
-            <p className="project-gantt-inline-name-status" role={inlineNameError ? "alert" : "status"} id={`${instanceId}-inline-name-status`}>{inlineNameMessage}</p> ) : null}
+            <p className="project-gantt-inline-name-status" role={inlineNameError ? "alert" : "status"} id={`${instanceId}-inline-name-status`}>{t(inlineNameMessage)}</p> ) : null}
         {inlineStartMessage ? (
-            <p className="project-gantt-inline-name-status" role={inlineStartError ? "alert" : "status"} id={`${instanceId}-inline-start-status`}>{inlineStartMessage}</p> ) : null}
+            <p className="project-gantt-inline-name-status" role={inlineStartError ? "alert" : "status"} id={`${instanceId}-inline-start-status`}>{t(inlineStartMessage)}</p> ) : null}
         {columnMenuPosition ? (
             <div
-          aria-label="표시 열 선택"
+          aria-label={t("표시 열 선택")}
           className="project-column-menu"
           onKeyDown={handleColumnMenuKeyDown}
           ref={columnMenuReference}
           style={columnMenuPosition}
         >
           <fieldset>
-            <legend>표시 열</legend>
+            <legend>{t("표시 열")}</legend>
             {dataColumns.map((column) => {
               const isOnlyVisible = columnVisibility[column.id] && dataColumns.every(
                 (candidate) => candidate.id === column.id || !columnVisibility[candidate.id],
@@ -4704,14 +4817,14 @@ export function ProjectGantt({
                   onChange={() => onColumnVisibilityChange(column.id)}
                   type="checkbox"
                 />
-                {column.label}
+                {t(column.label)}
               </label>;
             })}
           </fieldset>
         </div> ) : null}
         {taskMenu && menuCapabilities ? (
             <div
-          aria-label="작업 메뉴"
+          aria-label={t("작업 메뉴")}
           className="project-task-context-menu"
           onFocusCapture={(event) => closeTaskSubmenuForOrdinaryRootItem(event.target)}
           onKeyDown={handleTaskMenuKeyDown}
@@ -4724,68 +4837,68 @@ export function ProjectGantt({
         >
           {taskSubmenu?.placement === "drilldown" ? (
                 <div
-            aria-label={taskSubmenu.name}
+            aria-label={ganttWords.gantt[taskSubmenu.name]}
             className="project-task-context-submenu project-task-context-submenu-drilldown"
             id={submenuId}
             ref={taskSubmenuReference}
             role="menu"
           >
-            <button className="project-task-context-submenu-back" onClick={returnToTaskMenu} role="menuitem" type="button">‹ Back</button>
+            <button className="project-task-context-submenu-back" onClick={returnToTaskMenu} role="menuitem" type="button">{t("‹ 뒤로")}</button>
             <div className="project-task-context-submenu-content">{submenuCommands}</div>
           </div> ) : (
                 <>
           <div className="project-task-context-submenu-host" data-submenu="Add">
-            <button aria-controls={taskSubmenu?.name === "Add" ? submenuId : undefined} aria-expanded={taskSubmenu?.name === "Add"} aria-haspopup="menu" aria-label="Add" disabled={!canMutate} onClick={() => { openTaskSubmenu("Add", true); focusFirstTaskSubmenuItem(); }} onFocus={() => openTaskSubmenu("Add", false)} onPointerEnter={(event) => { if (event.pointerType === "mouse") openTaskSubmenu("Add", false); }} ref={(node) => { taskSubmenuTriggers.current.Add = node; }} role="menuitem" type="button">
-              <span aria-hidden="true" className="project-task-context-menu-icon">＋</span><span>Add</span><span className="project-task-context-menu-arrow">›</span>
+            <button aria-controls={taskSubmenu?.name === "Add" ? submenuId : undefined} aria-expanded={taskSubmenu?.name === "Add"} aria-haspopup="menu" aria-label={ganttWords.gantt["Add"]} disabled={!canMutate} onClick={() => { openTaskSubmenu("Add", true); focusFirstTaskSubmenuItem(); }} onFocus={() => openTaskSubmenu("Add", false)} onPointerEnter={(event) => { if (event.pointerType === "mouse") openTaskSubmenu("Add", false); }} ref={(node) => { taskSubmenuTriggers.current.Add = node; }} role="menuitem" type="button">
+              <span aria-hidden="true" className="project-task-context-menu-icon">＋</span><span>{ganttWords.gantt["Add"]}</span><span className="project-task-context-menu-arrow">›</span>
             </button>
           </div>
           <div className="project-task-context-submenu-host" data-submenu="Convert to">
-            <button aria-controls={taskSubmenu?.name === "Convert to" ? submenuId : undefined} aria-expanded={taskSubmenu?.name === "Convert to"} aria-haspopup="menu" aria-label="Convert to" disabled={!canMutate} onClick={() => { openTaskSubmenu("Convert to", true); focusFirstTaskSubmenuItem(); }} onFocus={() => openTaskSubmenu("Convert to", false)} onPointerEnter={(event) => { if (event.pointerType === "mouse") openTaskSubmenu("Convert to", false); }} ref={(node) => { taskSubmenuTriggers.current["Convert to"] = node; }} role="menuitem" type="button">
-              <span aria-hidden="true" className="project-task-context-menu-icon">↻</span><span>Convert to</span><span className="project-task-context-menu-arrow">›</span>
+            <button aria-controls={taskSubmenu?.name === "Convert to" ? submenuId : undefined} aria-expanded={taskSubmenu?.name === "Convert to"} aria-haspopup="menu" aria-label={ganttWords.gantt["Convert to"]} disabled={!canMutate} onClick={() => { openTaskSubmenu("Convert to", true); focusFirstTaskSubmenuItem(); }} onFocus={() => openTaskSubmenu("Convert to", false)} onPointerEnter={(event) => { if (event.pointerType === "mouse") openTaskSubmenu("Convert to", false); }} ref={(node) => { taskSubmenuTriggers.current["Convert to"] = node; }} role="menuitem" type="button">
+              <span aria-hidden="true" className="project-task-context-menu-icon">↻</span><span>{ganttWords.gantt["Convert to"]}</span><span className="project-task-context-menu-arrow">›</span>
             </button>
           </div>
-          <button aria-label="Edit" disabled={mutationLocked} onClick={() => openTaskEditorFromMenu()} role="menuitem" type="button">
-            <span aria-hidden="true" className="project-task-context-menu-icon">i</span><span>Edit</span>
+          <button aria-label={ganttWords.gantt["Edit"]} disabled={mutationLocked} onClick={() => openTaskEditorFromMenu()} role="menuitem" type="button">
+            <span aria-hidden="true" className="project-task-context-menu-icon">i</span><span>{ganttWords.gantt["Edit"]}</span>
           </button>
-          <button disabled={mutationLocked} role="menuitem" type="button" onClick={() => openTaskEditorFromMenu(tasksById.get(taskMenu.taskId)?.type === "milestone" ? "memberships" : "task")}><span aria-hidden="true" className="project-task-context-menu-icon">▤</span><span>{tasksById.get(taskMenu.taskId)?.type === "milestone" ? "소속 작업 관리…" : "Milestone 연결…"}</span></button>
+          <button disabled={mutationLocked} role="menuitem" type="button" onClick={() => openTaskEditorFromMenu(tasksById.get(taskMenu.taskId)?.type === "milestone" ? "memberships" : "task")}><span aria-hidden="true" className="project-task-context-menu-icon">▤</span><span>{tasksById.get(taskMenu.taskId)?.type === "milestone" ? t("소속 작업 관리…") : t("Milestone 연결…")}</span></button>
           {canOpenAsRoot ? (
-                    <button aria-label="최상위로 열기 (작업공간 탭)" onClick={openTaskAsRootFromMenu} role="menuitem" type="button">
-            <span aria-hidden="true" className="project-task-context-menu-icon">▤</span><span>최상위로 열기</span>
+                    <button aria-label={t("최상위로 열기 (작업공간 탭)")} onClick={openTaskAsRootFromMenu} role="menuitem" type="button">
+            <span aria-hidden="true" className="project-task-context-menu-icon">▤</span><span>{t("최상위로 열기")}</span>
           </button> ) : null}
-          <button aria-label="Copy ID" onClick={() => void copyTaskIdFromMenu()} role="menuitem" type="button">
-            <span aria-hidden="true" className="project-task-context-menu-icon">#</span><span>Copy ID</span>
+          <button aria-label={t("작업 ID 복사")} onClick={() => void copyTaskIdFromMenu()} role="menuitem" type="button">
+            <span aria-hidden="true" className="project-task-context-menu-icon">#</span><span>{t("작업 ID 복사")}</span>
           </button>
           <div className="project-task-context-menu-separator" role="separator" />
-          <button aria-label="Cut" disabled={!canCut} onClick={() => storeClipboard("cut")} role="menuitem" type="button">
-            <span aria-hidden="true" className="project-task-context-menu-icon">✂</span><span>Cut</span><kbd>Ctrl+X</kbd>
+          <button aria-label={ganttWords.gantt["Cut"]} disabled={!canCut} onClick={() => storeClipboard("cut")} role="menuitem" type="button">
+            <span aria-hidden="true" className="project-task-context-menu-icon">✂</span><span>{ganttWords.gantt["Cut"]}</span><kbd>Ctrl+X</kbd>
           </button>
-          <button aria-label="Copy" disabled={!canCopy} onClick={() => storeClipboard("copy")} role="menuitem" type="button">
-            <span aria-hidden="true" className="project-task-context-menu-icon">□</span><span>Copy</span><kbd>Ctrl+C</kbd>
+          <button aria-label={ganttWords.gantt["Copy"]} disabled={!canCopy} onClick={() => storeClipboard("copy")} role="menuitem" type="button">
+            <span aria-hidden="true" className="project-task-context-menu-icon">□</span><span>{ganttWords.gantt["Copy"]}</span><kbd>Ctrl+C</kbd>
           </button>
           <div className="project-task-context-submenu-host" data-submenu="Paste">
-            <button aria-controls={taskSubmenu?.name === "Paste" ? submenuId : undefined} aria-expanded={taskSubmenu?.name === "Paste"} aria-haspopup="menu" aria-label="Paste" disabled={!menuCapabilities.canPaste} onClick={() => { openTaskSubmenu("Paste", true); focusFirstTaskSubmenuItem(); }} onFocus={() => openTaskSubmenu("Paste", false)} onPointerEnter={(event) => { if (event.pointerType === "mouse") openTaskSubmenu("Paste", false); }} ref={(node) => { taskSubmenuTriggers.current.Paste = node; }} role="menuitem" type="button">
-              <span aria-hidden="true" className="project-task-context-menu-icon">▣</span><span>Paste</span><span className="project-task-context-menu-arrow">›</span>
+            <button aria-controls={taskSubmenu?.name === "Paste" ? submenuId : undefined} aria-expanded={taskSubmenu?.name === "Paste"} aria-haspopup="menu" aria-label={ganttWords.gantt["Paste"]} disabled={!menuCapabilities.canPaste} onClick={() => { openTaskSubmenu("Paste", true); focusFirstTaskSubmenuItem(); }} onFocus={() => openTaskSubmenu("Paste", false)} onPointerEnter={(event) => { if (event.pointerType === "mouse") openTaskSubmenu("Paste", false); }} ref={(node) => { taskSubmenuTriggers.current.Paste = node; }} role="menuitem" type="button">
+              <span aria-hidden="true" className="project-task-context-menu-icon">▣</span><span>{ganttWords.gantt["Paste"]}</span><span className="project-task-context-menu-arrow">›</span>
             </button>
           </div>
           <div className="project-task-context-menu-separator" role="separator" />
           <div className="project-task-context-submenu-host" data-submenu="Move">
-            <button aria-controls={taskSubmenu?.name === "Move" ? submenuId : undefined} aria-expanded={taskSubmenu?.name === "Move"} aria-haspopup="menu" aria-label="Move" disabled={!canMutate && !menuCapabilities.canMoveUp && !menuCapabilities.canMoveDown} onClick={() => { openTaskSubmenu("Move", true); focusFirstTaskSubmenuItem(); }} onFocus={() => openTaskSubmenu("Move", false)} onPointerEnter={(event) => { if (event.pointerType === "mouse") openTaskSubmenu("Move", false); }} ref={(node) => { taskSubmenuTriggers.current.Move = node; }} role="menuitem" type="button">
-              <span aria-hidden="true" className="project-task-context-menu-icon">↕</span><span>Move</span><span className="project-task-context-menu-arrow">›</span>
+            <button aria-controls={taskSubmenu?.name === "Move" ? submenuId : undefined} aria-expanded={taskSubmenu?.name === "Move"} aria-haspopup="menu" aria-label={ganttWords.gantt["Move"]} disabled={!canMutate && !menuCapabilities.canMoveUp && !menuCapabilities.canMoveDown} onClick={() => { openTaskSubmenu("Move", true); focusFirstTaskSubmenuItem(); }} onFocus={() => openTaskSubmenu("Move", false)} onPointerEnter={(event) => { if (event.pointerType === "mouse") openTaskSubmenu("Move", false); }} ref={(node) => { taskSubmenuTriggers.current.Move = node; }} role="menuitem" type="button">
+              <span aria-hidden="true" className="project-task-context-menu-icon">↕</span><span>{ganttWords.gantt["Move"]}</span><span className="project-task-context-menu-arrow">›</span>
             </button>
           </div>
-          <button aria-label="Indent" disabled={!menuCapabilities.canIndent} onClick={() => executeHierarchyCommand(createHierarchyCommand("indent", taskMenu.taskId))} role="menuitem" type="button">
-            <span aria-hidden="true" className="project-task-context-menu-icon">→</span><span>Indent</span>
+          <button aria-label={ganttWords.gantt["Indent"]} disabled={!menuCapabilities.canIndent} onClick={() => executeHierarchyCommand(createHierarchyCommand("indent", taskMenu.taskId))} role="menuitem" type="button">
+            <span aria-hidden="true" className="project-task-context-menu-icon">→</span><span>{ganttWords.gantt["Indent"]}</span>
           </button>
-          <button aria-label="Outdent" disabled={!menuCapabilities.canOutdent} onClick={() => executeHierarchyCommand(createHierarchyCommand("outdent", taskMenu.taskId))} role="menuitem" type="button">
-            <span aria-hidden="true" className="project-task-context-menu-icon">←</span><span>Outdent</span>
+          <button aria-label={ganttWords.gantt["Outdent"]} disabled={!menuCapabilities.canOutdent} onClick={() => executeHierarchyCommand(createHierarchyCommand("outdent", taskMenu.taskId))} role="menuitem" type="button">
+            <span aria-hidden="true" className="project-task-context-menu-icon">←</span><span>{ganttWords.gantt["Outdent"]}</span>
           </button>
           <div className="project-task-context-menu-separator" role="separator" />
-          <button aria-label="Delete" className="project-task-context-menu-danger" disabled={!canDelete} onClick={requestTaskDeleteFromMenu} role="menuitem" type="button">
-            <span aria-hidden="true" className="project-task-context-menu-icon">×</span><span>Delete</span><kbd>Ctrl+D / Backspace</kbd>
+          <button aria-label={ganttWords.gantt["Delete"]} className="project-task-context-menu-danger" disabled={!canDelete} onClick={requestTaskDeleteFromMenu} role="menuitem" type="button">
+            <span aria-hidden="true" className="project-task-context-menu-icon">×</span><span>{ganttWords.gantt["Delete"]}</span><kbd>Ctrl+D / Backspace</kbd>
           </button>
           {taskSubmenu ? (
                     <div
-            aria-label={taskSubmenu.name}
+            aria-label={ganttWords.gantt[taskSubmenu.name]}
             className="project-task-context-submenu project-task-context-submenu-flyout"
             data-placement={taskSubmenu.placement}
             id={submenuId}
@@ -4796,11 +4909,11 @@ export function ProjectGantt({
           </>)}
         </div> ) : null}
         {copyTaskIdFallback ? (
-            <WorkspaceDialog title="작업 ID 수동 복사" onClose={() => setCopyTaskIdFallback(null)}>
-          <p>자동 복사를 사용할 수 없습니다. 아래 작업 ID를 선택해 수동으로 복사해 주세요.</p>
-          <input aria-label="작업 ID" className={feedbackStyles.copyValue} readOnly value={copyTaskIdFallback}
+            <WorkspaceDialog title={t("작업 ID 수동 복사")} onClose={() => setCopyTaskIdFallback(null)}>
+          <p>{t("자동 복사를 사용할 수 없습니다. 아래 작업 ID를 선택해 수동으로 복사해 주세요.")}</p>
+          <input aria-label={t("작업 ID")} className={feedbackStyles.copyValue} readOnly value={copyTaskIdFallback}
             onFocus={(event) => event.currentTarget.select()} />
-          <div className="standalone-actions"><button className="secondary-button" type="button" onClick={() => void retryCopyTaskId()}>복사 다시 시도</button></div>
+          <div className="standalone-actions"><button className="secondary-button" type="button" onClick={() => void retryCopyTaskId()}>{t("복사 다시 시도")}</button></div>
         </WorkspaceDialog> ) : null}
         {relationMenu ? (
           <RelationContextMenu

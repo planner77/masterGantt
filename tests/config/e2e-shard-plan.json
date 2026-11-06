@@ -145,6 +145,7 @@
         "tests/e2e/issue-719-contextual-help.spec.ts",
         "tests/e2e/issue-730-view-composer.spec.ts",
         "tests/e2e/issue-736-resource-dashboard.spec.ts",
+        "tests/e2e/issue-866-language-shell.spec.ts",
         "tests/e2e/logistics-dashboard-request-state.spec.ts",
         "tests/e2e/milestone-management.spec.ts",
         "tests/e2e/milestone-wbs-mode.spec.ts",
@@ -189,6 +190,7 @@
         "tests/e2e/cross-screen-regression.spec.ts",
         "tests/e2e/gantt-adapter-poc.spec.ts",
         "tests/e2e/gantt-demo.spec.ts",
+        "tests/e2e/i18n-master-data.spec.ts",
         "tests/e2e/inline-name-persistence.spec.ts",
         "tests/e2e/issue-732-milestone-dashboard.spec.ts",
         "tests/e2e/logistics-target-authoring.spec.ts",
@@ -210,6 +212,7 @@
       "projectedMs": 1265700,
       "files": [
         "tests/e2e/admin-legacy-button-spacing.spec.ts",
+        "tests/e2e/i18n.spec.ts",
         "tests/e2e/issue-621-resource-target.spec.ts",
         "tests/e2e/milestone-dashboard-state.spec.ts",
         "tests/e2e/milestone-stage-grid-mock.spec.ts",
@@ -1650,10 +1653,82 @@
     "newSpecDuration": "REMOTE_UNMEASURED",
     "originalExplicitSpecs": 142,
     "newExplicitSpecs": 143,
-    "beforeShardFileCounts": [18, 18, 18, 18, 17, 18, 17, 18],
-    "afterShardFileCounts": [19, 18, 18, 18, 17, 18, 17, 18],
+    "beforeShardFileCounts": [
+      18,
+      18,
+      18,
+      18,
+      17,
+      18,
+      17,
+      18
+    ],
+    "afterShardFileCounts": [
+      19,
+      18,
+      18,
+      18,
+      17,
+      18,
+      17,
+      18
+    ],
     "historicalMetadata": "generatedAt/sourceRunIds/metrics와 모든 projectedMs·기존 수동 배치 기록을 보존한다. 신규 spec의 미측정 비용을 과거 추정값에 더하거나 새 실측으로 표시하지 않는다.",
     "validation": "STATIC_PLAN_INVENTORY_VERIFIED; NEW_HEAD_FULL_E2E_8_SHARDS_NOT_TESTED",
     "scope": "기존142개 배치·8샤드·workers=1·35분 timeout·PR 첫 실패 차단/Main 전체 수집·Required3·Trusted QA·Owner 승인·Release 권한을 유지한다. 테스트 제외·skip·fallback·retry 정책 변경은 없다."
+  },
+  "issue866PhaseAExplicitPlacement": {
+    "issue": 866,
+    "phase": "A",
+    "file": "tests/e2e/issue-866-language-shell.spec.ts",
+    "shard": 5,
+    "basis": "현재 143개 명시 spec에서 Shard5는 17개로 최소 count 공동 1위, 역사적 projectedMs 1265505. 기존 143개 이동 없이 새 1개만 할당한다. 이 배치와 시간은 신규 테스트의 실제 실행시간 근거가 아니다.",
+    "newSpecDuration": "REMOTE_UNMEASURED",
+    "previousExplicitSpecs": 143,
+    "currentExplicitSpecs": 144,
+    "beforeCounts": [
+      19,
+      18,
+      18,
+      18,
+      17,
+      18,
+      17,
+      18
+    ],
+    "afterCounts": [
+      19,
+      18,
+      18,
+      18,
+      18,
+      18,
+      17,
+      18
+    ],
+    "historicalMetadata": "generatedAt/sourceRunIds/metrics/projectedMs/기존 배치와 과거 실패 원장 원문 불변",
+    "validation": "STATIC_ASSIGNMENT_PENDING_REMOTE_CI",
+    "scope": "Required Quality/E2E8/Docker/Trusted/Owner, workers=1, 35m, fail-fast/skip/retry/보안 계약 불변"
+  },
+  "issue866PhaseBExplicitPlacement": {
+    "issue": 866,
+    "phase": "B",
+    "file": "tests/e2e/i18n-master-data.spec.ts",
+    "shard": 7,
+    "basis": "기존 144 spec 중 shard 7이 17개로 최소 count. 기존 배치와 이력 측정값을 보존하고 새 spec 1개를 명시적으로 추가.",
+    "newSpecDuration": "REMOTE_UNMEASURED",
+    "previousExplicitSpecs": 144,
+    "currentExplicitSpecs": 145,
+    "afterCounts": [
+      19,
+      18,
+      18,
+      18,
+      18,
+      18,
+      18,
+      18
+    ],
+    "validation": "REMOTE_PENDING"
   }
 }

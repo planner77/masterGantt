@@ -1,3 +1,9 @@
+## Issue #866 Phase B — 원본 owner별 번역 쓰기 경계 (2026-11-05)
+
+- translations는 기존 CRUD DTO의 선택 필드이고 별도 공개 writer 없음. Global master/logistics type/process/resource group 쓰기에는 해당 글로벌 관리자 인증, project logistics/workarea에는 해당 Project edit session을 재사용하며 기존 Origin/CSRF, If-Match/Revision CAS, project isolation, password/session/KDF와 감사 계약을 변경하지 않는다.
+- 한 owner×locale 한 행, 고정 테이블 allowlist 및 FK CASCADE. 번역 입력은 NFC+trim, 비어 있으면 해제, 미지원 locale·제어문자·유효하지 않은 surrogate·200 codepoint 초과 거부한다. 프런트는 text만 렌더하며 HTML 삽입 안 함.
+- Project Copy/Template은 source owner identity를 새 owner로 재매핑하여 누출 방지하고 Export에서 표현 불가능한 번역은 명시 거부(409). 보안·경합 검증의 새 PR HEAD는 CI 전 NOT TESTED이며 실제 세션 만료/권한 회수/DB backup-restore가 추가로 필요하다. [Phase B](I18N_PHASE_B.md).
+
 ## Issue #865 — 사내 LLM outbound 및 secret 격리 (2026-11-04)
 
 LLM은 기본 OFF의 Node.js server-only 모듈이며 등록된 provider/model만 명시적으로 호출한다. API key 전체 JSON은 runtime secret으로 취급하며 `NEXT_PUBLIC_*`, 이미지 layer/build arg, URL, 사용자 응답/로그/telemetry·CI artifact에 노출하지 않는다. 로컬/사설망 endpoint만 허용하도록 DNS 결과·연결 주소를 검증하고 외부 IP/메타데이터/link-local/redirect를 차단한다. HTTPS를 기본으로 사용하고 사내 HTTP 및 무인증 접속은 각각 별도 opt-in 정책을 적용한다. Prompt/응답 원문과 upstream 예외 메시지는 출력하지 않고 고정 오류 코드로 처리한다. Project 데이터 자동 수집/전송 및 신규 공개 LLM route 없음. 실제 운영망 DNS·CA·인증서 승인은 운영자 검증이 필요하다. [설정 문서](LLM_CONFIGURATION.md).
@@ -575,3 +581,21 @@ Issue 내용 텍스트는 HTML 실행 없이 React escape하며 본문 raw URL�
 ## Issue #342 — 국가 Catalog 관리자
 
 기존 Project Master admin session을 재사용하며 Project edit-session은 Catalog 권한이 아니다. Preview를 포함한 POST/PATCH/DELETE는 exact Origin·strong If-Match를 요구한다. body 읽기 후 transaction에서 session expiry/회수/revision을 재검사한다. JSON duplicate keys·잘못된UTF-8·CSV closing quote 뒤 문자·unknown/null 필드를 전체 거부한다. Preview token은 파일 원문/format/대상/catalog revision/session/최대10분 만료를 결속하며 Apply 시 재검증한다. 출처 URL은 credentials 없는HTTP(S) 문자열만 저장하고 runtime fetch/명령·수식 실행은 하지 않는다. 상세 한도는 [API](API.md)의 #342 계약을 따른다.
+
+## Issue #866 — Phase C 국제화의 신뢰 경계 (2026-11-05)
+
+locale과 화면 번역은 authorization이 아니다. Project edit session, 공용 관리자 세션, private read grant, Origin/CSRF, strong If-Match·revision/CAS 및 Issue별 credential 검증을 그대로 사용한다. 관리형 translations는 기존 owner CRUD 안에서 검증하고 시작 revision과 함께 보존한 초안은 401/412·목록 갱신 뒤 stale 저장을 허용하지 않는다.
+
+사전 key는 앱 소유 고정 문구·고정 label에 제한한다. 사용자 이름·Issue 본문·URL·사람 이름은 opaque parameter로 React text escape하며 자동 번역/HTML 실행하지 않는다. 오류는 검토된 key/code와 기존 계약상 안전한 domain detail를 보존하고 unknown 예외는 화면별 fallback으로 처리한다. 임의 server message를 신뢰된 고정 문구로 승격하거나 validation detail를 일괄 generic 처리하지 않는다. 알림 descriptor·복사에도 code/requestId allowlist를 유지하고 password/session/token·원본 요청 body를 추가하지 않는다. 언어 저장용 localStorage는 비밀 저장소가 아니다. [Phase C 설계](I18N_PHASE_C.md) 및 기존 보안 정책을 함께 따른다. HIGH / OWNER_MANAGED의 로컬 Agent PASS는 독립 인간 QA 또는 Owner ACCEPT가 아니며 새 Head 원격 검증은 NOT TESTED다.
+
+
+## #866 — Localized error-message provenance (C004)
+
+Never promote unknown API `error.message` to an internationalization key merely because it matches a static dictionary string. Country-calendar preserves opaque server messages and validation row/path context as escaped React text while translating only app-authored feedback. WBS transport maps approved error codes and HTTP statuses to fixed display strings; `safeApiError` uses an exact approved code/message pair for domain-specific text and generic known-code/context fallback otherwise. No change to Origin/CSRF, authorization, revision CAS, 401/412 recovery, DB, transport, logs or request bodies. See docs/I18N_PHASE_C.md and provenance tests.
+
+
+## Issue #866 C005 — 오류 코드 사전의 직접 소유 키와 출처
+
+신뢰되지 않은 응답 code를 고정 안내 사전에 매핑할 때는 `Object.hasOwn`으로 명시 등록한 키인지 확인한다. `__proto__`/`constructor`/`toString` 등 상속 속성을 승인 메시지 배열·번역 key로 사용하지 않는다. 승인 domain message는 정확한 code/message 쌍에만 허용하며 알 수 없는 code는 화면별 고정 fallback을 사용한다. WBS의 HTTP401/403/409/412 우선순위와 Import warning 원문 code/path는 유지한다.
+
+국가 캘린더는 서버에서 실제 받은 문자열·검토된 field/row 상세를 opaque React text로 보존한다. 메시지가 없는 오류의 앱 소유 fallback은 현재 언어로 번역하며, 동일한 글자라는 이유로 서버 원문을 번역 key로 승격하지 않는다. 이 경계 검증은 인증·Origin·CAS·전체 오류 소비자의 보안 감사 또는 새 Head Trusted/Owner 승인 PASS가 아니다. [실패·보완 근거](ISSUE_866_FAILURE_ANALYSIS.md)의 C005를 따른다.

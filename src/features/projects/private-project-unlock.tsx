@@ -1,10 +1,14 @@
 "use client";
 
+import { useI18n } from "../../lib/i18n/provider";
+
+
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
 export function PrivateProjectUnlock({ publicId }: Readonly<{ publicId: string }>) {
+  const { t } = useI18n();
   const router = useRouter();
   const [password, setPassword] = useState("");
   const [pending, setPending] = useState(false);
@@ -38,18 +42,18 @@ export function PrivateProjectUnlock({ publicId }: Readonly<{ publicId: string }
     finally { setPending(false); setPassword(""); }
   }
   return <section className="page-section project-private-lock" aria-labelledby="private-lock-title">
-    <h1 id="private-lock-title">비공개 프로젝트</h1>
-    <p>이 프로젝트의 일정을 열려면 프로젝트 비밀번호를 입력해 주세요. 인증하면 편집 권한도 활성화됩니다.</p>
+    <h1 id="private-lock-title">{t("비공개 프로젝트")}</h1>
+    <p>{t("이 프로젝트의 일정을 열려면 프로젝트 비밀번호를 입력해 주세요. 인증하면 편집 권한도 활성화됩니다.")}</p>
     <form className="project-form compact-form" onSubmit={submit}>
       <div className="form-field">
-        <label htmlFor="private-project-password">프로젝트 비밀번호</label>
+        <label htmlFor="private-project-password">{t("프로젝트 비밀번호")}</label>
         <input id="private-project-password" type="password" autoComplete="current-password"
           value={password} onChange={event => setPassword(event.target.value)} disabled={pending} required
           aria-invalid={Boolean(error)} aria-describedby={error ? "private-project-error" : undefined} />
       </div>
-      {error ? <p id="private-project-error" role="alert">{error}</p> : null}
-      <button className="primary-button" type="submit" disabled={pending}>{pending ? "인증 중…" : "비밀번호 확인 후 열기"}</button>
-      <Link href="/" className="secondary-button" onClick={() => setPassword("")}>프로젝트 목록으로</Link>
+      {error ? <p id="private-project-error" role="alert">{t(error)}</p> : null}
+      <button className="primary-button" type="submit" disabled={pending}>{pending ? t("인증 중…") : t("비밀번호 확인 후 열기")}</button>
+      <Link href="/" className="secondary-button" onClick={() => setPassword("")}>{t("프로젝트 목록으로")}</Link>
     </form>
   </section>;
 }

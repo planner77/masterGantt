@@ -1,9 +1,12 @@
+import type { DisplayNameTranslations } from "../../contracts/display-name-translations";
+import { displayNameTranslationFields, displayNameTranslationFieldMap } from "./display-name-translations-repository-core";
 import type Database from "better-sqlite3";
 import type { ProcessCatalogKind, ProjectProcessMappingDto } from "../../contracts/process-catalog";
-export const PROCESS_CATALOG_TABLES: Record<ProcessCatalogKind, string> = {
+export const PROCESS_CATALOG_TABLES: Record<ProcessCatalogKind, "process_types" | "product_standard_processes" | "site_product_processes" | "work_areas"> = {
   types: "process_types", standards: "product_standard_processes", occurrences: "site_product_processes", workAreas: "work_areas"
 };
 export interface ProcessCatalogRecord {
+  translations?: DisplayNameTranslations;
   id: number;
   public_id: string;
   code: string;
@@ -81,8 +84,8 @@ export class ProcessCatalogRepository {
   }): ProcessCatalogRecord[] {
     const where: string[] = [], values: Array<string | number> = [];
     if (options.search) {
-      where.push("(instr(lower(t.code),lower(?))>0 OR instr(lower(t.name),lower(?))>0)");
-      values.push(options.search, options.search);
+      where.push(`(instr(lower(t.code),lower(?))>0 OR instr(lower(t.name),lower(?))>0 OR EXISTS(SELECT 1 FROM ${PROCESS_CATALOG_TABLES[kind]}_translations tr WHERE tr.owner_id=t.id AND instr(lower(tr.name),lower(?))>0))`);
+      values.push(options.search, options.search, options.search);
     }
     if (options.active !== undefined) {
       where.push("t.active=?");
@@ -102,10 +105,13 @@ export class ProcessCatalogRepository {
       values.push(options.triple.businessUnitId, options.triple.productId, options.triple.siteEntityId);
     }
     values.push(options.limit + 1);
-    return this.database.prepare(`SELECT t.*${extra[kind]},${usage[kind]} usage_count FROM ${PROCESS_CATALOG_TABLES[kind]} t ${joins[kind]} ${where.length ? `WHERE ${where.join(" AND ")}` : ""} ORDER BY t.sort_order,lower(t.name),t.code,t.public_id LIMIT ?`).all(...values) as ProcessCatalogRecord[];
+    const rows = this.database.prepare(`SELECT t.*${extra[kind]},${usage[kind]} usage_count FROM ${PROCESS_CATALOG_TABLES[kind]} t ${joins[kind]} ${where.length ? `WHERE ${where.join(" AND ")}` : ""} ORDER BY t.sort_order,lower(t.name),t.code,t.public_id LIMIT ?`).all(...values) as ProcessCatalogRecord[];
+    const fields = displayNameTranslationFieldMap(this.database, PROCESS_CATALOG_TABLES[kind], rows.map(row => row.id));
+    return rows.map(row => ({ ...row, ...fields.get(String(row.id)) }));
   }
   find(kind: ProcessCatalogKind, publicId: string): ProcessCatalogRecord | undefined {
-    return this.database.prepare(`SELECT t.*${extra[kind]},${usage[kind]} usage_count FROM ${PROCESS_CATALOG_TABLES[kind]} t ${joins[kind]} WHERE t.public_id=?`).get(publicId) as ProcessCatalogRecord | undefined;
+    const row = this.database.prepare(`SELECT t.*${extra[kind]},${usage[kind]} usage_count FROM ${PROCESS_CATALOG_TABLES[kind]} t ${joins[kind]} WHERE t.public_id=?`).get(publicId) as ProcessCatalogRecord | undefined;
+    return row ? { ...row, ...displayNameTranslationFields(this.database, PROCESS_CATALOG_TABLES[kind], row.id) } : undefined;
   }
   insert(kind: ProcessCatalogKind, publicId: string, values: Record<string, string | number | null>, now: string): void {
     const fields = columns[kind];
@@ -113,6 +119,7 @@ export class ProcessCatalogRepository {
   }
   update(kind: ProcessCatalogKind, id: number, values: Record<string, string | number | null>, now: string): void {
     const fields = columns[kind].filter((key) => key in values);
+    if (!fields.length) return;
     this.database.prepare(`UPDATE ${PROCESS_CATALOG_TABLES[kind]} SET ${fields.map((key) => `${key}=?`).join(",")},updated_at=? WHERE id=?`).run(...fields.map((key) => values[key]), now, id);
   }
   remove(kind: ProcessCatalogKind, id: number): void {

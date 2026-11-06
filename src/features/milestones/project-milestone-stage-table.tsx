@@ -1,5 +1,10 @@
 "use client";
 
+import { formatLocaleDateOnly } from "../../lib/date-display";
+import { LOCALE_FORMATS } from "../../lib/i18n/locales";
+import { useI18n } from "../../lib/i18n/provider";
+
+
 import { useEffect, useId, useRef, useState } from "react";
 import type { MilestoneDashboardStageDto } from "../../contracts/milestone-dashboard";
 import type { ProjectTaskDto } from "../../contracts/projects";
@@ -27,6 +32,7 @@ const identityName = (name: string | undefined) => name?.trim() || "이름 확�
 const statusLabel = (status: ProjectTaskDto["status"]) => status === "completed" ? "완료 기록" : status === "in_progress" ? "진행 중" : "시작 전";
 
 export function ProjectMilestoneStageTable({ rows, tasks, enabled, scheduleEnabled = enabled, onOpenTask, onSchedule, editable = false, onManage, canConvertToTask, onFocusUnavailable }: MilestoneStageTableProps) {
+  const {t, locale, formatNumber } = useI18n();
   const id = useId(), [detailId, setDetailId] = useState<string | null>(null);
   const heading = useRef<HTMLHeadingElement>(null), trigger = useRef<HTMLButtonElement | null>(null);
   const [management, setManagement] = useState<{ taskId: string | null; restoreFocus: boolean }>({ taskId: null, restoreFocus: false });
@@ -58,27 +64,27 @@ export function ProjectMilestoneStageTable({ rows, tasks, enabled, scheduleEnabl
   const openDetails = (taskId: string, button: HTMLButtonElement) => { trigger.current = button; setDetailId(taskId); requestAnimationFrame(() => heading.current?.focus({ preventScroll: true })); };
   const closeDetails = () => { setDetailId(null); requestAnimationFrame(() => trigger.current?.focus({ preventScroll: true })); };
   function causeList(title: string, ids: string[]) {
-    return <section className={styles.causeGroup}><h4>{title} · {ids.length}개</h4>{ids.length ? <ul>{ids.map((taskId) => { const task = taskById.get(taskId); return <li key={taskId}><div className={styles.causeIdentity}><span>{task?.name?.trim() || "현재 정보에 없는 작업"}</span>{task ? <small>{statusLabel(task.status)} · {task.start ?? "일정 미설정"}{task.end && task.end !== task.start ? ` ~ ${task.end}` : ""}</small> : null}<IdentifierDetails identifiers={[...(task?.externalId ? [{ label: "외부 ID", value: task.externalId }] : []), { label: "작업 ID", value: taskId }]} /></div><div className={styles.actions}><button type="button" disabled={!enabled || !task || !onOpenTask} onClick={() => { if (enabled && task) onOpenTask?.(taskId, "task"); }}>전체 프로젝트 정보</button>{task?.type === "milestone" ? <button type="button" disabled={!enabled || !onOpenTask} onClick={() => { if (enabled) onOpenTask?.(taskId, "task"); }}>Milestone 날짜·소속 확인</button> : <button type="button" disabled={!scheduleEnabled || !onSchedule} onClick={() => { if (scheduleEnabled) onSchedule?.([taskId]); }}>전체 일정에서 보기</button>}</div></li>; })}</ul> : <p>해당 원인 없음</p>}</section>;
+    return <section className={styles.causeGroup}><h4>{t(title)} · {formatNumber(ids.length)}{t("개")}</h4>{ids.length ? <ul>{ids.map((taskId) => { const task = taskById.get(taskId); return <li key={taskId}><div className={styles.causeIdentity}><span>{task?.name?.trim() || t("현재 정보에 없는 작업")}</span>{task ? <small>{t(statusLabel(task.status))} · {task.start ? formatLocaleDateOnly(task.start,LOCALE_FORMATS[locale]) : t("일정 미설정")}{task.end && task.end !== task.start ? ` ~ ${formatLocaleDateOnly(task.end,LOCALE_FORMATS[locale])}` : ""}</small> : null}<IdentifierDetails identifiers={[...(task?.externalId ? [{ label: t("외부 ID"), value: task.externalId }] : []), { label: t("작업 ID"), value: taskId }]} /></div><div className={styles.actions}><button type="button" disabled={!enabled || !task || !onOpenTask} onClick={() => { if (enabled && task) onOpenTask?.(taskId, "task"); }}>{t("전체 프로젝트 정보")}</button>{task?.type === "milestone" ? <button type="button" disabled={!enabled || !onOpenTask} onClick={() => { if (enabled) onOpenTask?.(taskId, "task"); }}>{t("Milestone 날짜·소속 확인")}</button> : <button type="button" disabled={!scheduleEnabled || !onSchedule} onClick={() => { if (scheduleEnabled) onSchedule?.([taskId]); }}>{t("전체 일정에서 보기")}</button>}</div></li>; })}</ul> : <p>{t("해당 원인 없음")}</p>}</section>;
   }
   return <>
-    <div className={`${styles.tableOwner} ${styles.stageTableOwner}`} tabIndex={0} role="region" aria-label="Milestone 전체 상태 표 가로 스크롤">
+    <div className={`${styles.tableOwner} ${styles.stageTableOwner}`} tabIndex={0} role="region" aria-label={t("Milestone 전체 상태 표 가로 스크롤")}>
       <table className={styles.stageTable}>
-        <caption className="sr-only">전체 소속 작업과 직접 선행 Milestone 기준의 Milestone 상태</caption>
+        <caption className="sr-only">{t("전체 소속 작업과 직접 선행 Milestone 기준의 Milestone 상태")}</caption>
         <colgroup>{[260, 112, 96, 160, 104, 88, 88, 144].map((width, index) => <col key={index} style={index === 0 ? undefined : { width }} />)}</colgroup>
-        <thead><tr><th scope="col">Milestone</th><th scope="col">적용 예정일</th><th scope="col">기록된 상태</th><th scope="col">소속 작업 진척</th><th scope="col">완료 / 전체 작업</th><th scope="col">선행 차단</th><th scope="col">계획 위험</th><th scope="col">조회</th></tr></thead>
+        <thead><tr><th scope="col">Milestone</th><th scope="col">{t("적용 예정일")}</th><th scope="col">{t("기록된 상태")}</th><th scope="col">{t("소속 작업 진척")}</th><th scope="col">{t("완료 / 전체 작업")}</th><th scope="col">{t("선행 차단")}</th><th scope="col">{t("계획 위험")}</th><th scope="col">{t("조회")}</th></tr></thead>
         <tbody>{rows.map((stage) => <tr key={stage.milestoneTaskId} data-milestone-task-id={stage.milestoneTaskId}>
-          <td><button type="button" className={styles.identity} disabled={!enabled || !onOpenTask} onClick={() => { if (enabled) onOpenTask?.(stage.milestoneTaskId, "task"); }} title={identityName(stage.name)}>{identityName(stage.name)}</button><IdentifierDetails identifiers={[{ label: "외부 ID", value: stage.externalId }, { label: "작업 ID", value: stage.milestoneTaskId }]} /><div className={styles.badges}>{stage.stageGate.manualEvent ? <span>수동 이벤트 · Ready N/A</span> : stage.stageGate.ready ? <span>Ready</span> : null}{stage.overdue ? <span>지연</span> : null}{stage.upcoming ? <span>임박</span> : null}{stage.stageGate.completionInconsistent ? <span>완료 조건 불일치 진단</span> : null}</div></td>
-          <td>{milestoneManagementDate(taskById.get(stage.milestoneTaskId)) || "미설정"}</td><td>{statusLabel(stage.status)}</td><td className={styles.numeric}>{stage.stageGate.manualEvent ? "N/A" : displayPercent(stage.stageGate.memberProgressPercent)}</td><td className={styles.numeric}>{stage.stageGate.completedMemberCount} / {stage.stageGate.memberCount}</td><td className={styles.numeric}>{stage.stageGate.incompletePredecessorMilestoneTaskIds.length}개</td><td className={styles.numeric}>{stage.riskTaskIds.length}개</td>
-          <td><div className={styles.actions}><button type="button" aria-label={`${identityName(stage.name)} Milestone 상세`} disabled={!enabled || !onOpenTask} onClick={() => { if (enabled) onOpenTask?.(stage.milestoneTaskId, "task"); }}>상세</button><button type="button" aria-label={`${identityName(stage.name)} 소속 작업 조회`} disabled={!enabled || !onOpenTask} onClick={() => { if (enabled) onOpenTask?.(stage.milestoneTaskId, "memberships"); }}>소속 작업</button><button type="button" aria-label={`${identityName(stage.name)} 전체 원인 확인`} aria-expanded={detailId === stage.milestoneTaskId} aria-controls={`${id}-causes`} disabled={!enabled} onClick={(event) => { if (enabled) openDetails(stage.milestoneTaskId, event.currentTarget); }}>원인 확인</button>{onManage ? <button type="button" aria-label={`${identityName(stage.name)} 관리`} disabled={!enabled} onClick={event => { managementTrigger.current = event.currentTarget; restoreAfterUnmount.current = true; setManagement({ taskId: stage.milestoneTaskId, restoreFocus: false }); }}>관리</button> : null}</div></td>
+          <td><button type="button" className={styles.identity} disabled={!enabled || !onOpenTask} onClick={() => { if (enabled) onOpenTask?.(stage.milestoneTaskId, "task"); }} title={identityName(stage.name)}>{identityName(stage.name)}</button><IdentifierDetails identifiers={[{ label: t("외부 ID"), value: stage.externalId }, { label: t("작업 ID"), value: stage.milestoneTaskId }]} /><div className={styles.badges}>{stage.stageGate.manualEvent ? <span>{t("수동 이벤트 · Ready N/A")}</span> : stage.stageGate.ready ? <span>Ready</span> : null}{stage.overdue ? <span>{t("지연")}</span> : null}{stage.upcoming ? <span>{t("임박")}</span> : null}{stage.stageGate.completionInconsistent ? <span>{t("완료 조건 불일치 진단")}</span> : null}</div></td>
+          <td>{(milestoneManagementDate(taskById.get(stage.milestoneTaskId)) ? formatLocaleDateOnly(milestoneManagementDate(taskById.get(stage.milestoneTaskId))!,LOCALE_FORMATS[locale]) : t("미설정"))}</td><td>{t(statusLabel(stage.status))}</td><td className={styles.numeric}>{stage.stageGate.manualEvent ? "N/A" : displayPercent(stage.stageGate.memberProgressPercent, locale)}</td><td className={styles.numeric}>{formatNumber(stage.stageGate.completedMemberCount)} / {formatNumber(stage.stageGate.memberCount)}</td><td className={styles.numeric}>{formatNumber(stage.stageGate.incompletePredecessorMilestoneTaskIds.length)}{t("개")}</td><td className={styles.numeric}>{formatNumber(stage.riskTaskIds.length)}{t("개")}</td>
+          <td><div className={styles.actions}><button type="button" aria-label={t("{value0} Milestone 상세", { value0: identityName(stage.name) })} disabled={!enabled || !onOpenTask} onClick={() => { if (enabled) onOpenTask?.(stage.milestoneTaskId, "task"); }}>{t("상세")}</button><button type="button" aria-label={t("{value0} 소속 작업 조회", { value0: identityName(stage.name) })} disabled={!enabled || !onOpenTask} onClick={() => { if (enabled) onOpenTask?.(stage.milestoneTaskId, "memberships"); }}>{t("소속 작업")}</button><button type="button" aria-label={t("{value0} 전체 원인 확인", { value0: identityName(stage.name) })} aria-expanded={detailId === stage.milestoneTaskId} aria-controls={`${id}-causes`} disabled={!enabled} onClick={(event) => { if (enabled) openDetails(stage.milestoneTaskId, event.currentTarget); }}>{t("원인 확인")}</button>{onManage ? <button type="button" aria-label={t("{value0} 관리", { value0: identityName(stage.name) })} disabled={!enabled} onClick={event => { managementTrigger.current = event.currentTarget; restoreAfterUnmount.current = true; setManagement({ taskId: stage.milestoneTaskId, restoreFocus: false }); }}>{t("관리")}</button> : null}</div></td>
         </tr>)}</tbody>
       </table>
     </div>
-    {managementRow && managementTask ? <WorkspaceDialog title={`${identityName(managementRow.name)} 관리`} restoreFocusRef={managementTrigger} onClose={closeManagement}>
+    {managementRow && managementTask ? <WorkspaceDialog title={t("{value0} 관리", { value0: identityName(managementRow.name) })} restoreFocusRef={managementTrigger} onClose={closeManagement}>
       <div className="project-form compact-form">
-        <p>일정에는 일반 Task와 Summary만 표시됩니다. Milestone 날짜와 소속은 상세에서 확인합니다.</p>
-        <p>{statusLabel(managementTask.status)} · {milestoneManagementDate(managementTask) || "날짜 미설정"}</p>
-        <IdentifierDetails identifiers={[{ label: "외부 ID", value: managementTask.externalId }, { label: "작업 ID", value: managementTask.taskId }]} />
-        <p>{editable ? "완료·재개는 상세 Editor에서 상태를 변경하고 저장합니다. Milestone의 구조 잠금과 서버 검증을 유지합니다." : "조회 모드입니다. 상세·소속·관계 조회와 작업 ID 복사를 사용할 수 있습니다."}</p>
+        <p>{t("일정에는 일반 Task와 Summary만 표시됩니다. Milestone 날짜와 소속은 상세에서 확인합니다.")}</p>
+        <p>{t(statusLabel(managementTask.status))} · {milestoneManagementDate(managementTask) || t("날짜 미설정")}</p>
+        <IdentifierDetails identifiers={[{ label: t("외부 ID"), value: managementTask.externalId }, { label: t("작업 ID"), value: managementTask.taskId }]} />
+        <p>{editable ? t("완료·재개는 상세 Editor에서 상태를 변경하고 저장합니다. Milestone의 구조 잠금과 서버 검증을 유지합니다.") : t("조회 모드입니다. 상세·소속·관계 조회와 작업 ID 복사를 사용할 수 있습니다.")}</p>
         <div className={styles.managementActions}>{([
           ["detail", "Milestone 상세"], ["memberships", "소속 작업 관리"], ["relations", "관계 조회·관리"], ["copy-id", "작업 ID 복사"], ["date", "Milestone 날짜·소속 확인"], ["members", "소속 작업 일정에서 보기"], ["convert-task", "일반 Task로 전환"], ["copy", "Milestone 복사"], ["delete", "Milestone 삭제"],
         ] as const).map(([command, label]) => {
@@ -92,18 +98,18 @@ export function ProjectMilestoneStageTable({ rows, tasks, enabled, scheduleEnabl
             if (!trigger || locked) return;
             closeManagement();
             requestAnimationFrame(() => onManage?.(managementTask.taskId, command as MilestoneManagementCommand, trigger));
-          }}>{label}</button>{reason ? <small>{reason}</small> : null}</div>;
+          }}>{t(label)}</button>{reason ? <small>{reason}</small> : null}</div>;
         })}</div>
       </div>
     </WorkspaceDialog> : null}
     {row ? <section id={`${id}-causes`} className={styles.causes} aria-labelledby={`${id}-cause-heading`} onKeyDown={(event) => { if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); closeDetails(); } }}>
-      <div className={styles.sectionHeading}><h3 id={`${id}-cause-heading`} tabIndex={-1} ref={heading}>{identityName(row.name)} · 전체 Milestone 원인</h3><button type="button" onClick={closeDetails}>원인 닫기</button></div>
-      <p>프로젝트 전체의 소속 작업과 직접 선행 Milestone입니다. 현재 물류·리소스·공수 기간·Gantt WBS 범위 밖 원인도 포함합니다.</p>
-      <p>본인 상태: {statusLabel(row.status)} · 본인 진행률: {row.progress}% · 소속 작업 진척: {row.stageGate.manualEvent ? "N/A" : displayPercent(row.stageGate.memberProgressPercent)}{row.stageGate.completionInconsistent ? " · 완료 기록은 유지되며 현재 조건 불일치 진단만 표시합니다." : ""}</p>
+      <div className={styles.sectionHeading}><h3 id={`${id}-cause-heading`} tabIndex={-1} ref={heading}>{identityName(row.name)} {t(" · 전체 Milestone 원인")}</h3><button type="button" onClick={closeDetails}>{t("원인 닫기")}</button></div>
+      <p>{t("프로젝트 전체의 소속 작업과 직접 선행 Milestone입니다. 현재 물류·리소스·공수 기간·Gantt WBS 범위 밖 원인도 포함합니다.")}</p>
+      <p>{t("본인 상태: ")}{t(statusLabel(row.status))} {t(" · 본인 진행률: ")}{formatNumber(row.progress)}{t("% · 소속 작업 진척: ")}{row.stageGate.manualEvent ? "N/A" : displayPercent(row.stageGate.memberProgressPercent, locale)}{row.stageGate.completionInconsistent ? t(" · 완료 기록은 유지되며 현재 조건 불일치 진단만 표시합니다.") : ""}</p>
       {causeList("미완료 소속 작업", row.stageGate.incompleteMemberTaskIds)}
       {causeList("미완료 직접 선행 Milestone", row.stageGate.incompletePredecessorMilestoneTaskIds)}
       {causeList("적용 예정일을 넘는 미완료 작업", row.riskTaskIds)}
-      {row.risks.length ? <ul>{row.risks.map((risk) => <li key={risk.taskId}>{risk.name}: 작업 종료 {risk.end} &gt; Milestone 예정 {risk.scheduledDate}</li>)}</ul> : null}
+      {row.risks.length ? <ul>{row.risks.map((risk) => <li key={risk.taskId}>{risk.name}{t(": 작업 종료 ")}{risk.end} {t(" > Milestone 예정 ")}{risk.scheduledDate}</li>)}</ul> : null}
     </section> : null}
   </>;
 }

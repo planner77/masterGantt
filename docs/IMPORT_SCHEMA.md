@@ -1,3 +1,10 @@
+## Issue #866 Phase B — 다국어 표시명 및 일정 Import 1.0/1.1 계약 (2026-11-05)
+
+- 기존 일정 JSON 1.0/1.1과 각 machine schema는 **변경하지 않는다**. 해당 일정 교환 포맷에는 기준정보 원본의 `translations`(ko/en/vi), owner ID 매핑, 관련 공정/WorkArea 메타데이터를 표현할 필드가 없다. 기존 strict schema의 미정의 필드 거부 정책을 유지하며, 지원하지 않는 번역 key를 무시·백필·원본 `name`에 덮어쓰지 않는다.
+- `src/server/exports/project-context-export-guard-core.ts`는 프로젝트 소유 공정·설비·시스템·WorkArea에 번역이 존재하면 일정 JSON/Excel Export에서 `409 DISPLAY_NAME_TRANSLATIONS_EXPORT_UNSUPPORTED`로 조용한 손실을 차단한다. 기존 직접 문맥 `PROCESS_CONTEXT_EXPORT_UNSUPPORTED`와도 독립적으로 검증한다.
+- 기준정보 번역과 원본 관계를 보존해야 하는 프로젝트 이동·복제에는 프로젝트 Copy/지원 Template snapshot version 6을 사용한다. Template의 버전6 지원은 **일정 JSON 1.0/1.1의 Import 데이터 확장**이 아니다. 구 Import 소비자·원본 코드/이름/식별자는 불변이며 기존 SQLite 마이그레이션 0036은 schedule import schema를 바꾸지 않는다.
+- Test Lifecycle: 기존 Import 1.0/1.1 unknown-field/validation, Export 409, Template Copy 및 0035→0036 migration 검증은 독립 경계를 보존한다. 새 PR의 실제 통합 검증과 운영 DB backup/restore는 아직 NOT TESTED. 근거: [Issue #866 Phase B](I18N_PHASE_B.md), [작업 계획](exec-plans/active/ISSUE_866.md).
+
 ## Issue #785 — 공개 폐기와 일정 교환 범위 불변
 
 Logistics Target 사용자 도메인 폐기로 일정 JSON1.0/1.1 schema를 확장하지 않는다. 기존 보존 그래프/직접 실물 문맥을 표현하지 못하는 파일은 명시 오류·전체 rollback이며 호환 key를 조용히 버리지 않는다. 내부 Template snapshot의 legacy graph는 지원 원본 보존용이고 신규 public 작성 계약이 아니다. 일반 dependency source/target 및 AssignmentTarget는 다른 의미로 유지한다. [교환 정책](IMPORT_EXPORT.md), [실행·미검증](exec-plans/active/ISSUE_785.md).

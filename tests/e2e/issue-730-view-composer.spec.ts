@@ -389,10 +389,43 @@ test("#730 실제 HTTP 원본 Task·Assignment 복귀, 응답 역전·오류 차
   await expect(root.getByLabel("작업 검색", { exact: true })).toHaveValue("미배정 작업");
   await expect(equipmentTotals).toContainText(/고유 Task\s*1건/);
   await page.unroute(pattern);
+  let wbsRequests = 0, errorMutations = 0;
+  page.on("request", request => {
+    if (request.url().endsWith(`/api/projects/${f.publicId}/resource-dashboard/views`)) wbsRequests++;
+    if (request.url().includes(`/api/projects/${f.publicId}/`) && !["GET", "HEAD"].includes(request.method()) && !isWbsViewReadQuery(request)) errorMutations++;
+  });
+  const assertLocalizedError = async (messages: { en: string; vi: string; ko: string }, raw: string) => {
+    const requestsBefore = wbsRequests, mutationsBefore = errorMutations;
+    const confirmation = await root.getAttribute("data-report-confirmation-id");
+    const instance = await page.locator(".project-gantt-frame").getAttribute("data-project-gantt-instance");
+    const rowKeys = await root.locator("tr[data-view-row-key]").evaluateAll(rows => rows.map(row => row.getAttribute("data-view-row-key")));
+    const storedConfiguration = () => page.evaluate(publicId => {
+      const state = JSON.parse(localStorage.getItem(`mastergantt:wbs-view:1:${publicId}:equipment`) ?? "null")?.state;
+      return state ? { spec: state.spec, filters: state.filters, rowSearch: state.rowSearch, sort: state.sort, expanded: state.expanded, selected: state.selected } : null;
+    }, f.publicId);
+    const configuration = await storedConfiguration();
+    expect(configuration).not.toBeNull();
+    for (const { locale, retry } of [{ locale: "en", retry: "Retry" }, { locale: "vi", retry: "Thử lại" }, { locale: "ko", retry: "다시 시도" }] as const) {
+      await page.locator(".header-locale-selector select").selectOption(locale);
+      await expect(page.locator("html")).toHaveAttribute("lang", locale);
+      await expect(root.getByRole("alert")).toHaveText(`${messages[locale]} ${retry}`);
+      await expect(root.getByRole("alert")).not.toContainText(raw);
+      await expect(root.getByRole("button", { name: retry, exact: true })).toBeEnabled();
+      await expect(root).toHaveAttribute("data-ready", "false");
+      await expect(root.locator('[data-resource-action="entity-details"]').first()).toBeDisabled();
+      await expect(root.locator('input[type="search"]').first()).toHaveValue("미배정 작업");
+      await expect(root).toHaveAttribute("data-report-confirmation-id", confirmation!);
+      await expect(page.locator(".project-gantt-frame")).toHaveAttribute("data-project-gantt-instance", instance!);
+      expect(await root.locator("tr[data-view-row-key]").evaluateAll(rows => rows.map(row => row.getAttribute("data-view-row-key")))).toEqual(rowKeys);
+      expect(await storedConfiguration()).toEqual(configuration);
+      expect(wbsRequests).toBe(requestsBefore); expect(errorMutations).toBe(mutationsBefore);
+    }
+  };
   await page.route(pattern, route => route.fulfill({ status: 409, json: { error: { code: "STALE_SNAPSHOT", message: "원본 snapshot이 변경되었습니다." } } }));
   await root.getByRole("button", { name: "계층 새로고침", exact: true }).click();
   await expect(root).toHaveAttribute("data-ready", "false");
-  await expect(root.getByRole("alert")).toContainText("원본 snapshot이 변경되었습니다.");
+  await expect(root.getByRole("alert")).toHaveText("데이터가 변경되었습니다. 새로고침한 뒤 상세를 다시 열어 주세요. 다시 시도");
+  await assertLocalizedError({ en: "The data changed. Refresh and reopen the details.", vi: "Dữ liệu đã thay đổi. Hãy làm mới và mở lại chi tiết.", ko: "데이터가 변경되었습니다. 새로고침한 뒤 상세를 다시 열어 주세요." }, "원본 snapshot이 변경되었습니다.");
   await expect(root.getByRole("button", { name: "상세", exact: true }).first()).toBeDisabled();
   await page.unroute(pattern);
   await root.getByRole("button", { name: "다시 시도", exact: true }).click();
@@ -400,7 +433,8 @@ test("#730 실제 HTTP 원본 Task·Assignment 복귀, 응답 역전·오류 차
   await page.route(pattern, route => route.fulfill({ status: 503, json: { error: { code: "QUERY_UNAVAILABLE", message: "조회 서비스를 사용할 수 없습니다." } } }));
   await root.getByRole("button", { name: "계층 새로고침", exact: true }).click();
   await expect(root).toHaveAttribute("data-ready", "false");
-  await expect(root.getByRole("alert")).toContainText("조회 서비스를 사용할 수 없습니다.");
+  await expect(root.getByRole("alert")).toHaveText("조회하지 못했습니다. 다시 시도");
+  await assertLocalizedError({ en: "Could not retrieve data.", vi: "Không thể truy xuất dữ liệu.", ko: "조회하지 못했습니다." }, "조회 서비스를 사용할 수 없습니다.");
   await page.unroute(pattern);
   await root.getByRole("button", { name: "다시 시도", exact: true }).click();
   await expect(root).toHaveAttribute("data-ready", "true");

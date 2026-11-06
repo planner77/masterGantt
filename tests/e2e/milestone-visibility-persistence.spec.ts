@@ -69,14 +69,14 @@ async function openMenu(page: Page, taskId: string) {
 async function copyRoot(page: Page, taskId: string) {
   await row(page, taskId).locator("input[data-copy-selection]").check();
   await openMenu(page, taskId);
-  await taskMenu(page).getByRole("menuitem", { name: "Copy", exact: true }).click();
+  await taskMenu(page).getByRole("menuitem", { name: "복사", exact: true }).click();
   await expect(taskMenu(page)).toHaveCount(0);
 }
 
 async function pasteBelow(page: Page, anchorTaskId: string, api: string) {
   await openMenu(page, anchorTaskId);
-  await taskMenu(page).getByRole("menuitem", { name: "Paste", exact: true }).click();
-  const below = page.getByRole("menu", { name: "Paste", exact: true }).getByRole("menuitem", { name: "Below", exact: true });
+  await taskMenu(page).getByRole("menuitem", { name: "붙여넣기", exact: true }).click();
+  const below = page.getByRole("menu", { name: "붙여넣기", exact: true }).getByRole("menuitem", { name: "아래에 붙여넣기", exact: true });
   await expect(below).toBeEnabled();
   const [response] = await Promise.all([
     page.waitForResponse((candidate) => candidate.request().method() === "POST" && new URL(candidate.url()).pathname === `${api}/task-commands`),
@@ -207,7 +207,7 @@ test("#552 숨은 Milestone 삭제 확인 취소는 무변경이며 completed �
   };
   page.on("request", observe);
   await openMenu(page, summary.taskId);
-  await taskMenu(page).getByRole("menuitem", { name: "Delete", exact: true }).click();
+  await taskMenu(page).getByRole("menuitem", { name: "삭제", exact: true }).click();
   const confirmation = page.getByRole("dialog", { name: "작업 삭제", exact: true });
   await expect(confirmation).toContainText("총 3개 작업");
   await expect(confirmation).toContainText("WBS에서 숨긴 Milestone 1개");

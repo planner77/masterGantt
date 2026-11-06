@@ -27,4 +27,11 @@ describe("project WorkArea consumer ownership",()=>{
     context.occurrences[0].active=false;
     expect(projectWorkareaOptions(context,processes).every(a=>!a.active)).toBe(true);
   });
+  it("localizes owner display without changing shared owner or WorkArea IDs",()=>{
+    const context={projectWorkAreas:[{id:"wa",processId:"p1",name:"원본 구역",code:"A",source:"project",occurrenceId:null,editable:true,active:true}],mappings:[],workAreas:[],occurrences:[]} as unknown as ProcessContextResponse["data"];
+    const translated=[{...processes[0],translations:{en:"Receiving"}}];
+    expect(projectWorkareaOptions(context,translated,"en")[0]).toMatchObject({id:"wa",workAreaId:"wa",processId:"p1",owner:"Receiving",name:"원본 구역"});
+    expect(projectWorkareaOptions(context,translated,"vi")[0].owner).toBe("첫 공정");
+  });
+
 });

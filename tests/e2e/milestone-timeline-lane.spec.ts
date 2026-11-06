@@ -1,3 +1,4 @@
+import { formatLocaleDateOnly } from "../../src/lib/date-display";
 import { expectRawIdentifier } from "./helpers/identifier-details";
 import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { createHash } from "node:crypto";
@@ -199,7 +200,7 @@ test("#551 focus on mixed-date cluster item moves guide to that date after Edito
   const list=page.getByRole("dialog",{name:"Milestone 날짜 목록",exact:true});
   await list.getByRole("button",{name:"다음 50개",exact:true}).click();
   const item=list.locator("[data-milestone-lane-trigger]").nth(1);
-  await expect(item).toContainText("2026-10-06");await item.focus();
+  await expect(item).toContainText(formatLocaleDateOnly("2026-10-06", "ko-KR"));await item.focus();
   const offset=async()=>{
     const date=await probe<{viewportX:number}>(frame,"coordinate","2026-10-06");
     return frame.evaluate((node,x)=>{
@@ -270,8 +271,8 @@ test("#551 full population empty vs date viewport and Task-only filter stay inde
   // #552 removed the old [Task] quick-view button. Exercise the actual
   // advanced Task-type filter without changing the independent M population.
   await page.getByRole("button", { name: "필터", exact: true }).click();
-  const ordinaryFilter = page.getByRole("group", { name: "Task type", exact: true })
-    .getByRole("checkbox", { name: "task", exact: true });
+  const ordinaryFilter = page.getByRole("group", { name: "작업 유형", exact: true })
+    .getByRole("checkbox", { name: "일반 작업", exact: true });
   await ordinaryFilter.check();
   await expect(ordinaryFilter).toBeChecked();
   await page.keyboard.press("Escape");

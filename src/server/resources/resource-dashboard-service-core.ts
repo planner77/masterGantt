@@ -1,3 +1,5 @@
+import type { DisplayNameTranslations } from "../../contracts/display-name-translations";
+import type { WbsViewNode } from "../../contracts/wbs-dashboard-views";
 import { workAreaBelongsToProcess } from "../../domain/resources/resource-kpi-targets";
 import { resolveWbsTaskLedger, WbsTaskLedgerInputError } from "../../domain/resources/wbs-task-ledger";
 import { buildResourceAnalysis, ResourceAnalysisInputError } from "../../domain/resources/resource-analysis";
@@ -126,6 +128,14 @@ export class ResourceDashboardService {
           ...snapshot.groups.map(row => [JSON.stringify(["group", row.publicId]), row.name] as [string, string]),
           ...snapshot.milestones.map(row => [JSON.stringify(["milestone", row.publicId]), row.name] as [string, string]),
         ]);
+        const translatedLabels = new Map<string, DisplayNameTranslations | undefined>([
+          ...snapshot.targetSnapshot.catalog.map(row => [JSON.stringify([row.dimension === "projectProcess" ? "process" : row.dimension,row.id]),row.translations] as [string,DisplayNameTranslations|undefined]),
+          ...snapshot.groups.map(row => [JSON.stringify(["group",row.publicId]),row.translations] as [string,DisplayNameTranslations|undefined]),
+        ]);
+        const translatedNodes = (nodes: WbsViewNode[]): WbsViewNode[] => nodes.map(node => {
+          const translations = translatedLabels.get(JSON.stringify([node.selector.dimension,node.selector.id]));
+          return {...node,...(translations?{translations}:{}),children:translatedNodes(node.children)};
+        });
         const view = createWbsViewProjection(ledger, input, labels, restriction), selected = view.selected;
         const sourceContext = { ...snapshot.dataContext, range: { from: snapshot.from, to: snapshot.to }, asOfDate: snapshot.asOfDate, mdPerMm: snapshot.domain.mdPerMm, mdPerMmSource: snapshot.mdPerMmSource, mdPerMmProvided: snapshot.filters.mdPerMmProvided,
           schema: "wbs-view-source/1" as const, contextSourceVersion: input.spec.contextSourceVersion, snapshotId, spec: input.spec, path: projection.kind === "report" ? [] : projection.path, ...(input.scope ? { scope: input.scope } : {}) };
@@ -169,16 +179,17 @@ export class ResourceDashboardService {
           }
           const resourceScope: ResourceDrillScope = { kind: "exactAssignments", assignmentIds: selected.assignmentIds };
           const resourceReport = input.spec.root === "resource" && snapshot.filters.granularity ? this.getDashboard(publicId, input.filters, resourceScope) : undefined;
-          data = { ...context, ...(analysis ? { analysis } : {}), ...(resourceReport ? { resourceAdapter: { report: resourceReport, binding: { sourceContext: resourceReport.resourceScopeContext!, scope: resourceScope } } } : {}), projection: "report", ...scope, totals: view.totals, children: view.children, taskSources: selected.rows, configuration: ledger.configuration, configurationCatalog: {
-              processes: snapshot.targetSnapshot.identity.processes.map(({ id, name, occurrenceId }) => ({ id, name, occurrenceId })),
-              workAreas: snapshot.targetSnapshot.identity.workAreas.map(area => ({ id:area.id, name:area.name, occurrenceId:area.occurrenceId, processIds: snapshot.targetSnapshot.identity.processes.filter(process => workAreaBelongsToProcess(area,process)).map(process => process.id) })),
-              instances: snapshot.targetSnapshot.logistics.instances.map(instance => ({ kind: instance.kind, id: instance.entityId, name: labels.get(JSON.stringify([instance.kind, instance.entityId]))! })),
-              equipment: source.equipment.map(row => ({ id: row.id, name: row.name, equipmentType: row.equipmentType,
+          data = { ...context, ...(analysis ? { analysis } : {}), ...(resourceReport ? { resourceAdapter: { report: resourceReport, binding: { sourceContext: resourceReport.resourceScopeContext!, scope: resourceScope } } } : {}), projection: "report", ...scope, totals: view.totals, children: translatedNodes(view.children), taskSources: selected.rows, configuration: ledger.configuration, configurationCatalog: {
+              processes: snapshot.targetSnapshot.identity.processes.map(({ id, name, occurrenceId, translations }) => ({ id, name, occurrenceId, ...(translations?{translations}:{}) })),
+              workAreas: snapshot.targetSnapshot.identity.workAreas.map(area => ({ id:area.id, name:area.name, ...(area.translations?{translations:area.translations}:{}), occurrenceId:area.occurrenceId, processIds: snapshot.targetSnapshot.identity.processes.filter(process => workAreaBelongsToProcess(area,process)).map(process => process.id) })),
+              instances: snapshot.targetSnapshot.logistics.instances.map(instance => ({ kind: instance.kind, id: instance.entityId, name: labels.get(JSON.stringify([instance.kind, instance.entityId]))!, ...(translatedLabels.get(JSON.stringify([instance.kind,instance.entityId]))?{translations:translatedLabels.get(JSON.stringify([instance.kind,instance.entityId]))}:{}) })),
+              equipment: source.equipment.map(row => ({ id: row.id, name: row.name, ...(row.translations?{translations:row.translations}:{}), equipmentType: row.equipmentType,
                 equipmentTypeName: equipmentTypeNames.get(row.equipmentType) ?? row.equipmentType,
+                ...(translatedLabels.get(JSON.stringify(["equipmentType",row.equipmentType]))?{equipmentTypeTranslations:translatedLabels.get(JSON.stringify(["equipmentType",row.equipmentType]))}:{}),
                 managementUnit: row.managementUnit, quantity: row.quantity, active: row.active, primaryProcessId: row.processId,
                 workAreaLinks: (equipmentAreas.get(row.id) ?? []).map(({ processId, occurrenceId, workAreaId }) => ({ processId, occurrenceId, workAreaId })),
                 resourceRoles: row.resourceRoles.map(({ resourceId, resourceName, role, isPrimary, active }) => ({ resourceId, resourceName, role, isPrimary, active })),
-                controlSystems: row.controlSystems.map(control => ({ ...control, systemName: labels.get(JSON.stringify(["system", control.systemId]))! })),
+                controlSystems: row.controlSystems.map(control => ({ ...control, systemName: labels.get(JSON.stringify(["system", control.systemId]))!, ...(translatedLabels.get(JSON.stringify(["system",control.systemId]))?{systemTranslations:translatedLabels.get(JSON.stringify(["system",control.systemId]))}:{}) })),
               })),
               milestones: snapshot.milestones.map(row => ({ id: row.publicId, name: row.name })),
             }, diagnostics: ledger.diagnostics,
@@ -529,7 +540,7 @@ export class ResourceDashboardService {
     const { snapshot } = calculated, raw = planCall(() => calculateResourcePlan(this.planInput(calculated)));
     return { ...raw, ...this.planTargetContext(snapshot), resources: raw.resources.map((row) => ({ ...row, ...this.planPerson(snapshot, row.resourceId), milestones: row.milestones.slice().sort((a, b) => milestoneOrder(snapshot, a.milestoneTaskId, b.milestoneTaskId)).map((milestone) => ({ ...milestone,
       name: milestone.milestoneTaskId === null ? "Milestone 미지정" : snapshot.taskById.get(milestone.milestoneTaskId)!.name, scheduledDate: milestone.milestoneTaskId === null ? null : snapshot.taskById.get(milestone.milestoneTaskId)!.startDate })) })),
-      groups: raw.groups.filter((row) => this.visiblePlanGroup(snapshot, row.groupId)).map((row) => { const group = snapshot.groups.find((group) => group.publicId === row.groupId); return { ...row, name: group?.name ?? "미분류 리소스", code: group?.code ?? null, active: group?.active ?? true }; }),
+      groups: raw.groups.filter((row) => this.visiblePlanGroup(snapshot, row.groupId)).map((row) => { const group = snapshot.groups.find((group) => group.publicId === row.groupId); return { ...row, name: group?.name ?? "미분류 리소스", ...(group?.translations?{translations:group.translations}:{}), code: group?.code ?? null, active: group?.active ?? true }; }),
       metadata: { ...raw.metadata, limits: RESOURCE_PLAN_LIMITS, populationScope: "ordinary-task-personal-assignment-history-classification-only", groupDisplayScope: "selected-group-and-activity" } };
   }
   getDetails(publicId: string, filter: ResourceDashboardFilterInput, detail: ResourceDashboardDetailInput, scope?: ResourceDrillScope): ResourceDashboardDetailsDto | undefined {
@@ -725,7 +736,7 @@ export class ResourceDashboardService {
         (!filters.groupIds.length || filters.groupIds.includes(group.publicId)) && activityMatches(group.active, filters.groupActivity))),
     ).map((row) => row.publicId);
     const domain = targetCall(() => prepareResourceKpiSnapshot({ logistics: targetSnapshot.logistics, projectPublicId: publicId, timezone: "Asia/Seoul", asOfDate, from, to, tasks, memberships, links,
-      resources: resources.map((row) => ({ resourceId: row.publicId, name: row.name, code: row.code, groupSearchText: groups.filter((group) => group.memberResourceIds.includes(row.publicId)).map((group) => `${group.name} ${group.code ?? ""}`).join(" "), groupIds: groupIdsByResource.get(row.publicId) ?? [], roles: row.roles, developerGrade: row.developerGrade })),
+      resources: resources.map((row) => ({ resourceId: row.publicId, name: row.name, code: row.code, groupSearchText: groups.filter((group) => group.memberResourceIds.includes(row.publicId)).map((group) => `${group.name} ${group.code ?? ""} ${Object.values(group.translations??{}).join(" ")}`).join(" "), groupIds: groupIdsByResource.get(row.publicId) ?? [], roles: row.roles, developerGrade: row.developerGrade })),
       assignments: assignments.map((row) => ({ assignmentId: row.publicId, taskId: row.taskPublicId, kind: row.kind, targetId: row.targetPublicId, start: row.assignmentStart, end: row.assignmentEnd, allocationPercent: row.allocationPercent })),
       projectCalendar, calendarExceptions, maxProjectionCells: LIMITS.cells, mdPerMm: filters.mdPerMmProvided ? filters.mdPerMm : undefined, mdPerMmEnvironment: this.options.mdPerMmEnvironment,
       filters: { ...targetFilters(filters), ...(includeParticipation ? { equipmentTypeCodes: undefined } : {}), eligibleResourceIds, taskIds: filters.taskIds, wbsRootIds: filters.wbsRootIds, milestoneIds: filters.milestoneIds.map((id) => id === "unassigned" ? null : id),
@@ -785,13 +796,15 @@ export class ResourceDashboardService {
       if (sourceRows > RESOURCE_TARGET_LIMITS.responseSourceRows) resourceDashboardLimit("projection.targetSources");
     }
     const raw = targetCall(() => projectResourceKpiTargets(domain, selection, order));
-    const catalog = [...snapshot.targetSnapshot.catalog,
-      ...snapshot.groups.map(row => ({ dimension: "group" as const, id: row.publicId, name: row.name, code: row.code, active: row.active })),
+    // Explicit public projection shape: group labels may carry optional translations,
+    // while resource labels and pre-existing target rows omit them.
+    const catalog: ResourceDashboardTargetProjection["catalog"] = [...snapshot.targetSnapshot.catalog,
+      ...snapshot.groups.map(row => ({ dimension: "group" as const, id: row.publicId, name: row.name, ...(row.translations?{translations:row.translations}:{}), code: row.code, active: row.active })),
       ...snapshot.resources.map(row => ({ dimension: "resource" as const, id: row.publicId, name: row.name, code: row.code, active: row.active }))];
     const labels = new Map(catalog.map(row => [JSON.stringify([row.dimension, row.id]), row]));
     const nodes = (values: typeof raw.children, parent: ResourceTargetPathEntry[]): ResourceDashboardTargetNode[] => values.map(node => {
       const path = [...parent, { dimension: node.dimension, id: node.id }], label = labels.get(JSON.stringify([node.dimension, node.id]));
-      return { dimension: node.dimension, id: node.id, name: label?.name ?? (node.dimension === "scope" ? node.id : null), active: label?.active ?? null,
+      return { dimension: node.dimension, id: node.id, name: label?.name ?? (node.dimension === "scope" ? node.id : null), ...(label?.translations ? { translations: label.translations } : {}), active: label?.active ?? null,
         summary: compact(node.totals, { dimension: "targetProjection", id: null, targetPath: path, metric: "all" }), sourceKinds: node.sourceKinds,
         equipmentQuantity: node.relatedMembers.equipmentQuantity, systemCount: node.relatedMembers.systemCount, children: nodes(node.children, path) };
     });
@@ -830,7 +843,7 @@ export class ResourceDashboardService {
       excluded: compact(summarizeResourceKpiAssignments(domain, excludedRows), { ...selector("all"), assignmentScope: "milestoneExcluded" }),
       milestoneSelection: { applied: filters.milestoneIds.length > 0, reference: "A without Milestone filter", excluded: "reference Assignment IDs minus selected Assignment IDs" },
       resources: raw.resources.map((row) => { const resource = resourceById.get(row.id)!; return { id: row.id, name: resource.name, code: resource.code, active: resource.active, resourceIds: [row.id], assignmentRange: assignmentRange(row.assignmentIds), summary: compact(row, selector("resource", row.id)), milestones: convertCells(row.milestones, "resource", row.id) }; }),
-      groups: raw.groups.filter((row) => row.assignmentCount > 0).map((row) => { const group = groups.find((group) => group.publicId === row.id); return { id: row.id, name: group?.name ?? "미분류 리소스", code: group?.code ?? null, active: group?.active ?? true, resourceIds: row.resourceIds, assignmentRange: assignmentRange(row.assignmentIds), summary: compact(row, selector("group", row.id)), milestones: convertCells(row.milestones, "group", row.id) }; }),
+      groups: raw.groups.filter((row) => row.assignmentCount > 0).map((row) => { const group = groups.find((group) => group.publicId === row.id); return { id: row.id, name: group?.name ?? "미분류 리소스", ...(group?.translations?{translations:group.translations}:{}), code: group?.code ?? null, active: group?.active ?? true, resourceIds: row.resourceIds, assignmentRange: assignmentRange(row.assignmentIds), summary: compact(row, selector("group", row.id)), milestones: convertCells(row.milestones, "group", row.id) }; }),
       roleTotals: raw.roles.map((row) => ({ role: row.id as ResourceWorkloadRole, summary: compact(row, selector("role", row.id)) })),
       milestones: convertCells(raw.milestones, "all", null),
       stages: raw.fullMilestones.slice().sort((a, b) => milestoneOrder(snapshot, a.milestoneTaskId, b.milestoneTaskId)).map((row) => { const task = taskById.get(row.milestoneTaskId)!, gate = row.stageGate;
@@ -846,7 +859,7 @@ export class ResourceDashboardService {
         unsetTasks: diagnostic(raw.diagnostics.unsetTasks.count, "unset"), unsetAssignmentCount: raw.diagnostics.unsetAssignmentCount,
         inapplicableFilters: [...raw.diagnostics.inapplicableFilters], personalFiltersAppliedToA: raw.diagnostics.personalFiltersAppliedToA },
       catalog: { resources: resources.map((row) => ({ id: row.publicId, name: row.name, code: row.code, active: row.active, roles: row.roles, developerGrade: row.developerGrade, groupIds: groupIdsByResource.get(row.publicId) ?? [] })),
-        groups: groups.map((row) => ({ id: row.publicId, name: row.name, code: row.code, active: row.active })), milestones: milestones.map((row) => ({ id: row.publicId, name: row.name })),
+        groups: groups.map((row) => ({ id: row.publicId, name: row.name, ...(row.translations?{translations:row.translations}:{}), code: row.code, active: row.active })), milestones: milestones.map((row) => ({ id: row.publicId, name: row.name })),
         wbsRoots: storedTasks.map((row) => ({ id: row.publicId, name: row.name, type: row.type })),
         targetOptions: snapshot.targetSnapshot.catalog },
       metadata: { groupRoleSubtotalsAdditive: false, precision: "raw", diagnosticsScope: "T0: Task/WBS/Milestone/status/taskSearch/canonical task dates; no personal/activity filters or search",

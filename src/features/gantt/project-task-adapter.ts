@@ -116,6 +116,23 @@ export function projectTasksToSvarTasks(
   });
 }
 
+/** Core's locale reinitialization reads the original array objects again.
+ * Refresh those renderer inputs without sharing mutable rows/dates with the
+ * canonical DTOs or the memoized conformance projection.
+ */
+export function refreshNativeLocaleInputs(
+  inputs: { tasks: ITask[]; links: ILink[] },
+  tasks: readonly ProjectTaskDto[],
+  links: readonly ProjectLinkDto[],
+  viewRootTaskId: string | null,
+  open: ReadonlyMap<string, boolean>,
+): void {
+  const nextTasks = projectTasksToSvarTasks(tasks, viewRootTaskId).map(task => ({ ...task,
+    ...(open.has(String(task.id)) ? { open: open.get(String(task.id)) } : {}) }));
+  inputs.tasks.splice(0, inputs.tasks.length, ...nextTasks);
+  inputs.links.splice(0, inputs.links.length, ...projectLinksToSvarLinks(links, tasks));
+}
+
 function toSvarLinkType(type: string): "s2s" | "s2e" | "e2s" | "e2e" {
   switch (type) {
     case "FS": return "e2s";

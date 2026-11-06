@@ -1,3 +1,4 @@
+import { displayEffort, displayPercent, conversionLabel, projectDateAt } from "../../../src/features/milestones/milestone-dashboard-model";
 import { describe, expect, it } from "vitest";
 import type { MilestoneDashboardStageDto } from "../../../src/contracts/milestone-dashboard";
 import type { TaskMutationResponse } from "../../../src/contracts/projects";
@@ -6,6 +7,13 @@ import { buildMilestoneTimelineModel } from "../../../src/features/milestones/mi
 import { milestoneManagementDate, milestoneRootPayload, resolveCreatedMilestone, sortMilestoneManagementRows } from "../../../src/features/milestones/milestone-management-model";
 
 describe("Milestone management canonical bridge", () => {
+  it("formats presentation numbers by locale while canonical timezone dates stay stable", () => {
+    expect(displayEffort(1234.5,"en")).toBe("1,234.5");
+    expect(displayEffort(1234.5,"vi")).toBe("1.234,5");
+    expect(displayPercent(25.5,"vi")).toBe("25,5%");
+    expect(conversionLabel(20.5,"query","vi")).toContain("20,5 M/D");
+    expect(projectDateAt("Asia/Seoul",new Date("2026-10-11T23:00:00Z"))).toBe("2026-10-12");
+  });
   it("shares timeline ordering for date ties/missing/invalid, retains report population and source references", () => {
     const fixture = milestoneTimelineFixture(), before = JSON.stringify(fixture);
     const rows = fixture.tasks.filter(task => task.type === "milestone").reverse().map(task => ({ milestoneTaskId: task.taskId, externalId: `REPORT-${task.taskId}` }) as MilestoneDashboardStageDto);

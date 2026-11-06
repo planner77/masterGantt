@@ -1,4 +1,8 @@
 "use client";
+import { LOCALE_FORMATS, type AppLocale } from "../../lib/i18n/locales";
+import { useI18n } from "../../lib/i18n/provider";
+import { displayName, translate } from "../../lib/i18n";
+
 
 import { IdentifierDetails } from "@/components/identifier-details";
 
@@ -98,14 +102,14 @@ function targetsFrom(body: unknown): AssignmentTargetDto[] | null {
   return body.data.targets as AssignmentTargetDto[];
 }
 
-function confirmedAt(iso: string | null): string { return iso ? new Date(iso).toLocaleString("ko-KR") : ""; }
-function effort(md: number, mm: number | null, unit: Unit): string {
-  if (unit === "mm") return mm === null ? "—" : `${mm.toFixed(2)} M/M`;
-  return `${md.toFixed(2)} M/D`;
+function confirmedAt(iso: string | null, locale: AppLocale = "ko"): string { return iso ? new Date(iso).toLocaleString(LOCALE_FORMATS[locale]) : ""; }
+function effort(md: number, mm: number | null, unit: Unit, locale: AppLocale = "ko"): string {
+  if (unit === "mm") return mm === null ? "—" : `${mm.toLocaleString(LOCALE_FORMATS[locale],{minimumFractionDigits:2,maximumFractionDigits:2})} M/M`;
+  return `${md.toLocaleString(LOCALE_FORMATS[locale],{minimumFractionDigits:2,maximumFractionDigits:2})} M/D`;
 }
-function roleLabels(roles: readonly string[] | undefined): string {
-  if (!roles || roles.length === 0) return "Global Role 미지정";
-  return roles.map((role) => ROLE_OPTIONS.find((option) => option.value === role)?.label ?? role).join(", ");
+function roleLabels(roles: readonly string[] | undefined, locale: AppLocale = "ko"): string {
+  if (!roles || roles.length === 0) return translate(locale,"Global Role 미지정");
+  return roles.map((role) => translate(locale,ROLE_OPTIONS.find((option) => option.value === role)?.label ?? role)).join(", ");
 }
 function gradeLabel(grade: DeveloperGrade | null | undefined): string {
   return GRADE_OPTIONS.find((option) => option.value === grade)?.label ?? "등급 미지정";
@@ -136,6 +140,7 @@ function maxTaskDate(tasks: ResourceWorkloadTaskDto[], field: "start" | "end"): 
 }
 
 export function LegacyProjectResourceWorkload({ publicId, drillScope = null, onClearDrillScope }: Props) {
+  const {t, locale, formatNumber } = useI18n();
   const [workloadQuery, setWorkloadQuery] = useState<QueryState<ResourceWorkloadResponse["data"]>>(() => initialQueryState(publicId));
   const [targetsQuery, setTargetsQuery] = useState<QueryState<AssignmentTargetDto[]>>(() => initialQueryState(publicId));
   const currentPublicId = useRef(publicId);
@@ -319,112 +324,112 @@ export function LegacyProjectResourceWorkload({ publicId, drillScope = null, onC
   return (
     <section aria-labelledby="resource-workload-heading" className="project-resource-workload">
       {drillScope ? <div className="resource-workload-note" role="status">
-        <strong>Milestone에서 전달한 개인 assignment 표시 범위</strong> · {drillScope.from} ~ {drillScope.to} · Revision {drillScope.projectRevision}/{drillScope.catalogRevision}
-        <p>Milestone Dashboard 범위 공수: {effort(drillScope.plannedMd, drillScope.plannedMm, "md")}{drillScope.plannedMm === null ? " · M/M 미설정" : ` / ${effort(drillScope.plannedMd, drillScope.plannedMm, "mm")}`}. 아래 행과 표시 subtotal은 같은 기간을 기존 Resource 서버 계산으로 조회한 뒤 전달된 assignment ID와 기존 필터를 적용합니다. 상단 전체 합계는 같은 기간의 Project 전체 값입니다. Milestone 공수는 반올림 전 합계이며 Resource는 기존 반올림 기준을 사용합니다. Milestone의 명시 M/M 환산 기준은 Resource에 전달하지 않습니다. Resource 환산 기준은 {data?.mdPerMm === null || data?.mdPerMm === undefined ? "미설정" : `${data.mdPerMm} M/D = 1 M/M (환경 설정)`}입니다.</p>
-        {!drillCurrent ? <p>리소스 응답 Revision이 전달한 범위와 다릅니다. 최신 Milestone에서 다시 진입하거나 범위를 해제해 주세요.</p> : null}
-        <button type="button" className="secondary-button" onClick={onClearDrillScope}>Milestone 전달 범위 해제</button>
+        <strong>{t("Milestone에서 전달한 개인 assignment 표시 범위")}</strong> · {drillScope.from} ~ {drillScope.to} · Revision {formatNumber(drillScope.projectRevision)}/{formatNumber(drillScope.catalogRevision)}
+        <p>{t("Milestone Dashboard 범위 공수:")}{" "}{effort(drillScope.plannedMd, drillScope.plannedMm, "md", locale)}{drillScope.plannedMm === null ? t(" · M/M 미설정") : ` / ${effort(drillScope.plannedMd, drillScope.plannedMm , "mm", locale)}`}{t(". 아래 행과 표시 subtotal은 같은 기간을 기존 Resource 서버 계산으로 조회한 뒤 전달된 assignment ID와 기존 필터를 적용합니다. 상단 전체 합계는 같은 기간의 Project 전체 값입니다. Milestone 공수는 반올림 전 합계이며 Resource는 기존 반올림 기준을 사용합니다. Milestone의 명시 M/M 환산 기준은 Resource에 전달하지 않습니다. Resource 환산 기준은")}{" "}{data?.mdPerMm === null || data?.mdPerMm === undefined ? t("미설정") : t("{value0} M/D = 1 M/M (환경 설정)", {value0: data.mdPerMm})}{t("입니다.")}</p>
+        {!drillCurrent ? <p>{t("리소스 응답 Revision이 전달한 범위와 다릅니다. 최신 Milestone에서 다시 진입하거나 범위를 해제해 주세요.")}</p> : null}
+        <button type="button" className="secondary-button" onClick={onClearDrillScope}>{t("Milestone 전달 범위 해제")}</button>
       </div> : null}
       <div className="resource-workload-header">
         <div>
-          <h2 id="resource-workload-heading">리소스 공수</h2>
-          <p>Global Role·그룹·리소스·작업별 계획 공수와 현재 작업 상태를 함께 확인합니다.</p>
+          <h2 id="resource-workload-heading">{t("리소스 공수")}</h2>
+          <p>{t("Global Role·그룹·리소스·작업별 계획 공수와 현재 작업 상태를 함께 확인합니다.")}</p>
         </div>
-        <div className="resource-workload-toolbar" role="toolbar" aria-label="리소스 공수 도구">
-          <button className={`secondary-button resource-estimate-button${developerEstimateActive ? " is-active" : ""}`} type="button" aria-pressed={developerEstimateActive} onClick={toggleDeveloperEstimate}>개발 견적</button>
-          <div className="project-gantt-scale-controls" role="group" aria-label="공수 표시 단위">
+        <div className="resource-workload-toolbar" role="toolbar" aria-label={t("리소스 공수 도구")}>
+          <button className={`secondary-button resource-estimate-button${developerEstimateActive ? " is-active" : ""}`} type="button" aria-pressed={developerEstimateActive} onClick={toggleDeveloperEstimate}>{t("개발 견적")}</button>
+          <div className="project-gantt-scale-controls" role="group" aria-label={t("공수 표시 단위")}>
             <button type="button" aria-pressed={unit === "md"} onClick={() => setUnit("md")}>M/D</button>
             <button type="button" aria-pressed={unit === "mm"} disabled={!data?.mdPerMm}
-              title={data?.mdPerMm ? undefined : "프로젝트의 M/M 환산 기준이 설정되지 않았습니다."}
+              title={data?.mdPerMm ? undefined : t("프로젝트의 M/M 환산 기준이 설정되지 않았습니다.")}
               onClick={() => setUnit("mm")}>M/M</button>
           </div>
           <button className="secondary-button resource-refresh-button" type="button" onClick={refreshAll} disabled={workloadLoading || targetsLoading}>
-            {workloadLoading || targetsLoading ? "조회 중…" : "새로고침"}
+            {workloadLoading || targetsLoading ? t("조회 중…") : t("새로고침")}
           </button>
         </div>
       </div>
 
-      <div className="project-filter-toolbar resource-filter-toolbar" role="search" aria-label="리소스 검색과 필터">
-        <input ref={searchInput} aria-label="리소스 또는 그룹 이름과 코드 검색" placeholder="이름 또는 코드 검색" type="search" value={query} onChange={(event) => setQuery(event.target.value)} />
-        <button ref={filterTrigger} className="secondary-button resource-filter-trigger" type="button" aria-controls="resource-advanced-filter" aria-expanded={filterOpen} onClick={() => setFilterOpen((open) => !open)}>필터{appliedFilterCount ? ` ${appliedFilterCount}` : ""}</button>
-        {hasFilterInput ? <button className="secondary-button resource-filter-reset" type="button" onClick={resetFilters}>초기화</button> : null}
+      <div className="project-filter-toolbar resource-filter-toolbar" role="search" aria-label={t("리소스 검색과 필터")}>
+        <input ref={searchInput} aria-label={t("리소스 또는 그룹 이름과 코드 검색")} placeholder={t("이름 또는 코드 검색")} type="search" value={query} onChange={(event) => setQuery(event.target.value)} />
+        <button ref={filterTrigger} className="secondary-button resource-filter-trigger" type="button" aria-controls="resource-advanced-filter" aria-expanded={filterOpen} onClick={() => setFilterOpen((open) => !open)}>{t("필터")}{appliedFilterCount ? ` ${appliedFilterCount}` : ""}</button>
+        {hasFilterInput ? <button className="secondary-button resource-filter-reset" type="button" onClick={resetFilters}>{t("초기화")}</button> : null}
         <span className="project-filter-result resource-filter-result" role="status">{data
-          ? `그룹 ${visibleGroupCount} / 전체 ${totalGroupCount} · 리소스 ${visibleResourceCount} / 전체 ${totalResourceCount}`
-          : currentWorkload.phase === "error" ? "조회 결과 없음 · 공수 조회 실패" : "공수 조회 중…"}</span>
+          ? t("그룹 {value0} / 전체 {value1} · 리소스 {value2} / 전체 {value3}", {value0: visibleGroupCount, value1: totalGroupCount, value2: visibleResourceCount, value3: totalResourceCount})
+          : currentWorkload.phase === "error" ? t("조회 결과 없음 · 공수 조회 실패") : t("공수 조회 중…")}</span>
       </div>
       <div id="resource-advanced-filter" className="project-filter-panel resource-filter-panel" hidden={!filterOpen}
-        aria-label="리소스 고급 필터" onKeyDown={(event) => {
+        aria-label={t("리소스 고급 필터")} onKeyDown={(event) => {
           if (event.key !== "Escape") return;
           event.preventDefault(); event.stopPropagation(); setFilterOpen(false);
           requestAnimationFrame(() => filterTrigger.current?.focus({ preventScroll: true }));
         }}>
-        <label>종류<select value={kindFilter} onChange={(event) => setKindFilter(event.target.value as KindFilter)}><option value="all">전체</option><option value="resource">Resource</option><option value="group">Resource Group</option></select></label>
-        <label>상태<select value={activeFilter} onChange={(event) => setActiveFilter(event.target.value as ActiveFilter)}><option value="all">전체</option><option value="active">활성</option><option value="inactive">비활성</option></select></label>
-        <label>Global Role<select value={roleFilter} onChange={(event) => setRoleFilter(event.target.value as RoleFilter)}><option value="all">전체</option>{ROLE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
-        <label>개발자 등급<select value={gradeFilter} onChange={(event) => setGradeFilter(event.target.value as GradeFilter)}><option value="all">전체</option>{GRADE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
-        <label>Task 기간 From<input type="date" value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} /></label>
-        <label>Task 기간 To<input type="date" value={dateTo} onChange={(event) => setDateTo(event.target.value)} /></label>
-        {Boolean(dateFrom) !== Boolean(dateTo) ? <p className="resource-filter-date-note" role="status">기간 시작일과 종료일을 모두 입력해 주세요. 기간 조건은 아직 적용되지 않습니다.</p> : null}
-        {dateFrom && dateTo && dateFrom > dateTo ? <p className="resource-filter-date-note" role="status">시작일이 종료일보다 늦어 두 날짜 사이의 범위로 검색합니다.</p> : null}
+        <label>{t("종류")}<select value={kindFilter} onChange={(event) => setKindFilter(event.target.value as KindFilter)}><option value="all">{t("전체")}</option><option value="resource">Resource</option><option value="group">Resource Group</option></select></label>
+        <label>{t("상태")}<select value={activeFilter} onChange={(event) => setActiveFilter(event.target.value as ActiveFilter)}><option value="all">{t("전체")}</option><option value="active">{t("활성")}</option><option value="inactive">{t("비활성")}</option></select></label>
+        <label>Global Role<select value={roleFilter} onChange={(event) => setRoleFilter(event.target.value as RoleFilter)}><option value="all">{t("전체")}</option>{ROLE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{t(option.label)}</option>)}</select></label>
+        <label>{t("개발자 등급")}<select value={gradeFilter} onChange={(event) => setGradeFilter(event.target.value as GradeFilter)}><option value="all">{t("전체")}</option>{GRADE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{t(option.label)}</option>)}</select></label>
+        <label>{t("Task 기간 From")}<input type="date" value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} /></label>
+        <label>{t("Task 기간 To")}<input type="date" value={dateTo} onChange={(event) => setDateTo(event.target.value)} /></label>
+        {Boolean(dateFrom) !== Boolean(dateTo) ? <p className="resource-filter-date-note" role="status">{t("기간 시작일과 종료일을 모두 입력해 주세요. 기간 조건은 아직 적용되지 않습니다.")}</p> : null}
+        {dateFrom && dateTo && dateFrom > dateTo ? <p className="resource-filter-date-note" role="status">{t("시작일이 종료일보다 늦어 두 날짜 사이의 범위로 검색합니다.")}</p> : null}
       </div>
 
-      <div className="resource-workload-statuses" aria-label="리소스 조회 상태">
+      <div className="resource-workload-statuses" aria-label={t("리소스 조회 상태")}>
         <div className={`resource-workload-status${currentWorkload.phase === "error" ? " resource-workload-status-error" : ""}`} data-source="workload" data-state={currentWorkload.phase}>
           <p role={currentWorkload.phase === "error" ? "alert" : "status"}>
             {workloadLoading
-              ? data ? `공수 정보를 새로고침하는 중입니다. 마지막 성공 ${confirmedAt(currentWorkload.lastSuccessAt)} 결과를 표시합니다.` : "리소스 공수 정보를 불러오는 중입니다."
+              ? data ? t("공수 정보를 새로고침하는 중입니다. 마지막 성공 {value0} 결과를 표시합니다.", {value0: confirmedAt(currentWorkload.lastSuccessAt, locale)}) : t("리소스 공수 정보를 불러오는 중입니다.")
               : currentWorkload.phase === "error"
-                ? data ? `공수 정보 새로고침에 실패했습니다. 마지막 성공 ${confirmedAt(currentWorkload.lastSuccessAt)} 결과를 표시합니다.` : "리소스 공수 정보를 불러오지 못했습니다."
-                : `공수 정보 확인 완료 · ${confirmedAt(currentWorkload.lastSuccessAt)}`}
+                ? data ? t("공수 정보 새로고침에 실패했습니다. 마지막 성공 {value0} 결과를 표시합니다.", {value0: confirmedAt(currentWorkload.lastSuccessAt, locale)}) : t("리소스 공수 정보를 불러오지 못했습니다.")
+                : t("공수 정보 확인 완료 · {value0}", {value0: confirmedAt(currentWorkload.lastSuccessAt, locale)})}
           </p>
-          {currentWorkload.phase === "error" || currentWorkload.retrying ? <button className="secondary-button" type="button" aria-disabled={currentWorkload.retrying || undefined} aria-busy={currentWorkload.retrying || undefined} onClick={() => { if (!currentWorkload.retrying) void loadSource("workload", true); }}>{currentWorkload.retrying ? "공수 재시도 중…" : "공수 다시 시도"}</button> : null}
+          {currentWorkload.phase === "error" || currentWorkload.retrying ? <button className="secondary-button" type="button" aria-disabled={currentWorkload.retrying || undefined} aria-busy={currentWorkload.retrying || undefined} onClick={() => { if (!currentWorkload.retrying) void loadSource("workload", true); }}>{currentWorkload.retrying ? t("공수 재시도 중…") : t("공수 다시 시도")}</button> : null}
         </div>
         <div className={`resource-workload-status${currentTargets.phase === "error" ? " resource-workload-status-error" : ""}`} data-source="targets" data-state={currentTargets.phase}>
           <p role={currentTargets.phase === "error" ? "alert" : "status"}>
             {targetsLoading
-              ? currentTargets.value ? `이름·코드 정보를 새로고침하는 중입니다. 마지막 성공 ${confirmedAt(currentTargets.lastSuccessAt)} 정보를 표시합니다.` : "리소스 이름·코드 정보를 불러오는 중입니다."
+              ? currentTargets.value ? t("이름·코드 정보를 새로고침하는 중입니다. 마지막 성공 {value0} 정보를 표시합니다.", {value0: confirmedAt(currentTargets.lastSuccessAt, locale)}) : t("리소스 이름·코드 정보를 불러오는 중입니다.")
               : currentTargets.phase === "error"
-                ? currentTargets.value ? `이름·코드·설명 정보 새로고침에 실패했습니다. 마지막 성공 ${confirmedAt(currentTargets.lastSuccessAt)} 정보를 표시합니다.` : "리소스 이름·코드·설명 정보를 불러오지 못했습니다. Group·Resource 기본 이름과 Resource 코드는 유지되며 Group 코드와 설명 검색은 사용할 수 없습니다."
-                : `이름·코드 정보 확인 완료 · ${confirmedAt(currentTargets.lastSuccessAt)}`}
+                ? currentTargets.value ? t("이름·코드·설명 정보 새로고침에 실패했습니다. 마지막 성공 {value0} 정보를 표시합니다.", {value0: confirmedAt(currentTargets.lastSuccessAt, locale)}) : t("리소스 이름·코드·설명 정보를 불러오지 못했습니다. Group·Resource 기본 이름과 Resource 코드는 유지되며 Group 코드와 설명 검색은 사용할 수 없습니다.")
+                : t("이름·코드 정보 확인 완료 · {value0}", {value0: confirmedAt(currentTargets.lastSuccessAt, locale)})}
           </p>
-          {currentTargets.phase === "error" || currentTargets.retrying ? <button className="secondary-button" type="button" aria-disabled={currentTargets.retrying || undefined} aria-busy={currentTargets.retrying || undefined} onClick={() => { if (!currentTargets.retrying) void loadSource("targets", true); }}>{currentTargets.retrying ? "이름·코드 재시도 중…" : "이름·코드 다시 시도"}</button> : null}
+          {currentTargets.phase === "error" || currentTargets.retrying ? <button className="secondary-button" type="button" aria-disabled={currentTargets.retrying || undefined} aria-busy={currentTargets.retrying || undefined} onClick={() => { if (!currentTargets.retrying) void loadSource("targets", true); }}>{currentTargets.retrying ? t("이름·코드 재시도 중…") : t("이름·코드 다시 시도")}</button> : null}
         </div>
       </div>
 
       {data ? (
         <>
-          <dl className="resource-workload-summary" aria-label="리소스 공수 요약">
-            <div><dt>조회 범위</dt><dd>{data.range.from} ~ {data.range.to}</dd></div>
-            <div><dt>전체 계획 공수</dt><dd>{effort(data.grandTotalMd, data.grandTotalMm, unit)}</dd></div>
-            <div><dt>공수 미설정</dt><dd>{data.unsetCount}건</dd></div>
-            <div><dt>과투입 리소스</dt><dd>{overAllocatedCount}개</dd></div>
+          <dl className="resource-workload-summary" aria-label={t("리소스 공수 요약")}>
+            <div><dt>{t("조회 범위")}</dt><dd>{data.range.from} ~ {data.range.to}</dd></div>
+            <div><dt>{t("전체 계획 공수")}</dt><dd>{effort(data.grandTotalMd, data.grandTotalMm, unit, locale)}</dd></div>
+            <div><dt>{t("공수 미설정")}</dt><dd>{formatNumber(data.unsetCount)}{t("건")}</dd></div>
+            <div><dt>{t("과투입 리소스")}</dt><dd>{overAllocatedCount}{t("개")}</dd></div>
           </dl>
-          <dl className="resource-role-summary" aria-label="Global Role별 계획 공수">
+          <dl className="resource-role-summary" aria-label={t("Global Role별 계획 공수")}>
             {ROLE_OPTIONS.map((option) => {
               const total = totalForRole(option.value);
               return <div key={option.value}>
-                <dt>{option.label}</dt>
-                <dd>{effort(total?.effortMd ?? 0, total?.effortMm ?? (data.mdPerMm === null ? null : 0), unit)}</dd>
-                <span>{total?.assignmentCount ?? 0}건{total?.unsetCount ? ` · 공수 미설정 ${total.unsetCount}` : ""}</span>
+                <dt>{t(option.label)}</dt>
+                <dd>{effort(total?.effortMd ?? 0, total?.effortMm ?? (data.mdPerMm === null ? null : 0), unit, locale)}</dd>
+                <span>{total?.assignmentCount ?? 0}{t("건")}{total?.unsetCount ? t(" · 공수 미설정 {value0}", {value0: total.unsetCount}) : ""}</span>
               </div>;
             })}
           </dl>
 
-          <p className="resource-workload-note">Global Role별 집계는 같은 assignment가 복수 Global Role에 중복 포함될 수 있는 비가산 분류 보기입니다. 역할별 값을 서로 더해 전체 계획 공수로 해석하지 않으며, 전체 합계는 assignmentId 기준으로 정확히 한 번만 계산합니다. 아래 필터는 drill-down 표시 범위와 표시 subtotal만 제한합니다.</p>
-          {data.asOfDate ? <p className="resource-workload-note">작업 지연 기준일: {data.asOfDate}{data.timezone ? ` (${data.timezone})` : ""}. 계획 공수는 진행률로 차감하거나 실제 소진 공수로 환산하지 않습니다.</p> : null}
+          <p className="resource-workload-note">{t("Global Role별 집계는 같은 assignment가 복수 Global Role에 중복 포함될 수 있는 비가산 분류 보기입니다. 역할별 값을 서로 더해 전체 계획 공수로 해석하지 않으며, 전체 합계는 assignmentId 기준으로 정확히 한 번만 계산합니다. 아래 필터는 drill-down 표시 범위와 표시 subtotal만 제한합니다.")}</p>
+          {data.asOfDate ? <p className="resource-workload-note">{t("작업 지연 기준일:")}{" "}{data.asOfDate}{data.timezone ? ` (${data.timezone})` : ""}{t(". 계획 공수는 진행률로 차감하거나 실제 소진 공수로 환산하지 않습니다.")}</p> : null}
           {data.mdPerMm
-            ? <p className="resource-workload-note">M/M 환산 기준: 1 M/M = {data.mdPerMm} M/D</p>
-            : <p className="resource-workload-note">M/M 환산 기준이 설정되지 않아 M/M 보기는 사용할 수 없습니다.</p>}
+            ? <p className="resource-workload-note">{t("M/M 환산 기준: 1 M/M =")}{" "}{data.mdPerMm} M/D</p>
+            : <p className="resource-workload-note">{t("M/M 환산 기준이 설정되지 않아 M/M 보기는 사용할 수 없습니다.")}</p>}
 
           <div className="resource-workload-groups">
             {filteredGroups.length === 0 ? (
-              <p className="resource-workload-empty">검색 조건에 일치하는 리소스 할당이 없습니다.</p>
+              <p className="resource-workload-empty">{t("검색 조건에 일치하는 리소스 할당이 없습니다.")}</p>
             ) : filteredGroups.map((group) => (
               <details className="resource-workload-group" key={group.id ?? "ungrouped"} open>
                 <summary>
-                  <span className="resource-workload-name">{group.id ? targetByKey.get(`group:${group.id}`)?.name ?? group.name : group.name}</span>
+                  <span className="resource-workload-name">{group.id ? targetByKey.get(`group:${group.id}`)?.name ?? displayName(group, locale) : displayName(group, locale)}</span>
                   <span>{group.start ?? "—"} ~ {group.end ?? "—"}</span>
-                  <span>{effort(group.effortMd, group.effortMm, unit)}</span>
-                  {group.unsetCount ? <span className="status-badge warning">미설정 {group.unsetCount}</span> : null}
+                  <span>{effort(group.effortMd, group.effortMm, unit, locale)}</span>
+                  {group.unsetCount ? <span className="status-badge warning">{t("미설정")}{" "}{formatNumber(group.unsetCount)}</span> : null}
                 </summary>
                 <div className="resource-workload-resources">
                   {group.resources.map((resource) => (
@@ -432,33 +437,33 @@ export function LegacyProjectResourceWorkload({ publicId, drillScope = null, onC
                       <summary>
                         <span className="resource-workload-name">{targetByKey.get(`resource:${resource.id}`)?.name ?? resource.name}</span>
                         <span>{resource.start ?? "—"} ~ {resource.end ?? "—"}</span>
-                        <span>{effort(resource.effortMd, resource.effortMm, unit)}</span>
-                        {resource.developerGrade ? <span className="status-badge">{gradeLabel(resource.developerGrade)}</span> : null}
-                        {!resource.active ? <span className="status-badge">비활성</span> : null}
-                        {resource.overAllocated ? <span className="status-badge danger" title="과투입은 전체 assignment의 일별 투입률 합계 기준입니다.">과투입</span> : null}
-                        {resource.unsetCount ? <span className="status-badge warning">미설정 {resource.unsetCount}</span> : null}
+                        <span>{effort(resource.effortMd, resource.effortMm, unit, locale)}</span>
+                        {resource.developerGrade ? <span className="status-badge">{t(gradeLabel(resource.developerGrade))}</span> : null}
+                        {!resource.active ? <span className="status-badge">{t("비활성")}</span> : null}
+                        {resource.overAllocated ? <span className="status-badge danger" title={t("과투입은 전체 assignment의 일별 투입률 합계 기준입니다.")}>{t("과투입")}</span> : null}
+                        {resource.unsetCount ? <span className="status-badge warning">{t("미설정")}{" "}{formatNumber(resource.unsetCount)}</span> : null}
                       </summary>
-                      <IdentifierDetails label={`${resource.name} 식별 정보`} identifiers={[{label:"리소스 ID",value:resource.id},...((targetByKey.get(`resource:${resource.id}`)?.code??resource.code)?[{label:"코드",value:(targetByKey.get(`resource:${resource.id}`)?.code??resource.code)!}]:[])]}/>
+                      <IdentifierDetails label={t("{value0} 식별 정보", {value0: resource.name})} identifiers={[{label:"리소스 ID",value:resource.id},...((targetByKey.get(`resource:${resource.id}`)?.code??resource.code)?[{label:"코드",value:(targetByKey.get(`resource:${resource.id}`)?.code??resource.code)!}]:[])]}/>
                       <div className="resource-workload-table-scroll">
                         <table className="resource-workload-table">
                           <thead>
                             <tr>
-                              <th>작업</th><th>Global Role</th><th>상태</th><th>진행률</th><th>일정</th>
-                              <th>투입 시작</th><th>투입 종료</th><th>투입률</th><th>공수</th>
+                              <th>{t("작업")}</th><th>Global Role</th><th>{t("상태")}</th><th>{t("진행률")}</th><th>{t("일정")}</th>
+                              <th>{t("투입 시작")}</th><th>{t("투입 종료")}</th><th>{t("투입률")}</th><th>{t("공수")}</th>
                             </tr>
                           </thead>
                           <tbody>
                             {resource.tasks.map((task) => (
                               <tr key={task.assignmentId}>
                                 <td>{task.taskName}</td>
-                                <td>{roleLabels(task.roles)}</td>
-                                <td>{task.delayed ? <span className="status-badge danger">지연</span> : statusLabel(task.status)}</td>
+                                <td>{roleLabels(task.roles,locale)}</td>
+                                <td>{task.delayed ? <span className="status-badge danger">{t("지연")}</span> : t(statusLabel(task.status))}</td>
                                 <td>{task.progress === null || task.progress === undefined ? "—" : `${task.progress}%`}</td>
                                 <td>{task.taskStart && task.taskEnd ? `${task.taskStart} ~ ${task.taskEnd}` : "—"}</td>
                                 <td>{task.start}</td>
                                 <td>{task.end}</td>
-                                <td>{task.allocationPercent === null ? "미설정" : `${task.allocationPercent}%`}</td>
-                                <td>{task.effortMd === null ? "공수 미설정" : effort(task.effortMd, task.effortMm, unit)}</td>
+                                <td>{task.allocationPercent === null ? t("미설정") : `${task.allocationPercent}%`}</td>
+                                <td>{task.effortMd === null ? t("공수 미설정") : effort(task.effortMd, task.effortMm, unit, locale)}</td>
                               </tr>
                             ))}
                           </tbody>

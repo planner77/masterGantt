@@ -1,0 +1,304 @@
+{
+  "schema": "mastergantt-issue866-ci3522-local-validation-v1",
+  "issue": 866,
+  "pull_request": 879,
+  "baseline_head": "2844e0f7d78c7268057d89514a2db0239498dcb0",
+  "base": "364aa3bdfde16fd3ca79add61c35a1cde21f6395",
+  "source": {
+    "fingerprint": "55c4fbc65ebe9414efa2a608dc3362566a2d5661ef4d1b50465fdb91a2556e97",
+    "files": 1317,
+    "start_equals_end": true,
+    "generated_next_config_and_outputs_restored": true,
+    "product_dependency_unit_common_config_ci_inputs_unchanged": true
+  },
+  "environment": {
+    "node": "v22.14.0",
+    "npm": "11.10.0",
+    "next": "16.4.2",
+    "svar_react_gantt": "2.7.3",
+    "playwright": "1.63.0",
+    "chromium_revision": "1243",
+    "browser": "153.0.8010.12"
+  },
+  "reproduction": {
+    "status": "FAIL",
+    "source": "baseline_head",
+    "case": "milestone-visibility legacy native M selection",
+    "classification": "TEST_CONTRACT",
+    "timeout_ms": 30000,
+    "observed_duration_seconds": 30.2,
+    "retained_log": ".prepr-reports/ci3522/red.log"
+  },
+  "direct_correction": {
+    "status": "PASS",
+    "locales": [
+      "ko",
+      "en",
+      "vi"
+    ],
+    "cases": 3,
+    "duration_seconds": 13.2,
+    "counting": "이 직접 실행 3건은 아래 최종 고유 E2E 합계에 중복 가산하지 않는다."
+  },
+  "verification": {
+    "unit_targeted": {
+      "status": "PASS",
+      "passed": 197,
+      "files": 9,
+      "duration_seconds": 2.22,
+      "command": "npm test -- tests/scripts/e2e-shard-planner.test.ts tests/lib/i18n-phase-c.test.ts tests/lib/i18n-phase-a.test.ts tests/lib/date-display.test.ts tests/features/projects/project-search-filter.test.ts tests/features/gantt/project-task-adapter.test.ts tests/features/gantt/gantt-readiness.test.ts tests/features/gantt/task-selection-model.test.ts tests/features/gantt/viewport-coordinator.test.ts --maxWorkers=2"
+    },
+    "e2e": {
+      "status": "PASS",
+      "unique_spec_files": 25,
+      "unique_passed": 153,
+      "preexisting_skipped": 2,
+      "failed": 0,
+      "workers": 1,
+      "retries": 0,
+      "max_failures": 0,
+      "parts": {
+        "a": {
+          "exit_code": 0,
+          "duration_seconds": 255.98,
+          "command": [
+            "npx",
+            "playwright",
+            "test",
+            "--config",
+            "tests/config/playwright.config.ts",
+            "tests/e2e/admin-auth-layout.spec.ts",
+            "tests/e2e/country-calendar-admin.spec.ts",
+            "tests/e2e/cross-screen-regression.spec.ts",
+            "tests/e2e/i18n-master-data.spec.ts",
+            "tests/e2e/issue-866-language-shell.spec.ts",
+            "tests/e2e/logistics-table-density.spec.ts",
+            "tests/e2e/logistics-type-catalog-admin.spec.ts",
+            "tests/e2e/master-controls-density.spec.ts",
+            "tests/e2e/new-project-draft-preservation.spec.ts",
+            "tests/e2e/project-create-layout.spec.ts",
+            "tests/e2e/project-master-relations.spec.ts",
+            "tests/e2e/project-workspace-layout.spec.ts",
+            "tests/e2e/resource-catalog-delete.spec.ts",
+            "--workers=1",
+            "--retries=0",
+            "--max-failures=0",
+            "--output=.prepr-reports/ci3522/part-a-results"
+          ],
+          "source_fingerprint": "55c4fbc65ebe9414efa2a608dc3362566a2d5661ef4d1b50465fdb91a2556e97",
+          "passed": 66,
+          "failed": 0,
+          "skipped": 2,
+          "files": [
+            "tests/e2e/admin-auth-layout.spec.ts",
+            "tests/e2e/country-calendar-admin.spec.ts",
+            "tests/e2e/cross-screen-regression.spec.ts",
+            "tests/e2e/i18n-master-data.spec.ts",
+            "tests/e2e/issue-866-language-shell.spec.ts",
+            "tests/e2e/logistics-table-density.spec.ts",
+            "tests/e2e/logistics-type-catalog-admin.spec.ts",
+            "tests/e2e/master-controls-density.spec.ts",
+            "tests/e2e/new-project-draft-preservation.spec.ts",
+            "tests/e2e/project-create-layout.spec.ts",
+            "tests/e2e/project-master-relations.spec.ts",
+            "tests/e2e/project-workspace-layout.spec.ts",
+            "tests/e2e/resource-catalog-delete.spec.ts"
+          ]
+        },
+        "b": {
+          "exit_code": 0,
+          "duration_seconds": 679.94,
+          "command": [
+            "npx",
+            "playwright",
+            "test",
+            "--config",
+            "tests/config/playwright.config.ts",
+            "tests/e2e/issue-725-process-workareas.spec.ts",
+            "tests/e2e/issue-726-task-logistics.spec.ts",
+            "tests/e2e/issue-732-milestone-dashboard.spec.ts",
+            "tests/e2e/project-multi-task-copy-paste.spec.ts",
+            "--workers=1",
+            "--retries=0",
+            "--max-failures=0",
+            "--output=.prepr-reports/ci3522/part-b-results"
+          ],
+          "source_fingerprint": "55c4fbc65ebe9414efa2a608dc3362566a2d5661ef4d1b50465fdb91a2556e97",
+          "passed": 20,
+          "failed": 0,
+          "skipped": 0,
+          "files": [
+            "tests/e2e/issue-725-process-workareas.spec.ts",
+            "tests/e2e/issue-726-task-logistics.spec.ts",
+            "tests/e2e/issue-732-milestone-dashboard.spec.ts",
+            "tests/e2e/project-multi-task-copy-paste.spec.ts"
+          ]
+        },
+        "c": {
+          "exit_code": 0,
+          "duration_seconds": 461.38,
+          "command": [
+            "npx",
+            "playwright",
+            "test",
+            "--config",
+            "tests/config/playwright.config.ts",
+            "tests/e2e/milestone-visibility.spec.ts",
+            "tests/e2e/project-task-quick-view.spec.ts",
+            "tests/e2e/milestone-timeline-lane.spec.ts",
+            "tests/e2e/milestone-stage-grid.spec.ts",
+            "tests/e2e/resource-admin-layout.spec.ts",
+            "tests/e2e/i18n.spec.ts",
+            "tests/e2e/project-task-context-menu.spec.ts",
+            "--workers=1",
+            "--retries=0",
+            "--max-failures=0",
+            "--output=.prepr-reports/ci3522/part-c-results"
+          ],
+          "source_fingerprint": "55c4fbc65ebe9414efa2a608dc3362566a2d5661ef4d1b50465fdb91a2556e97",
+          "passed": 59,
+          "failed": 0,
+          "skipped": 0,
+          "files": [
+            "tests/e2e/milestone-visibility.spec.ts",
+            "tests/e2e/project-task-quick-view.spec.ts",
+            "tests/e2e/milestone-timeline-lane.spec.ts",
+            "tests/e2e/milestone-stage-grid.spec.ts",
+            "tests/e2e/resource-admin-layout.spec.ts",
+            "tests/e2e/i18n.spec.ts",
+            "tests/e2e/project-task-context-menu.spec.ts"
+          ]
+        },
+        "d": {
+          "exit_code": 0,
+          "duration_seconds": 263.13,
+          "command": [
+            "npx",
+            "playwright",
+            "test",
+            "--config",
+            "tests/config/playwright.config.ts",
+            "tests/e2e/project-transfer-layout-491.spec.ts",
+            "--workers=1",
+            "--retries=0",
+            "--max-failures=0",
+            "--output=.prepr-reports/ci3522/part-d-results"
+          ],
+          "source_fingerprint": "55c4fbc65ebe9414efa2a608dc3362566a2d5661ef4d1b50465fdb91a2556e97",
+          "passed": 8,
+          "failed": 0,
+          "skipped": 0,
+          "files": [
+            "tests/e2e/project-transfer-layout-491.spec.ts"
+          ]
+        }
+      },
+      "selected_files": [
+        "tests/e2e/admin-auth-layout.spec.ts",
+        "tests/e2e/country-calendar-admin.spec.ts",
+        "tests/e2e/cross-screen-regression.spec.ts",
+        "tests/e2e/i18n-master-data.spec.ts",
+        "tests/e2e/issue-866-language-shell.spec.ts",
+        "tests/e2e/logistics-table-density.spec.ts",
+        "tests/e2e/logistics-type-catalog-admin.spec.ts",
+        "tests/e2e/master-controls-density.spec.ts",
+        "tests/e2e/new-project-draft-preservation.spec.ts",
+        "tests/e2e/project-create-layout.spec.ts",
+        "tests/e2e/project-master-relations.spec.ts",
+        "tests/e2e/project-workspace-layout.spec.ts",
+        "tests/e2e/resource-catalog-delete.spec.ts",
+        "tests/e2e/issue-725-process-workareas.spec.ts",
+        "tests/e2e/issue-726-task-logistics.spec.ts",
+        "tests/e2e/issue-732-milestone-dashboard.spec.ts",
+        "tests/e2e/project-multi-task-copy-paste.spec.ts",
+        "tests/e2e/milestone-visibility.spec.ts",
+        "tests/e2e/project-task-quick-view.spec.ts",
+        "tests/e2e/milestone-timeline-lane.spec.ts",
+        "tests/e2e/milestone-stage-grid.spec.ts",
+        "tests/e2e/resource-admin-layout.spec.ts",
+        "tests/e2e/i18n.spec.ts",
+        "tests/e2e/project-task-context-menu.spec.ts",
+        "tests/e2e/project-transfer-layout-491.spec.ts"
+      ],
+      "counting": "동일 동결 source에서 A/B/C/D의 고유 spec만 합산한다. 직접 RED/green 및 이전 Head 결과는 가산하지 않는다.",
+      "scope_limit": "수동 CLI 25spec/4parts이며 #752 Actions 자동 진단의24spec 상한은 변경하지 않았다.",
+      "preexisting_skip_cases": [
+        {
+          "file": "tests/e2e/logistics-table-density.spec.ts",
+          "line": 41,
+          "issue": 454,
+          "reason": "기존 before 캡처용"
+        },
+        {
+          "file": "tests/e2e/master-controls-density.spec.ts",
+          "line": 30,
+          "issue": 455,
+          "reason": "기존 before 캡처용"
+        }
+      ]
+    },
+    "typecheck_original_config": {
+      "status": "PASS",
+      "command": "npx tsc --noEmit --incremental false"
+    },
+    "lint_five_changed_specs": {
+      "status": "PASS",
+      "errors": 0
+    },
+    "policy": {
+      "status": "PASS",
+      "test_discovery": {
+        "unit_files": 298,
+        "browser_cases": 882
+      },
+      "markdown_files": 410,
+      "ci_cache_contract": true,
+      "version": "0.142.0",
+      "base_documentation_sync": "STRUCTURAL_PASS_SEMANTIC_REVIEW_PENDING",
+      "ac_mapping": "AC01..AC09"
+    },
+    "automated_prepr": {
+      "status": "BLOCKED",
+      "unknown": 94,
+      "missing": 0,
+      "source_stable_during_run": true,
+      "report": ".prepr-reports/ci3522/prepr-publish-final/report.json",
+      "reason": "자동 매핑 공백 BLOCKED를 유지한다. 수동 소비자 매핑과 실제 실행은 별도 증거이며 자동 PASS로 바꾸지 않는다."
+    },
+    "original_ci3522_baseline": {
+      "source_head": "2844e0f7d78c7268057d89514a2db0239498dcb0",
+      "run_id": 42003998824,
+      "attempt": 1,
+      "unit_passed": 3658,
+      "preexisting_unit_skipped": 3,
+      "production_build": "SUCCESS",
+      "docker": "SUCCESS",
+      "reason_not_rerun_locally": "이번 delta는 E2E 오라클5파일과 문서뿐이며 제품/Unit/공용설정/의존성/빌드/Docker 입력은 동일하다. 이전 Head 성공을 새 원격 Head의 Required PASS로 승계하지 않는다."
+    }
+  },
+  "review": {
+    "static_agent": "PASS",
+    "remaining_P1_P2": 0,
+    "unresolved_threads": 0,
+    "merge_conflicts": false,
+    "risk_level": "HIGH",
+    "qa_method": "OWNER_MANAGED",
+    "qa_required": true,
+    "human_independent_qa": "NOT TESTED",
+    "owner_accept": "NOT TESTED",
+    "manager_decision": "NOT TESTED",
+    "MERGE_READY": "BLOCKED"
+  },
+  "remote_new_head": {
+    "quality": "NOT TESTED",
+    "e2e": "NOT TESTED",
+    "docker": "NOT TESTED",
+    "trusted_qa": "NOT TESTED",
+    "scope": "Full PR CI 시작 확인 뒤 모니터링하지 않는다. 실제 Head/base/test-merge/Run/Attempt는 PR 및 Issue STATUS에 후행 기록한다."
+  },
+  "release_authorized": false,
+  "limitations": [
+    "기존 실제 환경 검증(Windows Excel/운영 backup-restore/실제 screen reader/native125%/최종 수동 UX)은 NOT TESTED를 유지한다.",
+    "전체 회귀와 인간 QA·Owner·Manager 승인, Main/GHCR/Release는 이번 시작 요청 범위의 완료로 주장하지 않는다."
+  ]
+}

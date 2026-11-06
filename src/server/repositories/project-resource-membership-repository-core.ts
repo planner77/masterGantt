@@ -1,3 +1,4 @@
+import { displayNameTranslationPublicIdMap } from "./display-name-translations-repository-core";
 import type Database from "better-sqlite3";
 import type { ProjectResourceMembershipDto, ProjectResourceMembershipQuery, } from "../../contracts/project-resource-memberships";
 import type { DeveloperGrade, ResourceRole } from "../../contracts/resources";
@@ -118,7 +119,8 @@ export class ProjectResourceMembershipRepository {
     const groupStatement = this.database.prepare(`SELECT g.public_id id,g.name,g.active
    FROM resource_group_members gm JOIN resource_groups g ON g.id=gm.group_id
    WHERE gm.resource_id=? ORDER BY lower(g.name),g.public_id LIMIT ?`);
-    const groups = (entries: GroupRow[]) => entries.map(group => ({ ...group, active: group.active === 1 }));
+    const groupTranslations = displayNameTranslationPublicIdMap(this.database,"resource_groups",groupRows.map(row=>row.id));
+    const groups = (entries: GroupRow[]) => entries.map(group => ({ ...group, ...groupTranslations.get(group.id), active: group.active === 1 }));
     const resources: ProjectResourceMembershipDto[] = rows.map(row => ({
       id: row.public_id,
       name: row.name,

@@ -420,9 +420,13 @@ test.describe("#809 chart interaction",()=>{
  await projectSchedule.click();
  const projectReturn=page.getByRole("region",{name:"임시 조회 범위",exact:true});await expect(projectReturn).toContainText("Project 전체 부하 근거");
  await expect(page.getByRole("tablist",{name:"프로젝트 작업공간",exact:true}).getByRole("tab",{name:"일정",exact:true})).toHaveAttribute("aria-selected","true");
+ await expect(projectReturn).toContainText("고유 Task 2 · Assignment 2 · 조상 문맥 1");
+ // The Summary is tree context, separate from the two exact scope Tasks.
+ await expect.poll(()=>page.locator(".project-gantt-frame").evaluate(element=>(JSON.parse((element as HTMLElement).dataset.ganttProjectionReceipt??"null")?.logicalVisibleIds??[]).sort())).toEqual([f.parentTask.taskId,f.task.taskId,outside.taskId].sort());
  await expect(page.locator(".project-gantt-frame").locator(`.wx-row[data-id=":${outside.taskId}"]`)).toHaveCount(1);
  await projectReturn.getByRole("button",{name:/원래 보기/}).click();await expect(projectSchedule).toBeFocused();
  await expect(charts.getByLabel("차트 작업 검색",{exact:true})).toHaveValue(f.task.name);
+ await expect(charts.getByRole("combobox",{name:"차트 부하 범위",exact:true})).toHaveValue("project");await expect(period).toContainText("Load 140%");
  await detail.getByRole("button",{name:"차트 상세 닫기",exact:true}).click();await expect(charts.getByRole("button",{name:"현재 기간 원본",exact:true})).toBeFocused();
  const equivalentReads=chartReads;await charts.getByRole("group",{name:"차트 유형",exact:true}).getByRole("button",{name:"업무 집중",exact:true}).click();const ranked=lastChartReport;expect(chartReads).toBe(equivalentReads);
  await expect(charts).toHaveAttribute("data-chart-state","ready");expect(ranked.analysis?.total.taskIds).toEqual([f.task.taskId]);expect(ranked.analysis?.total.assignmentIds).toHaveLength(1);
@@ -439,6 +443,10 @@ test.describe("#809 chart interaction",()=>{
  await page.route(pattern,async route=>{if(route.request().postDataJSON().projection?.kind!=="scope")return route.continue();scopeReads++;if(scopeReads!==2)return route.continue();const response=await route.fetch();hostStarted();await hostGate;try{await route.fulfill({response});}catch{}finally{hostFinished=true;}});
  await detail.getByRole("button",{name:"차트 선택 범위 일정 보기",exact:true}).click();await hostCaptured;await detail.getByRole("button",{name:"차트 상세 닫기",exact:true}).click();hostRelease();await expect.poll(()=>hostFinished).toBe(true);await page.unroute(pattern);await expect(source).toBeFocused();await expect(page.getByRole("tablist",{name:"프로젝트 작업공간",exact:true}).getByRole("tab",{name:"대시보드",exact:true})).toHaveAttribute("aria-selected","true");
  await source.click();const schedule=detail.getByRole("button",{name:"차트 선택 범위 일정 보기",exact:true});await schedule.click();await expect(page.getByRole("tablist",{name:"프로젝트 작업공간",exact:true}).getByRole("tab",{name:"일정",exact:true})).toHaveAttribute("aria-selected","true");
+ await expect(page.getByRole("region",{name:"임시 조회 범위",exact:true})).not.toContainText("Project 전체 부하 근거");
+ await expect(page.getByRole("region",{name:"임시 조회 범위",exact:true})).toContainText("고유 Task 1 · Assignment 1 · 조상 문맥 1");
+ await expect.poll(()=>page.locator(".project-gantt-frame").evaluate(element=>(JSON.parse((element as HTMLElement).dataset.ganttProjectionReceipt??"null")?.logicalVisibleIds??[]).sort())).toEqual([f.parentTask.taskId,f.task.taskId].sort());
+ await expect(page.locator(".project-gantt-frame").locator(`.wx-row[data-id=":${outside.taskId}"]`)).toHaveCount(0);
  await page.getByRole("region",{name:"임시 조회 범위",exact:true}).getByRole("button",{name:/원래 보기/}).click();await expect(schedule).toBeFocused();await expect(charts.getByLabel("차트 작업 검색",{exact:true})).toHaveValue(f.task.name);
  await detail.getByRole("button",{name:"차트 상세 닫기",exact:true}).click();
  const distribution=analysisResponse();await charts.getByRole("group",{name:"차트 유형",exact:true}).getByRole("button",{name:"기여 분포",exact:true}).click();const distributed=(await(await distribution).json()).data as WbsViewReportDto;await expect(charts).toHaveAttribute("data-chart-state","ready");expect(distributed.analysis?.total.assignmentIds).toEqual(ranked.analysis?.total.assignmentIds);

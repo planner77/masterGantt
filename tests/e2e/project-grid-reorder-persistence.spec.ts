@@ -29,8 +29,8 @@ test("관계 연결 Task는 same-parent Context Move와 Grid DnD에서 Link를 �
     response.request().method() === "POST" && new URL(response.url()).pathname === `${api}/task-commands`
   );
   await taskRow(page, "Task B").getByText("Task B", { exact: true }).click({ button: "right" });
-  await page.getByRole("menuitem", { name: "Move", exact: true }).click();
-  await page.getByRole("menuitem", { name: "Move down", exact: true }).click();
+  await page.getByRole("menuitem", { name: "이동", exact: true }).click();
+  await page.getByRole("menuitem", { name: "아래로 이동", exact: true }).click();
   const menuMoveResponse = await menuMove;
   expect(menuMoveResponse.status()).toBe(200);
   const menuMoved = await menuMoveResponse.json() as TaskMutationResponse;
@@ -123,12 +123,12 @@ test("Grid DnD 확정 후 이름·진행률·재조회와 Context Move는 서버
   await expect(editor).toHaveCount(0);
   await expect.poll(() => gridOrder(page)).toEqual(["Task A", "Task C", "Task B 수정"]);
   await taskRow(page, "Task B 수정").getByText("Task B 수정", { exact: true }).click({ button: "right" });
-  await page.getByRole("menuitem", { name: "Move", exact: true }).click();
-  await page.getByRole("menuitem", { name: "Move up", exact: true }).click();
+  await page.getByRole("menuitem", { name: "이동", exact: true }).click();
+  await page.getByRole("menuitem", { name: "위로 이동", exact: true }).click();
   await expect.poll(() => gridOrder(page)).toEqual(["Task A", "Task B 수정", "Task C"]);
   await taskRow(page, "Task B 수정").getByText("Task B 수정", { exact: true }).click({ button: "right" });
-  await page.getByRole("menuitem", { name: "Move", exact: true }).click();
-  await page.getByRole("menuitem", { name: "Move down", exact: true }).click();
+  await page.getByRole("menuitem", { name: "이동", exact: true }).click();
+  await page.getByRole("menuitem", { name: "아래로 이동", exact: true }).click();
   await expect.poll(() => gridOrder(page)).toEqual(["Task A", "Task C", "Task B 수정"]);
   await renameInline(page, "Task B 수정", "Task B 메뉴 수정");
   await expect.poll(() => gridOrder(page)).toEqual(["Task A", "Task C", "Task B 메뉴 수정"]);

@@ -1,7 +1,10 @@
+import type { DisplayNameTranslations } from "../../contracts/display-name-translations";
+import { displayNameTranslationFields, displayNameTranslationFieldMap } from "./display-name-translations-repository-core";
 import type Database from "better-sqlite3";
 import type { DeveloperGrade, ResourceRole } from "../../contracts/resources";
 
 export interface CatalogTargetRecord {
+  translations?: DisplayNameTranslations;
   id: number;
   publicId: string;
   name: string;
@@ -133,7 +136,8 @@ export class ResourceCatalogRepository {
       list.push(row.public_id);
       members.set(row.group_id, list);
     }
-    return rows.map((row) => ({ ...mapTarget(row), memberResourceIds: members.get(row.id) ?? [] }));
+    const fields = displayNameTranslationFieldMap(this.database, "resource_groups", rows.map(row => row.id));
+    return rows.map((row) => ({ ...mapTarget(row), ...fields.get(String(row.id)), memberResourceIds: members.get(row.id) ?? [] }));
   }
 
   listResourceRoles(resourceId: number): ResourceRole[] {
@@ -154,7 +158,7 @@ export class ResourceCatalogRepository {
     const row = this.database.prepare(`SELECT id, public_id, name, code, description, active, NULL AS developer_grade FROM resource_groups WHERE public_id = ?`).get(publicId) as TargetRow | undefined;
     if (!row) return undefined;
     const members = this.database.prepare(`SELECT r.public_id FROM resource_group_members gm JOIN resources r ON r.id = gm.resource_id WHERE gm.group_id = ? ORDER BY lower(r.name), r.public_id`).all(row.id) as { public_id: string }[];
-    return { ...mapTarget(row), memberResourceIds: members.map((member) => member.public_id) };
+    return { ...mapTarget(row), ...displayNameTranslationFields(this.database, "resource_groups", row.id), memberResourceIds: members.map((member) => member.public_id) };
   }
 
   listResourceProjectUsage(): Map<number, CatalogTargetProjectUsage> {

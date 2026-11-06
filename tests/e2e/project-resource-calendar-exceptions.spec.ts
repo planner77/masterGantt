@@ -22,7 +22,7 @@ test("리소스 근무일 예외의 효과·저장·재열기·충돌·프로젝
   });
   await page.route(`**/api/projects/${publicId}/work-calendar`,async(route)=>{
     if(route.request().method()==="GET") {if(rejectCanonical){await route.fulfill({status:401,json:{error:{code:"EDIT_SESSION_INVALID"}}});return;}await route.fulfill({json:{data:{...original,customDates}}});return;}
-    if(conflict){await route.fulfill({status:409,json:{error:{code:"RESOURCE_CALENDAR_EXCEPTION_CONFLICT",details:[{path:"date",message:"2026-10-02"},{path:"rules.rule-a",message:"2026-10-02 · 홍길동 · 설계팀 / 지원팀 · 근무일 규칙 / 휴무일 규칙"}]}}});return;}
+    if(conflict){await route.fulfill({status:409,json:{error:{code:"RESOURCE_CALENDAR_EXCEPTION_CONFLICT",details:[{path:"date",code:"RESOURCE_CALENDAR_EXCEPTION_CONFLICT",message:"2026-10-02"},{path:"resourceId",code:"RESOURCE_CALENDAR_EXCEPTION_CONFLICT",message:resourceId},{path:"groupIds",code:"RESOURCE_CALENDAR_EXCEPTION_CONFLICT",message:groupId},{path:"rules.rule-a",code:"RESOURCE_CALENDAR_EXCEPTION_CONFLICT",message:"2026-10-02 · 홍길동 · 설계팀 / 지원팀 · 근무일 규칙 / 휴무일 규칙"}]}}});return;}
     const request=route.request().postDataJSON();
     savedDayType=request.customDates[0].dayType;
     customDates=request.customDates.map((entry:WorkCalendarCustomDateDto,index:number)=>({...entry,name:entry.name.trim(),id:`exception-${index}`}));
@@ -102,7 +102,7 @@ test("리소스 근무일 예외의 효과·저장·재열기·충돌·프로젝
   await expect(dialog.getByLabel("예외 날짜 1")).toHaveAttribute("aria-invalid","true");
   await expect(dialog.getByLabel("예외 날짜 1")).toHaveAttribute("aria-describedby","calendar-exception-conflict");
   await expect(dialog.getByRole("button",{name:"작업 캘린더 저장"})).toBeDisabled();
-  await expect(summary).toContainText("2026-10-02 · 홍길동 · 설계팀 / 지원팀");
+  await expect(summary.locator("li")).toHaveText(["날짜: 2026-10-02", "영향받는 리소스: 홍길동", "충돌 대상 그룹: 설계팀"]);
   await summary.getByRole("button",{name:/날짜 예외 1 수정/}).click();
   await expect(dialog.getByLabel("예외 날짜 1")).toBeFocused();
   await dialog.getByLabel("날짜 예외 1 이름").fill("토요일 특별 근무 수정");

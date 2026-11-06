@@ -17,6 +17,16 @@ describe("relation candidate context", () => {
     expect(relationCandidateContext(first, tasks)).toBe("공정 · 2026-10-01 · CHILD-A");
     expect(relationCandidateContext(second, tasks)).toBe("공정 · 2026-10-01 · CHILD-B");
   });
+  it.each(["en", "vi"] as const)("%s localizes dates and fixed fallbacks while preserving canonical parent names", locale => {
+    const child = task("CHILD", "설치", "PARENT");
+    const parent = task("PARENT", "작업");
+    const tasks = [parent, child], before = structuredClone(tasks);
+    const context = relationCandidateContext(child, tasks, undefined, locale);
+    expect(context).toMatch(/^작업 · /);
+    expect(context).not.toContain("2026-10-01");
+    expect(relationCandidateContext(parent, tasks, undefined, locale)).not.toContain("프로젝트 최상위");
+    expect(tasks).toEqual(before);
+  });
   it("keeps identifiers hidden when the visible parent context distinguishes candidates", () => {
     const first = task("CHILD-A", "설치", "PARENT-A");
     const second = task("CHILD-B", "설치", "PARENT-B");

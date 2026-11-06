@@ -6,12 +6,14 @@ import type {
   IssuePageSize, IssueStatusFilter, ProjectIssueStatus, ProjectIssueDto, ProjectIssueInput,
   ProjectIssueListResponse, ProjectIssueMutationResponse,
 } from "@/contracts/project-issues";
+import { formatLocaleDateOnly } from "@/lib/date-display";
+import { useI18n } from "../../lib/i18n/provider";
 import styles from "./project-issue-workspace.module.css";
 
 type ResourceOption = { id: string; name: string; code: string | null };
 type PersonKind = "reporter" | "assignee";
 const issueStatusLabel: Record<ProjectIssueStatus, string> = {
-  registered: "등록", in_progress: "진행 중", completed: "완료",
+  registered: "issue.status.registered", in_progress: "진행 중", completed: "완료",
 };
 type Props = Readonly<{
   publicId: string;
@@ -44,10 +46,29 @@ function blankIssue(): ProjectIssueInput {
   };
 }
 
+class IssueRequestError extends Error {}
+
+const issueErrorMessages: Readonly<Record<string, string>> = {
+  ISSUE_PASSWORD_INVALID: "Issue 비밀번호를 확인해 주세요.",
+  ISSUE_MANAGER_PASSWORD_INVALID: "프로젝트 비밀번호를 확인해 주세요.",
+  REVISION_MISMATCH: "프로젝트가 변경되었습니다. 새로고침해 주세요.",
+  EDIT_SESSION_REQUIRED: "유효한 프로젝트 편집 세션이 필요합니다.",
+  PROJECT_LOCKED: "이 프로젝트는 잠겨 있습니다.",
+  ISSUE_NOT_FOUND: "Issue를 찾을 수 없습니다.",
+  PROJECT_NOT_FOUND: "프로젝트를 찾을 수 없습니다.",
+  INVALID_ISSUE: "입력한 Issue 정보를 확인해 주세요.",
+  ISSUE_PASSWORD_RATE_LIMITED: "요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.",
+  ISSUE_CREATE_RATE_LIMITED: "요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.",
+  ISSUE_PASSWORD_NOT_SET: "기존 Issue는 먼저 비밀번호를 설정해야 합니다.",
+  ISSUE_CREDENTIAL_STATE_CONFLICT: "비밀번호 상태가 변경되었습니다. 새로고침해 주세요.",
+  ORIGIN_NOT_ALLOWED: "허용된 서비스 주소에서 다시 요청해 주세요.",
+};
+
 function projectIssueError(value: unknown, fallback: string): string {
   if (value && typeof value === "object" && "error" in value) {
-    const error = value.error as { message?: unknown; code?: unknown };
-    if (typeof error?.message === "string" && error.message.length > 0) return error.message;
+    const error = value.error;
+    const code = error && typeof error === "object" && "code" in error ? error.code : undefined;
+    if (typeof code === "string" && Object.hasOwn(issueErrorMessages, code)) return issueErrorMessages[code];
   }
   return fallback;
 }
@@ -56,6 +77,7 @@ export function ProjectIssueWorkspace({
   publicId, revision, tasks, defaultStatusFilter, active, editable, busy,
   createRequest, onCreateFinished, onChanged, onUnauthorized,
 }: Props) {
+  const { t, formatNumber, formatLocale } = useI18n();
   const [filterDraft, setFilterDraft] = useState("");
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<IssueStatusFilter>(defaultStatusFilter);
@@ -111,11 +133,11 @@ export function ProjectIssueWorkspace({
     fetch(rootPath + "?" + params.toString(), { cache: "no-store", signal: controller.signal })
       .then(async response => {
         const body: unknown = await response.json();
-        if (!response.ok) throw new Error(projectIssueError(body, "Issue 목록을 조회하지 못했습니다."));
+        if (!response.ok) throw new IssueRequestError(projectIssueError(body, "Issue 목록을 조회하지 못했습니다."));
         const result = body as ProjectIssueListResponse;
         if (!result.data || !Array.isArray(result.data.issues) ||
           !Number.isSafeInteger(result.data.total) || !result.data.summary ||
-          !Number.isSafeInteger(result.data.summary.total)) throw new Error("Issue 응답을 확인할 수 없습니다.");
+          !Number.isSafeInteger(result.data.summary.total)) throw new IssueRequestError("Issue 응답을 확인할 수 없습니다.");
         return result;
       })
       .then(result => {
@@ -126,7 +148,7 @@ export function ProjectIssueWorkspace({
       })
       .catch(error => {
         if (!mounted || controller.signal.aborted) return;
-        setLoadError(error instanceof Error ? error.message : "Issue 목록을 조회하지 못했습니다.");
+        setLoadError(error instanceof IssueRequestError ? error.message : "Issue 목록을 조회하지 못했습니다.");
       })
       .finally(() => { if (mounted) setLoading(false); });
     return () => { mounted = false; controller.abort(); };
@@ -142,16 +164,16 @@ export function ProjectIssueWorkspace({
       { cache: "no-store", signal: controller.signal })
       .then(async response => {
         const value: unknown = await response.json();
-        if (!response.ok) throw new Error(projectIssueError(value, "리소스를 조회하지 못했습니다."));
+        if (!response.ok) throw new IssueRequestError(projectIssueError(value, "리소스를 조회하지 못했습니다."));
         const data = value as { data?: { resources?: ResourceOption[] } };
         const resources = data.data?.resources;
-        if (!Array.isArray(resources)) throw new Error("리소스 응답이 올바르지 않습니다.");
+        if (!Array.isArray(resources)) throw new IssueRequestError("리소스 응답이 올바르지 않습니다.");
         return resources;
       })
       .then(value => { if (mounted) setResources(value); })
       .catch(error => {
         if (!mounted || controller.signal.aborted) return;
-        setResourceError(error instanceof Error ? error.message : "리소스를 조회하지 못했습니다.");
+        setResourceError(error instanceof IssueRequestError ? error.message : "리소스를 조회하지 못했습니다.");
         setResources([]);
       });
     return () => { mounted = false; controller.abort(); };
@@ -233,7 +255,7 @@ export function ProjectIssueWorkspace({
     if (response.status === 401 && (code === "EDIT_SESSION_REQUIRED" || code === "PROJECT_LOCKED"))
       onUnauthorized();
     if (response.status === 412) onChanged();
-    return new Error(projectIssueError(body, "Issue 요청에 실패했습니다."));
+    return new IssueRequestError(projectIssueError(body, "Issue 요청에 실패했습니다."));
   }
 
   function finishMutation() {
@@ -270,11 +292,11 @@ export function ProjectIssueWorkspace({
       if (!response.ok) throw failed(response, body);
       const result = body as ProjectIssueMutationResponse;
       if (!result.data?.issue || !Number.isSafeInteger(result.data.projectRevision))
-        throw new Error("저장 결과를 확인할 수 없습니다. 목록을 다시 조회해 주세요.");
+        throw new IssueRequestError("저장 결과를 확인할 수 없습니다. 목록을 다시 조회해 주세요.");
       setList(current => current && { data: { ...current.data, projectRevision: result.data.projectRevision } });
       finishMutation();
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : "Issue 저장에 실패했습니다.");
+      setFormError(error instanceof IssueRequestError ? error.message : "Issue 저장에 실패했습니다.");
       setRefresh(value => value + 1);
     } finally { setSaving(false); }
   }
@@ -293,10 +315,10 @@ export function ProjectIssueWorkspace({
       const body: unknown = await response.json();
       if (!response.ok) throw failed(response, body);
       if (!(body as { data?: { deleted?: boolean } }).data?.deleted)
-        throw new Error("삭제 결과를 확인하지 못했습니다. 다시 조회해 주세요.");
+        throw new IssueRequestError("삭제 결과를 확인하지 못했습니다. 다시 조회해 주세요.");
       finishMutation();
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : "Issue 삭제에 실패했습니다.");
+      setFormError(error instanceof IssueRequestError ? error.message : "Issue 삭제에 실패했습니다.");
       setRefresh(value => value + 1);
     } finally { setSaving(false); }
   }
@@ -318,13 +340,13 @@ export function ProjectIssueWorkspace({
       const body: unknown = await response.json();
       if (!response.ok) throw failed(response, body);
       const result = body as ProjectIssueMutationResponse;
-      if (!result.data?.issue) throw new Error("비밀번호 설정 결과를 확인할 수 없습니다.");
+      if (!result.data?.issue) throw new IssueRequestError("비밀번호 설정 결과를 확인할 수 없습니다.");
       setEditingIssue(result.data.issue);
       setList(current => current && { data: { ...current.data, projectRevision: result.data.projectRevision } });
       setShowRecovery(false); setProjectPassword(""); setNewIssuePassword(""); setNewIssuePasswordConfirmation("");
       setIssuePassword(""); setRefresh(value => value + 1); onChanged();
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : "비밀번호 설정에 실패했습니다.");
+      setFormError(error instanceof IssueRequestError ? error.message : "비밀번호 설정에 실패했습니다.");
       setRefresh(value => value + 1);
     } finally { setSaving(false); }
   }
@@ -342,12 +364,11 @@ export function ProjectIssueWorkspace({
         <button className="secondary-button" type="button" disabled={locked}
           aria-expanded={selected} aria-controls={"project-issue-picker-" + kind}
           onClick={() => { setPersonPicker(selected ? null : kind); setResources([]); setResourceError(null); }}>
-          리소스 검색
-        </button>
+          {t("리소스 검색")}</button>
       </div>
-      {form[idKey] ? <span className={styles.hint}>선택한 리소스: {form[nameKey]}</span> : null}
-      {selected ? <div id={"project-issue-picker-" + kind} className={styles.picker} aria-label={label + " 리소스 검색 결과"}>
-        {resourceError ? <p role="alert">{resourceError}</p> : resources.length === 0 ? <p>검색 결과가 없습니다. 직접 입력할 수도 있습니다.</p> :
+      {form[idKey] ? <span className={styles.hint}>{t("선택한 리소스: {name}", { name: form[nameKey] })}</span> : null}
+      {selected ? <div id={"project-issue-picker-" + kind} className={styles.picker} aria-label={t("{label} 리소스 검색 결과", { label })}>
+        {resourceError ? <p role="alert">{t(resourceError)}</p> : resources.length === 0 ? <p>{t("검색 결과가 없습니다. 직접 입력할 수도 있습니다.")}</p> :
           <ul>{resources.map(person => <li key={person.id}><button type="button"
             onClick={() => { updateForm({ [nameKey]: person.name, [idKey]: person.id }); setPersonPicker(null); }}>
             {person.name}{person.code ? " · " + person.code : ""}
@@ -365,121 +386,121 @@ export function ProjectIssueWorkspace({
 
   return <div className={styles.workspace} data-testid="project-issue-workspace">
     <div className={styles.toolbar}>
-      <div className={styles.progress} role="status" aria-live="polite" aria-label="전체 Issue 상태별 현황">
+      <div className={styles.progress} role="status" aria-live="polite" aria-label={t("전체 Issue 상태별 현황")}>
         {summary ? <>
-          <span className={styles.metric}><span>전체</span><strong>{summary.total}건</strong></span>
+          <span className={styles.metric}><span>{t("전체")}</span><strong>{t("{count}건", { count: formatNumber(summary.total) })}</strong></span>
           {([
-            ["완료", summary.completed], ["진행 중", summary.inProgress], ["등록", summary.registered],
+            ["완료", summary.completed], ["진행 중", summary.inProgress], ["issue.status.registered", summary.registered],
           ] as const).map(([label, count]) => (
             <span key={label} className={styles.metric}>
-              <span>{label}</span><strong>{count}건</strong>
-              <span>({summary.total ? (count / summary.total * 100).toFixed(1) : "0.0"}%)</span>
+              <span>{t(label)}</span><strong>{t("{count}건", { count: formatNumber(count) })}</strong>
+              <span>({summary.total ? formatNumber(count / summary.total * 100, { minimumFractionDigits: 1, maximumFractionDigits: 1 }) : formatNumber(0, { minimumFractionDigits: 1 })}%)</span>
             </span>
           ))}
-        </> : <span>전체 Issue 집계 조회 중</span>}
+        </> : <span>{t("전체 Issue 집계 조회 중")}</span>}
       </div>
       <button ref={createTrigger} className="primary-button" type="button" disabled={createLocked}
-        onClick={event => openEditor(null, event.currentTarget)}>Issue 등록</button>
+        onClick={event => openEditor(null, event.currentTarget)}>{t("Issue 등록")}</button>
     </div>
     <form className={styles.filters} onSubmit={event => {
       event.preventDefault(); setQuery(filterDraft.trim()); setPage(1);
-    }} role="search" aria-label="Issue 검색">
-      <label htmlFor="project-issue-query">검색</label>
+    }} role="search" aria-label={t("Issue 검색")}>
+      <label htmlFor="project-issue-query">{t("검색")}</label>
       <input id="project-issue-query" type="search" maxLength={160}
-        placeholder="제목·내용·등록자·담당자·관련 Task" value={filterDraft}
+        placeholder={t("제목·내용·등록자·담당자·관련 Task")} value={filterDraft}
         onChange={event => setFilterDraft(event.target.value)} />
-      <label htmlFor="project-issue-status">Issue 상태</label>
+      <label htmlFor="project-issue-status">{t("Issue 상태")}</label>
       <select id="project-issue-status" value={status} onChange={event => {
         setStatus(event.target.value as IssueStatusFilter); setPage(1);
       }}>
-        <option value="open">미완료 (등록·진행 중)</option><option value="all">전체</option>
-        <option value="registered">등록</option><option value="in_progress">진행 중</option>
-        <option value="completed">완료</option>
+        <option value="open">{t("미완료 (등록·진행 중)")}</option><option value="all">{t("전체")}</option>
+        <option value="registered">{t("issue.status.registered")}</option><option value="in_progress">{t("진행 중")}</option>
+        <option value="completed">{t("완료")}</option>
       </select>
-      <button className="secondary-button" type="submit">검색</button>
+      <button className="secondary-button" type="submit">{t("검색")}</button>
       {(filterDraft || query || status !== defaultStatusFilter) ? <button className="secondary-button" type="button"
-        onClick={() => { setFilterDraft(""); setQuery(""); setStatus(defaultStatusFilter); setPage(1); }}>초기화</button> : null}
+        onClick={() => { setFilterDraft(""); setQuery(""); setStatus(defaultStatusFilter); setPage(1); }}>{t("초기화")}</button> : null}
     </form>
     <div className={styles.listMeta}>
-      <span role="status">{loadError ? "목록 조회 실패" : loading ? "목록 조회 중…" :
-        data ? "검색 결과 " + data.total + "건" : "목록 준비 중"}</span>
+      <span role="status">{loadError ? t("목록 조회 실패") : loading ? t("목록 조회 중…") :
+        data ? t("검색 결과 {count}건", { count: formatNumber(data.total) }) : t("목록 준비 중")}</span>
     </div>
-    {loadError ? <div className={styles.error} role="alert">{loadError}
-      <button type="button" className="secondary-button" onClick={() => setRefresh(value => value + 1)}>다시 조회</button>
+    {loadError ? <div className={styles.error} role="alert">{t(loadError)}
+      <button type="button" className="secondary-button" onClick={() => setRefresh(value => value + 1)}>{t("다시 조회")}</button>
     </div> : null}
-    <div className={styles.tableScroller} role="region" aria-label="Issue 목록 가로 스크롤" tabIndex={0}>
+    <div className={styles.tableScroller} role="region" aria-label={t("Issue 목록 스크롤")} tabIndex={0}>
       <table className={styles.table}>
-        <thead><tr><th scope="col">Issue명</th><th scope="col">상태</th><th scope="col">담당자</th><th scope="col">발생일</th><th scope="col">완료일</th></tr></thead>
+        <thead><tr><th scope="col">{t("Issue명")}</th><th scope="col">{t("상태")}</th><th scope="col">{t("담당자")}</th><th scope="col">{t("발생일")}</th><th scope="col">{t("완료일")}</th></tr></thead>
         <tbody>
           {data?.issues.map(issue => <tr key={issue.issueId}>
             <td><button className={styles.titleButton} type="button" disabled={createLocked}
               onClick={event => openEditor(issue, event.currentTarget)}>{issue.title}</button></td>
-            <td>{issueStatusLabel[issue.status]}</td>
-            <td>{issue.assigneeName || "미지정"}</td>
-            <td>{issue.occurredOn}</td>
-            <td>{issue.completedOn ?? "—"}</td>
+            <td>{t(issueStatusLabel[issue.status])}</td>
+            <td>{issue.assigneeName || t("미지정")}</td>
+            <td>{formatLocaleDateOnly(issue.occurredOn, formatLocale)}</td>
+            <td>{issue.completedOn ? formatLocaleDateOnly(issue.completedOn, formatLocale) : "—"}</td>
           </tr>)}
           {data?.issues.length === 0 ? <tr><td colSpan={5} className={styles.empty}>
-            {query || status !== "all" ? "검색 조건에 맞는 Issue가 없습니다." : "등록된 Issue가 없습니다."}
+            {query || status !== "all" ? t("검색 조건에 맞는 Issue가 없습니다.") : t("등록된 Issue가 없습니다.")}
           </td></tr> : null}
-          {!data ? <tr><td colSpan={5} className={styles.empty}>Issue 목록을 불러오는 중입니다.</td></tr> : null}
+          {!data ? <tr><td colSpan={5} className={styles.empty}>{t("Issue 목록을 불러오는 중입니다.")}</td></tr> : null}
         </tbody>
       </table>
     </div>
     <div className={styles.footer}>
-      <label htmlFor="project-issue-page-size">페이지당</label>
+      <label htmlFor="project-issue-page-size">{t("페이지당")}</label>
       <select id="project-issue-page-size" value={limit} onChange={event => {
         setLimit(Number(event.target.value) as IssuePageSize); setPage(1);
-      }}>{([10, 20, 50, 100] as const).map(size => <option key={size} value={size}>{size}건</option>)}</select>
-      <span>{page} / {maxPage} 페이지</span>
-      <button type="button" className="secondary-button" disabled={loading || page <= 1} onClick={() => setPage(value => value - 1)}>이전</button>
-      <button type="button" className="secondary-button" disabled={loading || page >= maxPage} onClick={() => setPage(value => value + 1)}>다음</button>
+      }}>{([10, 20, 50, 100] as const).map(size => <option key={size} value={size}>{t("{count}건", { count: formatNumber(size) })}</option>)}</select>
+      <span>{t("{page} / {pages} 페이지", { page: formatNumber(page), pages: formatNumber(maxPage) })}</span>
+      <button type="button" className="secondary-button" disabled={loading || page <= 1} onClick={() => setPage(value => value - 1)}>{t("이전")}</button>
+      <button type="button" className="secondary-button" disabled={loading || page >= maxPage} onClick={() => setPage(value => value + 1)}>{t("다음")}</button>
     </div>
 
     {editorOpen ? <div className={styles.editor} role="dialog" aria-modal="true"
-      aria-label={editingIssue ? "Issue 상세 및 수정" : "Issue 등록"} onKeyDown={editorKeys}>
+      aria-label={editingIssue ? t("Issue 상세 및 수정") : t("Issue 등록")} onKeyDown={editorKeys}>
       <div className={styles.editorHeader}>
-        <h2>{editingIssue ? "Issue 상세 및 수정" : "Issue 등록"}</h2>
+        <h2>{editingIssue ? t("Issue 상세 및 수정") : t("Issue 등록")}</h2>
         <button type="button" className="secondary-button" disabled={saving}
-          onClick={closeEditor} aria-label="Issue 편집 닫기">닫기</button>
+          onClick={closeEditor} aria-label={t("Issue 편집 닫기")}>{t("닫기")}</button>
       </div>
       <form onSubmit={event => void save(event)} className={styles.editorForm}>
         <div className={`${styles.field} ${styles.titleField}`}>
-          <label htmlFor="project-issue-title">Issue 명 *</label>
+          <label htmlFor="project-issue-title">{t("Issue 명 *")}</label>
           <input ref={titleInput} id="project-issue-title" required type="text" maxLength={160}
             value={form.title} onChange={event => updateForm({ title: event.target.value })} disabled={locked} />
         </div>
         <div className={styles.editorBody} data-testid="project-issue-editor-body">
         <div className={styles.threeColumns}>
-          <div className={styles.field}><label htmlFor="project-issue-created">등록일</label>
+          <div className={styles.field}><label htmlFor="project-issue-created">{t("등록일")}</label>
             <input id="project-issue-created" type="date" readOnly
               value={editingIssue ? todayInProjectTimezone(new Date(editingIssue.createdAt)) : todayInProjectTimezone()} /></div>
-          <div className={styles.field}><label htmlFor="project-issue-occurred">발생일</label>
+          <div className={styles.field}><label htmlFor="project-issue-occurred">{t("발생일")}</label>
             <input id="project-issue-occurred" type="date" required value={form.occurredOn}
               onChange={event => updateForm({ occurredOn: event.target.value })} disabled={locked} /></div>
-          <div className={styles.field}><label htmlFor="project-issue-completed-on">완료일</label>
+          <div className={styles.field}><label htmlFor="project-issue-completed-on">{t("완료일")}</label>
             <input id="project-issue-completed-on" type="date" disabled={locked || form.status !== "completed"}
               required={form.status === "completed"}
               value={form.completedOn ?? ""} onChange={event => updateForm({ completedOn: event.target.value || null })} />
           </div>
         </div>
         <div className={styles.threeColumns}>
-          {personField("reporter", "등록자")}
-          {personField("assignee", "담당자")}
+          {personField("reporter", t("등록자"))}
+          {personField("assignee", t("담당자"))}
           <div className={styles.field}>
-            <label htmlFor="project-issue-lifecycle-status">상태</label>
-            <select id="project-issue-lifecycle-status" value={form.status ?? "registered"} disabled={locked}
-              onChange={event => {
-                const next = event.target.value as ProjectIssueStatus;
-                updateForm({ status: next, completed: next === "completed",
-                  completedOn: next === "completed" ? (form.completedOn ?? todayInProjectTimezone()) : null });
-              }}>
-              <option value="registered">등록</option><option value="in_progress">진행 중</option>
-              <option value="completed">완료</option>
-            </select>
+          <label htmlFor="project-issue-lifecycle-status">{t("상태")}</label>
+          <select id="project-issue-lifecycle-status" value={form.status ?? "registered"} disabled={locked}
+            onChange={event => {
+              const next = event.target.value as ProjectIssueStatus;
+              updateForm({ status: next, completed: next === "completed",
+                completedOn: next === "completed" ? (form.completedOn ?? todayInProjectTimezone()) : null });
+            }}>
+            <option value="registered">{t("issue.status.registered")}</option><option value="in_progress">{t("진행 중")}</option>
+            <option value="completed">{t("완료")}</option>
+          </select>
           </div>
         </div>
-        <div className={styles.field}><label htmlFor="project-issue-task">관련 Task</label>
+        <div className={styles.field}><label htmlFor="project-issue-task">{t("관련 Task")}</label>
           <div className={styles.inline}>
             <input id="project-issue-task" type="text" maxLength={200} disabled={locked}
               value={form.relatedTaskText} onChange={event => updateForm({
@@ -487,21 +508,21 @@ export function ProjectIssueWorkspace({
               })} />
             <button className="secondary-button" type="button" disabled={locked}
               aria-expanded={taskPicker} aria-controls="project-issue-task-picker"
-              onClick={() => setTaskPicker(current => !current)}>Task 검색</button>
+              onClick={() => setTaskPicker(current => !current)}>{t("Task 검색")}</button>
           </div>
           {form.relatedTaskId ? <div className={styles.inline}>
-            <span className={styles.hint}>연결된 Task: {form.relatedTaskText}</span>
+            <span className={styles.hint}>{t("연결된 Task: {name}", { name: form.relatedTaskText })}</span>
             <button className="secondary-button" type="button" disabled={locked}
-              onClick={() => updateForm({ relatedTaskId: null, relatedTaskText: "" })}>연결 해제</button>
+              onClick={() => updateForm({ relatedTaskId: null, relatedTaskText: "" })}>{t("연결 해제")}</button>
           </div> : null}
-          {taskPicker ? <div className={styles.picker} id="project-issue-task-picker" aria-label="관련 Task 검색 결과">
+          {taskPicker ? <div className={styles.picker} id="project-issue-task-picker" aria-label={t("관련 Task 검색 결과")}>
             {relatedTasks.length ? <ul>{relatedTasks.map(task => <li key={task.taskId}><button type="button"
               onClick={() => { updateForm({ relatedTaskText: task.name, relatedTaskId: task.taskId }); setTaskPicker(false); }}>
               {task.name} · {task.type === "milestone" ? "Milestone" : task.type === "summary" ? "Summary" : "Task"}
-            </button></li>)}</ul> : <p>일치하는 Task가 없습니다. 직접 입력할 수도 있습니다.</p>}
+            </button></li>)}</ul> : <p>{t("일치하는 Task가 없습니다. 직접 입력할 수도 있습니다.")}</p>}
           </div> : null}
         </div>
-        <div className={styles.field}><label htmlFor="project-issue-description">Issue 내용</label>
+        <div className={styles.field}><label htmlFor="project-issue-description">{t("Issue 내용")}</label>
           <textarea id="project-issue-description" rows={8} maxLength={4000}
             value={form.description} disabled={locked}
             onChange={event => updateForm({ description: event.target.value })} />
@@ -509,66 +530,71 @@ export function ProjectIssueWorkspace({
         <div className={!editingIssue ? styles.twoColumns : undefined}>
         <div className={styles.field}>
           <label htmlFor="project-issue-password">
-            {editingIssue ? "Issue 비밀번호 (수정·삭제 시 필요)" : "Issue 비밀번호 *"}
+            {editingIssue ? t("Issue 비밀번호 (수정·삭제 시 필요)") : t("Issue 비밀번호 *")}
           </label>
           <input id="project-issue-password" type="password" minLength={8} maxLength={128}
             autoComplete="off" value={issuePassword} required={editingIssue?.credentialState !== "unconfigured"}
             disabled={busy || saving || editingIssue?.credentialState === "unconfigured"}
             onChange={event => { setIssuePassword(event.target.value); setFormError(null); }} />
-          <span className={styles.hint}>프로젝트 비밀번호와 별개로 Issue별 8~128자를 사용합니다.</span>
+          <span className={styles.hint}>{t("프로젝트 비밀번호와 별개로 Issue별 8~128자를 사용합니다.")}</span>
         </div>
         {!editingIssue ? <div className={styles.field}>
-          <label htmlFor="project-issue-password-confirmation">Issue 비밀번호 확인 *</label>
+          <label htmlFor="project-issue-password-confirmation">{t("Issue 비밀번호 확인 *")}</label>
           <input id="project-issue-password-confirmation" type="password" minLength={8} maxLength={128}
             autoComplete="new-password" required value={passwordConfirmation} disabled={busy || saving}
             onChange={event => { setPasswordConfirmation(event.target.value); setFormError(null); }} />
         </div> : null}
         </div>
         {editingIssue?.credentialState === "unconfigured" ? <p className={styles.hint} role="status">
-          기존 Issue의 비밀번호가 아직 설정되지 않았습니다. 프로젝트 편집 권한자가 먼저 설정해야 수정·삭제할 수 있습니다.
-        </p> : null}
+          {t("기존 Issue의 비밀번호가 아직 설정되지 않았습니다. 프로젝트 편집 권한자가 먼저 설정해야 수정·삭제할 수 있습니다.")}</p> : null}
         {editingIssue && editable ? <div className={styles.field}>
           <button type="button" className="secondary-button" aria-expanded={showRecovery}
             disabled={busy || saving} onClick={() => { setShowRecovery(value => !value); setFormError(null); }}>
-            {editingIssue.credentialState === "unconfigured" ? "Issue 비밀번호 최초 설정" : "Issue 비밀번호 재설정"}
+            {editingIssue.credentialState === "unconfigured" ? t("Issue 비밀번호 최초 설정") : t("Issue 비밀번호 재설정")}
           </button>
           {showRecovery ? <div className={styles.securityPanel}>
-            <span className={styles.hint}>현재 프로젝트 편집 세션과 프로젝트 비밀번호를 함께 확인합니다.</span>
-            <label htmlFor="project-issue-project-password">프로젝트 비밀번호</label>
+            <span className={styles.hint}>{t("현재 프로젝트 편집 세션과 프로젝트 비밀번호를 함께 확인합니다.")}</span>
+            <label htmlFor="project-issue-project-password">{t("프로젝트 비밀번호")}</label>
             <input id="project-issue-project-password" type="password" autoComplete="off" value={projectPassword}
               disabled={saving} onChange={event => setProjectPassword(event.target.value)} />
-            <label htmlFor="project-issue-new-password">새 Issue 비밀번호</label>
+            <label htmlFor="project-issue-new-password">{t("새 Issue 비밀번호")}</label>
             <input id="project-issue-new-password" type="password" autoComplete="new-password"
               minLength={8} maxLength={128} value={newIssuePassword}
               disabled={saving} onChange={event => setNewIssuePassword(event.target.value)} />
-            <label htmlFor="project-issue-new-password-confirmation">새 Issue 비밀번호 확인</label>
+            <label htmlFor="project-issue-new-password-confirmation">{t("새 Issue 비밀번호 확인")}</label>
             <input id="project-issue-new-password-confirmation" type="password" autoComplete="new-password"
               minLength={8} maxLength={128} value={newIssuePasswordConfirmation}
               disabled={saving} onChange={event => setNewIssuePasswordConfirmation(event.target.value)} />
             <button type="button" className="secondary-button" disabled={busy || saving || !projectPassword}
-              onClick={() => void recoverCredential()}>{saving ? "설정 중…" : "비밀번호 설정/재설정"}</button>
+              onClick={() => void recoverCredential()}>{saving ? t("설정 중…") : t("비밀번호 설정/재설정")}</button>
           </div> : null}
         </div> : null}
         {editingIssue?.credentialState === "protected" ? <div className={styles.securityPanel}>
           {!confirmDelete ? <button ref={deleteTrigger} type="button" className="secondary-button" disabled={busy || saving}
-            onClick={() => { setConfirmDelete(true); setFormError(null); requestAnimationFrame(() => deleteCancel.current?.focus()); }}>Issue 삭제…</button> :
-            <div className={styles.deletePanel} role="group" aria-label="Issue 삭제 확인">
-              <p>Issue를 목록에서 숨기며 데이터는 보존됩니다. 이 화면에서 복구할 수 없습니다.</p>
+            onClick={() => {
+              setConfirmDelete(true); setFormError(null);
+              requestAnimationFrame(() => deleteCancel.current?.focus());
+            }}>{t("Issue 삭제…")}</button> :
+            <div className={styles.deletePanel} role="group" aria-label={t("Issue 삭제 확인")}>
+              <p>{t("Issue를 목록에서 숨기며 데이터는 보존됩니다. 이 화면에서 복구할 수 없습니다.")}</p>
               <div className={styles.editorActions}>
                 <button ref={deleteCancel} type="button" className="secondary-button" disabled={saving}
-                  onClick={() => { setConfirmDelete(false); requestAnimationFrame(() => deleteTrigger.current?.focus()); }}>삭제 취소</button>
+                  onClick={() => {
+                    setConfirmDelete(false);
+                    requestAnimationFrame(() => deleteTrigger.current?.focus());
+                  }}>{t("삭제 취소")}</button>
                 <button type="button" className="secondary-button" disabled={saving || !passwordValid(issuePassword)}
-                  onClick={() => void deleteIssue()}>{saving ? "삭제 중…" : "삭제 확인"}</button>
+                  onClick={() => void deleteIssue()}>{saving ? t("삭제 중…") : t("삭제 확인")}</button>
               </div>
             </div>}
         </div> : null}
-        {formError ? <p className={styles.error} role="alert">{formError}</p> : null}
+        {formError ? <p className={styles.error} role="alert">{t(formError)}</p> : null}
         </div>
         <div className={styles.editorActions}>
-          <button type="button" className="secondary-button" disabled={saving} onClick={closeEditor}>취소</button>
+          <button type="button" className="secondary-button" disabled={saving} onClick={closeEditor}>{t("취소")}</button>
           <button type="submit" className="primary-button" disabled={locked || !form.title.trim() || !passwordValid(issuePassword) ||
               (!editingIssue && passwordConfirmation !== issuePassword)}>
-            {saving ? "저장 중…" : editingIssue ? "수정 저장" : "등록"}
+            {saving ? t("저장 중…") : editingIssue ? t("수정 저장") : t("issue.action.register")}
           </button>
         </div>
       </form>

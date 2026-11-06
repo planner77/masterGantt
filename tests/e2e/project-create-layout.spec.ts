@@ -61,6 +61,41 @@ function sameRow(a: { y: number }, b: { y: number }, tolerance = 3) {
   return Math.abs(a.y - b.y) <= tolerance;
 }
 
+test("프로젝트 생성 오류의 상속 코드가 화면을 중단하거나 원문 초안을 바꾸지 않는다", async ({ page }) => {
+  await installTemplates(page); await installProjectMasterCatalog(page);
+  let code = "__proto__", submissions = 0;
+  await page.route("**/api/projects", async route => {
+    expect(route.request().method()).toBe("POST");
+    submissions++;
+    await route.fulfill({ status: 500, json: { error: { code, message: "저장" } } });
+  });
+  const errors: string[] = [];
+  page.on("pageerror", error => errors.push(error.message));
+  await page.goto("/projects/new");
+  await page.locator("#project-name").fill("저장 <보존 이름>");
+  await page.locator("#project-owner").fill("원문 작성자");
+  await page.locator("#project-description").fill("locale 변경에도 같은 초안");
+  const submit = page.locator('#panel-blank form button[type="submit"]');
+  for (const nextCode of ["__proto__", "constructor", "toString"]) {
+    code = nextCode;
+    await page.locator(".header-locale-selector select").selectOption("en");
+    await page.locator("#project-edit-password").fill("create-pw");
+    await submit.click();
+    const alert = page.locator('#panel-blank [role="alert"]');
+    await expect(alert).toHaveText("Could not create the project. Try again shortly.");
+    const before = submissions;
+    await page.locator(".header-locale-selector select").selectOption("vi");
+    await expect(alert).toHaveText("Không thể tạo dự án. Hãy thử lại sau ít phút.");
+    expect(submissions).toBe(before);
+    await expect(page.locator("#project-name")).toHaveValue("저장 <보존 이름>");
+    await expect(page.locator("#project-owner")).toHaveValue("원문 작성자");
+    await expect(page.locator("#project-description")).toHaveValue("locale 변경에도 같은 초안");
+    await expect(page.locator("#project-edit-password")).toHaveValue("");
+    await expect(submit).toBeEnabled();
+  }
+  expect(submissions).toBe(3); expect(errors).toEqual([]);
+});
+
 for (const width of [320, 390, 768, 1024, 1440, 1600, 1920]) {
   test(`Issue #282: 프로젝트 생성 화면이 ${width}px에서 wide/reflow 계약을 지킨다`, async ({ page }, testInfo) => {
     await page.setViewportSize({ width, height: 900 });

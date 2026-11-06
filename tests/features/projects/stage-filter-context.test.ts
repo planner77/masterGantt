@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ProjectTaskDto } from "../../../src/contracts/projects";
+import { translate } from "../../../src/lib/i18n";
 import { stageCandidateContext } from "../../../src/features/projects/stage-filter-picker";
 
 function task(taskId: string, name: string, parentExternalId: string | null = null): ProjectTaskDto {
@@ -23,4 +24,15 @@ describe("Milestone picker context", () => {
     expect(stageCandidateContext(first, [first, second])).not.toContain("MS-A");
     expect(stageCandidateContext(second, [first, second])).toContain("2026-10-02");
   });
+  it("retranslates context while preserving task names and ISO dates", () => {
+    const milestone = task("MS-A", "승인", "P-A"), parent = task("P-A", "완료");
+    const tasks = [parent, milestone];
+    const context = (locale: "ko" | "en" | "vi") => stageCandidateContext(milestone, tasks, key => translate(locale, key));
+    expect(context("en")).toContain("완료");
+    expect(context("vi")).toContain("완료");
+    expect(context("en")).toContain("2026-10-01");
+    expect(context("en")).not.toContain("적용 예정일");
+    expect(context("ko")).toContain("적용 예정일");
+  });
+
 });

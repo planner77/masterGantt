@@ -1,3 +1,9 @@
+## Issue #866 Phase B — migration 0036 owner별 표시명 (2026-11-05)
+
+- `db/migrations/0036_display_name_translations.sql`은 0035 이하 checksum/DDL을 바꾸지 않는 추가형 변경. 12개 분리 테이블의 owner FK(CASCADE) + locale(ko/en/vi) + name 및 복합 PK로 저장한다. owner 테이블은 project_master_items, logistics_equipment_types, logistics_system_types, process_types, product_standard_processes, site_product_processes, work_areas, project_work_areas, project_processes, project_equipment, project_logistics_systems, resource_groups.
+- 원본 name/code/ID/UNIQUE 및 프로젝트 참조 의미는 불변, 기존 row backfill 없음. 쓰기는 owning service의 existing Admin/Project Edit + revision transaction 안에서만 수행하며, DTO translations 누락은 보존, 빈 개체는 해제한다. Locale 변경 자체는 DB write 0.
+- Copy/Template6의 owner ID 재매핑 및 Schedule JSON/Excel의 유실 차단 409 검증. 실제 기존 운영 DB backup/restore/rollback 별도 검증 전 NOT TESTED. 상세 [Phase B](I18N_PHASE_B.md).
+
 ## Issue #479 — migration 0031 Project visibility
 
 `db/migrations/0031_project_visibility.sql` adds `projects.visibility TEXT NOT NULL DEFAULT 'public' CHECK (visibility IN ('public','private'))`. Existing projects receive the safe backward-compatible public default; SQLite CHECK protects direct DB writes against null/unknown. Create and Template instantiate default public, Copy preserves source visibility. Metadata PATCH updates visibility in the existing transaction with exactly one project revision increment, without changing password KDF/hash/session auth_version. Existing migration ledger/checksum/pending-batch atomicity and backup+matching-image rollback policy remain. Restart/migration failure injection and Copy/Template round-trip require remote evidence. [Work Packet](exec-plans/active/ISSUE_479.md).

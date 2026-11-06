@@ -1,4 +1,5 @@
 import type { Page, Request } from "@playwright/test";
+import { performance } from "node:perf_hooks";
 import type { ProjectSnapshotResponse, TaskMutationResponse } from "../../src/contracts/projects";
 import { expect, test, isolatedApplicationOptions, submitProjectAndExpectCreated } from "./fixtures/isolated-application";
 import { chooseTaskInformation } from "./helpers/task-context-menu";
@@ -23,10 +24,11 @@ async function createTask(page: Page) {
   await submitProjectAndExpectCreated(page);
   await page.waitForURL(/\/projects\/[0-9a-f-]{36}$/);
   const api = `/api${new URL(page.url()).pathname}`, origin = new URL(page.url()).origin;
-  const initialResponse = await page.request.get(api);
+  const initialResponse = await page.request.get(api, { timeout: 30_000 });
   expect(initialResponse.status()).toBe(200);
   const initial = await initialResponse.json() as ProjectSnapshotResponse;
   const createdResponse = await page.request.post(`${api}/tasks`, {
+    timeout: 30_000,
     headers: { Origin: origin, "If-Match": `"${initial.data.project.revision}"` },
     data: { name: "Stable leaf", type: "task", start: "2026-10-12", duration: 2, progress: 0 },
   });
@@ -36,6 +38,80 @@ async function createTask(page: Page) {
   expect(task).toBeTruthy();
   return { api, created, task };
 }
+
+type PreparedInlineRestart = Awaited<ReturnType<typeof createTask>> & {
+  page: Page;
+  revision: number;
+  patches: Request[];
+};
+
+// 실제 저장·재시작을 유한한 준비 단계로 분리한다. 이후 영속성 검증 본문은
+// 기본 30초이며, 준비 단계의 완료는 전체 테스트 성공을 의미하지 않는다.
+const restartTest = test.extend<{ preparedRestartFixture: PreparedInlineRestart }>({
+  preparedRestartFixture: [async ({ page, restartIsolatedApplication }, provide, testInfo) => {
+    const prepareStarted = performance.now();
+    let prepareElapsedMs: number | null = null;
+    let restartElapsedMs: number | null = null;
+    let bodyStarted: number | null = null;
+    let preparationStatus: "complete" | "error" = "error";
+    let observePatch: ((request: Request) => void) | undefined;
+    page.setDefaultTimeout(30_000);
+    page.setDefaultNavigationTimeout(30_000);
+    const patches: Request[] = [];
+    try {
+      const { api, created, task } = await createTask(page);
+      const taskEndpoint = `${api}/tasks/${task.taskId}`;
+      observePatch = request => {
+        if (request.method() === "PATCH" && new URL(request.url()).pathname === taskEndpoint) patches.push(request);
+      };
+      page.on("request", observePatch);
+      await page.reload();
+      await expectNativeName(page, task.taskId, "Stable leaf");
+      await cell(page, task.taskId).locator(".wx-content > .wx-text").click();
+      await input(page, task.taskId).fill("Restart saved");
+      const [response] = await Promise.all([
+        page.waitForResponse(candidate => candidate.request().method() === "PATCH" && new URL(candidate.url()).pathname === taskEndpoint),
+        input(page, task.taskId).press("Enter"),
+      ]);
+      expect(response.status()).toBe(200);
+      const saved = await response.json() as TaskMutationResponse;
+      const revision = created.data.project.revision + 1;
+      expect(saved.data.project.revision).toBe(revision);
+      expect(patches).toHaveLength(1);
+      expect(patches[0].postDataJSON()).toEqual({ name: "Restart saved" });
+      expect(patches[0].headers()["if-match"]).toBe(`"${created.data.project.revision}"`);
+      await expectNativeName(page, task.taskId, "Restart saved");
+
+      // 같은 SQLite·origin과 브라우저 상태를 유지하며 공용 fixture의 실제
+      // 새 프로세스 기동과 전체 13경로의 읽기 전용 준비를 모두 수행한다.
+      const restartStarted = performance.now();
+      try { await restartIsolatedApplication(); }
+      finally { restartElapsedMs = performance.now() - restartStarted; }
+      prepareElapsedMs = performance.now() - prepareStarted;
+      preparationStatus = "complete";
+      bodyStarted = performance.now();
+      await provide({ page, api, created, task, revision, patches });
+    } finally {
+      const finished = performance.now();
+      if (observePatch) page.off("request", observePatch);
+      await testInfo.attach("inline-name-restart-preparation", {
+        contentType: "application/json",
+        body: Buffer.from(JSON.stringify({
+          schema: "mastergantt-inline-name-restart-preparation-v1",
+          description: "준비 단계 완료는 전체 테스트 성공이 아닙니다. 재시작 후 영속성 검증은 별도 기본 30초 본문에서 수행합니다.",
+          preparationStatus,
+          prepareElapsedMs: prepareElapsedMs ?? finished - prepareStarted,
+          restartElapsedMs,
+          bodyElapsedMs: bodyStarted === null ? null : finished - bodyStarted,
+          setupBudgetMs: 120_000, bodyBudgetMs: testInfo.timeout,
+          restartStartupBudgetMs: 90_000, actionBudgetMs: 30_000,
+          navigationBudgetMs: 30_000, apiBudgetMs: 30_000, expectBudgetMs: 5_000,
+          expectedWarmupRouteCount: 13, originalMutationRetries: 0,
+        })),
+      });
+    }
+  }, { scope: "test", timeout: 120_000, title: "이름 저장·실제 재시작 준비" }],
+});
 
 test("#572 실제 SQLite Enter·Tab·Task Editor 이름 저장은 reload 후 일치한다", async ({ page }) => {
   const { api, created, task } = await createTask(page);
@@ -108,34 +184,9 @@ test("#572 실제 SQLite Enter·Tab·Task Editor 이름 저장은 reload 후 일
   expect(patches).toHaveLength(3);
 });
 
-test("#572 실제 SQLite inline 이름 저장은 프로세스 재시작 후 유지된다", async ({ page, restartIsolatedApplication }) => {
-  const { api, created, task } = await createTask(page);
-  const taskEndpoint = `${api}/tasks/${task.taskId}`;
-  const patches: Request[] = [];
-  page.on("request", request => {
-    if (request.method() === "PATCH" && new URL(request.url()).pathname === taskEndpoint) patches.push(request);
-  });
-  await page.reload();
-  await expectNativeName(page, task.taskId, "Stable leaf");
-  await cell(page, task.taskId).locator(".wx-content > .wx-text").click();
-  await input(page, task.taskId).fill("Restart saved");
-  const [response] = await Promise.all([
-    page.waitForResponse(candidate => candidate.request().method() === "PATCH" && new URL(candidate.url()).pathname === taskEndpoint),
-    input(page, task.taskId).press("Enter"),
-  ]);
-  expect(response.status()).toBe(200);
-  const saved = await response.json() as TaskMutationResponse;
-  const revision = created.data.project.revision + 1;
-  expect(saved.data.project.revision).toBe(revision);
-  expect(patches).toHaveLength(1);
-  expect(patches[0].postDataJSON()).toEqual({ name: "Restart saved" });
-  expect(patches[0].headers()["if-match"]).toBe(`"${created.data.project.revision}"`);
-  await expectNativeName(page, task.taskId, "Restart saved");
-
-  // Uses the fixture's same SQLite/origin with a genuinely new Next process.
-  // No route mocks, storage export, or raw database/credential attachments.
-  await restartIsolatedApplication();
-  const restartedResponse = await page.request.get(api);
+restartTest("#572 실제 SQLite inline 이름 저장은 프로세스 재시작 후 유지된다", async ({ preparedRestartFixture }) => {
+  const { page, api, created, task, revision, patches } = preparedRestartFixture;
+  const restartedResponse = await page.request.get(api, { timeout: 30_000 });
   expect(restartedResponse.status()).toBe(200);
   const restarted = await restartedResponse.json() as ProjectSnapshotResponse;
   expect(restarted.data.project.revision).toBe(revision);

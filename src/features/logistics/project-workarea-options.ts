@@ -1,12 +1,14 @@
+import { displayName, translate } from "../../lib/i18n";
+import type { AppLocale } from "../../lib/i18n/locales";
 import type { ProjectWorkAreaDto, ProcessContextResponse } from "@/contracts/process-catalog";
 import type { ProcessDto } from "@/contracts/logistics";
 
 /** Preserve the canonical area ID while retaining each explicit process owner. */
-export function projectWorkareaOptions(context: ProcessContextResponse["data"], processes: readonly ProcessDto[]) {
+export function projectWorkareaOptions(context: ProcessContextResponse["data"], processes: readonly ProcessDto[], locale: AppLocale = "ko") {
   const areas: ProjectWorkAreaDto[] = context.projectWorkAreas ?? context.mappings.flatMap(mapping => context.workAreas.filter(a=>a.occurrenceId===mapping.occurrenceId).map(a=>({...a,processId:mapping.processId,source:"legacy" as const,editable:false,active:a.active&&(mapping.workAreaSelectionActive??mapping.active)&&!!context.occurrences.find(o=>o.id===a.occurrenceId&&o.active)})));
   return areas.map(area => {
     const process = processes.find(row => row.id === area.processId);
-    return { ...area, workAreaId: area.id, owner: process?.name ?? "공정 참조 확인 필요", active: area.active && !!process?.active && !area.diagnostics?.includes("classification_mismatch") };
+    return { ...area, workAreaId: area.id, owner: process ? displayName(process, locale) : translate(locale, "공정 참조 확인 필요"), active: area.active && !!process?.active && !area.diagnostics?.includes("classification_mismatch") };
   });
 }
 

@@ -177,6 +177,7 @@ export class ResourceWorkloadService {
       resultGroups.push({
         id: group.publicId,
         name: group.name,
+        ...(group.translations?{translations:group.translations}:{}),
         active: group.active,
         start: minDate(members.map((row) => row.start)),
         end: maxDate(members.map((row) => row.end)),

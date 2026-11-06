@@ -73,6 +73,7 @@
 .listToolbar {
   display: flex;
   flex-wrap: wrap;
+  min-width: 0;
   align-items: flex-end;
   justify-content: space-between;
   gap: 0.75rem 1rem;
@@ -80,6 +81,7 @@
 
 .tabs {
   display: flex;
+  min-width: 0;
   max-width: 100%;
   gap: 0.25rem;
   overflow-x: auto;
@@ -192,6 +194,21 @@
 
 .table input {
   width: 100%;
+  min-width: 0;
+}
+
+/* #866: Keep the native name input and accessible translation trigger
+   within the existing compact table-row height budget. */
+.nameControl {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.table .nameControl > input {
+  flex: 1 1 0;
+  width: 0;
   min-width: 0;
 }
 

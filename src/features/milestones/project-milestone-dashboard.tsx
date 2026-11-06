@@ -1,5 +1,11 @@
 "use client";
 
+import { displayName } from "../../lib/i18n";
+import { formatLocaleDateOnly } from "../../lib/date-display";
+import { LOCALE_FORMATS, type AppLocale } from "../../lib/i18n/locales";
+import { useI18n } from "../../lib/i18n/provider";
+
+
 import { ContextHelp } from "@/components/ui/context-help";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type {
@@ -59,6 +65,7 @@ export function ProjectMilestoneDashboard({
   canConvertToTask,
   onManagementFocusUnavailable,
 }: ProjectMilestoneDashboardProps) {
+  const {t, locale, formatNumber } = useI18n();
   const id = useId();
   const [search, setSearch] = useState(""),
     [horizon, setHorizon] = useState("14"),
@@ -168,18 +175,20 @@ export function ProjectMilestoneDashboard({
     options: readonly {
       id: string;
       name: string;
+      translations?: Partial<Record<AppLocale,string>>;
       code?: string | null;
       externalId?: string;
     }[],
   ) => (
     <fieldset className={styles.choiceField}>
-      <legend>{label}</legend>
+      <legend>{t(label)}</legend>
       <div className={styles.choiceOwner}>
         {options.length ? (
           options.map((option) => {
+            const optionName = ["processIds","equipmentIds","systemIds"].includes(key) ? displayName(option,locale) : ["assignmentRoles","developerGrades"].includes(key) ? t(option.name) : option.name;
             const task = key === "milestoneIds" ? tasks.find((entry) => entry.taskId === option.id) : undefined;
             return <div key={option.id}>
-              <label title={option.name}>
+              <label title={optionName}>
                 <input
                   type="checkbox"
                   checked={
@@ -198,19 +207,19 @@ export function ProjectMilestoneDashboard({
                   }
                 />
                 <span>
-                  {option.name}
-                  {task ? <small>{task.status === "completed" ? "완료 기록" : task.status === "in_progress" ? "진행 중" : "시작 전"} · {task.start ?? "날짜 미설정"}</small> : null}
+                  {optionName}
+                  {task ? <small>{task.status === "completed" ? t("완료 기록") : task.status === "in_progress" ? t("진행 중") : t("시작 전")} · {task.start ? formatLocaleDateOnly(task.start,LOCALE_FORMATS[locale]) : t("날짜 미설정")}</small> : null}
                 </span>
               </label>
               {key !== "assignmentRoles" && key !== "developerGrades" ? <IdentifierDetails identifiers={[
-                ...(option.externalId ? [{ label: "외부 ID", value: option.externalId }] : []),
-                ...(option.code ? [{ label: "코드", value: option.code }] : []),
+                ...(option.externalId ? [{ label: t("외부 ID"), value: option.externalId }] : []),
+                ...(option.code ? [{ label: t("코드"), value: option.code }] : []),
                 { label: "ID", value: option.id },
               ]} /> : null}
             </div>;
           })
         ) : (
-          <p>선택 대상 없음</p>
+          <p>{t("선택 대상 없음")}</p>
         )}
       </div>
     </fieldset>
@@ -239,7 +248,7 @@ export function ProjectMilestoneDashboard({
           key: "upcoming",
           title: "임박",
           metric: data.kpi.upcoming,
-          note: `${data.horizonDays}일 · 마지막 날 포함`,
+          note: "{count}일 · 마지막 날 포함",
         },
         {
           key: "atRisk",
@@ -251,7 +260,7 @@ export function ProjectMilestoneDashboard({
     : [];
   return (
     <section
-      aria-label="Milestone 전체 상태·관리"
+      aria-label={t("Milestone 전체 상태·관리")}
       className={styles.dashboard}
       data-testid="milestone-dashboard"
       data-project-public-id={publicId}
@@ -260,43 +269,42 @@ export function ProjectMilestoneDashboard({
     >
       {!data?.resourceScopeContext && data ? (
         <p role="status">
-          원본 조회 문맥을 확인할 수 없어 화면 간 이동이 잠겨 있습니다.{" "}
+          {t("원본 조회 문맥을 확인할 수 없어 화면 간 이동이 잠겨 있습니다.")}{" "}
           {data.resourceScopeUnavailableReason === "limit-exceeded"
-            ? "원본 문맥 조회 한도 초과"
-            : "문맥 정보 없음"}
+            ? t("원본 문맥 조회 한도 초과")
+            : t("문맥 정보 없음")}
         </p>
       ) : null}
       <div className={styles.sectionHeading}>
         <div>
-          <h2 tabIndex={-1} data-milestone-focus="heading">Milestone 대시보드</h2>
-          <p>전체 상태·관리 · 프로젝트 전체 기준 · Gantt WBS 범위 미적용</p>
+          <h2 tabIndex={-1} data-milestone-focus="heading">{t("Milestone 대시보드")}</h2>
+          <p>{t("전체 상태·관리 · 프로젝트 전체 기준 · Gantt WBS 범위 미적용")}</p>
         </div>
         <div className={styles.actions}>
-        <ContextHelp label="Milestone 집계·전체 상태"><p>Ready·선행 차단·지연·임박·위험은 중첩 가능한 축입니다. 건수를 합쳐 전체 Milestone 수로 해석하지 않습니다.</p><p>프로젝트 전체의 평면 목록이며 적용 예정일·외부 ID·작업 ID 순입니다. 소속 작업과 직접 선행 단계 전체 기준입니다. 계획 공수의 범위와 분모가 다릅니다.</p></ContextHelp>
-        <button type="button" disabled={!editable || !enabled || !onAddMilestone} onClick={event => onAddMilestone?.(event.currentTarget)} data-milestone-focus="add" title={editable ? "프로젝트 최상위에 추가" : "편집 활성화 후 추가할 수 있습니다"}>Milestone 추가</button>
+        <ContextHelp label={t("Milestone 집계·전체 상태")}><p>{t("Ready·선행 차단·지연·임박·위험은 중첩 가능한 축입니다. 건수를 합쳐 전체 Milestone 수로 해석하지 않습니다.")}</p><p>{t("프로젝트 전체의 평면 목록이며 적용 예정일·외부 ID·작업 ID 순입니다. 소속 작업과 직접 선행 단계 전체 기준입니다. 계획 공수의 범위와 분모가 다릅니다.")}</p></ContextHelp>
+        <button type="button" disabled={!editable || !enabled || !onAddMilestone} onClick={event => onAddMilestone?.(event.currentTarget)} data-milestone-focus="add" title={editable ? t("프로젝트 최상위에 추가") : t("편집 활성화 후 추가할 수 있습니다")}>{t("Milestone 추가")}</button>
         <button
           type="button"
           className="secondary-button"
           disabled={query.loading || Boolean(query.validation)}
           onClick={query.reload}
         >
-          {query.loading ? "조회 중…" : query.error ? "다시 시도" : "새로고침"}
+          {query.loading ? t("조회 중…") : query.error ? t("다시 시도") : t("새로고침")}
         </button>
         </div>
       </div>
       <div className={styles.filters}>
         {(filters.milestoneIds?.length ?? 0) > 1 ? (
           <div className={styles.multiSummary}>
-            <strong>여러 Milestone {filters.milestoneIds!.length}개 선택</strong>
-            <span>추가 조건에서 선택을 변경합니다.</span>
+            <strong>{t("여러 Milestone ")}{formatNumber(filters.milestoneIds!.length)}{t("개 선택")}</strong>
+            <span>{t("추가 조건에서 선택을 변경합니다.")}</span>
             <button
               type="button"
               onClick={() =>
                 setFilters((current) => ({ ...current, milestoneIds: [] }))
               }
             >
-              모든 Milestone 선택 해제
-            </button>
+              {t("모든 Milestone 선택 해제")}</button>
           </div>
         ) : (
           <StageFilterPicker
@@ -312,17 +320,15 @@ export function ProjectMilestoneDashboard({
           />
         )}
         <label className={styles.search}>
-          Milestone 검색
-          <input
+          {t("Milestone 검색")}<input
             type="search"
             value={search}
-            placeholder="이름·외부 ID·작업 ID" data-milestone-focus="search"
+            placeholder={t("이름·외부 ID·작업 ID")} data-milestone-focus="search"
             onChange={(event) => { setMetricMilestoneIds(null); setSearch(event.target.value); }}
           />
         </label>
         <label>
-          기준일
-          <input
+          {t("기준일")}<input
             type="date"
             value={manualDate ? date : (data?.asOfDate ?? "")}
             disabled={!manualDate}
@@ -339,11 +345,9 @@ export function ProjectMilestoneDashboard({
               if (event.target.checked && !date) setDate(data?.asOfDate ?? "");
             }}
           />
-          수동 기준일
-        </label>
+          {t("수동 기준일")}</label>
         <label>
-          임박 기간 (일)
-          <input
+          {t("임박 기간 (일)")}<input
             type="number"
             min={1}
             max={90}
@@ -353,7 +357,7 @@ export function ProjectMilestoneDashboard({
         </label>
       </div>
       <p className={styles.note}>
-        추가 조건{" "}
+        {t("추가 조건")}{" "}
         {Object.entries(filters).filter(([key, value]) =>
           Array.isArray(value)
             ? value.length > 0
@@ -364,24 +368,20 @@ export function ProjectMilestoneDashboard({
           Number(Boolean(from)) +
           Number(Boolean(to)) +
           Number(conversionMode !== "environment")}
-        개 · 공수 기간 {from || "서버 기본"} ~ {to || "서버 기본"} ·{" "}
+        {t("개 · 공수 기간 ")}{from || t("서버 기본")} ~ {to || t("서버 기본")} ·{" "}
         {conversionMode === "unset"
-          ? "환산 기준 제외"
+          ? t("환산 기준 제외")
           : conversionMode === "query"
-            ? `명시 환산 ${conversion || "미입력"}`
-            : "환경 환산 기준"}
+            ? t("명시 환산 {value0}", { value0: conversion || "미입력" })
+            : t("환경 환산 기준")}
       </p>
       <p id={`${id}-date-note`} className={styles.note}>
-        {manualDate ? "수동 기준일" : "자동 기준일 · 서버 Project timezone"}
-        {data ? ` ${data.timezone} · 평가일 ${data.asOfDate}` : ""}. 현재
-        snapshot 평가 · 과거 상태 복원 아님.
-      </p>
+        {manualDate ? t("수동 기준일") : t("자동 기준일 · 서버 Project timezone")}
+        {data ? t(" {value0} · 평가일 {value1}", { value0: data.timezone, value1: formatLocaleDateOnly(data.asOfDate,LOCALE_FORMATS[locale]) }) : ""}{t(". 현재 snapshot 평가 · 과거 상태 복원 아님.")}</p>
       <details className={styles.advanced}>
-        <summary>Milestone 표시·공수 범위 조건</summary>
+        <summary>{t("Milestone 표시·공수 범위 조건")}</summary>
         <p>
-          검색과 Milestone 선택은 표시 대상 S입니다. 리소스·물류·기간은 공수 범위
-          F이며 Milestone 전체 Ready와 소속 진척은 바뀌지 않습니다.
-        </p>
+          {t("검색과 Milestone 선택은 표시 대상 S입니다. 리소스·물류·기간은 공수 범위 F이며 Milestone 전체 Ready와 소속 진척은 바뀌지 않습니다.")}</p>
         <div className={styles.advancedGrid}>
           {arrayFilter(
             "milestoneIds",
@@ -426,24 +426,21 @@ export function ProjectMilestoneDashboard({
             data?.catalog.resources ?? [],
           )}
           <label>
-            공수 시작일
-            <input
+            {t("공수 시작일")}<input
               type="date"
               value={from}
               onChange={(event) => setFrom(event.target.value)}
             />
           </label>
           <label>
-            공수 종료일
-            <input
+            {t("공수 종료일")}<input
               type="date"
               value={to}
               onChange={(event) => setTo(event.target.value)}
             />
           </label>
           <label>
-            시스템 범위
-            <select
+            {t("시스템 범위")}<select
               value={filters.systemView ?? "direct"}
               onChange={(event) =>
                 setFilters((current) => ({
@@ -453,8 +450,8 @@ export function ProjectMilestoneDashboard({
                 }))
               }
             >
-              <option value="direct">직접 연결</option>
-              <option value="coordination">조율 범위 포함</option>
+              <option value="direct">{t("직접 연결")}</option>
+              <option value="coordination">{t("조율 범위 포함")}</option>
             </select>
           </label>
           <label className={styles.inline}>
@@ -468,8 +465,7 @@ export function ProjectMilestoneDashboard({
                 }))
               }
             />
-            활성 물류 마스터만
-          </label>
+            {t("활성 물류 마스터만")}</label>
           <label className={styles.inline}>
             <input
               type="checkbox"
@@ -481,25 +477,22 @@ export function ProjectMilestoneDashboard({
                 }))
               }
             />
-            하위 공정 포함
-          </label>
+            {t("하위 공정 포함")}</label>
           <label>
-            M/M 환산 기준
-            <select
+            {t("M/M 환산 기준")}<select
               value={conversionMode}
               onChange={(event) =>
                 setConversionMode(event.target.value as typeof conversionMode)
               }
             >
-              <option value="environment">환경 설정 기준</option>
-              <option value="query">명시 기준</option>
-              <option value="unset">미설정 (환경 기준 제외)</option>
+              <option value="environment">{t("환경 설정 기준")}</option>
+              <option value="query">{t("명시 기준")}</option>
+              <option value="unset">{t("미설정 (환경 기준 제외)")}</option>
             </select>
           </label>
           {conversionMode === "query" ? (
             <label>
-              1 M/M당 M/D
-              <input
+              {t("1 M/M당 M/D")}<input
                 type="number"
                 min={0.01}
                 step="any"
@@ -524,14 +517,11 @@ export function ProjectMilestoneDashboard({
             setConversion("");
           }}
         >
-          Dashboard 조건 초기화
-        </button>
+          {t("Dashboard 조건 초기화")}</button>
       </details>
       {query.loading ? (
         <p role="status">
-          현재 조건으로 Milestone을 조회 중입니다. 이전 결과의 상세·일정·리소스
-          이동은 잠깁니다.
-        </p>
+          {t("현재 조건으로 Milestone을 조회 중입니다. 이전 결과의 상세·일정·리소스 이동은 잠깁니다.")}</p>
       ) : null}
       {query.error ? (
         <div className={styles.error} role="alert">
@@ -541,26 +531,25 @@ export function ProjectMilestoneDashboard({
             className="secondary-button"
             onClick={onRefreshProject}
           >
-            프로젝트 최신 정보 조회
-          </button>
+            {t("프로젝트 최신 정보 조회")}</button>
         </div>
       ) : null}
       {data ? (
         <div className={styles.results} data-stale={!query.ready}>
           <p className={styles.note}>
             {query.ready
-              ? "현재 조회 조건 확인 완료"
-              : "이전 성공 결과 · 현재 조건의 정상값이 아닙니다"}{" "}
-            · 계산 {data.calculatedAt} · Project {data.projectRevision} /
-            Catalog {data.catalogRevision}
+              ? t("현재 조회 조건 확인 완료")
+              : t("이전 성공 결과 · 현재 조건의 정상값이 아닙니다")}{" "}
+            {t("· 계산 ")}{data.calculatedAt} · Project {formatNumber(data.projectRevision)} /
+            Catalog {formatNumber(data.catalogRevision)}
           </p>
           <div className={styles.kpis}>
             <article>
-              <h3>완료 처리율</h3>
-              <strong>{displayPercent(data.kpi.completion.percent)}</strong>
+              <h3>{t("완료 처리율")}</h3>
+              <strong>{displayPercent(data.kpi.completion.percent, locale)}</strong>
               <p>
-                완료 기록 {data.kpi.completion.numerator} / 표시 Milestone{" "}
-                {data.kpi.completion.denominator}
+                {t("완료 기록 ")}{formatNumber(data.kpi.completion.numerator)} {t(" / 표시 Milestone")}{" "}
+                {formatNumber(data.kpi.completion.denominator)}
               </p>
               <button
                 type="button"
@@ -572,13 +561,12 @@ export function ProjectMilestoneDashboard({
                   showMetricMilestones(data.kpi.completion.completedMilestoneTaskIds, event.currentTarget)
                 }
               >
-                완료 Milestone 목록에서 확인
-              </button>
+                {t("완료 Milestone 목록에서 확인")}</button>
             </article>
             {countCards.map((card) => (
               <article key={card.key}>
-                <div className={styles.metricHeading}><h3>{card.title}</h3><ContextHelp label={`${card.title} 지표`}>{card.note}</ContextHelp></div>
-                <strong>{card.metric.count}개</strong>
+                <div className={styles.metricHeading}><h3>{t(card.title)}</h3><ContextHelp label={t("{value0} 지표", { value0: t(card.title) })}>{t(card.note,{count:data.horizonDays})}</ContextHelp></div>
+                <strong>{formatNumber(card.metric.count)}{t("개")}</strong>
                 <button
                   type="button"
                   disabled={
@@ -586,16 +574,15 @@ export function ProjectMilestoneDashboard({
                   }
                   onClick={(event) => showMetricMilestones(card.metric.milestoneTaskIds, event.currentTarget)}
                 >
-                  {card.title} Milestone 목록에서 확인
-                </button>
+                  {t(card.title)} {t(" Milestone 목록에서 확인")}</button>
               </article>
             ))}
             <article>
-              <h3>소속 적용률</h3>
-              <strong>{displayPercent(data.kpi.coverage.percent)}</strong>
+              <h3>{t("소속 적용률")}</h3>
+              <strong>{displayPercent(data.kpi.coverage.percent, locale)}</strong>
               <p>
-                유효 소속 {data.kpi.coverage.numerator} / 범위 일반 작업{" "}
-                {data.kpi.coverage.denominator}
+                {t("유효 소속 ")}{formatNumber(data.kpi.coverage.numerator)} {t(" / 범위 일반 작업")}{" "}
+                {formatNumber(data.kpi.coverage.denominator)}
               </p>
               <button
                 type="button"
@@ -604,19 +591,16 @@ export function ProjectMilestoneDashboard({
                 }
                 onClick={() => schedule(data.kpi.coverage.taskIds)}
               >
-                전체 일정에서 보고 범위 보기
-              </button>
+                {t("전체 일정에서 보고 범위 보기")}</button>
             </article>
           </div>
           <p className={styles.note}>
-            지표 중복 집계 · 건수 합산 불가
-          </p>
+            {t("지표 중복 집계 · 건수 합산 불가")}</p>
           <section className={styles.stageSection}>
-            <h3 ref={managementHeading} tabIndex={-1}>Milestone 전체 상태 · 표시 {metricMilestoneIds ? managementRows.filter(row => metricMilestoneIds.includes(row.milestoneTaskId)).length : data.rows.length}개{metricMilestoneIds ? ` · 조회 전체 ${data.rows.length}개` : ""}</h3>
-            {metricMilestoneIds ? <div role="status"><p>선택 지표의 Milestone {metricMilestoneIds.length}개 중 현재 목록 조건에 {managementRows.filter(row => metricMilestoneIds.includes(row.milestoneTaskId)).length}개가 있습니다. 조건 밖이거나 삭제된 ID는 일정으로 확대하지 않습니다. 일정 행으로 이동하지 않습니다.</p><button type="button" onClick={clearMetricMilestones}>지표 선택 해제</button></div> : null}
+            <h3 ref={managementHeading} tabIndex={-1}>{t("Milestone 전체 상태 · 표시 ")}{metricMilestoneIds ? managementRows.filter(row => metricMilestoneIds.includes(row.milestoneTaskId)).length : data.rows.length}{t("개")}{metricMilestoneIds ? t(" · 조회 전체 {value0}개", { value0: data.rows.length }) : ""}</h3>
+            {metricMilestoneIds ? <div role="status"><p>{t("선택 지표의 Milestone ")}{formatNumber(metricMilestoneIds.length)}{t("개 중 현재 목록 조건에 ")}{formatNumber(managementRows.filter(row => metricMilestoneIds.includes(row.milestoneTaskId)).length)}{t("개가 있습니다. 조건 밖이거나 삭제된 ID는 일정으로 확대하지 않습니다. 일정 행으로 이동하지 않습니다.")}</p><button type="button" onClick={clearMetricMilestones}>{t("지표 선택 해제")}</button></div> : null}
             <p className={styles.note}>
-              전체 소속·직접 선행 기준 · 계획 공수와 분모 다름
-            </p>
+              {t("전체 소속·직접 선행 기준 · 계획 공수와 분모 다름")}</p>
             {data.rows.length ? (
               <ProjectMilestoneStageTable
                 rows={metricMilestoneIds ? managementRows.filter(row => metricMilestoneIds.includes(row.milestoneTaskId)) : managementRows}
@@ -632,24 +616,19 @@ export function ProjectMilestoneDashboard({
               />
             ) : (
               <p>
-                {tasks.some(task => task.type === "milestone") ? "조건에 일치하는 Milestone이 없습니다." : "프로젝트에 Milestone이 없습니다."} 전체 공수 bucket은
-                아래에서 별도로 확인합니다.
-              </p>
+                {tasks.some(task => task.type === "milestone") ? t("조건에 일치하는 Milestone이 없습니다.") : t("프로젝트에 Milestone이 없습니다.")} {t(" 전체 공수 bucket은 아래에서 별도로 확인합니다.")}</p>
             )}
           </section>
           <section>
-            <h3>범위 내 계획 공수 · 모든 Milestone + 미지정</h3>
+            <h3>{t("범위 내 계획 공수 · 모든 Milestone + 미지정")}</h3>
             <p className={styles.note}>
               {data.workloadRange.from} ~ {data.workloadRange.to} ·{" "}
-              {conversionLabel(data.mdPerMm, data.mdPerMmSource)}. 숨긴 Milestone
-              bucket도 전체 합계에 포함하며 위 표시 행의 합계가 아닙니다. 투입률
-              미설정 {data.effort.unsetAllocationCount}건.
-            </p>
+              {conversionLabel(data.mdPerMm, data.mdPerMmSource, locale)}{t(". 숨긴 Milestone bucket도 전체 합계에 포함하며 위 표시 행의 합계가 아닙니다. 투입률 미설정 ")}{formatNumber(data.effort.unsetAllocationCount)}{t("건.")}</p>
             <div className={styles.grandTotal}>
-              <strong>범위 Grand Total</strong>
+              <strong>{t("범위 Grand Total")}</strong>
               <span>
-                {displayEffort(data.effort.plannedMd)} M/D /{" "}
-                {displayEffort(data.effort.plannedMm)} M/M
+                {displayEffort(data.effort.plannedMd, locale)} M/D /{" "}
+                {displayEffort(data.effort.plannedMm, locale)} M/M
               </span>
               <button
                 type="button"
@@ -665,14 +644,13 @@ export function ProjectMilestoneDashboard({
                   )
                 }
               >
-                해당 범위 리소스 보기
-              </button>
+                {t("해당 범위 리소스 보기")}</button>
             </div>
             <div
               className={styles.tableOwner}
               tabIndex={0}
               role="region"
-              aria-label="범위 내 Milestone 공수 표 가로 스크롤"
+              aria-label={t("범위 내 Milestone 공수 표 가로 스크롤")}
             >
               <table className={styles.effortTable}>
                 <colgroup>
@@ -684,11 +662,11 @@ export function ProjectMilestoneDashboard({
                 </colgroup>
                 <thead>
                   <tr>
-                    <th scope="col">공수 bucket</th>
-                    <th scope="col">계획 M/D</th>
-                    <th scope="col">계획 M/M</th>
-                    <th scope="col">미설정</th>
-                    <th scope="col">조회</th>
+                    <th scope="col">{t("공수 bucket")}</th>
+                    <th scope="col">{t("계획 M/D")}</th>
+                    <th scope="col">{t("계획 M/M")}</th>
+                    <th scope="col">{t("미설정")}</th>
+                    <th scope="col">{t("조회")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -697,17 +675,17 @@ export function ProjectMilestoneDashboard({
                       <td>
                         <span className={styles.identity}>
                           {bucket.milestoneTaskId === null
-                            ? "미지정 Milestone"
+                            ? t("미지정 Milestone")
                             : (data.catalog.milestones.find(
                                 (milestone) =>
                                   milestone.id === bucket.milestoneTaskId,
-                              )?.name ?? "현재 정보에 없는 Milestone")}
+                              )?.name ?? t("현재 정보에 없는 Milestone"))}
                         </span>
-                        {bucket.milestoneTaskId === null ? <small>effective 소속 없음</small> : <IdentifierDetails identifiers={[{ label: "작업 ID", value: bucket.milestoneTaskId }]} />}
+                        {bucket.milestoneTaskId === null ? <small>{t("effective 소속 없음")}</small> : <IdentifierDetails identifiers={[{ label: t("작업 ID"), value: bucket.milestoneTaskId }]} />}
                       </td>
-                      <td>{displayEffort(bucket.plannedMd)}</td>
-                      <td>{displayEffort(bucket.plannedMm)}</td>
-                      <td>{bucket.unsetAllocationCount}건</td>
+                      <td>{displayEffort(bucket.plannedMd, locale)}</td>
+                      <td>{displayEffort(bucket.plannedMm, locale)}</td>
+                      <td>{formatNumber(bucket.unsetAllocationCount)}{t("건")}</td>
                       <td>
                         <div className={styles.actions}>
                           <button
@@ -717,8 +695,7 @@ export function ProjectMilestoneDashboard({
                             }
                             onClick={() => schedule(bucket.taskIds)}
                           >
-                            전체 일정
-                          </button>
+                            {t("전체 일정")}</button>
                           <button
                             type="button"
                             data-milestone-resource-trigger="true"
@@ -734,8 +711,7 @@ export function ProjectMilestoneDashboard({
                               )
                             }
                           >
-                            리소스
-                          </button>
+                            {t("리소스")}</button>
                         </div>
                       </td>
                     </tr>

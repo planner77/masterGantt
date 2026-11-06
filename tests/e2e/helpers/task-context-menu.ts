@@ -11,7 +11,7 @@ export async function chooseTaskInformation(page: Page, viaKeyboard = false): Pr
   // Issue #22/#72: 메뉴를 여는 것만으로 편집기가 열려서는 안 된다.
   await expect(taskInformationDialog(page)).toHaveCount(0);
 
-  const edit = menu.getByRole("menuitem", { name: "Edit", exact: true });
+  const edit = menu.getByRole("menuitem", { name: "수정", exact: true });
   await expect(edit).toBeEnabled();
 
   if (viaKeyboard) {

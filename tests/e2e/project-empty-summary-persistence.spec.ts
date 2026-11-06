@@ -53,7 +53,7 @@ test("creates name-only containers and preserves the same Core instance across f
     snapshot = await stored();
     expect(snapshot.data.tasks.find((task) => task.taskId === summary.taskId)?.start).not.toBeNull();
     await page.getByRole("grid").getByText("새 작업", { exact: true }).click({ button: "right" });
-    await page.getByRole("menu", { name: "작업 메뉴", exact: true }).getByRole("menuitem", { name: "Delete", exact: true }).click();
+    await page.getByRole("menu", { name: "작업 메뉴", exact: true }).getByRole("menuitem", { name: "삭제", exact: true }).click();
     await expect(page.getByRole("grid").getByText("새 작업", { exact: true })).toHaveCount(0);
     await expect(summaryName).toBeVisible();
     await expect(page.locator(`.wx-bar[data-task-id=":${summary.taskId}"]`)).toHaveCount(0);
@@ -64,8 +64,8 @@ test("creates name-only containers and preserves the same Core instance across f
   }
   await summaryName.click({ button: "right" });
   const menu = page.getByRole("menu", { name: "작업 메뉴", exact: true });
-  await expect(menu.getByRole("menuitem", { name: "Edit", exact: true })).toBeVisible();
-  await menu.getByRole("menuitem", { name: "Edit", exact: true }).click();
+  await expect(menu.getByRole("menuitem", { name: "수정", exact: true })).toBeVisible();
+  await menu.getByRole("menuitem", { name: "수정", exact: true }).click();
   const editor = page.getByRole("dialog", { name: "작업 정보", exact: true });
   await expect(editor).toBeVisible();
   await expect(editor.getByLabel("기간 미산정", { exact: true })).toHaveText("—");
@@ -83,7 +83,7 @@ test("creates name-only containers and preserves the same Core instance across f
   // Build nested containers through the existing Add submenu, then move its
   // sole dated child out through the supported hierarchy command.
   await summaryName.click({ button: "right" });
-  await page.getByRole("menu", { name: "작업 메뉴", exact: true }).getByRole("menuitem", { name: "Add", exact: true }).click();
+  await page.getByRole("menu", { name: "작업 메뉴", exact: true }).getByRole("menuitem", { name: "추가", exact: true }).click();
   await page.getByRole("menuitem", { name: "요약 작업 추가", exact: true }).click();
   await expect.poll(async () => (await stored()).data.tasks.length).toBe(2);
   const nested = (await stored()).data.tasks.find((task) => task.parentExternalId === summary.externalId)!;
@@ -101,7 +101,7 @@ test("creates name-only containers and preserves the same Core instance across f
   const leafName = page.getByRole("grid").getByText("새 작업", { exact: true });
   await expect(leafName).toBeVisible();
   await leafName.click({ button: "right" });
-  await page.getByRole("menu", { name: "작업 메뉴", exact: true }).getByRole("menuitem", { name: "Outdent", exact: true }).click();
+  await page.getByRole("menu", { name: "작업 메뉴", exact: true }).getByRole("menuitem", { name: "내어쓰기", exact: true }).click();
   await expect.poll(async () => (await stored()).data.tasks.find((task) => task.taskId === nested.taskId)?.start).toBeNull();
   await expect(nestedRow).toBeVisible();
   await expect(page.locator(`.wx-bar[data-task-id=":${nested.taskId}"]`)).toHaveCount(0);

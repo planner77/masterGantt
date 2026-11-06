@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { CountryCalendarAdminResponse, CountryCalendarImportEnvelope, CountryCalendarImportPreviewResponse, UpdateCountryCalendarMetadataRequest } from "@/contracts/country-calendar-admin";
 import { COUNTRY_CALENDAR_IMPORT_LIMIT_BYTES } from "@/contracts/country-calendar-admin";
+import { resolveCountryCalendarError, type CountryCalendarError } from "./error-presentation";
 import type { WorkCalendarCountryCode } from "@/contracts/work-calendar";
 
 export type CalendarTarget = { countryCode: WorkCalendarCountryCode; year: number };
@@ -15,10 +16,6 @@ function validDataset(value: unknown, target: CalendarTarget): value is CountryC
   const data = (value as CountryCalendarAdminResponse).data;
   return !!data && Number.isSafeInteger(data.revision) && data.revision > 0 && data.dataset?.countryCode === target.countryCode && data.dataset?.year === target.year && ["OFFICIAL", "UNAVAILABLE", "SUPERSEDED"].includes(data.dataset.status) && Array.isArray(data.dates);
 }
-function serverMessage(body: unknown, fallback: string): string {
-  const error = (body as { error?: { message?: string; details?: Array<{ path?: string; message?: string }> } } | null)?.error;
-  return [error?.message ?? fallback, ...(error?.details ?? []).map((detail) => `${detail.path ?? "입력"}: ${detail.message ?? "확인해 주세요."}`)].join("\n");
-}
 
 export function useCountryCalendarAdmin() {
   const [authenticated, setAuthenticated] = useState(false);
@@ -30,7 +27,11 @@ export function useCountryCalendarAdmin() {
   const [metadataDirty, setMetadataDirty] = useState(false);
   const [comparison, setComparison] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
+  // The source of an error is explicit: upstream text may match a translation key.
+  const [errorState, setErrorState] = useState<CountryCalendarError>({ text: "", opaque: false });
+  const error = errorState.text;
+  const setError = useCallback((text: string) => setErrorState({ text, opaque: false }), []);
+  const setServerError = useCallback((body: unknown, fallback: string) => setErrorState(resolveCountryCalendarError(body, fallback)), []);
   const [notice, setNotice] = useState("");
   const [fileName, setFileName] = useState("");
   const [envelope, setEnvelope] = useState<CountryCalendarImportEnvelope | null>(null);
@@ -52,7 +53,7 @@ export function useCountryCalendarAdmin() {
     setAuthenticated(false); setChecking(false); setLoadState("error"); setBusy(false); pending.current = false;
     invalidateImport();
     setError("관리자 세션이 만료되었습니다. 다시 로그인해 주세요.");
-  }, [invalidateImport]);
+  }, [invalidateImport, setError]);
   const accept = useCallback((value: CountryCalendarAdminResponse, preserveDraft: boolean) => {
     snapshotRef.current = value; setSnapshot(value); setLoadState("ready");
     if (!preserveDraft || !draftDirty.current) {
@@ -70,13 +71,13 @@ export function useCountryCalendarAdmin() {
       const value: unknown = await response.json().catch(() => null);
       if (!current()) return false;
       if (response.status === 401) { invalidateAuth(); return false; }
-      if (!response.ok || !validDataset(value, selected)) { setLoadState("error"); setError(serverMessage(value, "최신 국가 캘린더를 불러오지 못했습니다.")); return false; }
+      if (!response.ok || !validDataset(value, selected)) { setLoadState("error"); setServerError(value, "최신 국가 캘린더를 불러오지 못했습니다."); return false; }
       setAuthenticated(true); accept(value, preserveDraft); return true;
     } catch {
       if (current()) { setLoadState("error"); setError("국가 캘린더 서버에 연결할 수 없습니다."); }
       return false;
     } finally { if (current()) setChecking(false); }
-  }, [accept, invalidateAuth]);
+  }, [accept, invalidateAuth, setError, setServerError]);
   useEffect(() => {
     mounted.current = true; void load(targetRef.current);
     return () => { mounted.current = false; requestEpoch.current += 1; authEpoch.current += 1; fileEpoch.current += 1; readController.current?.abort(); operationController.current?.abort(); };
@@ -98,7 +99,7 @@ export function useCountryCalendarAdmin() {
       const response = await fetch("/api/project-master/admin-sessions", { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ password }) });
       const body: unknown = await response.json().catch(() => null);
       if (!mounted.current || authentication !== authEpoch.current) return;
-      if (!response.ok) { setError(serverMessage(body, "관리자 인증에 실패했습니다.")); return; }
+      if (!response.ok) { setServerError(body, "관리자 인증에 실패했습니다."); return; }
       setAuthenticated(true); void load(targetRef.current);
     } catch { if (mounted.current && authentication === authEpoch.current) setError("관리자 인증 서버에 연결할 수 없습니다."); }
     finally { if (mounted.current && authentication === authEpoch.current) { pending.current = false; setBusy(false); } }
@@ -125,7 +126,7 @@ export function useCountryCalendarAdmin() {
       if (response.status === 401) { invalidateAuth(); return false; }
       if (response.status === 412) { invalidateImport(); await load(selected, true); if (current()) { setComparison(true); setError("다른 변경이 먼저 저장되었습니다. 최신 데이터와 초안을 비교한 뒤 다시 저장하세요."); } return false; }
       if (!response.ok || !validDataset(value, selected)) {
-        setError(serverMessage(value, "변경을 저장하지 못했습니다."));
+        setServerError(value, "변경을 저장하지 못했습니다.");
         if (response.status >= 500 || response.ok) setLoadState("error");
         return false;
       }
@@ -164,7 +165,7 @@ export function useCountryCalendarAdmin() {
       if (!current()) return;
       if (response.status === 401) { invalidateAuth(); return; }
       if (response.status === 412) { setPreview(null); await load(selected, true); if (current()) setError("최신 데이터로 갱신했습니다. 내용을 확인하고 새 미리보기를 계산하세요."); return; }
-      if (!response.ok || !value?.data || value.data.revision !== baseline.data.revision || value.data.importDataset.countryCode !== selected.countryCode || value.data.importDataset.year !== selected.year || !Number.isFinite(Date.parse(value.data.expiresAt))) { setError(serverMessage(value, "파일 검증에 실패했습니다.")); return; }
+      if (!response.ok || !value?.data || value.data.revision !== baseline.data.revision || value.data.importDataset.countryCode !== selected.countryCode || value.data.importDataset.year !== selected.year || !Number.isFinite(Date.parse(value.data.expiresAt))) { setServerError(value, "파일 검증에 실패했습니다."); return; }
       setPreview(value); setPreviewExpired(Date.parse(value.data.expiresAt) <= Date.now());
     } catch { if (current()) setError("파일 검증 서버에 연결할 수 없습니다."); }
     finally { if (current()) { pending.current = false; setBusy(false); } }
@@ -180,5 +181,5 @@ export function useCountryCalendarAdmin() {
     if (!preview || !envelope || previewExpired || Date.parse(preview.data.expiresAt) <= Date.now() || preview.data.revision !== snapshotRef.current?.data.revision) { setPreviewExpired(true); return false; }
     return mutate("/api/admin/work-calendars/import/apply", "POST", { envelope, previewToken: preview.data.previewToken });
   }
-  return { authenticated, checking, target, snapshot, loadState, metadata, metadataDirty, comparison, busy, error, notice, fileName, envelope, preview, previewExpired, fileReading, selectTarget, editMetadata, restoreMetadata, reviewLatest: () => { if (loadState === "ready") { needsReview.current = false; setComparison(false); } }, login, logout, reload: () => load(targetRef.current, true), mutate, saveMetadata, readFile, calculatePreview, applyImport, invalidateImport };
+  return { authenticated, checking, target, snapshot, loadState, metadata, metadataDirty, comparison, busy, error, errorOpaque: errorState.opaque, notice, fileName, envelope, preview, previewExpired, fileReading, selectTarget, editMetadata, restoreMetadata, reviewLatest: () => { if (loadState === "ready") { needsReview.current = false; setComparison(false); } }, login, logout, reload: () => load(targetRef.current, true), mutate, saveMetadata, readFile, calculatePreview, applyImport, invalidateImport };
 }

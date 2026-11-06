@@ -51,14 +51,16 @@ function equipmentTarget(f:Fixture, historical = false) {
   const occurrenceId=randomUUID();
   f.db.prepare("INSERT INTO site_product_processes(public_id,business_unit_id,product_id,site_entity_id,process_type_id,code,name,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?)").run(occurrenceId,bu.id,product.id,site.id,type,"A","A",stamp,stamp);
   const process=f.logistics.insertProcess({publicId:randomUUID(),projectId:f.project.id,code:"A",name:"A",parentId:null,active:1,now:stamp});
-  const catalog=new ProcessCatalogRepository(f.db);catalog.setMapping(f.project.id,process.id,catalog.find("occurrences",occurrenceId)!,null,stamp);
+  const catalog=new ProcessCatalogRepository(f.db);
+  const occurrenceRecord = historical ? f.db.prepare("SELECT *,0 usage_count FROM site_product_processes WHERE public_id=?").get(occurrenceId) as NonNullable<ReturnType<ProcessCatalogRepository["find"]>> : catalog.find("occurrences",occurrenceId)!;
+  catalog.setMapping(f.project.id,process.id,occurrenceRecord,null,stamp);
   const equipment=f.logistics.insertEquipment({publicId:randomUUID(),projectId:f.project.id,processId:process.id,code:"AMR",name:"AMR",equipmentType:"amr",managementUnit:"fleet",quantity:10,now:stamp});
   // A pre-0031 (through-0026) migration fixture must seed the *existing*
   // Target/member rows without calling today's visibility-aware ProjectRepository.
   // Keep the real composite FKs and deferred anchor-member integrity enabled.
   const target=historical ? f.db.transaction(() => {
     const targetPublicId=randomUUID(),memberPublicId=randomUUID();
-    const occurrence=catalog.find("occurrences",occurrenceId)!;
+    const occurrence=occurrenceRecord;
     const inserted=f.db.prepare("INSERT INTO logistics_targets(public_id,project_id,code,name,scope,project_process_id,occurrence_id,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?)").run(
       targetPublicId,f.project.id,"E","E","process",process.id,occurrence.id,stamp,stamp,
     );
@@ -208,7 +210,7 @@ describe("Issue #617 binding persistence and membership guards",()=>{
     for(const name of readdirSync(migrationsDirectory).filter(n=>/^\d{4}_.*\.sql$/.test(n)&&Number(n.slice(0,4))<=26)) copyFileSync(join(migrationsDirectory,name),join(prior,name));
     const f=setup(filename,prior),{equipment,target}=equipmentTarget(f,true),projectId=f.project.id,taskId=f.leaf.publicId,memberId=target.members[0].id,revision=f.revision();f.db.close();
     const upgraded=openDatabase({filename,migrationsDirectory});
-    expect(upgraded.migrations.applied).toEqual(["0027_task_target_bindings.sql","0028_process_context.sql", "0029_project_resource_memberships.sql", "0030_project_work_areas.sql", "0031_project_visibility.sql", "0032_project_issues.sql", "0033_project_issue_credentials_soft_delete.sql", "0034_project_issue_business_status.sql", "0035_country_calendar_catalog.sql"]);
+    expect(upgraded.migrations.applied).toEqual(["0027_task_target_bindings.sql","0028_process_context.sql", "0029_project_resource_memberships.sql", "0030_project_work_areas.sql", "0031_project_visibility.sql", "0032_project_issues.sql", "0033_project_issue_credentials_soft_delete.sql", "0034_project_issue_business_status.sql", "0035_country_calendar_catalog.sql", "0036_display_name_translations.sql"]);
     new TaskTargetBindingService(upgraded.database,{clock:()=>now}).replace(f.auth,revision,taskId,{bindings:[{targetId:target.id,selection:"subset",scope:"self",memberIds:[memberId],coverageByMember:[{memberId,coverage:4}]}]});
     upgraded.database.close();
     const reopened=openDatabase({filename,migrationsDirectory});

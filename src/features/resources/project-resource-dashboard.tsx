@@ -1,4 +1,9 @@
 "use client";
+import { formatLocaleNumber } from "../../lib/i18n";
+import { type AppLocale } from "../../lib/i18n/locales";
+import { displayName } from "../../lib/i18n";
+import { useI18n } from "../../lib/i18n/provider";
+
 import { useResourceWorkspace, type ResourceWorkspaceView } from "./resource-workspace";
 import { ContextHelp } from "@/components/ui/context-help";
 
@@ -51,8 +56,8 @@ const DEFAULTS: ResourceDashboardFilterInput = {
   resourceActivity: "all",
   groupActivity: "all",
 };
-function percent(value: number | null) {
-  return value === null ? "—" : `${value.toFixed(1)}%`;
+function percent(value: number | null, locale: AppLocale = "ko") {
+  return value === null ? "—" : `${formatLocaleNumber(value,locale,{minimumFractionDigits:1,maximumFractionDigits:1})}%`;
 }
 
 export function ProjectResourceDashboard({
@@ -72,6 +77,7 @@ export function ProjectResourceDashboard({
   initialFilters?: ResourceDashboardFilterInput;
   workspaceView?: ResourceWorkspaceView;
 }) {
+  const {t, locale, formatLocale, formatNumber } = useI18n();
   const [initialState] = useState(() => migrateResourcePhysicalFilters(initialFilters ?? DEFAULTS));
   const [filters, setFilters] = useState<ResourceDashboardFilterInput>(initialState.filters);
   const [migrationNotice, setMigrationNotice] = useState(initialState.changed);
@@ -141,7 +147,7 @@ export function ProjectResourceDashboard({
   }, [detailStale, refreshReport]);
   const exportContext = useResourceDrill();
   const sourceScope = exportContext.binding?.scope;
-  const scopeLabel = !sourceScope ? "프로젝트 전체 기준" : sourceScope.kind === "exactAssignments" ? `정확 Assignment ${sourceScope.assignmentIds.length}개 제한` : sourceScope.kind === "scheduleSelection" ? `선택 Task·Summary ${sourceScope.nodeIds.length}개 기준` : "Summary 하위 Task 범위";
+  const scopeLabel = !sourceScope ? t("프로젝트 전체 기준") : sourceScope.kind === "exactAssignments" ? t("정확 Assignment {count}개 제한",{count:sourceScope.assignmentIds.length}) : sourceScope.kind === "scheduleSelection" ? t("선택 Task·Summary {count}개 기준",{count:sourceScope.nodeIds.length}) : t("Summary 하위 Task 범위");
   const exportCallback = useRef(exportContext.onExportEvidence);
   useLayoutEffect(() => { exportCallback.current = exportContext.onExportEvidence; }, [exportContext.onExportEvidence]);
   const bindingKey = JSON.stringify(exportContext.binding);
@@ -270,12 +276,12 @@ export function ProjectResourceDashboard({
             >
               <span aria-hidden="true">{open ? "▾" : "▸"}</span>
               <span>
-                {row.name}
+                {(kind === "group" ? displayName(row, locale) : row.name)}
 
               </span>
             </button>
-            {row.id ? <IdentifierDetails label={`${row.name} 식별 정보`} identifiers={[{label: "ID", value: row.id}, ...(row.code ? [{label: "코드", value: row.code}] : [])]} /> : null}
-            {!row.active && row.id ? <small>비활성 · 기존 할당</small> : null}
+            {row.id ? <IdentifierDetails label={t("{value0} 식별 정보", {value0: (kind === "group" ? displayName(row, locale) : row.name)})} identifiers={[{label: "ID", value: row.id}, ...(row.code ? [{label: "코드", value: row.code}] : [])]} /> : null}
+            {!row.active && row.id ? <small>{t("비활성 · 기존 할당")}</small> : null}
             {kind === "resource" ? (
               <small>
                 {data?.catalog.resources
@@ -285,7 +291,7 @@ export function ProjectResourceDashboard({
                       ROLE_OPTIONS.find(([value]) => value === role)?.[1] ??
                       role,
                   )
-                  .join(", ") || "Global Role 미지정"}
+                  .join(", ") || t("Global Role 미지정")}
                 {(() => {
                   const grade = data?.catalog.resources.find(
                     (resource) => resource.id === row.id,
@@ -297,22 +303,22 @@ export function ProjectResourceDashboard({
               </small>
             ) : null}
           </th>
-          <td>{s.taskCount}</td>
+          <td>{formatNumber(s.taskCount)}</td>
           <td>{s.completed}</td>
           <td>{s.inProgress}</td>
           <td>
             {s.delayed ? (
-              <span className="status-badge danger">지연 {s.delayed}</span>
+              <span className="status-badge danger">{t("지연")}{" "}{s.delayed}</span>
             ) : (
               "0"
             )}
           </td>
-          <td>{percent(s.assignedTaskProgress.percent)}</td>
+          <td>{percent(s.assignedTaskProgress.percent, locale)}</td>
           <td>{row.assignmentRange?.from ?? "—"}</td>
           <td>{row.assignmentRange?.to ?? "—"}</td>
-          <td>{plannedEffort(s.effort, displayUnit)}</td>
+          <td>{plannedEffort(s.effort, displayUnit, locale)}</td>
           <td>
-            {s.effort.unsetCount ? `미설정 ${s.effort.unsetCount}` : "설정됨"}
+            {s.effort.unsetCount ? t("미설정 {value0}", {value0: s.effort.unsetCount}) : t("설정됨")}
           </td>
         </tr>
         {open ? (
@@ -323,7 +329,7 @@ export function ProjectResourceDashboard({
                   className="resource-dashboard-table-scroll"
                   role="region"
                   tabIndex={0}
-                  aria-label={`${row.name} 개인 현황`}
+                  aria-label={t("{value0} 개인 현황", {value0: (kind === "group" ? displayName(row, locale) : row.name)})}
                 >
                   <table className="resource-dashboard-table">
                     <DashboardHeaders />
@@ -338,7 +344,7 @@ export function ProjectResourceDashboard({
                 </div>
               ) : null}
               {kind === "group" ? (
-                <p className="resource-dashboard-hint">Group 직접 담당 Task는 보조 진단에 표시합니다.</p>
+                <p className="resource-dashboard-hint">{t("Group 직접 담당 Task는 보조 진단에 표시합니다.")}</p>
               ) : (
                 <FocusRestoreBoundary
                   key={key}
@@ -370,36 +376,34 @@ export function ProjectResourceDashboard({
       data-report-confirmation-id={report.confirmationId}
       data-ready={!stale}
     >
-      {migrationNotice ? <p role="status">이전 조회 조건을 현재 관점으로 전환했습니다. 설비·물류 시스템을 다시 선택해 주세요. <button type="button" className="secondary-button" onClick={() => setMigrationNotice(false)}>확인</button></p> : null}
+      {migrationNotice ? <p role="status">{t("이전 조회 조건을 현재 관점으로 전환했습니다. 설비·물류 시스템을 다시 선택해 주세요.")}{" "}<button type="button" className="secondary-button" onClick={() => setMigrationNotice(false)}>{t("확인")}</button></p> : null}
       {selectionNotice ? <p role="status">{selectionNotice}</p> : null}
       <div className="resource-dashboard-toolbar">
-        <h2 id="resource-dashboard-heading">리소스 공수</h2>
-        <ContextHelp label="리소스 공수 도움말">
-          <p>투입 시작/종료는 선택 기간으로 자른 Assignment 구간입니다. Grand Total은 선택 Assignment를 한 번만 합산합니다.</p>
-          <p>할당 작업 진척은 계획기간 가중값이며 개인의 실제 기여도·소진 공수가 아닙니다.</p>
-          <p>그룹은 현재 개인 소속 분류입니다. Group 직접 담당만 있는 Task는 보조 진단에서 조회합니다. 선택 Assignment는 중복 제외하며 그룹·Global Role 소계는 합산하지 않습니다.</p>
+        <h2 id="resource-dashboard-heading">{t("리소스 공수")}</h2>
+        <ContextHelp label={t("리소스 공수 도움말")}>
+          <p>{t("투입 시작/종료는 선택 기간으로 자른 Assignment 구간입니다. Grand Total은 선택 Assignment를 한 번만 합산합니다.")}</p>
+          <p>{t("할당 작업 진척은 계획기간 가중값이며 개인의 실제 기여도·소진 공수가 아닙니다.")}</p>
+          <p>{t("그룹은 현재 개인 소속 분류입니다. Group 직접 담당만 있는 Task는 보조 진단에서 조회합니다. 선택 Assignment는 중복 제외하며 그룹·Global Role 소계는 합산하지 않습니다.")}</p>
         </ContextHelp>
         <button type="button" className="secondary-button" disabled={refreshDisabled}
-          onClick={event => exportContext.onExport?.(event.currentTarget)}>Excel 보고서</button>
+          onClick={event => exportContext.onExport?.(event.currentTarget)}>{t("Excel 보고서")}</button>
         <div
           className="project-gantt-scale-controls"
           role="group"
-          aria-label="리소스 표시 모드"
+          aria-label={t("리소스 표시 모드")}
         >
           <button
             type="button"
             aria-pressed={mode === "group"}
             onClick={() => setMode("group")}
           >
-            그룹
-          </button>
+            {t("그룹")}</button>
           <button
             type="button"
             aria-pressed={mode === "resource"}
             onClick={() => setMode("resource")}
           >
-            개인
-          </button>
+            {t("개인")}</button>
         </div>
         {(!workspaceView || workspaceView === "estimate") ? <button
           type="button"
@@ -407,13 +411,12 @@ export function ProjectResourceDashboard({
           aria-pressed={estimateActive}
           onClick={toggleEstimate}
         >
-          개발 견적
-        </button> : null}
-        {workspaceView === "estimate" ? <ContextHelp label="견적·Excel 조건 도움말"><p>현재 조건으로 견적·Excel을 확인합니다. 개발 견적 버튼을 누르면 개발자 역할 조건을 적용합니다.</p></ContextHelp> : null}
+          {t("개발 견적")}</button> : null}
+        {workspaceView === "estimate" ? <ContextHelp label={t("견적·Excel 조건 도움말")}><p>{t("현재 조건으로 견적·Excel을 확인합니다. 개발 견적 버튼을 누르면 개발자 역할 조건을 적용합니다.")}</p></ContextHelp> : null}
         <div
           className="project-gantt-scale-controls"
           role="group"
-          aria-label="공수 표시 단위"
+          aria-label={t("공수 표시 단위")}
         >
           <button
             type="button"
@@ -426,7 +429,7 @@ export function ProjectResourceDashboard({
             type="button"
             aria-pressed={displayUnit === "mm"}
             disabled={!data?.mdPerMm}
-            title={!data?.mdPerMm ? "M/M 환산 기준 미설정" : undefined}
+            title={!data?.mdPerMm ? t("M/M 환산 기준 미설정") : undefined}
             onClick={() => setUnit("mm")}
           >
             M/M
@@ -438,48 +441,46 @@ export function ProjectResourceDashboard({
           disabled={report.phase === "loading" && active}
           onClick={refresh}
         >
-          {report.phase === "loading" && active ? "조회 중…" : "새로고침"}
+          {report.phase === "loading" && active ? t("조회 중…") : t("새로고침")}
         </button>
       </div>
       <div className="resource-dashboard-view-controls">
         {(!workspaceView || workspaceView === "milestone") ? <label>
-          {workspaceView ? "Milestone 보기" : "보기"}
+          {workspaceView ? t("Milestone 보기") : t("보기")}
           <select
-            aria-label="리소스 보기"
+            aria-label={t("리소스 보기")}
             value={view}
             onChange={(e) => setView(e.target.value as typeof view)}
           >
-            {!workspaceView ? <option value="summary">기본 현황</option> : null}
-            <option value="tree">Milestone 계층</option>
-            <option value="matrix">Milestone 비교표</option>
+            {!workspaceView ? <option value="summary">{t("기본 현황")}</option> : null}
+            <option value="tree">{t("Milestone 계층")}</option>
+            <option value="matrix">{t("Milestone 비교표")}</option>
             {!workspaceView ? <option value="plan">Resource Plan</option> : null}
           </select>
         </label> : null}
         {view === "plan" ? (
           <label>
-            기간 단위
-            <select
-              aria-label="기간 단위"
+            {t("기간 단위")}<select
+              aria-label={t("기간 단위")}
               value={granularity}
               onChange={(e) =>
                 setGranularity(e.target.value as "week" | "month")
               }
             >
-              <option value="week">주</option>
-              <option value="month">월</option>
+              <option value="week">{t("주")}</option>
+              <option value="month">{t("월")}</option>
             </select>
           </label>
         ) : null}
         {view === "tree" && mode === "group" ? (
           <label>
-            집계 순서
-            <select
-              aria-label="집계 순서"
+            {t("집계 순서")}<select
+              aria-label={t("집계 순서")}
               value={treeOrder}
               onChange={(e) => setTreeOrder(e.target.value as typeof treeOrder)}
             >
-              <option value="milestone">그룹 → Milestone → 개인 → Task</option>
-              <option value="resource">그룹 → 개인 → Milestone → Task</option>
+              <option value="milestone">{t("그룹 → Milestone → 개인 → Task")}</option>
+              <option value="resource">{t("그룹 → 개인 → Milestone → Task")}</option>
             </select>
           </label>
         ) : null}
@@ -487,19 +488,17 @@ export function ProjectResourceDashboard({
       <div
         className="resource-dashboard-filters"
         role="search"
-        aria-label="리소스 검색과 필터"
+        aria-label={t("리소스 검색과 필터")}
       >
         <label>
-          기간 시작
-          <input
+          {t("기간 시작")}<input
             type="date"
             value={filters.from ?? ""}
             onChange={(event) => set("from", event.target.value || undefined)}
           />
         </label>
         <label>
-          기간 종료
-          <input
+          {t("기간 종료")}<input
             type="date"
             value={filters.to ?? ""}
             onChange={(event) => set("to", event.target.value || undefined)}
@@ -517,8 +516,8 @@ export function ProjectResourceDashboard({
               )
             }
           >
-            <option value="">전체</option>
-            <option value="unassigned">Milestone 미지정</option>
+            <option value="">{t("전체")}</option>
+            <option value="unassigned">{t("Milestone 미지정")}</option>
             {data?.catalog.milestones.map((milestone) => (
               <option key={milestone.id} value={milestone.id}>
                 {milestone.name}
@@ -528,13 +527,12 @@ export function ProjectResourceDashboard({
         </label>
         <ResourceEntityFilters quick data={data} filters={filters} onChange={patch => setFilters(previous => ({...previous, ...patch}))}/>
         <label className="resource-dashboard-search">
-          검색
-          <input
+          {t("검색")}<input
             ref={search}
-            aria-label="리소스·그룹·Task 이름과 코드 검색"
+            aria-label={t("리소스·그룹·Task 이름과 코드 검색")}
             type="search"
             maxLength={200}
-            placeholder="이름 · 코드 · Task · WBS"
+            placeholder={t("이름 · 코드 · Task · WBS")}
             value={filters.search ?? ""}
             onChange={(event) => set("search", event.target.value)}
           />
@@ -547,26 +545,23 @@ export function ProjectResourceDashboard({
           aria-controls="resource-dashboard-advanced-filter"
           onClick={() => setAdvanced((value) => !value)}
         >
-          필터{selectedCount ? ` ${selectedCount}` : ""}
+          {t("필터")}{selectedCount ? ` ${selectedCount}` : ""}
         </button>
         {selectedCount ? (
           <button type="button" className="secondary-button" onClick={reset}>
-            초기화
-          </button>
+            {t("초기화")}</button>
         ) : null}
       </div>
 
       {filters.from && filters.to && filters.from > filters.to ? (
         <p role="alert">
-          시작일이 종료일보다 늦습니다. 날짜를 수정해 주세요. 이전 결과의 상세는
-          잠겨 있습니다.
-        </p>
+          {t("시작일이 종료일보다 늦습니다. 날짜를 수정해 주세요. 이전 결과의 상세는 잠겨 있습니다.")}</p>
       ) : null}
       <div
         id="resource-dashboard-advanced-filter"
         hidden={!advanced}
         className="resource-dashboard-advanced"
-        aria-label="리소스 고급 필터"
+        aria-label={t("리소스 고급 필터")}
         onKeyDown={(event) => {
           if (event.key === "Escape") {
             event.preventDefault();
@@ -595,18 +590,17 @@ export function ProjectResourceDashboard({
               )
             }
           >
-            <option value="">전체</option>
+            <option value="">{t("전체")}</option>
             {ROLE_OPTIONS.map(([value, label]) => (
               <option key={value} value={value}>
-                {label}
+                {t(label)}
               </option>
             ))}
           </select>
         </label>
         <label>
-          개발자 등급
-          <select
-            aria-label="개발자 등급"
+          {t("개발자 등급")}<select
+            aria-label={t("개발자 등급")}
             value={filters.developerGrades?.[0] ?? ""}
             onChange={(event) =>
               set(
@@ -621,18 +615,17 @@ export function ProjectResourceDashboard({
               )
             }
           >
-            <option value="">전체</option>
+            <option value="">{t("전체")}</option>
             {GRADES.map(([value, label]) => (
               <option key={value} value={value}>
-                {label}
+                {t(label)}
               </option>
             ))}
           </select>
         </label>
         <label>
-          작업 상태
-          <select
-            aria-label="작업 상태"
+          {t("작업 상태")}<select
+            aria-label={t("작업 상태")}
             value={filters.statuses?.[0] ?? ""}
             onChange={(event) =>
               set(
@@ -647,16 +640,15 @@ export function ProjectResourceDashboard({
               )
             }
           >
-            <option value="">전체</option>
-            <option value="not_started">시작 전</option>
-            <option value="in_progress">진행 중</option>
-            <option value="completed">완료</option>
+            <option value="">{t("전체")}</option>
+            <option value="not_started">{t("시작 전")}</option>
+            <option value="in_progress">{t("진행 중")}</option>
+            <option value="completed">{t("완료")}</option>
           </select>
         </label>
         <label>
-          개인 활성 상태
-          <select
-            aria-label="개인 활성 상태"
+          {t("개인 활성 상태")}<select
+            aria-label={t("개인 활성 상태")}
             value={filters.resourceActivity ?? "all"}
             onChange={(event) =>
               set(
@@ -665,15 +657,14 @@ export function ProjectResourceDashboard({
               )
             }
           >
-            <option value="all">전체</option>
-            <option value="active">활성</option>
-            <option value="inactive">비활성</option>
+            <option value="all">{t("전체")}</option>
+            <option value="active">{t("활성")}</option>
+            <option value="inactive">{t("비활성")}</option>
           </select>
         </label>
         <label>
-          그룹 활성 소속
-          <select
-            aria-label="그룹 활성 소속"
+          {t("그룹 활성 소속")}<select
+            aria-label={t("그룹 활성 소속")}
             value={filters.groupActivity ?? "all"}
             onChange={(event) =>
               set(
@@ -682,50 +673,47 @@ export function ProjectResourceDashboard({
               )
             }
           >
-            <option value="all">전체</option>
-            <option value="active">활성 그룹 소속</option>
-            <option value="inactive">비활성 그룹 소속</option>
+            <option value="all">{t("전체")}</option>
+            <option value="active">{t("활성 그룹 소속")}</option>
+            <option value="inactive">{t("비활성 그룹 소속")}</option>
           </select>
         </label>
         <label>
-          그룹 선택
-          <select
-            aria-label="그룹 선택"
+          {t("그룹 선택")}<select
+            aria-label={t("그룹 선택")}
             value={filters.groupIds?.[0] ?? ""}
             onChange={(event) =>
               set("groupIds", event.target.value ? [event.target.value] : [])
             }
           >
-            <option value="">전체</option>
-            <option value="ungrouped">미분류 Resource</option>
+            <option value="">{t("전체")}</option>
+            <option value="ungrouped">{t("미분류 Resource")}</option>
             {data?.catalog.groups.map((group) => (
               <option key={group.id} value={group.id}>
-                {group.name}{data.catalog.groups.some(other=>other.id!==group.id&&other.name===group.name)?` (${group.code||group.id})`:""}
+                {displayName(group, locale)}{data.catalog.groups.some(other=>other.id!==group.id&&displayName(other,locale)===displayName(group,locale))?` (${group.code||group.id})`:""}
               </option>
             ))}
           </select>
         </label>
         <label>
-          개인 선택
-          <select
-            aria-label="개인 선택"
+          {t("개인 선택")}<select
+            aria-label={t("개인 선택")}
             value={filters.resourceIds?.[0] ?? ""}
             onChange={(event) =>
               set("resourceIds", event.target.value ? [event.target.value] : [])
             }
           >
-            <option value="">전체</option>
+            <option value="">{t("전체")}</option>
             {data?.catalog.resources.map((resource) => (
               <option key={resource.id} value={resource.id}>
                 {resource.name}{data.catalog.resources.some(other=>other.id!==resource.id&&other.name===resource.name)?` (${resource.code||resource.id})`:""}
-                {!resource.active ? " (비활성)" : ""}
+                {!resource.active ? t(" (비활성)") : ""}
               </option>
             ))}
           </select>
         </label>
         <label>
-          작업 검색
-          <input
+          {t("작업 검색")}<input
             type="search"
             maxLength={200}
             value={filters.taskSearch ?? ""}
@@ -741,16 +729,15 @@ export function ProjectResourceDashboard({
         <p role={report.phase === "error" ? "alert" : "status"}>
           {report.error ||
             (report.phase === "loading"
-              ? "리소스 공수 정보를 불러오는 중입니다."
-              : `공수 정보 확인 완료 · ${report.confirmedAt ? new Date(report.confirmedAt).toLocaleString("ko-KR") : ""}`)}
+              ? t("리소스 공수 정보를 불러오는 중입니다.")
+              : t("공수 정보 확인 완료 · {value0}", {value0: report.confirmedAt ? new Date(report.confirmedAt).toLocaleString(formatLocale) : ""}))}
           {data && stale
-            ? ` 이전 성공 결과입니다 (${data.range.from} ~ ${data.range.to}, 검색: ${data.filters.search || "전체"}). 최신 조건으로 확정하지 않으며 상세를 잠급니다.`
+            ? t(" 이전 성공 결과입니다 ({value0} ~ {value1}, 검색: {value2}). 최신 조건으로 확정하지 않으며 상세를 잠급니다.", {value0: data.range.from, value1: data.range.to, value2: data.filters.search || t("전체")})
             : ""}
         </p>
         {report.phase === "error" ? (
           <button type="button" className="secondary-button" onClick={refresh}>
-            공수 다시 시도
-          </button>
+            {t("공수 다시 시도")}</button>
         ) : null}
         {report.phase === "error" ||
         (data && data.projectRevision !== revision) ? (
@@ -760,51 +747,47 @@ export function ProjectResourceDashboard({
             disabled={refreshDisabled}
             onClick={onRefreshProject}
           >
-            최신 일정 조회
-          </button>
+            {t("최신 일정 조회")}</button>
         ) : null}
         {detailStale === data?.snapshotId ? (
           <p role="alert">
-            상세 조회 중 데이터 변경을 확인했습니다. 새로고침한 뒤 상세를 다시
-            열어 주세요.
-          </p>
+            {t("상세 조회 중 데이터 변경을 확인했습니다. 새로고침한 뒤 상세를 다시 열어 주세요.")}</p>
         ) : null}
       </div>
       {data ? (
         <>
-          <div className="resource-dashboard-scope" aria-label="보고서 적용 범위">
+          <div className="resource-dashboard-scope" aria-label={t("보고서 적용 범위")}>
           <p className="resource-dashboard-hint">
-            {scopeLabel} · 보고서 선택 범위: {data.range.from} ~ {data.range.to}
-            {data.rangeFallback ? " · 빈 프로젝트의 기준일 범위" : ""} · 지연
-            기준일 {data.asOfDate} ({data.timezone}) · M/M 기준:{" "}
+            {scopeLabel} {t("· 보고서 선택 범위:")}{" "}{data.range.from} ~ {data.range.to}
+            {data.rangeFallback ? t(" · 빈 프로젝트의 기준일 범위") : ""} {t("· 지연 기준일")}{" "}{data.asOfDate} ({data.timezone}{t(") · M/M 기준:")}{" "}
             {data.mdPerMm === null
-              ? "미설정 · 전환 불가"
-              : `1 M/M = ${data.mdPerMm} M/D (${data.mdPerMmSource === "query" ? "조회 조건" : "환경 설정"})`}
+              ? t("미설정 · 전환 불가")
+              : `1 M/M = ${formatNumber(data.mdPerMm)} M/D (${t(data.mdPerMmSource === "query" ? "조회 조건" : "환경 설정")})`}
           </p>
-          {workspaceView ? <><details><summary>조회 출처·조건 인계</summary>
-            <p>기본 현황·Milestone 교차·Plan·견적은 이 보고서 조건을 사용합니다. 동적 계층 탐색은 별도 조건·snapshot이며 자동으로 동기화하지 않습니다.</p>
-            <p>동적 조회에서 기간·기준일만 가져옵니다. 검색·개인·Group·역할·등급·Milestone·공정·설비·시스템·선택 범위·단위는 현재 보고서 조건을 유지합니다.</p>
-            {importPeriod ? <p>동적 조회 마지막 확정: {importPeriod.from} ~ {importPeriod.to} · 기준일 {importPeriod.asOfDate} · snapshot {importPeriod.snapshotId}</p> : null}
-            <pre>snapshot {data.snapshotId} · Project revision {data.projectRevision}</pre>
+          {workspaceView ? <><details><summary>{t("조회 출처·조건 인계")}</summary>
+            <p>{t("기본 현황·Milestone 교차·Plan·견적은 이 보고서 조건을 사용합니다. 동적 계층 탐색은 별도 조건·snapshot이며 자동으로 동기화하지 않습니다.")}</p>
+            <p>{t("동적 조회에서 기간·기준일만 가져옵니다. 검색·개인·Group·역할·등급·Milestone·공정·설비·시스템·선택 범위·단위는 현재 보고서 조건을 유지합니다.")}</p>
+            {importPeriod ? <p>{t("동적 조회 마지막 확정:")}{" "}{importPeriod.from} ~ {importPeriod.to} {t("· 기준일")}{" "}{importPeriod.asOfDate} · snapshot {importPeriod.snapshotId}</p> : null}
+            <pre>snapshot {data.snapshotId} · Project revision {formatNumber(data.projectRevision)}</pre>
             <button type="button" className="secondary-button" disabled={!importPeriod || stale} onClick={() => {
               if (!importPeriod) return;
               setFilters(previous => ({ ...previous, from: importPeriod.from, to: importPeriod.to, asOfDate: importPeriod.asOfDate }));
               setPeriodNotice("동적 조회의 기간·기준일을 가져왔습니다. 나머지 보고서 조건은 유지했습니다.");
-            }}>동적 조회 기간·기준일 가져오기</button>
-            {!importPeriod ? <p>동적 계층 탐색에서 현재 revision의 조회를 먼저 확정해 주세요.</p> : null}
+            }}>{t("동적 조회 기간·기준일 가져오기")}</button>
+            {!importPeriod ? <p>{t("동적 계층 탐색에서 현재 revision의 조회를 먼저 확정해 주세요.")}</p> : null}
           </details>{periodNotice ? <p role="status">{periodNotice}</p> : null}</> : null}
           </div>
-          <dl className="resource-dashboard-kpis" aria-label="선택 범위 KPI">
+          <dl className="resource-dashboard-kpis" aria-label={t("선택 범위 KPI")}>
             <div>
-              <dt>계획 공수</dt>
-              <dd>{plannedEffort(data.summary.effort, displayUnit)}</dd>
+              <dt>{t("계획 공수")}</dt>
+              <dd>{plannedEffort(data.summary.effort, displayUnit, locale)}</dd>
             </div>
             <div>
-              <dt>할당 Resource</dt>
-              <dd>{data.summary.resourceCount}명</dd>
+              <dt>{t("할당 Resource")}</dt>
+              <dd>{formatNumber(data.summary.resourceCount)}{t("명")}</dd>
             </div>
             <div>
-              <dt>할당 Task</dt>
+              <dt>{t("할당 Task")}</dt>
               <dd>
                 <button
                   type="button"
@@ -818,12 +801,11 @@ export function ProjectResourceDashboard({
                     )
                   }
                 >
-                  {data.summary.taskCount}건
-                </button>
+                  {formatNumber(data.summary.taskCount)}{t("건")}</button>
               </dd>
             </div>
             <div>
-              <dt>완료 Task / 완료율</dt>
+              <dt>{t("완료 Task / 완료율")}</dt>
               <dd>
                 <button
                   type="button"
@@ -837,13 +819,12 @@ export function ProjectResourceDashboard({
                     )
                   }
                 >
-                  {data.summary.completed}건
-                </button>{" "}
-                / {percent(data.summary.completion.percent)}
+                  {data.summary.completed}{t("건")}</button>{" "}
+                / {percent(data.summary.completion.percent, locale)}
               </dd>
             </div>
             <div>
-              <dt>지연 Task</dt>
+              <dt>{t("지연 Task")}</dt>
               <dd>
                 <button
                   type="button"
@@ -857,12 +838,11 @@ export function ProjectResourceDashboard({
                     )
                   }
                 >
-                  {data.summary.delayed}건
-                </button>
+                  {data.summary.delayed}{t("건")}</button>
               </dd>
             </div>
             <div>
-              <dt>공수 미설정</dt>
+              <dt>{t("공수 미설정")}</dt>
               <dd>
                 <button
                   type="button"
@@ -876,14 +856,13 @@ export function ProjectResourceDashboard({
                     )
                   }
                 >
-                  {data.summary.effort.unsetCount}건
-                </button>
+                  {formatNumber(data.summary.effort.unsetCount)}{t("건")}</button>
               </dd>
             </div>
           </dl>
           <dl
             className="resource-dashboard-kpis"
-            aria-label="Global Role별 계획 공수"
+            aria-label={t("Global Role별 계획 공수")}
           >
             {ROLE_OPTIONS.map(([role, label]) => {
               const total = data.roleTotals.find(
@@ -891,11 +870,11 @@ export function ProjectResourceDashboard({
               );
               return (
                 <div key={role}>
-                  <dt>{label}</dt>
+                  <dt>{t(label)}</dt>
                   <dd>
                     {total
-                      ? plannedEffort(total.summary.effort, displayUnit)
-                      : "할당 없음"}
+                      ? plannedEffort(total.summary.effort, displayUnit, locale)
+                      : t("할당 없음")}
                   </dd>
                   <small>
                     {total?.summary.assignmentCount ?? 0} Assignment
@@ -904,7 +883,7 @@ export function ProjectResourceDashboard({
               );
             })}
           </dl>
-          <p className="resource-dashboard-hint">중첩 소계 · 합산 불가 · 계획공수는 실적 아님{data.summary.effort.unsetCount ? " · 공수 미설정 포함: 알려진 공수만 표시" : ""}</p>
+          <p className="resource-dashboard-hint">{t("중첩 소계 · 합산 불가 · 계획공수는 실적 아님")}{data.summary.effort.unsetCount ? t(" · 공수 미설정 포함: 알려진 공수만 표시") : ""}</p>
           {report.planData ? (
             <div hidden={view !== "plan"} inert={view !== "plan"}>
               <FocusRestoreBoundary
@@ -1002,7 +981,7 @@ export function ProjectResourceDashboard({
               className="resource-dashboard-table-scroll"
               role="region"
               tabIndex={0}
-              aria-label={mode === "group" ? "그룹 현황" : "개인 현황"}
+              aria-label={mode === "group" ? t("그룹 현황") : t("개인 현황")}
             >
               <table className="resource-dashboard-table">
                 <DashboardHeaders />
@@ -1015,26 +994,22 @@ export function ProjectResourceDashboard({
           {(mode === "group" ? data.groups : data.resources).length === 0 ? (
             <p className="resource-workload-empty">
               {data.diagnostics.denominator === 0 && !selectedCount
-                ? "프로젝트에 일반 Task가 없습니다."
-                : "검색 조건에 일치하는 리소스 할당이 없습니다."}
+                ? t("프로젝트에 일반 Task가 없습니다.")
+                : t("검색 조건에 일치하는 리소스 할당이 없습니다.")}
             </p>
           ) : null}
           <details className="resource-dashboard-diagnostics">
             <summary>
-              보조 진단 · 개인 조건 적용 전 작업범위 T0 (
-              {data.diagnostics.denominator} Task)
+              {t("보조 진단 · 개인 조건 적용 전 작업범위 T0 (")}{formatNumber(data.diagnostics.denominator)} Task)
             </summary>
             <p>
-              개인·역할·등급·그룹·활성 소속·개인 검색 조건은 이 진단에 적용하지
-              않습니다. 기간·Milestone·작업 상태·작업 검색의 고유 Task
-              기준입니다.
-            </p>
+              {t("개인·역할·등급·그룹·활성 소속·개인 검색 조건은 이 진단에 적용하지 않습니다. 기간·Milestone·작업 상태·작업 검색의 고유 Task 기준입니다.")}</p>
             <div className="resource-dashboard-diagnostic-actions">
               {(
                 [
-                  ["개인 미배정", data.diagnostics.personallyUnassigned],
-                  ["Group만 지정", data.diagnostics.groupOnly],
-                  ["완전 미할당", data.diagnostics.completelyUnassigned],
+                  [t("개인 미배정"), data.diagnostics.personallyUnassigned],
+                  [t("Group만 지정"), data.diagnostics.groupOnly],
+                  [t("완전 미할당"), data.diagnostics.completelyUnassigned],
                 ] as const
               ).map(([label, item]) => (
                 <button
@@ -1051,14 +1026,11 @@ export function ProjectResourceDashboard({
                     )
                   }
                 >
-                  {label} {item.count}건
-                </button>
+                  {t(label)} {formatNumber(item.count)}{t("건")}</button>
               ))}
             </div>
             <p>
-              Milestone 미지정은 Milestone 필터로 조회합니다. 개인 미배정 Task의
-              공수는 추정하지 않습니다.
-            </p>
+              {t("Milestone 미지정은 Milestone 필터로 조회합니다. 개인 미배정 Task의 공수는 추정하지 않습니다.")}</p>
           </details>
           {selection &&
           selection.queryKey === queryKey ? (
@@ -1093,8 +1065,7 @@ export function ProjectResourceDashboard({
                   className="secondary-button"
                   onClick={closeDetail}
                 >
-                  상세 닫기
-                </button>
+                  {t("상세 닫기")}</button>
                 <ResourceDashboardDetails
                   key={JSON.stringify(selection.selector)}
                   data={data}
@@ -1113,19 +1084,20 @@ export function ProjectResourceDashboard({
   );
 }
 function DashboardHeaders() {
+  const {t } = useI18n();
   return (
     <thead>
       <tr>
-        <th>그룹 / 개인</th>
-        <th>고유 Task</th>
-        <th>완료</th>
-        <th>진행</th>
-        <th>지연</th>
-        <th>할당 작업 진척</th>
-        <th>투입 시작</th>
-        <th>투입 종료</th>
-        <th>계획 공수</th>
-        <th>공수 설정</th>
+        <th>{t("그룹 / 개인")}</th>
+        <th>{t("고유 Task")}</th>
+        <th>{t("완료")}</th>
+        <th>{t("진행")}</th>
+        <th>{t("지연")}</th>
+        <th>{t("할당 작업 진척")}</th>
+        <th>{t("투입 시작")}</th>
+        <th>{t("투입 종료")}</th>
+        <th>{t("계획 공수")}</th>
+        <th>{t("공수 설정")}</th>
       </tr>
     </thead>
   );

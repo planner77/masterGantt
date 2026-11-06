@@ -1,3 +1,8 @@
+## Issue #866 Phase B — 프로젝트별 공정/WorkArea 표시명 (2026-11-05)
+
+- Project Process, Project WorkArea의 수동 표시명 번역값은 해당 Project 범위의 owner row에 부착한다. 다른 Project의 이름·번역을 복제 연결하거나 원본 name/ID를 변경하지 않는다. Global Process Type/표준/현장 공정 원본과 프로젝트 사본의 소유권·권한을 구별한다.
+- Locale 변경은 프로젝트 편집 세션/작업 원본·Gantt 상태를 변경하지 않으며 조회 목록은 현재 언어 번역(없으면 원문)을 표시한다. 모든 화면 전환·미저장 Draft 비회귀 전수는 Phase C에서 계속 검증. [Phase B](I18N_PHASE_B.md).
+
 ## Issue #869 — Project Issue 목록 수직 스크롤·고정 등록 폼 (2026-11-04)
 
 데스크톱에서는 Project Issue 목록 데이터 영역만 독립적으로 수직 스크롤하고, Project 상위 패널의 중복 수직 스크롤을 제거한다. KPI·검색·페이지네이션은 목록 바깥에 고정하고 표 안 가로 스크롤·sticky 헤더·검색/기본 상태 필터(#867)를 유지한다. 낮거나 좁은 화면은 컨트롤 접근을 위해 상위 안전 스크롤과 폼 열 분리를 허용한다.
@@ -1809,3 +1814,12 @@ Grid 행과 Chart Bar의 같은 `Convert to → Milestone` 명령은 서버 요�
 
 
 PR864 REWORK3의 관리자 제목 배치는 [390px](evidence/issue342/rework3/master-auth-390.png)·[1440px](evidence/issue342/rework3/master-auth-1440.png) 및 [5폭 실측](evidence/issue342/rework3/master-auth-geometry.json)에 기록한다. 이 화면/기하 probe의 인증·목록 응답은 제어된 합성 자료이며 실제 권한·SQLite 검증을 대체하지 않는다. 실제 국가관리 인증/저장은 별도 E2E다.
+## Issue #866 Phase B — 프로젝트 기준정보 선택 표시 (2026-11-05)
+
+프로젝트 생성과 설정은 같은 선택 컴포넌트에서 현재 언어의 관리형 표시명을 사용한다. 표시명이 같은 후보는 기존 코드로 구별하며 번역이 없으면 원문 이름을 표시한다. 원본 ID·상위/하위 관계·비활성 기존 선택·폼 초안은 언어 전환과 무관하게 유지한다. 나머지 화면의 고정 문구와 관계 편집기 전수 번역은 Phase C 미완료 범위다. 실행 증거는 [#866 누적 원장](ISSUE_866_FAILURE_ANALYSIS.md)에 구분한다.
+
+## Issue #866 — Phase C 언어 전환과 작업 상태 (2026-11-05)
+
+언어 선택은 현재 화면의 고정 문구·도움말·접근성 이름과 읽기용 날짜·숫자만 갱신한다. Project/Task/Issue 이름·본문·사람 이름은 원문이며 관리형 이름만 현재 locale 번역 또는 원본 fallback을 표시한다. 선택 value와 링크·저장은 기존 ID/code를 사용한다. 번역명이 겹치면 code/기존 정렬 문맥으로 구별한다.
+
+전환 때문에 navigation/query·열린 modal·dirty 초안·Gantt 인스턴스·선택·scroll·pending/stale 권한 상태를 reset하지 않는다. 번역 초안은 시작 revision과 함께 유지하며 401/412 뒤 현재 revision을 붙여 저장하지 않는다. 알림은 원문 사용자 parameter와 고정 key descriptor를 유지해 현재 언어로 재표시·복사한다. date/number input은 canonical 값을 유지한다. 장문·keyboard/focus/Escape/복원·overflow는 실제 화면 검증이 필요하며 현재 Phase C 새 Head 원격 E2E/최종 수동 UX는 NOT TESTED다. 상세 계약은 [Phase C 설계](I18N_PHASE_C.md)를 따른다.

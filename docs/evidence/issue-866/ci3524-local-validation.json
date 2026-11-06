@@ -1,0 +1,581 @@
+{
+  "schema": "issue866-ci3524-local-validation-v1",
+  "created_at": "2026-11-05T15:10:15.229903+00:00",
+  "issue": 866,
+  "pr": 879,
+  "baseline_head": "0323caf8c8b9319cd85606815a47eea2fdee34eb",
+  "base": "364aa3bdfde16fd3ca79add61c35a1cde21f6395",
+  "original_run": {
+    "id": 42035505119,
+    "number": 3524,
+    "attempt": 1,
+    "status": "FAIL",
+    "test_merge": "25d42c6a38bc85d364f98627897f2d1f430106de"
+  },
+  "source": {
+    "fingerprint": "c7484317ed4eb4e66242f7b3c8c7b8ae207e7b186cb98acec58e3d4711392228",
+    "files": 1319,
+    "start_end_file_map_identical": true,
+    "generated_normalization": "Normalize next-env.d.ts/tsconfig.json to original HEAD bytes, preserve generated copy and restore before final verification",
+    "actual_generated_configs_restored": true,
+    "changed_inputs": [
+      {
+        "path": "tests/e2e/inline-name-persistence.spec.ts",
+        "reason": "changed"
+      }
+    ],
+    "unchanged_inputs": 1318
+  },
+  "diagnosis": {
+    "pristine_unconstrained": {
+      "passed": 1,
+      "seconds": 25.4,
+      "interpretation": "로컬비재현;원격FAIL보존",
+      "log": ".prepr-reports/ci3524/red.log"
+    },
+    "pristine_two_cpu": {
+      "failed": 1,
+      "seconds": 33.3,
+      "error": "본문30000ms초과",
+      "log": ".prepr-reports/ci3524/red-two-cpu.log",
+      "limits": "통제process-affinity진단이며GitHub하드웨어/최종정지점동일주장아님"
+    },
+    "rejected_route_profile": {
+      "status": "REJECTED",
+      "passed": 0,
+      "failed": 3,
+      "seconds": [
+        34.0,
+        31.1,
+        30.4
+      ],
+      "fingerprint": "0b89af06512c945543e2ebe80a3df5f80d4fd269a835c9d3a98e1ab69000078f",
+      "related_unit_passed": 24,
+      "new_unit_passed": 5,
+      "files_restored_to_baseline": 4,
+      "log": ".prepr-reports/ci3524/green-two-cpu.log",
+      "reason": "6경로로줄여도coldcompile/실제필요준비비용으로30초소진"
+    }
+  },
+  "design": {
+    "classification": "FIXTURE_OBSERVABILITY",
+    "timeout_scope_change": "종전전체여정30초→test-scoped실제저장/새프로세스재시작준비120초+postrestart검증본문30초. 전체시간gate불변아님.",
+    "initial_fixture_budget_ms": 120000,
+    "initial_fixture_scope": "기존공용초기기동120초와teardown은별도유지;새준비120초추가.전체wall150초상한주장아님.",
+    "unchanged_contracts": [
+      "같은SQLite/origin/page/context/cookies",
+      "실제UIinlinePATCH1/payload/If-Match/revision",
+      "공용fixture와기본13GET경로",
+      "postrestartHTTP/data/일정/links/Grid/bar/TaskEditor/PATCH1",
+      "기존 모든 단언(정적 expect 호출38개·이름검증 helper 호출8개)/첫case본문",
+      "retry0/skip/CI권한/Required3/Chromium8"
+    ],
+    "prepared_control_repeats": [
+      {
+        "repeat": 1,
+        "status": "PASS",
+        "report_duration_ms": 4894,
+        "preparation_receipt": {
+          "schema": "mastergantt-inline-name-restart-preparation-v1",
+          "description": "준비 단계 완료는 전체 테스트 성공이 아닙니다. 재시작 후 영속성 검증은 별도 기본 30초 본문에서 수행합니다.",
+          "preparationStatus": "complete",
+          "prepareElapsedMs": 38590.238478,
+          "restartElapsedMs": 29480.510724999996,
+          "bodyElapsedMs": 4714.221709000005,
+          "setupBudgetMs": 120000,
+          "bodyBudgetMs": 30000,
+          "restartStartupBudgetMs": 90000,
+          "actionBudgetMs": 30000,
+          "navigationBudgetMs": 30000,
+          "apiBudgetMs": 30000,
+          "expectBudgetMs": 5000,
+          "expectedWarmupRouteCount": 13,
+          "originalMutationRetries": 0
+        },
+        "performance_status": "ok",
+        "performance_elapsed_ms": 65644.18,
+        "initial_route_warmup_ms": 18163.24,
+        "restart_route_warmup_ms": 24249.31,
+        "restart_stage_ms": 29355.81,
+        "all_stage_outcomes_ok": true,
+        "thirteen_routes_completion_evidence": {
+          "expected_count_in_receipt": 13,
+          "full_base_route_list_static_count": 13,
+          "initial_warmup_completed": true,
+          "restart_warmup_completed": true,
+          "evidence_boundary": "개별 GET별 완료 receipt는 없다. 13경로의 동결 source와 두 warmup stage OK·실제 restart 완료를 교차 확인했다."
+        },
+        "last_assertions": [
+          {
+            "file": "inline-name-persistence.spec.ts",
+            "line": 202,
+            "operation": "Expect \"toHaveValue\"",
+            "start": "2026-11-05T14:14:42.841Z",
+            "duration_ms": 23,
+            "completed_before_after_hooks": true
+          },
+          {
+            "file": "inline-name-persistence.spec.ts",
+            "line": 203,
+            "operation": "Expect \"toHaveLength\"",
+            "start": "2026-11-05T14:14:42.864Z",
+            "duration_ms": 0,
+            "completed_before_after_hooks": true
+          }
+        ]
+      },
+      {
+        "repeat": 2,
+        "status": "PASS",
+        "report_duration_ms": 6825,
+        "preparation_receipt": {
+          "schema": "mastergantt-inline-name-restart-preparation-v1",
+          "description": "준비 단계 완료는 전체 테스트 성공이 아닙니다. 재시작 후 영속성 검증은 별도 기본 30초 본문에서 수행합니다.",
+          "preparationStatus": "complete",
+          "prepareElapsedMs": 40201.429404,
+          "restartElapsedMs": 29045.125909000002,
+          "bodyElapsedMs": 6656.965565999999,
+          "setupBudgetMs": 120000,
+          "bodyBudgetMs": 30000,
+          "restartStartupBudgetMs": 90000,
+          "actionBudgetMs": 30000,
+          "navigationBudgetMs": 30000,
+          "apiBudgetMs": 30000,
+          "expectBudgetMs": 5000,
+          "expectedWarmupRouteCount": 13,
+          "originalMutationRetries": 0
+        },
+        "performance_status": "ok",
+        "performance_elapsed_ms": 70697.12,
+        "initial_route_warmup_ms": 19423.02,
+        "restart_route_warmup_ms": 23367.94,
+        "restart_stage_ms": 28903.8,
+        "all_stage_outcomes_ok": true,
+        "thirteen_routes_completion_evidence": {
+          "expected_count_in_receipt": 13,
+          "full_base_route_list_static_count": 13,
+          "initial_warmup_completed": true,
+          "restart_warmup_completed": true,
+          "evidence_boundary": "개별 GET별 완료 receipt는 없다. 13경로의 동결 source와 두 warmup stage OK·실제 restart 완료를 교차 확인했다."
+        },
+        "last_assertions": [
+          {
+            "file": "inline-name-persistence.spec.ts",
+            "line": 202,
+            "operation": "Expect \"toHaveValue\"",
+            "start": "2026-11-05T14:15:51.440Z",
+            "duration_ms": 33,
+            "completed_before_after_hooks": true
+          },
+          {
+            "file": "inline-name-persistence.spec.ts",
+            "line": 203,
+            "operation": "Expect \"toHaveLength\"",
+            "start": "2026-11-05T14:15:51.473Z",
+            "duration_ms": 1,
+            "completed_before_after_hooks": true
+          }
+        ]
+      },
+      {
+        "repeat": 3,
+        "status": "PASS",
+        "report_duration_ms": 5359,
+        "preparation_receipt": {
+          "schema": "mastergantt-inline-name-restart-preparation-v1",
+          "description": "준비 단계 완료는 전체 테스트 성공이 아닙니다. 재시작 후 영속성 검증은 별도 기본 30초 본문에서 수행합니다.",
+          "preparationStatus": "complete",
+          "prepareElapsedMs": 38209.966339,
+          "restartElapsedMs": 27150.871754999993,
+          "bodyElapsedMs": 5105.020829000001,
+          "setupBudgetMs": 120000,
+          "bodyBudgetMs": 30000,
+          "restartStartupBudgetMs": 90000,
+          "actionBudgetMs": 30000,
+          "navigationBudgetMs": 30000,
+          "apiBudgetMs": 30000,
+          "expectBudgetMs": 5000,
+          "expectedWarmupRouteCount": 13,
+          "originalMutationRetries": 0
+        },
+        "performance_status": "ok",
+        "performance_elapsed_ms": 71312.51,
+        "initial_route_warmup_ms": 22777.12,
+        "restart_route_warmup_ms": 21960.73,
+        "restart_stage_ms": 27006.48,
+        "all_stage_outcomes_ok": true,
+        "thirteen_routes_completion_evidence": {
+          "expected_count_in_receipt": 13,
+          "full_base_route_list_static_count": 13,
+          "initial_warmup_completed": true,
+          "restart_warmup_completed": true,
+          "evidence_boundary": "개별 GET별 완료 receipt는 없다. 13경로의 동결 source와 두 warmup stage OK·실제 restart 완료를 교차 확인했다."
+        },
+        "last_assertions": [
+          {
+            "file": "inline-name-persistence.spec.ts",
+            "line": 202,
+            "operation": "Expect \"toHaveValue\"",
+            "start": "2026-11-05T14:16:59.372Z",
+            "duration_ms": 43,
+            "completed_before_after_hooks": true
+          },
+          {
+            "file": "inline-name-persistence.spec.ts",
+            "line": 203,
+            "operation": "Expect \"toHaveLength\"",
+            "start": "2026-11-05T14:16:59.416Z",
+            "duration_ms": 7,
+            "completed_before_after_hooks": true
+          }
+        ]
+      }
+    ],
+    "reporter_duration_scope": "fixture분리후reporter duration은본문시간;준비/실제restart/isolated전체elapsed별도. 성능개선/wholejourney단축/10successfulrun baseline주장없음. 기존shard성능기록불변",
+    "repeat_evidence_limit": "성공traceZIP없음;HTMLreport/steps/performance첨부.13경로는정적source와initial/restartwarmupOK교차증명이며개별GET영수증주장아님"
+  },
+  "postprocessing_diagnostic": {
+    "first_restore": "FAIL:ignored backup내부docs/evidence/issue-528 부모디렉터리없음(FileNotFoundError)",
+    "scope": "브라우저190PASS뒤로컬복구도우미오류.원문first-restore-final.log/first-post-local.complete.json보존",
+    "correction": "백업부모mkdir추가후같은생성물보존/원본복구·source동일·type/lint재실행.제품/spec수정없음"
+  },
+  "verification": {
+    "e2e": {
+      "status": "PASS",
+      "unique_spec_files": 31,
+      "unique_cases_planned": 192,
+      "unique_passed": 190,
+      "existing_skipped": 2,
+      "failed": 0,
+      "workers": 1,
+      "retries": 0,
+      "max_failures": 0,
+      "parts": {
+        "f": {
+          "exit_code": 0,
+          "duration_seconds": 136.72,
+          "command": [
+            "npx",
+            "playwright",
+            "test",
+            "--config",
+            "tests/config/playwright.config.ts",
+            "tests/e2e/inline-name-persistence.spec.ts",
+            "tests/e2e/project-gantt-inline-name.spec.ts",
+            "--workers=1",
+            "--retries=0",
+            "--max-failures=0",
+            "--output=.prepr-reports/ci3524/part-f-results"
+          ],
+          "source_fingerprint": "c7484317ed4eb4e66242f7b3c8c7b8ae207e7b186cb98acec58e3d4711392228",
+          "spec_files": [
+            "tests/e2e/inline-name-persistence.spec.ts",
+            "tests/e2e/project-gantt-inline-name.spec.ts"
+          ],
+          "counts": {
+            "passed": 16,
+            "skipped": 0,
+            "failed": 0
+          },
+          "log": ".prepr-reports/ci3524/part-f.log",
+          "log_sha256": "8264d37d57e8fd890820d18d704912be694b5c5bf4d12f3d11f69aa0a39377c8"
+        },
+        "e": {
+          "exit_code": 0,
+          "duration_seconds": 815.91,
+          "command": [
+            "npx",
+            "playwright",
+            "test",
+            "--config",
+            "tests/config/playwright.config.ts",
+            "tests/e2e/project-issues.spec.ts",
+            "tests/e2e/issue-736-resource-dashboard.spec.ts",
+            "tests/e2e/issue-730-view-composer.spec.ts",
+            "tests/e2e/resource-drill-ui.spec.ts",
+            "--workers=1",
+            "--retries=0",
+            "--max-failures=0",
+            "--output=.prepr-reports/ci3524/part-e-results"
+          ],
+          "source_fingerprint": "c7484317ed4eb4e66242f7b3c8c7b8ae207e7b186cb98acec58e3d4711392228",
+          "spec_files": [
+            "tests/e2e/project-issues.spec.ts",
+            "tests/e2e/issue-736-resource-dashboard.spec.ts",
+            "tests/e2e/issue-730-view-composer.spec.ts",
+            "tests/e2e/resource-drill-ui.spec.ts"
+          ],
+          "counts": {
+            "passed": 21,
+            "skipped": 0,
+            "failed": 0
+          },
+          "log": ".prepr-reports/ci3524/part-e.log",
+          "log_sha256": "3b79dea6bd40b1a1433ee16b3b14a23431ad44ee0cb6d053b13dafbcd68d05c0"
+        },
+        "a": {
+          "exit_code": 0,
+          "duration_seconds": 278.96,
+          "command": [
+            "npx",
+            "playwright",
+            "test",
+            "--config",
+            "tests/config/playwright.config.ts",
+            "tests/e2e/admin-auth-layout.spec.ts",
+            "tests/e2e/country-calendar-admin.spec.ts",
+            "tests/e2e/cross-screen-regression.spec.ts",
+            "tests/e2e/i18n-master-data.spec.ts",
+            "tests/e2e/issue-866-language-shell.spec.ts",
+            "tests/e2e/logistics-table-density.spec.ts",
+            "tests/e2e/logistics-type-catalog-admin.spec.ts",
+            "tests/e2e/master-controls-density.spec.ts",
+            "tests/e2e/new-project-draft-preservation.spec.ts",
+            "tests/e2e/project-create-layout.spec.ts",
+            "tests/e2e/project-master-relations.spec.ts",
+            "tests/e2e/project-workspace-layout.spec.ts",
+            "tests/e2e/resource-catalog-delete.spec.ts",
+            "--workers=1",
+            "--retries=0",
+            "--max-failures=0",
+            "--output=.prepr-reports/ci3524/part-a-results"
+          ],
+          "source_fingerprint": "c7484317ed4eb4e66242f7b3c8c7b8ae207e7b186cb98acec58e3d4711392228",
+          "spec_files": [
+            "tests/e2e/admin-auth-layout.spec.ts",
+            "tests/e2e/country-calendar-admin.spec.ts",
+            "tests/e2e/cross-screen-regression.spec.ts",
+            "tests/e2e/i18n-master-data.spec.ts",
+            "tests/e2e/issue-866-language-shell.spec.ts",
+            "tests/e2e/logistics-table-density.spec.ts",
+            "tests/e2e/logistics-type-catalog-admin.spec.ts",
+            "tests/e2e/master-controls-density.spec.ts",
+            "tests/e2e/new-project-draft-preservation.spec.ts",
+            "tests/e2e/project-create-layout.spec.ts",
+            "tests/e2e/project-master-relations.spec.ts",
+            "tests/e2e/project-workspace-layout.spec.ts",
+            "tests/e2e/resource-catalog-delete.spec.ts"
+          ],
+          "counts": {
+            "passed": 66,
+            "skipped": 2,
+            "failed": 0
+          },
+          "log": ".prepr-reports/ci3524/part-a.log",
+          "log_sha256": "ed0fd254c18fa1546e8a2454f346de4bf32605f218c222adbe83977bd8f9c56d"
+        },
+        "b": {
+          "exit_code": 0,
+          "duration_seconds": 751.29,
+          "command": [
+            "npx",
+            "playwright",
+            "test",
+            "--config",
+            "tests/config/playwright.config.ts",
+            "tests/e2e/issue-725-process-workareas.spec.ts",
+            "tests/e2e/issue-726-task-logistics.spec.ts",
+            "tests/e2e/issue-732-milestone-dashboard.spec.ts",
+            "tests/e2e/project-multi-task-copy-paste.spec.ts",
+            "--workers=1",
+            "--retries=0",
+            "--max-failures=0",
+            "--output=.prepr-reports/ci3524/part-b-results"
+          ],
+          "source_fingerprint": "c7484317ed4eb4e66242f7b3c8c7b8ae207e7b186cb98acec58e3d4711392228",
+          "spec_files": [
+            "tests/e2e/issue-725-process-workareas.spec.ts",
+            "tests/e2e/issue-726-task-logistics.spec.ts",
+            "tests/e2e/issue-732-milestone-dashboard.spec.ts",
+            "tests/e2e/project-multi-task-copy-paste.spec.ts"
+          ],
+          "counts": {
+            "passed": 20,
+            "skipped": 0,
+            "failed": 0
+          },
+          "log": ".prepr-reports/ci3524/part-b.log",
+          "log_sha256": "75b69a824663772c72a4563fd1d52673cb5b7b24f56c76faf1bd0235cd1c4ce4"
+        },
+        "c": {
+          "exit_code": 0,
+          "duration_seconds": 506.86,
+          "command": [
+            "npx",
+            "playwright",
+            "test",
+            "--config",
+            "tests/config/playwright.config.ts",
+            "tests/e2e/milestone-visibility.spec.ts",
+            "tests/e2e/project-task-quick-view.spec.ts",
+            "tests/e2e/milestone-timeline-lane.spec.ts",
+            "tests/e2e/milestone-stage-grid.spec.ts",
+            "tests/e2e/resource-admin-layout.spec.ts",
+            "tests/e2e/i18n.spec.ts",
+            "tests/e2e/project-task-context-menu.spec.ts",
+            "--workers=1",
+            "--retries=0",
+            "--max-failures=0",
+            "--output=.prepr-reports/ci3524/part-c-results"
+          ],
+          "source_fingerprint": "c7484317ed4eb4e66242f7b3c8c7b8ae207e7b186cb98acec58e3d4711392228",
+          "spec_files": [
+            "tests/e2e/milestone-visibility.spec.ts",
+            "tests/e2e/project-task-quick-view.spec.ts",
+            "tests/e2e/milestone-timeline-lane.spec.ts",
+            "tests/e2e/milestone-stage-grid.spec.ts",
+            "tests/e2e/resource-admin-layout.spec.ts",
+            "tests/e2e/i18n.spec.ts",
+            "tests/e2e/project-task-context-menu.spec.ts"
+          ],
+          "counts": {
+            "passed": 59,
+            "skipped": 0,
+            "failed": 0
+          },
+          "log": ".prepr-reports/ci3524/part-c.log",
+          "log_sha256": "bd59186a0a0c8a32f8b734794f3066dcaa5d0d5b15599e8039604734b3ee4f70"
+        },
+        "d": {
+          "exit_code": 0,
+          "duration_seconds": 309.92,
+          "command": [
+            "npx",
+            "playwright",
+            "test",
+            "--config",
+            "tests/config/playwright.config.ts",
+            "tests/e2e/project-transfer-layout-491.spec.ts",
+            "--workers=1",
+            "--retries=0",
+            "--max-failures=0",
+            "--output=.prepr-reports/ci3524/part-d-results"
+          ],
+          "source_fingerprint": "c7484317ed4eb4e66242f7b3c8c7b8ae207e7b186cb98acec58e3d4711392228",
+          "spec_files": [
+            "tests/e2e/project-transfer-layout-491.spec.ts"
+          ],
+          "counts": {
+            "passed": 8,
+            "skipped": 0,
+            "failed": 0
+          },
+          "log": ".prepr-reports/ci3524/part-d.log",
+          "log_sha256": "9413df8dae391cdfe570a7a43bf4ede0035fc6c7cc926f964d86eb6c6a4548e2"
+        }
+      },
+      "existing_skip_cases": [
+        "logistics-table-density.spec.ts:41 before",
+        "master-controls-density.spec.ts:30 before"
+      ],
+      "separate_repeats_not_added_to_unique": 3,
+      "selection": "과거누적29spec전체+직접inline-name-persistence/인접project-gantt-inline-name2spec",
+      "bounded_scope": "6묶음각1200초;#752 Actions진단의24spec/4parts정책변경없음"
+    },
+    "local_fast_feedback": {
+      "restore": {
+        "exit_code": 0,
+        "duration_seconds": 0.07,
+        "command": [
+          "python3",
+          ".prepr-reports/ci3524/restore-generated.py"
+        ]
+      },
+      "source": {
+        "exit_code": 0,
+        "duration_seconds": 0.12,
+        "command": [
+          "python3",
+          ".prepr-reports/ci3524/source.py",
+          ".prepr-reports/ci3524/source-final.json"
+        ]
+      },
+      "typecheck_original": {
+        "exit_code": 0,
+        "duration_seconds": 25.1,
+        "command": [
+          "npx",
+          "tsc",
+          "--noEmit",
+          "--incremental",
+          "false"
+        ]
+      },
+      "lint": {
+        "exit_code": 0,
+        "duration_seconds": 3.19,
+        "command": [
+          "npx",
+          "eslint",
+          "tests/e2e/inline-name-persistence.spec.ts"
+        ]
+      }
+    },
+    "policy": {
+      "discovery": "299Unitfiles/882browsercases(root+externalcwd)",
+      "version": "0.142.0",
+      "ci_cache_contract": "PASS",
+      "markdown": "410filesPASS",
+      "base_docs_gate": {
+        "required": [
+          "AGENTS.md",
+          "DESIGN.md",
+          "docs/API.md",
+          "docs/CI_CD.md",
+          "docs/DB_SCHEMA.md",
+          "docs/EXCEL_EXPORT.md",
+          "docs/GITHUB_OPERATIONS.md",
+          "docs/IMPORT_EXPORT.md",
+          "docs/IMPORT_SCHEMA.md",
+          "docs/QA_REVIEW_POLICY.md",
+          "docs/REMOTE_VALIDATION.md",
+          "docs/SCHEDULING_ENGINE.md",
+          "docs/TEST_PLAN.md"
+        ],
+        "result": {
+          "documentation_sync": "STRUCTURAL_PASS_SEMANTIC_REVIEW_PENDING",
+          "ac_test_coverage": "MAPPING_PASS_SEMANTIC_REVIEW_PENDING"
+        },
+        "diagnostic": "첫 출력 저장은 set JSON직렬화 TypeError; validator 판단 실패가 아니며 sorted로 보고서 기록 교정"
+      },
+      "test_plan_preserved_original_bytes": 1172715,
+      "test_plan_original_sha256": "dfccf76797300bdb5ec2fec64931347bbdd87e7784bb0bae4f51dc8ae5ae4367"
+    },
+    "automated_prepr": {
+      "status": "BLOCKED",
+      "unknown": 94,
+      "missing": 0,
+      "source_stable_during_run": true,
+      "report": ".prepr-reports/ci3524/prepr-publish-final/report.json",
+      "reason": "자동매핑공백BLOCKED와수동실제회귀를구별한다"
+    },
+    "omitted_duplicate_local_checks": {
+      "full_vitest": "N/A:Unit/제품입력불변",
+      "production_build": "N/A:앱/빌드입력불변",
+      "docker": "N/A:Docker/런타임입력불변",
+      "original_3524_success": "원본HeadUnit3666/old3skip·build/DockerSUCCESS만.새HeadPASS승계없음"
+    }
+  },
+  "review": {
+    "agent": "/root/ci3522_consumer_review",
+    "technical_review": "PASS",
+    "new_direct_p1_p2": 0,
+    "human_independent_qa": "NOT TESTED",
+    "owner_manager": "NOT TESTED",
+    "unresolved_github_threads": 0,
+    "merge_conflict": "NONE at baseline head/main",
+    "deferred_existing_p2": "country-calendar/WBS/safeApiError opaque-error key/data경계;C002E참조"
+  },
+  "delivery": {
+    "new_head_required_quality_e2e_docker": "NOT TESTED",
+    "trusted_qa": "NOT TESTED",
+    "merge_ready": "BLOCKED",
+    "risk": "HIGH",
+    "qa_required": true,
+    "qa_method": "OWNER_MANAGED",
+    "release_authorized": false,
+    "issue_status": "OPEN",
+    "scope_end": "새FullPRCI시작확인;이후모니터링없음",
+    "main_ghcr_release": "NOT TESTED"
+  }
+}

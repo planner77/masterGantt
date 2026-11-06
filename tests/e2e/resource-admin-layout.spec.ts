@@ -109,7 +109,7 @@ test("Issue #235/#331/#366: resource admin layout, create forms, and password di
     }
 
     const header = await page.locator(".site-header").boundingBox();
-    const eyebrow = await page.getByText("Global catalog", { exact: true }).boundingBox();
+    const eyebrow = await page.getByText("전역 카탈로그", { exact: true }).boundingBox();
     expect(header).not.toBeNull();
     expect(eyebrow).not.toBeNull();
     expect(eyebrow!.y - (header!.y + header!.height)).toBeLessThanOrEqual(40);

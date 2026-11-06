@@ -1218,3 +1218,25 @@ Shard1선택은보존된과거projectedMs최소값기준이다. 현재143spec의
 - 신뢰된 기본 브랜치 `scripts/qa_final_automated.py`는 Metadata-only 성공에서 CI display_title **뿐 아니라 실제 job topology**(metadata evidence SUCCESS, Preflight 및 Full 구현 Job SKIPPED, changes SUCCESS)를 확인한다. 현재 Attempt 출처 ZIP이 물리적으로 없을 때만, 원본 attempt 1의 changes 성공 Job과 최신 이월 Job의 `started_at/completed_at/run_id/head_sha` 일치를 확인하고 **원본 Artifact를 그 원래 Attempt=1로 바인딩해** `verified_source`의 PR/repo/head/base/test-merge/Git tree/commit→PR 검사를 실행한다.
 - 현재 Attempt의 이름에 일치하는 Artifact가 만료·손상·중복으로 존재하거나 실제 changes Job이 재실행되었거나 원본이 없을 때는 기존 BLOCKED 유지. **Full CI 원본 ZIP은 항상 정확한 최신 Attempt로 확인**하며 metadata fallback을 절대 허용하지 않는다. Metadata-only SUCCESS는 독립 Full CI Required3 출처·결과도 `verify_same_base_full_run`으로 재검증해야 **`automated_qa=N/A` / `METADATA_ONLY_RECOVERY_NON_AUTHORITATIVE`** 감사 보고가 가능하다. 새 Full PASS·Manager ACCEPT·제품/CI 게이트 통과로 승격하지 않는다.
 - 기존 `.github/workflows/ci.yml` source Artifact 명명/Required3/E2E8/Docker/metadata `rerun-failed-jobs`와 `.github/workflows/qa-final-trusted.yml` read-only 권한·이벤트는 불변이다. QA 변경 자체 HIGH/OWNER_MANAGED, `release_required=false`, `release_authorized=false`. [원장](ISSUE_873_FAILURE_ANALYSIS.md)·[Work Packet](exec-plans/active/ISSUE_873.md)을 따른다.
+
+## Issue #866 Phase A — 브라우저 Locale 결정적 E2E / 정책 불변 (2026-11-05)
+
+- 기존 Playwright E2E/production transport 한국어 기준 단언이 브라우저 기본 `en-US`에서 우연히 UI 번역으로 실패하지 않도록 `tests/config/{playwright,transport}.config.ts`에 명시적으로 `locale: "ko-KR"`을 설정한다. 신규 `tests/e2e/issue-866-language-shell.spec.ts`는 en-US 등 개별 언어를 선택해 **실제** 브라우저 첫 진입·localStorage/새로고침/URL/HTML lang/ARIA를 검증한다. 기존 테스트를 삭제하거나 assertion/skip/retry/timeout을 완화하지 않는다.
+- 0.141.1 Main 기반 0.142.0 Phase A 후보는 제품 기능 추가이므로 `release_required=true`이나 `release_authorized=false`. 이전 PR #870의 성공한 과거 Run/이미지/QA를 신규 source 검증으로 전용하지 않는다. PR Full Quality·E2E8/Docker/Trusted/Owner HIGH 및 Main·GHCR Finalizer 기존 경계를 모두 유지. 현재 **Phase B/C 미구현**이므로 정식 게시·Issue 종료 승인 없음.
+- [Phase A 구현·검증](I18N_PHASE_A.md) / [Work Packet](exec-plans/active/ISSUE_866.md) / [원장](ISSUE_866_FAILURE_ANALYSIS.md).
+
+## Issue #866 Phase A — 새로운 i18n E2E Shard 명시 등록 (2026-11-05)
+
+기존 8-shard의 정확한 명시 spec inventory 계약을 유지하기 위해 신규 `issue-866-language-shell.spec.ts`만 Shard5에 등록, 143→144 spec로 변경한다. 역사적 실측치/기존 배치/Shard count/timeout/fail-fast를 변경하지 않았으며 새 테스트의 비용·전체 CI 결과는 미검증이다. [#866 Work Packet](exec-plans/active/ISSUE_866.md).
+
+## Issue #866 Phase C — A+B+C 통합 PR 검증
+
+PR #879에 Phase C를 통합하되 Required Quality/E2E/Docker, Chromium8, Main/GHCR/Finalizer/Trusted와 Owner 승인 경계는 유지한다. 신규 `tests/e2e/i18n.spec.ts`만 기존 Shard8에 명시 추가하여 146개 spec counts `[19,18,18,18,18,18,18,19]`를 정확히 검증한다. 과거145개 배치·기존 projectedMs·sourceRunIds·metrics는 그대로이며 새 duration은 REMOTE_UNMEASURED다. 한 번의 #3520 baseline을 10-run 성능 표본으로 확대하지 않는다. 로컬 Fast Feedback·정적 검토는 새 exact Head의 공식 원격 전체 PASS가 아니며 이번 사용자 요청은 Full CI 시작까지만이다. 후보0.142.0 및 release_authorized=false를 유지한다.
+
+## Issue #866 C003 — 실제 inline 재시작 회귀의 준비/본문 예산
+
+Full #3524.1의 실제 inline 이름 저장 재시작case가 본문30초를 초과했다. 실제PATCH1·revision/If-Match·같은SQLite와새프로세스·기존13경로warmup을전용test-scoped준비fixture120초에서수행하고, 재시작후HTTP/data/Grid/bar/Task Editor/추가PATCH없음은기본30초본문에서검증한다. 이는전체여정30초에서준비120초+검증30초로예산범위를변경한다. 준비중action/navigation/API30초·expect5초·restartstartup90초를명시하며준비완료는전체PASS가아니다. 단언/제품동작/공용fixture/CI권한·Required3/8shard/retry/skip은유지한다. 최초실패·기각후보·통제2CPU반복은최종31spec고유회귀와분리한다. [단일실패원장C003](ISSUE_866_FAILURE_ANALYSIS.md)과[Work Packet](exec-plans/active/ISSUE_866.md)을따른다. 새Head원격Required3/Trusted/Owner/Manager NOT TESTED이며새CI시작뒤모니터링하지않는다.
+
+C003 성능 해석: 분리된 fixture 예산 때문에 Playwright reporter duration은 준비를 제외한 본문 시간이다. 실제 전체 비용은 inline-name-restart-preparation과 isolated-application performance의 준비/restart/전체elapsed를 함께 읽는다. 짧아진 본문 duration을 dev compile 개선·전체여정단축·10개성공run baseline으로 해석하지 않는다. 기존 shard 성능원장/projectedMs/sourceRunIds와 정책은 변경하지 않는다.
+
+C003 최종 동일동결source의31spec/192계획=190PASS/기존2SKIP/FAIL0, 별도2CPU3반복PASS(고유합계미가산), 최종type/lint/탐색/정책/문서구조PASS다. 자동Pre-PR UNKNOWN94는BLOCKED로유지하고원격/Owner/Manager NOT TESTED와구별한다. [최종정제증거](evidence/issue-866/ci3524-local-validation.json), 단일원장C003 E를따른다.

@@ -1,7 +1,7 @@
 .panel{--catalog-control-height:40px;font-size:14px;line-height:20px;display:grid;gap:1rem;min-width:0;max-width:100%}
 .panel>form,.tableWrap{border:1px solid var(--border-default);border-radius:var(--radius);background:var(--surface-panel);padding:1rem}
-.addRow label,.dialog label{display:grid;gap:.3rem;font-size:13px;min-width:0}
-.addRow input,.dialog input{width:100%;min-width:0;max-width:100%;box-sizing:border-box;min-height:var(--catalog-control-height);border:1px solid var(--border-control);border-radius:calc(var(--radius) - .125rem);background:var(--surface-panel);color:var(--text-default);padding:6px 8px;font-family:inherit;font-size:14px;line-height:20px}
+.addRow label,.dialog label,.searchField{display:grid;gap:.3rem;font-size:13px;min-width:0}
+.addRow input,.dialog input,.searchField input{width:100%;min-width:0;max-width:100%;box-sizing:border-box;min-height:var(--catalog-control-height);border:1px solid var(--border-control);border-radius:calc(var(--radius) - .125rem);background:var(--surface-panel);color:var(--text-default);padding:6px 8px;font-family:inherit;font-size:14px;line-height:20px}
 .toolbar{display:flex;justify-content:space-between;gap:.75rem;align-items:center;flex-wrap:wrap;min-width:0}
 .tabs,.actions,.filterGroup{display:flex;gap:.45rem;align-items:center;flex-wrap:wrap}
 .tabs>button,.filterGroup>button{display:inline-flex;align-items:center;justify-content:center;min-height:var(--catalog-control-height);margin-top:0;white-space:nowrap}

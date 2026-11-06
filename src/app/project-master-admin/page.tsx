@@ -1,3 +1,4 @@
+import { LocalizedText } from "@/components/localized-text";
 import Link from "next/link";
 import helpStyles from "@/components/ui/context-help.module.css";
 import { ContextHelp } from "@/components/ui/context-help";
@@ -9,13 +10,13 @@ export default function ProjectMasterAdminPage() {
     <section className="workspace-section admin-page project-master-admin-page">
       <div className={`section-heading ${helpStyles.heading} ${styles.heading}`}>
         <div>
-          <p className="eyebrow">Global master data</p>
-          <h1>프로젝트 기준정보 관리</h1>
-          <p>전 프로젝트 공통 기준정보</p>
+          <p className="eyebrow"><LocalizedText text="전역 기준정보" /></p>
+          <h1><LocalizedText text="프로젝트 기준정보 관리" /></h1>
+          <p><LocalizedText text="전 프로젝트 공통 기준정보" /></p>
         </div>
         <div className={styles.actions}>
-          <Link className={`secondary-button ${styles.catalogLink}`} href="/country-calendar-admin">국가 캘린더 관리</Link>
-          <ContextHelp label="프로젝트 기준정보 관리 도움말">사업부, 제품, 사업장/법인을 전 프로젝트 공통 기준정보로 관리합니다.</ContextHelp>
+          <Link className={`secondary-button ${styles.catalogLink}`} href="/country-calendar-admin"><LocalizedText text="국가 캘린더 관리" /></Link>
+          <ContextHelp label="프로젝트 기준정보 관리 도움말"><LocalizedText text="사업부, 제품, 사업장/법인을 전 프로젝트 공통 기준정보로 관리합니다." /></ContextHelp>
         </div>
       </div>
       <ProjectMasterAdmin />

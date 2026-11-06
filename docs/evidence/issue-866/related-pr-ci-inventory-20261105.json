@@ -1,0 +1,105 @@
+{
+  "scope": "관련 PR branch Actions 전체 목록. 원본 #870/#878 과거 개별 로그는 원장 출처와 구별하며 #3475는 추가 대조.",
+  "repository": "planner77/masterGantt",
+  "runs": [
+    {
+      "pr": 878,
+      "run_id": 41930396372,
+      "run_number": 3509,
+      "attempt": 1,
+      "head_sha": "8fca83bbc12cf516cd7f22438fa16c6b596d80fb",
+      "conclusion": "success",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/41930396372"
+    },
+    {
+      "pr": 878,
+      "run_id": 41924914789,
+      "run_number": 3508,
+      "attempt": 1,
+      "head_sha": "cd3f0c57953a0bd50a0ac74c0303211e08b20e68",
+      "conclusion": "failure",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/41924914789"
+    },
+    {
+      "pr": 878,
+      "run_id": 41921474942,
+      "run_number": 3507,
+      "attempt": 1,
+      "head_sha": "ccf39510441a447d3df8f9f85ee3c9b1e22008ce",
+      "conclusion": "failure",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/41921474942"
+    },
+    {
+      "pr": 870,
+      "run_id": 41728256911,
+      "run_number": 3475,
+      "attempt": 1,
+      "head_sha": "ca58e987fd68261d9e9db97b4e931651350d6e4a",
+      "conclusion": "failure",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/41728256911"
+    },
+    {
+      "pr": 870,
+      "run_id": 41723556052,
+      "run_number": 3474,
+      "attempt": 1,
+      "head_sha": "f95731b59f9cdbbd61d09369d077744886d58572",
+      "conclusion": "failure",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/41723556052"
+    },
+    {
+      "pr": 870,
+      "run_id": 41714769786,
+      "run_number": 3473,
+      "attempt": 1,
+      "head_sha": "60259f66e7e8830ecf3f29603f50f659c4631439",
+      "conclusion": "failure",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/41714769786"
+    },
+    {
+      "pr": 870,
+      "run_id": 41710299107,
+      "run_number": 3472,
+      "attempt": 1,
+      "head_sha": "0f9cc15ac140a19b06e9fe519c0883b3f9d58970",
+      "conclusion": "failure",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/41710299107"
+    },
+    {
+      "pr": 870,
+      "run_id": 41704268626,
+      "run_number": 3471,
+      "attempt": 1,
+      "head_sha": "3ef679d930d50bf4eb9d597b31a49be795baca74",
+      "conclusion": "failure",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/41704268626"
+    },
+    {
+      "pr": 870,
+      "run_id": 41650170956,
+      "run_number": 3470,
+      "attempt": 1,
+      "head_sha": "bfe2362a9b0d79128c4fd7e2e97a69f3e699f2d9",
+      "conclusion": "failure",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/41650170956"
+    },
+    {
+      "pr": 870,
+      "run_id": 41640034518,
+      "run_number": 3469,
+      "attempt": 1,
+      "head_sha": "a2b4766651f0a4fe9fbc2cf9f887f03e78ed1a19",
+      "conclusion": "failure",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/41640034518"
+    },
+    {
+      "pr": 870,
+      "run_id": 41618392066,
+      "run_number": 3468,
+      "attempt": 1,
+      "head_sha": "98272e108095e841b22e5433a5d91639ff7c4a8f",
+      "conclusion": "failure",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/41618392066"
+    }
+  ]
+}

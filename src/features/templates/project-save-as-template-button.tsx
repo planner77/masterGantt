@@ -1,5 +1,9 @@
 "use client";
 
+import { safeApiError } from "../../components/safe-ui-error";
+import { useI18n } from "../../lib/i18n/provider";
+
+
 import { useEffect, useRef, useState, type FormEvent } from "react";
 
 import { WorkspaceDialog } from "@/components/workspace-dialog";
@@ -43,6 +47,7 @@ function hasEditPermission(value: unknown): boolean {
 }
 
 export function ProjectSaveAsTemplateButton({ publicId, busy = false }: Props) {
+  const { t } = useI18n();
   const { notify } = useWorkspaceNotifications();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -55,7 +60,7 @@ export function ProjectSaveAsTemplateButton({ publicId, busy = false }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [sourceState, setSourceState] = useState<"loading" | "ready" | "loadError" | "conflict">("loading");
   const [sourceId, setSourceId] = useState("");
-  const [sourceNotice, setSourceNotice] = useState<string | null>(null);
+  const [sourceNotice, setSourceNotice] = useState<number | null>(null);
   const trigger = useRef<HTMLButtonElement | null>(null);
   const pending = useRef(false);
   const request = useRef<AbortController | null>(null);
@@ -124,7 +129,7 @@ export function ProjectSaveAsTemplateButton({ publicId, busy = false }: Props) {
         setDescription(snapRes.data.project.description);
         initialized.current = true;
       } else {
-        setSourceNotice(`최신 원본 revision ${snapRes.data.project.revision}을 확인했습니다. 내용을 검토한 후 템플릿 저장을 다시 선택해 주세요.`);
+        setSourceNotice(snapRes.data.project.revision);
       }
       setSourcePassword("");
     } catch {
@@ -206,14 +211,15 @@ export function ProjectSaveAsTemplateButton({ publicId, busy = false }: Props) {
         } else if (res.status === 412) {
           setSourceState("conflict");
           setError("원본 프로젝트가 변경되었습니다. 최신 원본을 확인한 뒤 다시 제출해 주세요.");
-        } else setError(typeof errorJson?.error?.message === "string" ? errorJson.error.message : "템플릿을 저장하지 못했습니다.");
+        } else setError(safeApiError(errorJson, "템플릿을 저장하지 못했습니다."));
         return;
       }
 
       notify(
         "success",
-        `"${trimmedName}" 템플릿으로 저장되었습니다. 새 프로젝트 생성 시 템플릿을 선택할 수 있습니다.`,
-        "project_template_save",
+        '"{name}" 템플릿으로 저장되었습니다. 새 프로젝트 생성 시 템플릿을 선택할 수 있습니다.',
+        "템플릿 저장",
+        undefined, { parameters: { name: trimmedName } },
       );
       openRef.current = false; setOpen(false);
     } catch {
@@ -234,28 +240,26 @@ export function ProjectSaveAsTemplateButton({ publicId, busy = false }: Props) {
         disabled={busy}
         onClick={() => void show()}
       >
-        템플릿으로 저장
-      </button>
+        {t("템플릿으로 저장")}</button>
 
       {open && (
         <WorkspaceDialog
-          title="프로젝트 템플릿으로 저장"
+          title={t("프로젝트 템플릿으로 저장")}
           onClose={close}
           busy={saving}
           restoreFocusRef={trigger}
         >
           <p className="dialog-description">
-            현재 프로젝트의 작업 일정(상대 오프셋), 의존관계, 리소스 배정 및 물류 마스터/연결 정보를 템플릿으로 보관합니다.
-          </p>
-        {loading ? <p className="dialog-empty-message" role="status">프로젝트 정보를 확인하고 있습니다…</p> : null}
-        {error ? <div className="form-error-banner" role="alert">{error}</div> : null}
-        {sourceNotice ? <p role="status">{sourceNotice}</p> : null}
-        {!loading && (sourceState === "loadError" || sourceState === "conflict") ? <div className="standalone-actions"><button className="secondary-button" type="button" disabled={saving} onClick={() => void loadSource()}>{sourceState === "conflict" ? "최신 원본 확인" : "다시 시도"}</button></div> : null}
-        {sourceId === publicId && snapshot ? <p>원본 revision {snapshot.data.project.revision} · 작업 {snapshot.data.tasks.length}{!ready ? " · 이전 조회 정보 · 최신 상태 확인 필요" : ""}</p> : null}
+            {t("현재 프로젝트의 작업 일정(상대 오프셋), 의존관계, 리소스 배정 및 물류 마스터/연결 정보를 템플릿으로 보관합니다.")}</p>
+        {loading ? <p className="dialog-empty-message" role="status">{t("프로젝트 정보를 확인하고 있습니다…")}</p> : null}
+        {error ? <div className="form-error-banner" role="alert">{t(error)}</div> : null}
+        {sourceNotice ? <p role="status">{t("최신 원본 revision {revision}을 확인했습니다. 내용을 검토한 후 템플릿 저장을 다시 선택해 주세요.", { revision: String(sourceNotice) })}</p> : null}
+        {!loading && (sourceState === "loadError" || sourceState === "conflict") ? <div className="standalone-actions"><button className="secondary-button" type="button" disabled={saving} onClick={() => void loadSource()}>{sourceState === "conflict" ? t("최신 원본 확인") : t("다시 시도")}</button></div> : null}
+        {sourceId === publicId && snapshot ? <p>{t("원본 revision ")}{snapshot.data.project.revision} {t(" · 작업 ")}{snapshot.data.tasks.length}{!ready ? t(" · 이전 조회 정보 · 최신 상태 확인 필요") : ""}</p> : null}
         <form className={`form-grid ${styles.form}`} noValidate onSubmit={handleSubmit}>
 
             <div className="form-field">
-              <label htmlFor="template-name-input">템플릿 이름</label>
+              <label htmlFor="template-name-input">{t("템플릿 이름")}</label>
               <input
                 id="template-name-input"
                 type="text"
@@ -268,7 +272,7 @@ export function ProjectSaveAsTemplateButton({ publicId, busy = false }: Props) {
             </div>
 
             <div className="form-field">
-              <label htmlFor="template-desc-input">설명 (선택)</label>
+              <label htmlFor="template-desc-input">{t("설명 (선택)")}</label>
               <textarea
                 id="template-desc-input"
                 rows={3}
@@ -281,13 +285,13 @@ export function ProjectSaveAsTemplateButton({ publicId, busy = false }: Props) {
 
             {!authorized && (
               <div className="form-field">
-                <label htmlFor="template-source-password-input">프로젝트 편집 비밀번호</label>
+                <label htmlFor="template-source-password-input">{t("프로젝트 편집 비밀번호")}</label>
                 <input
                   ref={sourceInput}
                   id="template-source-password-input"
                   type="password"
                   required
-                  placeholder="편집 권한 인증용"
+                  placeholder={t("편집 권한 인증용")}
                   value={sourcePassword}
                   onChange={(e) => setSourcePassword(e.target.value)}
                   disabled={saving || !ready}
@@ -302,10 +306,9 @@ export function ProjectSaveAsTemplateButton({ publicId, busy = false }: Props) {
                 disabled={saving}
                 onClick={close}
               >
-                취소
-              </button>
+                {t("취소")}</button>
               <button type="submit" className="primary-button" disabled={saving || !ready || busy}>
-                {saving ? "저장 중…" : "템플릿 저장"}
+                {saving ? t("저장 중…") : t("템플릿 저장")}
               </button>
             </div>
           </form>

@@ -49,12 +49,12 @@ test("Issue #491: Resource Dashboard 실제 공수·큰 서버 표시값·필터
   });
   await panel.getByRole("button",{name:"새로고침",exact:true}).click();
   await expect(panel).toHaveAttribute("data-ready","true");
-  await expect(panel.locator('dl[aria-label="선택 범위 KPI"]')).toContainText("999999.99 M/D");
+  await expect(panel.locator('dl[aria-label="선택 범위 KPI"]')).toContainText("999,999.99 M/D");
   await expect(panel.getByRole("button",{name:"M/M",exact:true})).toBeEnabled();
   await capture491(page,info,"effort-large-server-values",".project-resource-workload","actual API response with large display-only effort fixture; server algorithm unmodified");
   await panel.getByRole("button",{name:"M/M",exact:true}).click();
   await expect(panel.getByRole("button",{name:"M/M",exact:true})).toHaveAttribute("aria-pressed","true");
-  await expect(panel.locator('dl[aria-label="선택 범위 KPI"]')).toContainText("50000.00 M/M");
+  await expect(panel.locator('dl[aria-label="선택 범위 KPI"]')).toContainText("50,000.00 M/M");
   await panel.getByLabel("기간 종료",{exact:true}).fill("2026-10-01");
   await expect(panel).toHaveAttribute("data-ready","false");
   await expect(panel.getByRole("alert")).toContainText("시작일이 종료일보다 늦습니다.");
@@ -108,7 +108,12 @@ test("Issue #491: 빈 프로젝트 생성의 긴 필드·validation·pending·na
 test("Issue #491: 템플릿 저장의 긴 초안·validation·pending·401412·readonly와 실제 성공",async({page,baseURL},info)=>{
   const source=await createSource491(page,baseURL!);await openMore491(page,"템플릿으로 저장");const dialog=page.getByRole("dialog",{name:"프로젝트 템플릿으로 저장",exact:true});const name=dialog.getByLabel("템플릿 이름",{exact:true}),description=dialog.getByLabel("설명 (선택)",{exact:true}),save=dialog.getByRole("button",{name:"템플릿 저장",exact:true});await expect(save).toBeEnabled();
   await name.fill(name491);await description.fill(description491);await capture491(page,info,"template-save-long");await name.focus();await page.keyboard.press("Tab");await expect(description).toBeFocused();await capture491(page,info,"template-save-native-focus","dialog[open]","native Tab from name to description",[390,1440]);await name.fill("");await save.click();await expect(dialog.getByRole("alert")).toContainText("1~200자");await capture491(page,info,"template-save-validation");await name.fill(name491);
-  const gate=await gate491(page,"**/api/project-templates","POST");gate.mode="500";gate.hold=true;await save.click();await expect(name).toBeDisabled();await page.keyboard.press("Escape");await page.keyboard.press("Escape");await expect(dialog).toBeVisible();await capture491(page,info,"template-save-pending","dialog[open]","controlled deferred template500");await expect.poll(()=>Boolean(gate.release)).toBe(true);gate.hold=false;gate.release!();await expect(dialog.getByRole("alert")).toContainText("통제된 검증 오류");await expect(name).toHaveValue(name491);await capture491(page,info,"template-save-error","dialog[open]","controlled template500");
+  const gate=await gate491(page,"**/api/project-templates","POST");gate.mode="500";gate.hold=true;await save.click();await expect(name).toBeDisabled();await page.keyboard.press("Escape");await page.keyboard.press("Escape");await expect(dialog).toBeVisible();await capture491(page,info,"template-save-pending","dialog[open]","controlled deferred template500");await expect.poll(()=>Boolean(gate.release)).toBe(true);gate.hold=false;gate.release!();
+  // Unknown 5xx code/message is untrusted; show the caller's template context.
+  await expect(dialog.getByRole("alert")).toHaveText("템플릿을 저장하지 못했습니다.");
+  expect(gate.requests.at(-1)?.status).toBe(500);
+  await expect(dialog).not.toContainText("통제된 검증 오류");
+  await expect(name).toHaveValue(name491);await expect(description).toHaveValue(description491);await capture491(page,info,"template-save-error","dialog[open]","controlled template500");
   gate.mode="412";await save.click();await expect(dialog.getByRole("alert")).toContainText("변경되었습니다");await capture491(page,info,"template-save-stale","dialog[open]","controlled template412");await dialog.getByRole("button",{name:"최신 원본 확인",exact:true}).click();await expect(save).toBeEnabled();await expect(description).toHaveValue(description491);
   gate.mode="401";await save.click();await expect(dialog.getByLabel("프로젝트 편집 비밀번호",{exact:true})).toBeFocused();await expect(dialog.getByLabel("프로젝트 편집 비밀번호",{exact:true})).toHaveValue("");await capture491(page,info,"template-save-401","dialog[open]","controlled template401");await page.keyboard.press("Escape");await expect(dialog).toHaveCount(0);await expect(page.getByRole("button",{name:"템플릿으로 저장",exact:true})).toBeFocused();
   await page.request.delete(`${source.path}/edit-sessions/current`,{headers:{Origin:baseURL!}});await page.reload();await openMore491(page,"템플릿으로 저장");await expect(save).toBeEnabled();await expect(dialog.getByLabel("프로젝트 편집 비밀번호",{exact:true})).toBeVisible();await capture491(page,info,"template-save-readonly");gate.mode="continue";await dialog.getByLabel("프로젝트 편집 비밀번호",{exact:true}).fill(fixturePassword491);const responsePromise=page.waitForResponse(r=>r.request().method()==="POST"&&new URL(r.url()).pathname==="/api/project-templates");await save.click();expect((await responsePromise).status()).toBe(201);await expect(dialog).toHaveCount(0);expect((await(await page.request.get(source.path)).json()).data).toEqual(source.snapshot);await writeSafe491(info,"template-save-contract",{actualStatus:201,sourceUnchanged:true,requests:gate.requests,staleDraftPreserved:true,normalEscapeRestore:true,successFocus:await page.evaluate(()=>document.activeElement?.tagName)});

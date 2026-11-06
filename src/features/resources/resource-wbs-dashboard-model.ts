@@ -1,3 +1,5 @@
+import { translate } from "../../lib/i18n";
+import type { AppLocale } from "../../lib/i18n/locales";
 import type { ProjectResourceMembershipDto } from "../../contracts/project-resource-memberships";
 import type { WbsViewNode, WbsViewReportDto, WbsViewSpec } from "../../contracts/wbs-dashboard-views";
 
@@ -10,13 +12,13 @@ export const RESOURCE_WBS_PRESETS: Array<{ label: string; levels: NonNullable<Wb
   { label: "리소스 → Milestone → 공정", levels: ["milestone", "process"] },
 ];
 /** These are participation labels, never effort/Capacity or assignment selectors. */
-export function resourceParticipationLabel(resource: ProjectResourceMembershipDto) {
+export function resourceParticipationLabel(resource: ProjectResourceMembershipDto, locale: AppLocale = "ko") {
   const assigned = resource.sources.taskAssignments;
   const roleOnly = !assigned && (resource.sources.responsibilityAssignments || resource.sources.equipmentRoles || resource.sources.systemRoles);
-  return [assigned ? "Task 개인 배정" : roleOnly ? "역할만 있음 · Task 개인 배정 없음" : resource.registered ? "등록만 됨 · Task 개인 배정 없음" : "Task 개인 배정 없음", !resource.active ? "비활성 기존 참조" : null].filter(Boolean).join(" · ");
+  return [assigned ? "Task 개인 배정" : roleOnly ? "역할만 있음 · Task 개인 배정 없음" : resource.registered ? "등록만 됨 · Task 개인 배정 없음" : "Task 개인 배정 없음", !resource.active ? "비활성 기존 참조" : null].filter((label): label is string => label !== null).map(label=>translate(locale,label)).join(" · ");
 }
 /** Server totals and canonical participation are deliberately separate populations. */
-export function resourceWbsPresentation(data: WbsViewReportDto) {
+export function resourceWbsPresentation(data: WbsViewReportDto, locale: AppLocale = "ko") {
   const resources = data.configuration.resourceMemberships;
   return {
     resources,
@@ -32,7 +34,7 @@ export function resourceWbsPresentation(data: WbsViewReportDto) {
     rowAnnotation: (node: WbsViewNode) => {
       if(node.selector.dimension !== "resource" || !node.selector.id) return undefined;
       const resource=resources.find(row=>row.id===node.selector.id);
-      return resource ? resourceParticipationLabel(resource) : undefined;
+      return resource ? resourceParticipationLabel(resource,locale) : undefined;
     },
   };
 }

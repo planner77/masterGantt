@@ -1,5 +1,8 @@
 "use client";
 
+import { useI18n } from "../../lib/i18n/provider";
+
+
 import { useId, useRef, useState, type FormEvent, type KeyboardEvent, type RefObject } from "react";
 import { WorkspaceDialog } from "../../components/workspace-dialog";
 import type { ProjectStatus, ProjectVisibility } from "../../contracts/projects";
@@ -80,6 +83,7 @@ export function ProjectSettingsDialog({
   onCalendarConflict,
   notify,
 }: Readonly<ProjectSettingsDialogProps>) {
+  const { t } = useI18n();
   const [activeTab, setActiveTab] = useState<ProjectSettingsTabId>("general");
   const tabListReference = useRef<HTMLDivElement>(null);
   const baseId = useId();
@@ -112,7 +116,7 @@ export function ProjectSettingsDialog({
 
   return (
     <WorkspaceDialog
-      title="프로젝트 설정"
+      title={t("프로젝트 설정")}
       size="wide"
       restoreFocusRef={restoreFocusRef}
       busy={busy}
@@ -122,7 +126,7 @@ export function ProjectSettingsDialog({
         <div
           ref={tabListReference}
           role="tablist"
-          aria-label="프로젝트 설정 범주"
+          aria-label={t("프로젝트 설정 범주")}
           className={styles.tabList}
         >
           {TABS.map((tab, index) => {
@@ -140,7 +144,7 @@ export function ProjectSettingsDialog({
                 onClick={() => setActiveTab(tab.id)}
                 onKeyDown={(event) => handleTabKeyDown(event, index)}
               >
-                {tab.label}
+                {t(tab.label)}
               </button>
             );
           })}
@@ -157,7 +161,7 @@ export function ProjectSettingsDialog({
           <form className="project-form compact-form" noValidate onSubmit={onSaveMetadata}>
             <div className={styles.generalFormGrid}>
               <div className="form-field">
-                <label htmlFor="metadata-name">프로젝트 이름</label>
+                <label htmlFor="metadata-name">{t("프로젝트 이름")}</label>
                 <input
                   disabled={busy}
                   id="metadata-name"
@@ -166,7 +170,7 @@ export function ProjectSettingsDialog({
                 />
               </div>
               <div className="form-field">
-                <label htmlFor="metadata-status">프로젝트 상태</label>
+                <label htmlFor="metadata-status">{t("프로젝트 상태")}</label>
                 <select
                   disabled={busy}
                   id="metadata-status"
@@ -175,7 +179,7 @@ export function ProjectSettingsDialog({
                 >
                   {PROJECT_STATUS_OPTIONS.map(({ value, label }) => (
                     <option key={value} value={value}>
-                      {label}
+                      {t(label)}
                     </option>
                   ))}
                 </select>
@@ -191,13 +195,13 @@ export function ProjectSettingsDialog({
                   />
                 ) : (
                   <div className="form-error" role={masterCatalog.state === "error" ? "alert" : "status"}>
-                    <span>{masterCatalog.state === "loading" ? "프로젝트 기준정보를 불러오는 중…" : "프로젝트 기준정보를 불러오지 못했습니다."}</span>
-                    {masterCatalog.state === "error" ? <button className="secondary-button" type="button" onClick={masterCatalog.reload}>다시 시도</button> : null}
+                    <span>{masterCatalog.state === "loading" ? t("프로젝트 기준정보를 불러오는 중…") : t("프로젝트 기준정보를 불러오지 못했습니다.")}</span>
+                    {masterCatalog.state === "error" ? <button className="secondary-button" type="button" onClick={masterCatalog.reload}>{t("다시 시도")}</button> : null}
                   </div>
                 )}
               </div>
               <div className={`form-field ${styles.fullWidthField}`}>
-                <label htmlFor="metadata-description">설명</label>
+                <label htmlFor="metadata-description">{t("설명")}</label>
                 <textarea
                   disabled={busy}
                   id="metadata-description"
@@ -209,7 +213,7 @@ export function ProjectSettingsDialog({
             </div>
             <div className={styles.formActions}>
               <button className="primary-button" disabled={busy} type="submit">
-                {isSavingMetadata ? "저장 중…" : "프로젝트 정보 저장"}
+                {isSavingMetadata ? t("저장 중…") : t("프로젝트 정보 저장")}
               </button>
             </div>
           </form>
@@ -245,21 +249,21 @@ export function ProjectSettingsDialog({
           <div className={styles.securitySection}>
             <form className="project-form compact-form" noValidate onSubmit={onSaveMetadata}>
               <div className="form-field">
-                <label htmlFor="metadata-visibility">공개범위</label>
+                <label htmlFor="metadata-visibility">{t("공개범위")}</label>
                 <select id="metadata-visibility" disabled={busy} value={metadataVisibility}
                   onChange={event => onMetadataVisibilityChange(event.target.value as ProjectVisibility)}>
-                  <option value="public">공개 — 비밀번호 없이 일정 조회</option>
-                  <option value="private">비공개 — 비밀번호 인증 후 조회 및 편집</option>
+                  <option value="public">{t("공개 — 비밀번호 없이 일정 조회")}</option>
+                  <option value="private">{t("비공개 — 비밀번호 인증 후 조회 및 편집")}</option>
                 </select>
-                <p>공개범위 변경은 현재 편집 세션과 최신 프로젝트 Revision이 필요합니다.</p>
+                <p>{t("공개범위 변경은 현재 편집 세션과 최신 프로젝트 Revision이 필요합니다.")}</p>
               </div>
               <div className={styles.formActions}><button className="secondary-button" type="submit" disabled={busy}>
-                {isSavingMetadata ? "저장 중…" : "공개범위 저장"}
+                {isSavingMetadata ? t("저장 중…") : t("공개범위 저장")}
               </button></div>
             </form>
             <form className="project-form compact-form" noValidate onSubmit={onChangePassword}>
               <div className="form-field">
-                <label htmlFor="new-edit-password">새 편집 비밀번호</label>
+                <label htmlFor="new-edit-password">{t("새 편집 비밀번호")}</label>
                 <input
                   autoComplete="new-password"
                   disabled={busy}
@@ -269,20 +273,19 @@ export function ProjectSettingsDialog({
                   value={newPassword}
                   onChange={(event) => onNewPasswordChange(event.target.value)}
                 />
-                <p>1~12자로 입력해 주세요.</p>
+                <p>{t("1~12자로 입력해 주세요.")}</p>
               </div>
               <div className={styles.formActions}>
                 <button className="secondary-button" disabled={busy} type="submit">
-                  {isChangingPassword ? "변경 중…" : "편집 비밀번호 변경"}
+                  {isChangingPassword ? t("변경 중…") : t("편집 비밀번호 변경")}
                 </button>
               </div>
             </form>
 
             <div className={styles.sessionCard}>
-              <h4>편집 세션 관리</h4>
+              <h4>{t("편집 세션 관리")}</h4>
               <p>
-                현재 브라우저 세션에서 편집 모드가 활성화되어 있습니다. 작업을 완료한 후 편집 모드를 종료하면 안전하게 읽기 전용 상태로 전환됩니다.
-              </p>
+                {t("현재 브라우저 세션에서 편집 모드가 활성화되어 있습니다. 작업을 완료한 후 편집 모드를 종료하면 안전하게 읽기 전용 상태로 전환됩니다.")}</p>
               <div className={styles.sessionCardActions}>
                 <button
                   className="secondary-button logout-button"
@@ -290,7 +293,7 @@ export function ProjectSettingsDialog({
                   type="button"
                   onClick={onLogout}
                 >
-                  {isLoggingOut ? "종료 중…" : "편집 모드 종료"}
+                  {isLoggingOut ? t("종료 중…") : t("편집 모드 종료")}
                 </button>
               </div>
             </div>

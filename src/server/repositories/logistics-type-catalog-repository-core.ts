@@ -1,7 +1,10 @@
+import type { DisplayNameTranslations } from "../../contracts/display-name-translations";
+import { displayNameTranslationFields } from "./display-name-translations-repository-core";
 import type Database from "better-sqlite3";
 import type { LogisticsTypeKind } from "../../contracts/logistics";
 
 export interface LogisticsTypeRecord {
+  translations?: DisplayNameTranslations;
   code: string;
   name: string;
   active: boolean;
@@ -17,7 +20,7 @@ interface TypeRow {
   usage_count: number;
 }
 
-function table(kind: LogisticsTypeKind): string {
+function table(kind: LogisticsTypeKind): "logistics_equipment_types" | "logistics_system_types" {
   return kind === "equipment" ? "logistics_equipment_types" : "logistics_system_types";
 }
 
@@ -46,12 +49,12 @@ export class LogisticsTypeCatalogRepository {
 
   list(kind: LogisticsTypeKind, activeOnly=false): LogisticsTypeRecord[] {
     const rows=this.database.prepare(`SELECT t.code,t.name,t.active,t.sort_order,${usageSql(kind)} AS usage_count FROM ${table(kind)} t ${activeOnly?"WHERE t.active=1":""} ORDER BY t.sort_order, lower(t.name), t.code`).all() as TypeRow[];
-    return rows.map(map);
+    return rows.map(row => ({ ...map(row), ...displayNameTranslationFields(this.database, table(kind), row.code) }));
   }
 
   find(kind: LogisticsTypeKind, code:string): LogisticsTypeRecord|undefined {
     const row=this.database.prepare(`SELECT t.code,t.name,t.active,t.sort_order,${usageSql(kind)} AS usage_count FROM ${table(kind)} t WHERE t.code=?`).get(code) as TypeRow|undefined;
-    return row?map(row):undefined;
+    return row ? { ...map(row), ...displayNameTranslationFields(this.database, table(kind), row.code) } : undefined;
   }
 
   insert(kind: LogisticsTypeKind, input:{code:string;name:string;active:boolean;sortOrder:number;now:string}): void {

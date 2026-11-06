@@ -1,3 +1,9 @@
+## Issue #866 — 관리형 표시명 손실 방어와 화면 언어
+
+Phase B의 관리형 기준정보 `translations`는 기존 일정 Excel의 시트/열로 왕복 보존할 수 없다. 일정 Export가 이를 표현하지 못하면 전체 요청을 `409 DISPLAY_NAME_TRANSLATIONS_EXPORT_UNSUPPORTED`로 거부하며, 번역을 조용히 버린 성공 파일을 만들지 않는다. 기존 `PROCESS_CONTEXT_EXPORT_UNSUPPORTED`와 원 출처/권한/revision 검사는 유지한다. 대응 Project Copy·Template v6 또는 검증된 DB backup을 사용하며 일정 Excel을 전체 backup으로 안내하지 않는다. 상세 범위는 [Import/Export](IMPORT_EXPORT.md)와 [Phase B](I18N_PHASE_B.md)를 따른다.
+
+Phase C의 표시 언어는 Export 버튼·도움말·피드백과 focus 복원에 적용한다. 브라우저 locale로 workbook의 field/enum·원본 이름·ID·날짜·공수 산식·지원 descriptor를 바꾸지 않는다. 별도 Resource 보고서의 기존 scope·snapshot·분석 출력 계약을 전체 기준정보 전송으로 확대하지 않는다. 로컬 검증과 새 exact Head PR CI, Windows Excel 실환경 검증은 [Work Packet](exec-plans/active/ISSUE_866.md)의 증거 경계를 따른다.
+
 ## Issue #808 — 분석 모델과 지원 Excel의 동등성 범위
 
 새 Resource 분석 read model은 기존 WBS/KPI/Plan 원장의 selector를 재사용하며 workbook writer·HTTP export descriptor·시트와 지원 spec을 변경하지 않는다. chart/pivot의 top N이나 중복 Group/Role/Milestone/실물 소계를 합산해 Excel 총계로 쓰지 않는다. 동등성 비교는 같은 canonical Task/Assignment/Resource ID집합·선택 scope·기간/기준일·effective Calendar·mdPerMm에서 raw M/D/M/M·null/partial/configured0·Task 수·Plan을 대상으로 한다.

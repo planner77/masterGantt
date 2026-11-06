@@ -1,5 +1,10 @@
 "use client";
 
+import { translate } from "../../lib/i18n";
+import { type AppLocale } from "../../lib/i18n/locales";
+import { formatLocaleDateOnly } from "../../lib/date-display";
+import { useI18n } from "../../lib/i18n/provider";
+
 import { IdentifierDetails } from "../../components/identifier-details";
 
 import React, { useId, useMemo, useRef, useState } from "react";
@@ -40,10 +45,11 @@ export function relationCandidateContext(
   task: ProjectTaskDto,
   tasks: readonly ProjectTaskDto[],
   byExternalId = new Map(tasks.map(item => [item.externalId, item])),
+  locale: AppLocale = "ko",
 ): string {
   const visibleContext = (item: ProjectTaskDto) => {
-    const parent = item.parentExternalId ? byExternalId.get(item.parentExternalId)?.name : "프로젝트 최상위";
-    return `${parent ?? "상위 작업 정보 없음"} · ${item.start ?? "일정 미정"}`;
+    const parent = item.parentExternalId ? byExternalId.get(item.parentExternalId)?.name : translate(locale, "프로젝트 최상위");
+    return `${parent ?? translate(locale, "상위 작업 정보 없음")} · ${item.start ? locale === "ko" ? item.start : formatLocaleDateOnly(item.start, locale) : translate(locale, "일정 미정")}`;
   };
   const context = visibleContext(task);
   const ambiguous = tasks.some(other => other.taskId !== task.taskId && other.name === task.name && visibleContext(other) === context);
@@ -61,6 +67,7 @@ export function RelationEditorDialog({
   onDeleteLink,
   onCreateLink,
 }: RelationEditorDialogProps) {
+  const { t, locale } = useI18n();
   const dialogId = useId();
   const pendingRef = useRef(false);
   const confirmCancelRef = useRef<HTMLButtonElement>(null);
@@ -76,7 +83,7 @@ export function RelationEditorDialog({
 
   const tasksByExternalId = useMemo(() => new Map(tasks.map((t) => [t.externalId, t])), [tasks]);
 
-  const candidateContext = (task: ProjectTaskDto) => relationCandidateContext(task, tasks, tasksByExternalId);
+  const candidateContext = (task: ProjectTaskDto) => relationCandidateContext(task, tasks, tasksByExternalId, locale);
 
   // Anchor task externalId state
   const [anchorExternalId, setAnchorExternalId] = useState<string>(() => {
@@ -195,8 +202,8 @@ export function RelationEditorDialog({
     try {
       const saved = await onUpdateLink(activeLink.id, { type, lag });
       if (!saved) throw new Error("관계 수정에 실패했습니다.");
-    } catch (err) {
-      setLinkError(err instanceof Error ? err.message : "관계 수정에 실패했습니다.");
+    } catch {
+      setLinkError("관계 수정에 실패했습니다.");
     } finally {
       pendingRef.current = false;
       setIsSaving(false);
@@ -222,8 +229,8 @@ export function RelationEditorDialog({
           onClose();
         }
       }
-    } catch (err) {
-      setLinkError(err instanceof Error ? err.message : "관계 삭제에 실패했습니다.");
+    } catch {
+      setLinkError("관계 삭제에 실패했습니다.");
     } finally {
       pendingRef.current = false;
       setIsDeleting(false);
@@ -245,8 +252,8 @@ export function RelationEditorDialog({
       const created = await onCreateLink(sourceTaskId, targetTaskId, { type: newType, lag: newLag });
       if (!created) throw new Error("새 관계 추가에 실패했습니다.");
       resetNewDraft();
-    } catch (err) {
-      setCreateError(err instanceof Error ? err.message : "새 관계 추가에 실패했습니다.");
+    } catch {
+      setCreateError("새 관계 추가에 실패했습니다.");
     } finally {
       pendingRef.current = false;
       setIsCreating(false);
@@ -262,14 +269,14 @@ export function RelationEditorDialog({
   const relationName = (link: ProjectLinkDto) => `${tasksByExternalId.get(link.predecessorExternalId)?.name ?? link.predecessorExternalId} → ${tasksByExternalId.get(link.successorExternalId)?.name ?? link.successorExternalId}`;
 
   return (
-    <WorkspaceDialog title="작업 관계 관리 (Relation Editor)" onClose={requestClose} onEscape={requestEscapeClose} busy={mutationPending} size="wide" feedback={false}>
+    <WorkspaceDialog title={t("작업 관계 관리 (Relation Editor)")} onClose={requestClose} onEscape={requestEscapeClose} busy={mutationPending} size="wide" feedback={false}>
       <div onKeyDownCapture={handleEscape}>
         {confirmation ? (
           <div className="relation-editor-confirmation" role="alert">
-            <p>{confirmation.kind === "delete" && deleteTarget ? `관계 '${relationName(deleteTarget)}'를 삭제하시겠습니까?${draftDirty ? " 마지막 관계가 삭제되어 창이 닫히면 저장하지 않은 변경도 버려집니다." : ""}` : "저장하지 않은 변경이 있습니다. 변경을 버리시겠습니까?"}</p>
+            <p>{confirmation.kind === "delete" && deleteTarget ? t("관계 '{value0}'를 삭제하시겠습니까?{value1}", { value0: relationName(deleteTarget), value1: draftDirty ? " 마지막 관계가 삭제되어 창이 닫히면 저장하지 않은 변경도 버려집니다." : "" }) : t("저장하지 않은 변경이 있습니다. 변경을 버리시겠습니까?")}</p>
             <div className="relation-editor-btn-group">
-              <button ref={confirmCancelRef} className="relation-editor-btn relation-editor-btn-secondary" type="button" disabled={mutationPending} onClick={cancelConfirmation}>{confirmation.kind === "delete" ? "삭제 취소" : "계속 편집"}</button>
-              <button className="relation-editor-btn relation-editor-btn-danger" type="button" disabled={mutationPending} onClick={confirmAction}>{confirmation.kind === "delete" ? "삭제 확인" : "변경 버리기"}</button>
+              <button ref={confirmCancelRef} className="relation-editor-btn relation-editor-btn-secondary" type="button" disabled={mutationPending} onClick={cancelConfirmation}>{confirmation.kind === "delete" ? t("삭제 취소") : t("계속 편집")}</button>
+              <button className="relation-editor-btn relation-editor-btn-danger" type="button" disabled={mutationPending} onClick={confirmAction}>{confirmation.kind === "delete" ? t("삭제 확인") : t("변경 버리기")}</button>
             </div>
           </div>
         ) : null}
@@ -280,8 +287,8 @@ export function RelationEditorDialog({
           {activeLink ? (
             <div className="relation-editor-section">
               <div className="relation-editor-section-title">
-                <span>선택된 관계 설정</span>{activeLocked ? <span className="relation-editor-badge">Milestone 잠금</span> : null}
-                {!editable && <span className="relation-editor-badge">읽기 전용</span>}
+                <span>{t("선택된 관계 설정")}</span>{activeLocked ? <span className="relation-editor-badge">{t("Milestone 잠금")}</span> : null}
+                {!editable && <span className="relation-editor-badge">{t("읽기 전용")}</span>}
               </div>
 
               <div className="relation-editor-card">
@@ -289,16 +296,16 @@ export function RelationEditorDialog({
                   {/* Predecessor Box */}
                   <div className={`relation-editor-endpoint-box ${effectiveAnchorExternalId === activeLink.predecessorExternalId ? "is-anchor" : ""}`}>
                     <div className="relation-editor-endpoint-tag">
-                      <span>선행 작업 (Predecessor)</span>
+                      <span>{t("선행 작업 (Predecessor)")}</span>
                       {effectiveAnchorExternalId === activeLink.predecessorExternalId && (
-                        <span className="relation-editor-badge relation-editor-badge-primary">기준 작업 (Anchor)</span>
+                        <span className="relation-editor-badge relation-editor-badge-primary">{t("기준 작업 (Anchor)")}</span>
                       )}
                     </div>
                     <div className="relation-editor-endpoint-name" title={predecessorTask?.name ?? activeLink.predecessorExternalId}>
                       {predecessorTask?.name ?? activeLink.predecessorExternalId}
                     </div>
                     <div className="relation-editor-endpoint-dates">
-                      {predecessorTask ? `${predecessorTask.start} ~ ${predecessorTask.end} (${predecessorTask.duration}일)` : "-"}
+                      {predecessorTask ? t("{value0} ~ {value1} ({value2}일)", { value0: predecessorTask.start ? locale === "ko" ? predecessorTask.start : formatLocaleDateOnly(predecessorTask.start, locale) : "—", value1: predecessorTask.end ? locale === "ko" ? predecessorTask.end : formatLocaleDateOnly(predecessorTask.end, locale) : "—", value2: predecessorTask.duration }) : "-"}
                     </div>
                     <button
                       className="relation-editor-anchor-btn"
@@ -306,23 +313,23 @@ export function RelationEditorDialog({
                       onClick={() => { if (!pendingRef.current) setAnchorExternalId(activeLink.predecessorExternalId); }}
                       type="button"
                     >
-                      {effectiveAnchorExternalId === activeLink.predecessorExternalId ? "기준 작업으로 선택됨" : "선행 작업을 기준으로 보기"}
+                      {effectiveAnchorExternalId === activeLink.predecessorExternalId ? t("기준 작업으로 선택됨") : t("선행 작업을 기준으로 보기")}
                     </button>
                   </div>
 
                   {/* Successor Box */}
                   <div className={`relation-editor-endpoint-box ${effectiveAnchorExternalId === activeLink.successorExternalId ? "is-anchor" : ""}`}>
                     <div className="relation-editor-endpoint-tag">
-                      <span>후행 작업 (Successor)</span>
+                      <span>{t("후행 작업 (Successor)")}</span>
                       {effectiveAnchorExternalId === activeLink.successorExternalId && (
-                        <span className="relation-editor-badge relation-editor-badge-primary">기준 작업 (Anchor)</span>
+                        <span className="relation-editor-badge relation-editor-badge-primary">{t("기준 작업 (Anchor)")}</span>
                       )}
                     </div>
                     <div className="relation-editor-endpoint-name" title={successorTask?.name ?? activeLink.successorExternalId}>
                       {successorTask?.name ?? activeLink.successorExternalId}
                     </div>
                     <div className="relation-editor-endpoint-dates">
-                      {successorTask ? `${successorTask.start} ~ ${successorTask.end} (${successorTask.duration}일)` : "-"}
+                      {successorTask ? t("{value0} ~ {value1} ({value2}일)", { value0: successorTask.start ? locale === "ko" ? successorTask.start : formatLocaleDateOnly(successorTask.start, locale) : "—", value1: successorTask.end ? locale === "ko" ? successorTask.end : formatLocaleDateOnly(successorTask.end, locale) : "—", value2: successorTask.duration }) : "-"}
                     </div>
                     <button
                       className="relation-editor-anchor-btn"
@@ -330,7 +337,7 @@ export function RelationEditorDialog({
                       onClick={() => { if (!pendingRef.current) setAnchorExternalId(activeLink.successorExternalId); }}
                       type="button"
                     >
-                      {effectiveAnchorExternalId === activeLink.successorExternalId ? "기준 작업으로 선택됨" : "후행 작업을 기준으로 보기"}
+                      {effectiveAnchorExternalId === activeLink.successorExternalId ? t("기준 작업으로 선택됨") : t("후행 작업을 기준으로 보기")}
                     </button>
                   </div>
                 </div>
@@ -340,8 +347,7 @@ export function RelationEditorDialog({
                   <div className="relation-editor-form-row">
                     <div className="relation-editor-form-group">
                       <label className="relation-editor-label" htmlFor={`${dialogId}-type`}>
-                        관계 유형 (Type)
-                      </label>
+                        {t("관계 유형 (Type)")}</label>
                       <select
                         className="relation-editor-select"
                         disabled={!editable || activeLocked || mutationPending}
@@ -359,8 +365,7 @@ export function RelationEditorDialog({
 
                     <div className="relation-editor-form-group">
                       <label className="relation-editor-label" htmlFor={`${dialogId}-lag`}>
-                        지연 시간 (Lag, 일 단위)
-                      </label>
+                        {t("지연 시간 (Lag, 일 단위)")}</label>
                       <input
                         className="relation-editor-input"
                         disabled={!editable || activeLocked || mutationPending}
@@ -379,7 +384,7 @@ export function RelationEditorDialog({
                           disabled={activeLocked || !isDirty || mutationPending}
                           type="submit"
                         >
-                          {isSaving ? "저장 중..." : "수정 저장"}
+                          {isSaving ? t("저장 중...") : t("수정 저장")}
                         </button>
                         <button
                           className="relation-editor-btn relation-editor-btn-danger"
@@ -387,18 +392,18 @@ export function RelationEditorDialog({
                           onClick={() => { if (!activeLocked) requestConfirmation({ kind: "delete", linkId: activeLink.id }); }}
                           type="button"
                         >
-                          {isDeleting ? "삭제 중..." : "관계 삭제"}
+                          {isDeleting ? t("삭제 중...") : t("관계 삭제")}
                         </button>
                       </div>
                     )}
                   </div>
-                  {linkError && <div className="relation-editor-error" role="alert">{linkError}</div>}
+                  {linkError && <div className="relation-editor-error" role="alert">{t(linkError)}</div>}
                 </form>
               </div>
             </div>
           ) : (
             <div className="relation-editor-section">
-              <p>{initialAnchorTask ? `기준 작업 [${initialAnchorTask.name}]에서 관계를 선택하거나 새 관계를 추가하세요.` : "선택된 관계가 없습니다."}</p>
+              <p>{initialAnchorTask ? t("기준 작업 [{value0}]에서 관계를 선택하거나 새 관계를 추가하세요.", { value0: initialAnchorTask.name }) : t("선택된 관계가 없습니다.")}</p>
             </div>
           )}
 
@@ -407,20 +412,18 @@ export function RelationEditorDialog({
             <div className="relation-editor-section">
               <div className="relation-editor-section-title">
                 <span>
-                  기준 작업 <strong>[{anchorTask.name}]</strong>의 연결된 관계
-                </span>
+                  {t("기준 작업 ")}<strong>[{anchorTask.name}]</strong>{t("의 연결된 관계")}</span>
                 <span className="relation-editor-badge">
-                  선행 {related.predecessors.length}개 / 후행 {related.successors.length}개
-                </span>
+                  {t("선행 {before}개 / 후행 {after}개", { before: related.predecessors.length, after: related.successors.length })}</span>
               </div>
 
               {/* Predecessors list */}
               <div style={{ marginBottom: "0.75rem" }}>
                 <div style={{ fontSize: "0.8125rem", fontWeight: 600, color: "#475569", marginBottom: "0.375rem" }}>
-                  선행 작업 목록 (다른 작업 → [{anchorTask.name}])
+                  {t("선행 작업 목록 (다른 작업 → [")}{anchorTask.name}])
                 </div>
                 {related.predecessors.length === 0 ? (
-                  <div style={{ fontSize: "0.75rem", color: "#94a3b8", padding: "0.375rem 0" }}>연결된 선행 작업이 없습니다.</div>
+                  <div style={{ fontSize: "0.75rem", color: "#94a3b8", padding: "0.375rem 0" }}>{t("연결된 선행 작업이 없습니다.")}</div>
                 ) : (
                   <div className="relation-editor-links-list">
                     {related.predecessors.map((item) => {
@@ -433,12 +436,12 @@ export function RelationEditorDialog({
                           <div className="relation-editor-link-info">
                             <span className="relation-editor-badge">{item.link.type}</span>
                             {item.link.lag !== 0 && (
-                              <span className="relation-editor-badge">{item.link.lag > 0 ? `+${item.link.lag}일` : `${item.link.lag}일`}</span>
+                              <span className="relation-editor-badge">{item.link.lag > 0 ? t("+{value0}일", { value0: item.link.lag }) : t("{value0}일", { value0: item.link.lag })}</span>
                             )}
                             <span className="relation-editor-link-task-name" title={item.targetTask?.name ?? item.link.predecessorExternalId}>
                               {item.targetTask?.name ?? item.link.predecessorExternalId}
                             </span>
-                            {isItemActive && <span className="relation-editor-badge relation-editor-badge-primary">선택됨</span>}
+                            {isItemActive && <span className="relation-editor-badge relation-editor-badge-primary">{t("선택됨")}</span>}
                           </div>
                           <div style={{ display: "flex", gap: "0.375rem" }}>
                             {!isItemActive && (
@@ -448,8 +451,7 @@ export function RelationEditorDialog({
                                 onClick={() => selectLink(item.link.id)}
                                 type="button"
                               >
-                                선택
-                              </button>
+                                {t("선택")}</button>
                             )}
                             {editable && (
                               <button
@@ -458,8 +460,7 @@ export function RelationEditorDialog({
                                 onClick={() => { if (!linkStructureLocked(item.link, tasks)) requestConfirmation({ kind: "delete", linkId: item.link.id }); }}
                                 type="button"
                               >
-                                삭제
-                              </button>
+                                {t("삭제")}</button>
                             )}
                           </div>
                         </div>
@@ -472,10 +473,9 @@ export function RelationEditorDialog({
               {/* Successors list */}
               <div>
                 <div style={{ fontSize: "0.8125rem", fontWeight: 600, color: "#475569", marginBottom: "0.375rem" }}>
-                  후행 작업 목록 ([{anchorTask.name}] → 다른 작업)
-                </div>
+                  {t("후행 작업 목록 ([")}{anchorTask.name}{t("] → 다른 작업)")}</div>
                 {related.successors.length === 0 ? (
-                  <div style={{ fontSize: "0.75rem", color: "#94a3b8", padding: "0.375rem 0" }}>연결된 후행 작업이 없습니다.</div>
+                  <div style={{ fontSize: "0.75rem", color: "#94a3b8", padding: "0.375rem 0" }}>{t("연결된 후행 작업이 없습니다.")}</div>
                 ) : (
                   <div className="relation-editor-links-list">
                     {related.successors.map((item) => {
@@ -488,12 +488,12 @@ export function RelationEditorDialog({
                           <div className="relation-editor-link-info">
                             <span className="relation-editor-badge">{item.link.type}</span>
                             {item.link.lag !== 0 && (
-                              <span className="relation-editor-badge">{item.link.lag > 0 ? `+${item.link.lag}일` : `${item.link.lag}일`}</span>
+                              <span className="relation-editor-badge">{item.link.lag > 0 ? t("+{value0}일", { value0: item.link.lag }) : t("{value0}일", { value0: item.link.lag })}</span>
                             )}
                             <span className="relation-editor-link-task-name" title={item.targetTask?.name ?? item.link.successorExternalId}>
                               {item.targetTask?.name ?? item.link.successorExternalId}
                             </span>
-                            {isItemActive && <span className="relation-editor-badge relation-editor-badge-primary">선택됨</span>}
+                            {isItemActive && <span className="relation-editor-badge relation-editor-badge-primary">{t("선택됨")}</span>}
                           </div>
                           <div style={{ display: "flex", gap: "0.375rem" }}>
                             {!isItemActive && (
@@ -503,8 +503,7 @@ export function RelationEditorDialog({
                                 onClick={() => selectLink(item.link.id)}
                                 type="button"
                               >
-                                선택
-                              </button>
+                                {t("선택")}</button>
                             )}
                             {editable && (
                               <button
@@ -513,8 +512,7 @@ export function RelationEditorDialog({
                                 onClick={() => { if (!linkStructureLocked(item.link, tasks)) requestConfirmation({ kind: "delete", linkId: item.link.id }); }}
                                 type="button"
                               >
-                                삭제
-                              </button>
+                                {t("삭제")}</button>
                             )}
                           </div>
                         </div>
@@ -530,7 +528,7 @@ export function RelationEditorDialog({
           {editable && anchorTask && (
             <div className="relation-editor-section">
               <div className="relation-editor-section-title">
-                <span>새 관계 추가</span>
+                <span>{t("새 관계 추가")}</span>
               </div>
 
               <form onSubmit={handleCreateLink}>
@@ -538,8 +536,7 @@ export function RelationEditorDialog({
                   {/* Direction */}
                   <div className="relation-editor-form-group">
                     <label className="relation-editor-label" htmlFor={`${dialogId}-direction`}>
-                      연결 방향
-                    </label>
+                      {t("연결 방향")}</label>
                     <select
                       className="relation-editor-select"
                       disabled={mutationPending}
@@ -551,16 +548,15 @@ export function RelationEditorDialog({
                       }}
                       value={addDirection}
                     >
-                      <option value="successor">후행 작업으로 추가 (기준 → 대상)</option>
-                      <option value="predecessor">선행 작업으로 추가 (대상 → 기준)</option>
+                      <option value="successor">{t("후행 작업으로 추가 (기준 → 대상)")}</option>
+                      <option value="predecessor">{t("선행 작업으로 추가 (대상 → 기준)")}</option>
                     </select>
                   </div>
 
                   {/* Search candidate */}
                   <div className="relation-editor-form-group relation-editor-search-container">
                     <label className="relation-editor-label" htmlFor={`${dialogId}-search`}>
-                      연결할 작업 검색
-                    </label>
+                      {t("연결할 작업 검색")}</label>
                     {selectedCandidate ? (
                       <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
                         <div
@@ -582,7 +578,7 @@ export function RelationEditorDialog({
                             <span>{candidateContext(selectedCandidate)}</span>
                           </span>
                         </div>
-                        <IdentifierDetails label={`${selectedCandidate.name} 식별 정보`} identifiers={[{label: "외부 ID", value: selectedCandidate.externalId}, {label: "작업 ID", value: selectedCandidate.taskId}]} />
+                        <IdentifierDetails label={t("{value0} 식별 정보", { value0: selectedCandidate.name })} identifiers={[{label: t("외부 ID"), value: selectedCandidate.externalId}, {label: t("작업 ID"), value: selectedCandidate.taskId}]} />
                         <button
                           className="relation-editor-btn relation-editor-btn-secondary"
                           disabled={mutationPending}
@@ -594,8 +590,7 @@ export function RelationEditorDialog({
                           }}
                           type="button"
                         >
-                          변경
-                        </button>
+                          {t("변경")}</button>
                       </div>
                     ) : (
                       <>
@@ -610,7 +605,7 @@ export function RelationEditorDialog({
                             setIsSearchOpen(true);
                           }}
                           onFocus={() => { if (!pendingRef.current && !restoringSearchFocus.current) setIsSearchOpen(true); }}
-                          placeholder="작업명 / 외부 ID / 작업 ID 검색..."
+                          placeholder={t("작업명 / 외부 ID / 작업 ID 검색...")}
                           ref={searchInputRef}
                           type="text"
                           value={searchQuery}
@@ -622,7 +617,7 @@ export function RelationEditorDialog({
                           >
                             {candidates.length === 0 ? (
                               <div style={{ padding: "0.5rem 0.75rem", fontSize: "0.75rem", color: "#94a3b8" }}>
-                                {searchQuery ? "검색 결과가 없습니다." : "연결 가능한 작업이 없습니다."}
+                                {searchQuery ? t("검색 결과가 없습니다.") : t("연결 가능한 작업이 없습니다.")}
                               </div>
                             ) : (
                               candidates.slice(0, 15).map((candidate) => (
@@ -655,8 +650,7 @@ export function RelationEditorDialog({
                 <div className="relation-editor-form-row">
                   <div className="relation-editor-form-group">
                     <label className="relation-editor-label" htmlFor={`${dialogId}-new-type`}>
-                      관계 유형 (Type)
-                    </label>
+                      {t("관계 유형 (Type)")}</label>
                     <select
                       className="relation-editor-select"
                       disabled={mutationPending}
@@ -674,8 +668,7 @@ export function RelationEditorDialog({
 
                   <div className="relation-editor-form-group">
                     <label className="relation-editor-label" htmlFor={`${dialogId}-new-lag`}>
-                      지연 시간 (Lag, 일 단위)
-                    </label>
+                      {t("지연 시간 (Lag, 일 단위)")}</label>
                     <input
                       className="relation-editor-input"
                       disabled={mutationPending}
@@ -693,12 +686,12 @@ export function RelationEditorDialog({
                       disabled={!selectedCandidate || !canCreateSchedulingLink(anchorTask, tasks.find((task) => task.taskId === selectedCandidate.taskId)) || mutationPending}
                       type="submit"
                     >
-                      {isCreating ? "추가 중..." : "관계 추가"}
+                      {isCreating ? t("추가 중...") : t("관계 추가")}
                     </button>
                   </div>
                 </div>
 
-                {createError && <div className="relation-editor-error" role="alert">{createError}</div>}
+                {createError && <div className="relation-editor-error" role="alert">{t(createError)}</div>}
               </form>
             </div>
           )}
@@ -712,8 +705,7 @@ export function RelationEditorDialog({
             onClick={requestClose}
             type="button"
           >
-            닫기
-          </button>
+            {t("닫기")}</button>
         </div>
       </div>
     </WorkspaceDialog>

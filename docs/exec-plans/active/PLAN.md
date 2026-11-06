@@ -1,3 +1,23 @@
+## Issue #866 — PR #879 Full #3526.1 실패 보완 (2026-11-06)
+
+현재 단계는 [Work Packet C005](ISSUE_866.md)다. Unit의 prototype-key 직접3실패를 재현했고 같은 C004 WBS/Phase C Import의 상속 조회 및 국가 캘린더 local fallback 출처를 함께 보완한다. 누적 CI28회/전체53workflow와 이전 실패 전체를 대조하고 최종 source31spec·Unit/type/docs 및 별도 Agent 기술검토 뒤 새 Full CI 시작까지만 진행한다. 기존 성공의 새 Head 승계·assertion/skip/retry/timeout·Required3/Chromium8 완화 없음. 최종source1cdd6e.../1322동일입력의31spec=192PASS/기존2SKIP/FAIL0,Unit3714PASS/기존3SKIP·build/type/lint/문서구조PASS이며자동Pre-PR UNKNOWN94는BLOCKED를유지한다. HIGH/OWNER_MANAGED/qa_required=true/release_authorized=false, 새 원격 gate·Owner/Manager NOT TESTED/MERGE_READY BLOCKED. 시작 뒤 모니터링·병합·GHCR·Issue 종료 없음.
+
+## #866 REWORK-C003 진행 기준
+
+PR #879의 C002 이후 Full #3524.1 실패를 누적CI26회와 전8shard까지 대조한다. [Work Packet](ISSUE_866.md)의 C003/단일실패원장이 현재 기준이다. 실제저장·재시작준비120초와재시작후검증30초의예산범위변경을명시하고31spec동결회귀·리뷰/충돌·문서/원장을통합해새FullCI시작만확인한다. 모니터링·병합·Main/GHCR/Release·Issue종료없음. HIGH/OWNER_MANAGED/Owner·Manager NOT TESTED/MERGE_READY BLOCKED/별도P2 DEFERRED 유지.
+
+## Issue #866 — PR #879 Full #3523.1 누적 실패 보완 (2026-11-05)
+
+[Work Packet](ISSUE_866.md)의REWORK-C002를따른다. 전CI25회·8shard를대조해Issue안전오류E2E기대누락과취소Shard5의Resource Project근거표시의미회귀를구분·보완한다. 이전25spec+직접2/간접2=29고유spec를동결검증하며새Full CI시작확인까지만진행한다. 별도opaque-error경계P2는미보완으로추적하고새Head Required3/Trusted·Owner/Manager NOT TESTED/MERGE_READY BLOCKED·release_authorized=false를유지한다.
+
+## Issue #866 — PR #879 Full #3522.1 누적 실패 보완 (2026-11-05)
+
+[Work Packet](ISSUE_866.md)의 REWORK-C001과 [누적 실패 원장](../../ISSUE_866_FAILURE_ANALYSIS.md)을 기준으로 전체 CI24회/전8샤드를 대조하고, 번역된 유형 필터·관리자 heading을 소비하는 E2E5파일을 보완한다. 이전 실패 합집합과 인접 소비자를 동일 동결 source의 수동25spec/4parts로 검증한 뒤 한 묶음으로 게시한다. 종료점은 새 Full PR CI 시작 확인이며 모니터링·병합·GHCR/Release·Issue 종료는 하지 않는다. HIGH/OWNER_MANAGED/qa_required=true, release_authorized=false 및 새Head Required3/Trusted·인간QA/Owner/Manager NOT TESTED/MERGE_READY BLOCKED를 유지한다.
+
+## Issue #866 — Phase C 통합 및 새 PR CI 시작 (2026-11-05)
+
+[Work Packet](ISSUE_866.md)의 Phase C 분석·설계·구현·문서 갱신을 기존 PR #879에 통합한다. Main의 #865/#869와 이전 A+B 보완을 유지하며 종료점은 새 Full CI 시작 확인이다. CI 모니터링·병합·GHCR/Release·Issue 종료는 수행하지 않는다. `HIGH/OWNER_MANAGED/qa_required=true`, `release_authorized=false`, 새 Head Required3/Trusted·Owner/Manager ACCEPT는 NOT TESTED다. 과거 Phase A/B TODO 기록은 당시 경계이며 현재 AC 매핑은 Work Packet 정규 절을 따른다.
+
 ## Issue #852 — Gantt 날짜축 반복 확장·Grid 시작점 좌측 탐색 회귀 (2026-10-29)
 
 **REWORK #2 — [Full #3403.1](https://github.com/planner77/masterGantt/actions/runs/40849080627):** Shard5 #527 `resource-plan-dashboard.spec.ts:109` second case 103PASS/1FAIL/4 NOT RUN (X>0, Y96, Core-native X/Y conjunction failed; exact axis UNKNOWN), Shard1/7 PASS, 2/3/4/6/8 CANCELLED, Quality/Docker PASS, E2E/QA derivative FAIL. Prior #514 fix Shard3 CANCELLED=NOT TESTED. [Issue852 cumulative ledger](../../ISSUE_852_FAILURE_ANALYSIS.md) F852-CI-002 preserves all old runs and cross-run TEST_CONTRACT. #527 and structurally identical #526 common setup extension: real Grid task reveal SETTLED→native wheel only if left0→Y96/8 stable frames/4 explicit Core-native conditions + strict peer roundtrip. Product/API/DB/CI/QA unchanged; tests not locally executed; latest remote Full/Trusted/Owner pending. Review/merge check then new Ready PR CI **start only**, no monitor/merge/GHCR/Issue close. `release_authorized=false`.

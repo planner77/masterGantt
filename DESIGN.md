@@ -1,3 +1,16 @@
+## Issue #866 Phase C — 전체 화면 표시 언어 (2026-11-05)
+
+[Phase C 설계](docs/I18N_PHASE_C.md)에 따라 고정 문구·ARIA·도움말·상태/검증·읽기용 날짜/수량을 ko/en/vi로 표시한다. 관리형 name은 현재 locale의 표시명→원본 name으로 fallback하며 ID·선택·자유 입력은 보존한다. 언어 전환은 화면 identity가 아니므로 Gantt/Editor를 remount하거나 draft/scroll/filter/selection을 초기화하지 않는다.
+
+기존 surface별 density를 유지한다: 공용 admin fine40/coarse44px, Resource36/44px, Gantt34/44px, Editor44px. 긴 베트남어 때문에 버튼·고정 도움말을 숨기거나 문서 가로 overflow를 허용하지 않는다. 표·탭 자체의 내부 scroll 소유권과 focus/Escape 복원을 따른다. 고정 state나 관리형 이름을 최종 문자열로 저장하는 대신 descriptor를 현재 locale에서 렌더한다. 사용자 값은 재귀 번역하지 않는다. 최종 실제 검증/미검증은 Work Packet을 따른다.
+
+## Issue #866 Phase B — 다국어 기준정보 표시명 UI 계약 (2026-11-05)
+
+- 프로젝트 생성·설정의 공유 기준정보 선택기는 현재 언어의 표시명을 사용하고, 같은 표시명이 겹칠 때만 기존 코드로 구별한다. 선택값·관계 필터·비활성 기존 선택은 원본 ID를 유지하며 언어 전환으로 초안을 초기화하지 않는다. 물류 유형 검색 입력도 기존 관리 화면의 fine 40px / coarse 44px 높이를 상속한다. 마스터 사용 건수는 짧은 지역화 단위를 가시 표시하고 전체 설명 title을 유지하며, 긴 category tabs의 overflow는 내부 스크롤이 소유한다.
+- 공통 언어 선택(Phase A)과 관리형 기준정보 원본 name·code·ID 필드를 분리한다. 원본 이름은 그대로 편집·저장하고, ko/en/vi 수동 표시명은 별도 TranslationFields/TranslationEditor에서 저장한다. 언어별 번역 미등록 시 정확히 원본 name 표시, 자유 입력 프로젝트/Task/사람 이름은 변경하지 않는다.
+- 관리자 CRUD는 기존 권한·revision·focus/scroll/취소/초안 보존 기준을 따른다. 검색은 원본 및 선택 언어 번역을 대상에 포함하되 선택은 canonical ID/code, 같은 번역명 충돌도 ID로 구별한다. 장문 베트남어와 390/768/1024/1440/1920px 실 브라우저 검증 전 NOT TESTED.
+- 변경된 화면: Project Master, Logistics Type, Process Catalog/Project Process, Project WorkArea, Resource Group. 나머지 Project Equipment/System 입력/전체 UI 일관성은 Phase C 전수 검증 대상으로 보존한다. [Phase B](docs/I18N_PHASE_B.md).
+
 # masterGantt Design System
 
 적용 기준: 2026-09-23.
@@ -404,3 +417,14 @@ Issue는 **compact toolbar(전체/완료/진행 중/등록 건수·비율 + 등�
 일정 Grid/Chart의 `Convert to → Milestone`은 같은 대상 이름과 기간0·표시 변화를 기존 dialog로 확인한 뒤 실행한다. 운영 기본 모드에서는 일정 행·막대가 함께 숨겨지고 `대시보드 → Milestone`에서 관리함을 알린다. legacy 응급 모드의 native 표시 안내는 별도로 유지한다. 취소·Escape는 쓰기 없이 출발 focus를 복원하고 저장 중에는 중복 제출·닫기를 막는다. 성공으로 원 행이 없어지면 일반 보기의 작업 검색 또는 Fullscreen의 Gantt 영역에 focus를 복원한다.
 
 성공 안내와 `Milestone 대시보드에서 보기`는 이름 검색 대신 같은 canonical ID의 기존 상세로 연결한다. 클릭 전 일정 보기·scope·scroll을 유지하고 자동 탭 전환·marker 활성화·날짜 이동을 하지 않는다. 목록 조건이 대상을 가리면 상세와 조건 변경 안내로 구분한다. 기존 semantic token·WorkspaceDialog·단일 Gantt를 재사용하는 Design Delta B이며 실제 실행·잔여 위험은 [#860 Work Packet](docs/exec-plans/active/ISSUE_860.md)을 따른다.
+
+## Issue #866 Phase A — 공통 언어 선택·Gantt Locale·헤더 밀도 (2026-11-05)
+
+- 사용자 화면 표시 언어는 ko/en/vi이며, 최초 SSR/첫 hydration은 ko, 클라이언트는 유효한 브라우저 저장 선택 > 지원되는 브라우저 선호 언어 > ko 순서로 적용한다. 선택한 언어는 localStorage에 저장하지만 저장이 금지되면 현재 탭의 명시 선택을 유지한다. 사용자 자유 입력·DB 식별자/API enum·Task name·서버 error code 원문은 자동 번역·변경하지 않는다.
+- 3열 Header(브랜드/내비게이션/언어·알림)를 유지한다. 오른쪽 `header-actions`의 Locale selector는 기본 7.5rem·좁은 화면 5.5rem 최대폭, focus outline, 명시 label/ARIA를 제공한다. 기존 알림 Portal `workspace-notification-slot`를 별도 안쪽 DOM에 보존한다. 좁은 화면에서 메뉴의 **내부 가로 스크롤**만 허용하고 바깥 문서 overflow를 금지한다.
+- SVAR Gantt/Core/Calendar의 사용자 정의 ko/en/vi `Locale words`는 같은 Gantt 인스턴스를 재사용한다. `weekStart=1`, ISO W##, 일정·기간·Working Calendar·scroll/selection·Task ID/원본 DB는 언어만 바꾸어 수정하지 않는다. Phase A는 Shell/Gantt static words만 구현하며 Dashboard/Issue/기준정보/TaskEditor 및 모든 domain 메시지는 Phase C 전까지 일부 한국어 fallback이다.
+- 기준정보 언어별 번역명 **DB 등록/편집/검색/권한/Copy·Template**는 이번 UI/클라이언트 작업에 포함되지 않으며 Issue #866 Phase B/C 완료 전 전체 다국어 기능 완료 또는 배포를 선언하지 않는다. [Phase A 계약](docs/I18N_PHASE_A.md) 및 [Work Packet](docs/exec-plans/active/ISSUE_866.md).
+
+## Issue #866 C002 — Resource Project 부하 근거 표시 보존
+
+검증된 Plan projection의 demandScope=project 일정 이동은 현재 언어의 Plan 설명에 기존 Project 전체 부하 근거 구분을 함께 표시한다. descriptor가 있어도 이 의미를 생략하지 않는다. 개인/Project 참고 caption은 권한·범위의 근거가 아니며 Task·Assignment ID와 Summary 문맥·복귀 동작은 기존 검증 경계를 유지한다.

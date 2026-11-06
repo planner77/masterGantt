@@ -1,5 +1,9 @@
 "use client";
 
+import { safeApiError } from "../../components/safe-ui-error";
+import { useI18n } from "../../lib/i18n/provider";
+
+
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import type { ProjectTemplateDto } from "@/contracts/project-templates";
@@ -30,6 +34,7 @@ function templatesFromResponse(value: unknown): ProjectTemplateDto[] | null {
 }
 
 export function CreateFromTemplateForm({ onBeginSubmission, onEndSubmission }: SubmissionProps = {}) {
+  const { t } = useI18n();
   const router = useRouter();
   const submissionRef = useRef(false);
   const suggestedName = useRef<string | null>(null);
@@ -120,7 +125,7 @@ export function CreateFromTemplateForm({ onBeginSubmission, onEndSubmission }: S
     try {
       const response = await fetch(`/api/project-templates/${encodeURIComponent(selectedTemplate.id)}/instantiate`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(request) });
       const body = await response.json().catch(() => null);
-      if (!response.ok) { setError(typeof body?.error?.message === "string" ? body.error.message : "프로젝트를 생성하지 못했습니다."); return; }
+      if (!response.ok) { setError(safeApiError(body, "프로젝트를 생성하지 못했습니다.")); return; }
       const publicId = body?.data?.project?.publicId;
       if (typeof publicId !== "string" || !publicId) { setError("생성된 프로젝트 정보를 확인할 수 없습니다."); return; }
       router.push(`/projects/${encodeURIComponent(publicId)}`);
@@ -130,22 +135,22 @@ export function CreateFromTemplateForm({ onBeginSubmission, onEndSubmission }: S
 
   if (loadState === "loading") return <p
     className="card-empty-state"
-    role="status">템플릿 정보를 불러오는 중입니다…</p>;
+    role="status">{t("템플릿 정보를 불러오는 중입니다…")}</p>;
   if (loadState === "error") return <div
     className="card-empty-state">
     <p
       className="form-error"
-      role="alert">템플릿 목록을 불러오지 못했습니다. 연결 상태를 확인한 뒤 다시 시도해 주세요.</p>
+      role="alert">{t("템플릿 목록을 불러오지 못했습니다. 연결 상태를 확인한 뒤 다시 시도해 주세요.")}</p>
     <div className="standalone-actions"><button
       className="secondary-button"
       type="button"
-      onClick={() => { setLoadState("loading"); setRetry((value) => value + 1); }}>템플릿 목록 다시 시도</button></div>
+      onClick={() => { setLoadState("loading"); setRetry((value) => value + 1); }}>{t("템플릿 목록 다시 시도")}</button></div>
   </div>;
   if (templates.length === 0) return <div
     className="card-empty-state">
-    <p>등록된 프로젝트 템플릿이 없습니다.</p>
+    <p>{t("등록된 프로젝트 템플릿이 없습니다.")}</p>
     <p
-      className="card-empty-description">기존 프로젝트의 [더보기] 메뉴에서 [템플릿으로 저장]을 선택하여 템플릿을 등록할 수 있습니다.</p>
+      className="card-empty-description">{t("기존 프로젝트의 [더보기] 메뉴에서 [템플릿으로 저장]을 선택하여 템플릿을 등록할 수 있습니다.")}</p>
   </div>;
 
   return <div
@@ -153,10 +158,10 @@ export function CreateFromTemplateForm({ onBeginSubmission, onEndSubmission }: S
     <div
       className="template-selection-section">
       <label
-        className="template-search-box">템플릿 검색<input
+        className="template-search-box">{t("템플릿 검색")}<input
           type="search"
           disabled={isSubmitting}
-          placeholder="템플릿 이름 또는 설명 검색…"
+          placeholder={t("템플릿 이름 또는 설명 검색…")}
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           className="search-input"
@@ -165,19 +170,19 @@ export function CreateFromTemplateForm({ onBeginSubmission, onEndSubmission }: S
       <div
         className="template-search-status">
         <span
-          role="status">검색 결과 {filteredTemplates.length}개 / 전체 {templates.length}개</span>
+          role="status">{t("검색 결과 ")}{filteredTemplates.length}{t("개 / 전체 ")}{templates.length}{t("개")}</span>
         {search ? <button
           className="secondary-button"
           disabled={isSubmitting}
           type="button"
-          onClick={() => setSearch("")}>검색 초기화</button> : null}
+          onClick={() => setSearch("")}>{t("검색 초기화")}</button> : null}
       </div>
       <fieldset
         className="template-picker"
         disabled={isSubmitting}>
-        <legend>템플릿 선택</legend>
+        <legend>{t("템플릿 선택")}</legend>
         {filteredTemplates.length === 0 ? <p
-          className="card-empty-description">검색 조건에 맞는 템플릿이 없습니다.</p> : null}
+          className="card-empty-description">{t("검색 조건에 맞는 템플릿이 없습니다.")}</p> : null}
         <div
           className="template-cards-grid">
           {filteredTemplates.map((item) => {
@@ -200,7 +205,7 @@ export function CreateFromTemplateForm({ onBeginSubmission, onEndSubmission }: S
                   {item.name}
                 </strong>
                 {selected ? <span
-                  className="badge badge-primary">선택됨</span> : null}
+                  className="badge badge-primary">{t("선택됨")}</span> : null}
               </span>
               {item.description ? <span
                 className="template-card-description">
@@ -209,17 +214,17 @@ export function CreateFromTemplateForm({ onBeginSubmission, onEndSubmission }: S
               <span
                 className="template-card-stats">
                 <span
-                  className="stat-pill">작업 {item.taskCount}
+                  className="stat-pill">{t("작업 ")}{item.taskCount}
                 </span>
                 <span
                   className="stat-pill">Milestone {item.milestoneCount}
                 </span>
                 {item.processCount > 0 ? <span
-                  className="stat-pill">공정 {item.processCount}
+                  className="stat-pill">{t("공정 ")}{item.processCount}
                 </span> : null}{item.equipmentCount > 0 ? <span
-                  className="stat-pill">설비 {item.equipmentCount}
+                  className="stat-pill">{t("설비 ")}{item.equipmentCount}
                 </span> : null}{item.systemCount > 0 ? <span
-                  className="stat-pill">시스템 {item.systemCount}
+                  className="stat-pill">{t("시스템 ")}{item.systemCount}
                 </span> : null}
               </span>
             </label>;
@@ -231,9 +236,9 @@ export function CreateFromTemplateForm({ onBeginSubmission, onEndSubmission }: S
       <div
         className="template-selected-summary"
         role="note">
-        <strong>선택한 템플릿: {selectedTemplate.name}
+        <strong>{t("선택한 템플릿: ")}{selectedTemplate.name}
         </strong>
-        {!filteredTemplates.some((item) => item.id === selectedTemplateId) ? <p>현재 검색 결과에 없는 템플릿입니다. 생성은 이 선택을 기준으로 진행합니다.</p> : null}
+        {!filteredTemplates.some((item) => item.id === selectedTemplateId) ? <p>{t("현재 검색 결과에 없는 템플릿입니다. 생성은 이 선택을 기준으로 진행합니다.")}</p> : null}
       </div>
       <form
         className="project-form"
@@ -244,11 +249,11 @@ export function CreateFromTemplateForm({ onBeginSubmission, onEndSubmission }: S
           className="form-error"
           role="alert"
           tabIndex={-1}>
-          {error}
+          {t(error)}
         </div> : null}
         <div
           className="form-field">
-          <label htmlFor="inst-project-name">새 프로젝트 이름 *</label>
+          <label htmlFor="inst-project-name">{t("새 프로젝트 이름 *")}</label>
           <input
             id="inst-project-name" required
             maxLength={200}
@@ -261,16 +266,16 @@ export function CreateFromTemplateForm({ onBeginSubmission, onEndSubmission }: S
           {fieldErrors.name ? <p
             className="form-field-error"
             id="inst-project-name-error">
-            {fieldErrors.name}
+            {t(fieldErrors.name)}
           </p> : null}
         </div>
         <div
           className="form-field">
-          <label htmlFor="inst-owner-name">소유자 / 담당자 *</label>
+          <label htmlFor="inst-owner-name">{t("소유자 / 담당자 *")}</label>
           <input
             id="inst-owner-name" required
             maxLength={100}
-            placeholder="예: 홍길동 팀장"
+            placeholder={t("예: 홍길동 팀장")}
             value={ownerName}
             onChange={(event) => { setOwnerName(event.target.value); clearFieldError("ownerName"); }}
             disabled={isSubmitting}
@@ -280,12 +285,12 @@ export function CreateFromTemplateForm({ onBeginSubmission, onEndSubmission }: S
           {fieldErrors.ownerName ? <p
             className="form-field-error"
             id="inst-owner-name-error">
-            {fieldErrors.ownerName}
+            {t(fieldErrors.ownerName)}
           </p> : null}
         </div>
         <div
           className="form-field">
-          <label htmlFor="inst-start-date">프로젝트 시작일 (기준일) *</label>
+          <label htmlFor="inst-start-date">{t("프로젝트 시작일 (기준일) *")}</label>
           <input
             id="inst-start-date"
             type="date" required
@@ -296,7 +301,7 @@ export function CreateFromTemplateForm({ onBeginSubmission, onEndSubmission }: S
             aria-describedby={`inst-date-help${fieldErrors.projectStartDate ? " inst-start-date-error" : ""}`}
           />
           <p
-            id="inst-date-help">선택한 기준일로 템플릿 프로젝트를 생성합니다.</p>
+            id="inst-date-help">{t("선택한 기준일로 템플릿 프로젝트를 생성합니다.")}</p>
           {fieldErrors.projectStartDate ? <p
             className="form-field-error"
             id="inst-start-date-error">
@@ -305,12 +310,12 @@ export function CreateFromTemplateForm({ onBeginSubmission, onEndSubmission }: S
         </div>
         <div
           className="form-field">
-          <label htmlFor="inst-password">편집 비밀번호 *</label>
+          <label htmlFor="inst-password">{t("편집 비밀번호 *")}</label>
           <input
             id="inst-password"
             type="password"
             autoComplete="new-password" required
-            placeholder="1~12자"
+            placeholder={t("1~12자")}
             value={editPassword}
             onChange={(event) => { setEditPassword(event.target.value); clearFieldError("editPassword"); }}
             disabled={isSubmitting}
@@ -318,24 +323,24 @@ export function CreateFromTemplateForm({ onBeginSubmission, onEndSubmission }: S
             aria-describedby={`inst-password-help${fieldErrors.editPassword ? " inst-password-error" : ""}`}
           />
           <p
-            id="inst-password-help">이후 프로젝트 일정을 편집할 때 사용할 비밀번호입니다. 1~12자로 입력해 주세요.</p>
+            id="inst-password-help">{t("이후 프로젝트 일정을 편집할 때 사용할 비밀번호입니다. 1~12자로 입력해 주세요.")}</p>
           {fieldErrors.editPassword ? <p
             className="form-field-error"
             id="inst-password-error">
-            {fieldErrors.editPassword}
+            {t(fieldErrors.editPassword)}
           </p> : null}
         </div>
         <fieldset className="form-field template-visibility-fieldset" disabled={isSubmitting}>
-          <legend>공개범위</legend>
+          <legend>{t("공개범위")}</legend>
           <div className="template-visibility-options">
-            <label><input type="radio" name="template-project-visibility" checked={visibility === "public"} onChange={() => setVisibility("public")} /> 공개</label>
-            <label><input type="radio" name="template-project-visibility" checked={visibility === "private"} onChange={() => setVisibility("private")} /> 비공개</label>
+            <label><input type="radio" name="template-project-visibility" checked={visibility === "public"} onChange={() => setVisibility("public")} /> {t(" 공개")}</label>
+            <label><input type="radio" name="template-project-visibility" checked={visibility === "private"} onChange={() => setVisibility("private")} /> {t(" 비공개")}</label>
           </div>
-          <p>비공개 프로젝트는 목록에 표시되지만 비밀번호 인증 후 열립니다.</p>
+          <p>{t("비공개 프로젝트는 목록에 표시되지만 비밀번호 인증 후 열립니다.")}</p>
         </fieldset>
         <div
           className="form-field">
-          <label htmlFor="inst-desc">프로젝트 설명 (선택)</label>
+          <label htmlFor="inst-desc">{t("프로젝트 설명 (선택)")}</label>
           <textarea
             id="inst-desc"
             rows={3}
@@ -351,12 +356,12 @@ export function CreateFromTemplateForm({ onBeginSubmission, onEndSubmission }: S
             type="button"
             className="secondary-button"
             disabled={isSubmitting}
-            onClick={() => router.back()}>취소</button>
+            onClick={() => router.back()}>{t("취소")}</button>
           <button
             type="submit"
             className="primary-button"
             disabled={isSubmitting || !ready}>
-            {isSubmitting ? "프로젝트 생성 중…" : "템플릿에서 프로젝트 생성"}
+            {isSubmitting ? t("프로젝트 생성 중…") : t("템플릿에서 프로젝트 생성")}
           </button>
         </div>
       </form>

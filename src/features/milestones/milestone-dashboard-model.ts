@@ -1,3 +1,5 @@
+import { formatLocaleNumber, translate } from "../../lib/i18n";
+import type { AppLocale } from "../../lib/i18n/locales";
 import type { MilestoneDashboardDto, MilestoneDashboardFilterInput, MilestoneDashboardFiltersDto, MilestoneDashboardStageDto } from "../../contracts/milestone-dashboard";
 import { parseDateOnly } from "../../domain/scheduling/date-only";
 
@@ -83,6 +85,6 @@ export function projectDateAt(timezone: string, now = new Date()): string {
   const part = (type: string) => parts.find((value) => value.type === type)!.value;
   return `${part("year")}-${part("month")}-${part("day")}`;
 }
-export function displayPercent(value: number | null): string { return value === null ? "대상 없음" : `${new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 1 }).format(value)}%`; }
-export function displayEffort(value: number | null): string { return value === null ? "—" : new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 2 }).format(value); }
-export function conversionLabel(value: number | null, source: "query" | "environment" | "unset" | undefined): string { return value === null ? "M/M 환산 기준 미설정" : `1 M/M = ${displayEffort(value)} M/D · ${source === "query" ? "명시 기준" : source === "environment" ? "환경 설정 기준" : "환산 기준"}`; }
+export function displayPercent(value: number | null, locale: AppLocale = "ko"): string { return value === null ? translate(locale,"대상 없음") : `${formatLocaleNumber(value,locale,{maximumFractionDigits:1})}%`; }
+export function displayEffort(value: number | null, locale: AppLocale = "ko"): string { return value === null ? "—" : formatLocaleNumber(value,locale,{maximumFractionDigits:2}); }
+export function conversionLabel(value: number | null, source: "query" | "environment" | "unset" | undefined, locale: AppLocale = "ko"): string { return value === null ? translate(locale,"M/M 환산 기준 미설정") : `1 M/M = ${displayEffort(value,locale)} M/D · ${translate(locale,source === "query" ? "명시 기준" : source === "environment" ? "환경 설정 기준" : "환산 기준")}`; }

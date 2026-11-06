@@ -1,3 +1,4 @@
+import { formatLocaleDateOnly } from "../../../src/lib/date-display";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
@@ -22,7 +23,7 @@ describe("Milestone name-first identity", () => {
     const markup = renderToStaticMarkup(createElement(ProjectMilestoneStageTable, { tasks, rows, enabled: true, onOpenTask: () => {} }));
     const visibleText = markup.replace(/<details\b[\s\S]*?<\/details>/g, "").replace(/<[^>]+>/g, "");
     expect(visibleText).toContain(tasks[0].name);
-    expect(visibleText).toContain("2026-10-12");
+    expect(visibleText).toContain(formatLocaleDateOnly("2026-10-12"));
     expect(visibleText).toContain("시작 전");
     expect(visibleText).toContain("완료 기록");
     for (const task of tasks) {

@@ -1,5 +1,6 @@
 "use client";
 import { createContext, useContext } from "react";
+import type { ResourcePlanLabelPresentation } from "./resource-plan-model";
 import type { ResourceExportEvidence } from "./resource-export-model";
 import type { ResourceDashboardDto } from "@/contracts/resource-dashboard";
 import type { ResourceDrillProjection } from "@/contracts/resource-drill";
@@ -18,6 +19,8 @@ export interface WbsViewScheduleRequest {
   intentSignal?: AbortSignal;
 }
 export interface ResourceScheduleRequest {
+  /** Internal presentation metadata; raw external labels remain unchanged. */
+  planLabel?: ResourcePlanLabelPresentation;
   data: ResourceDashboardDto;
   /** Cancels a handed-off navigation when the source chart intent is superseded. */
   intentSignal?: AbortSignal;

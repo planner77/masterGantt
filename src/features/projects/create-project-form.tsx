@@ -1,5 +1,8 @@
 "use client";
 
+import { useI18n } from "../../lib/i18n/provider";
+
+
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 
@@ -39,8 +42,7 @@ function errorMessage(response: unknown): string {
     "code" in response.error &&
     typeof response.error.code === "string"
   ) {
-    return API_ERROR_MESSAGES[response.error.code] ??
-      "프로젝트를 만들 수 없습니다. 잠시 후 다시 시도해 주세요.";
+    if (Object.hasOwn(API_ERROR_MESSAGES, response.error.code)) return API_ERROR_MESSAGES[response.error.code]!;
   }
   return "프로젝트를 만들 수 없습니다. 잠시 후 다시 시도해 주세요.";
 }
@@ -57,6 +59,7 @@ interface SubmissionProps {
 }
 
 export function CreateProjectForm({ onBeginSubmission, onEndSubmission }: SubmissionProps = {}) {
+  const { t } = useI18n();
   const router = useRouter();
   const submissionRef = useRef(false);
   const errorReference = useRef<HTMLDivElement>(null);
@@ -157,10 +160,10 @@ export function CreateProjectForm({ onBeginSubmission, onEndSubmission }: Submis
         aria-labelledby="project-create-basic-heading"
         className="project-create-section project-create-basic-section"
       >
-        <h2 className="project-create-section-title" id="project-create-basic-heading">기본 정보</h2>
+        <h2 className="project-create-section-title" id="project-create-basic-heading">{t("기본 정보")}</h2>
         <div className="project-create-section-grid project-create-basic-grid">
           <div className="form-field project-create-name-field">
-            <label htmlFor="project-name">프로젝트 이름</label>
+            <label htmlFor="project-name">{t("프로젝트 이름")}</label>
             <input
               autoComplete="off"
               disabled={isSubmitting}
@@ -172,11 +175,11 @@ export function CreateProjectForm({ onBeginSubmission, onEndSubmission }: Submis
               required
               value={name}
             />
-            {fieldErrors.name ? <p className="form-field-error" id="project-name-error">{fieldErrors.name}</p> : null}
+            {fieldErrors.name ? <p className="form-field-error" id="project-name-error">{t(fieldErrors.name)}</p> : null}
           </div>
 
           <div className="form-field project-create-owner-field">
-            <label htmlFor="project-owner">소유자</label>
+            <label htmlFor="project-owner">{t("소유자")}</label>
             <input
               autoComplete="off"
               disabled={isSubmitting}
@@ -188,15 +191,15 @@ export function CreateProjectForm({ onBeginSubmission, onEndSubmission }: Submis
               required
               value={ownerName}
             />
-            <p id="project-owner-help">프로젝트 담당자를 표시하는 정보이며 계정/권한과는 연결되지 않습니다. Unicode 문자 기준 최대 100자입니다.</p>
-            {fieldErrors.ownerName ? <p className="form-field-error" id="project-owner-error">{fieldErrors.ownerName}</p> : null}
+            <p id="project-owner-help">{t("프로젝트 담당자를 표시하는 정보이며 계정/권한과는 연결되지 않습니다. Unicode 문자 기준 최대 100자입니다.")}</p>
+            {fieldErrors.ownerName ? <p className="form-field-error" id="project-owner-error">{t(fieldErrors.ownerName)}</p> : null}
           </div>
 
           <div className="form-field project-create-status-field">
-            <label htmlFor="project-status">프로젝트 상태</label>
+            <label htmlFor="project-status">{t("프로젝트 상태")}</label>
             <select disabled={isSubmitting} id="project-status" name="status" value={status}
               onChange={(event) => setStatus(event.target.value as ProjectStatus)}>
-              {PROJECT_STATUS_OPTIONS.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
+              {PROJECT_STATUS_OPTIONS.map(({ value, label }) => <option key={value} value={value}>{t(label)}</option>)}
             </select>
           </div>
         </div>
@@ -206,7 +209,7 @@ export function CreateProjectForm({ onBeginSubmission, onEndSubmission }: Submis
         aria-labelledby="project-create-classification-heading"
         className="project-create-section project-create-classification-section"
       >
-        <h2 className="project-create-section-title" id="project-create-classification-heading">프로젝트 분류</h2>
+        <h2 className="project-create-section-title" id="project-create-classification-heading">{t("프로젝트 분류")}</h2>
         {masterCatalog.state === "ready" && masterCatalog.catalog ? (
           <ProjectMasterSelectFields
             value={masterSelection}
@@ -216,8 +219,8 @@ export function CreateProjectForm({ onBeginSubmission, onEndSubmission }: Submis
           />
         ) : (
           <div className={masterCatalog.state === "error" ? "form-error" : "form-status"} role={masterCatalog.state === "error" ? "alert" : "status"}>
-            <span>{masterCatalog.state === "loading" ? "프로젝트 기준정보를 불러오는 중…" : "프로젝트 기준정보를 불러오지 못했습니다."}</span>
-            {masterCatalog.state === "error" ? <button className="secondary-button" type="button" onClick={masterCatalog.reload}>다시 시도</button> : null}
+            <span>{masterCatalog.state === "loading" ? t("프로젝트 기준정보를 불러오는 중…") : t("프로젝트 기준정보를 불러오지 못했습니다.")}</span>
+            {masterCatalog.state === "error" ? <button className="secondary-button" type="button" onClick={masterCatalog.reload}>{t("다시 시도")}</button> : null}
           </div>
         )}
       </section>
@@ -226,9 +229,9 @@ export function CreateProjectForm({ onBeginSubmission, onEndSubmission }: Submis
         aria-labelledby="project-create-description-heading"
         className="project-create-section project-create-description-section"
       >
-        <h2 className="project-create-section-title" id="project-create-description-heading">설명</h2>
+        <h2 className="project-create-section-title" id="project-create-description-heading">{t("설명")}</h2>
         <div className="form-field project-create-description-field">
-          <label htmlFor="project-description">프로젝트 설명 <span>(선택)</span></label>
+          <label htmlFor="project-description">{t("프로젝트 설명 ")}<span>{t("(선택)")}</span></label>
           <textarea
             disabled={isSubmitting}
             id="project-description"
@@ -244,16 +247,16 @@ export function CreateProjectForm({ onBeginSubmission, onEndSubmission }: Submis
         aria-labelledby="project-create-permission-heading"
         className="project-create-section project-create-permission-section"
       >
-        <h2 className="project-create-section-title" id="project-create-permission-heading">접근 및 편집 권한</h2>
+        <h2 className="project-create-section-title" id="project-create-permission-heading">{t("접근 및 편집 권한")}</h2>
         <fieldset className="form-field" disabled={isSubmitting}>
-          <legend>공개범위</legend>
-          <label><input type="radio" name="project-visibility" value="public" checked={visibility === "public"} onChange={() => setVisibility("public")} /> 공개</label>
-          <p>목록에서 바로 열 수 있으며 편집할 때 비밀번호가 필요합니다.</p>
-          <label><input type="radio" name="project-visibility" value="private" checked={visibility === "private"} onChange={() => setVisibility("private")} /> 비공개</label>
-          <p>목록에는 표시되지만 비밀번호 인증 후에만 일정을 열 수 있습니다.</p>
+          <legend>{t("공개범위")}</legend>
+          <label><input type="radio" name="project-visibility" value="public" checked={visibility === "public"} onChange={() => setVisibility("public")} /> {t(" 공개")}</label>
+          <p>{t("목록에서 바로 열 수 있으며 편집할 때 비밀번호가 필요합니다.")}</p>
+          <label><input type="radio" name="project-visibility" value="private" checked={visibility === "private"} onChange={() => setVisibility("private")} /> {t(" 비공개")}</label>
+          <p>{t("목록에는 표시되지만 비밀번호 인증 후에만 일정을 열 수 있습니다.")}</p>
         </fieldset>
         <div className="form-field project-create-password-field">
-          <label htmlFor="project-edit-password">편집 비밀번호</label>
+          <label htmlFor="project-edit-password">{t("편집 비밀번호")}</label>
           <input
             aria-describedby={fieldErrors.editPassword ? "project-password-help project-password-error" : "project-password-help"}
             aria-invalid={Boolean(fieldErrors.editPassword)}
@@ -268,23 +271,22 @@ export function CreateProjectForm({ onBeginSubmission, onEndSubmission }: Submis
             value={editPassword}
           />
           <p id="project-password-help">
-            1~12자, UTF-8 기준 최대 1,024 bytes입니다. 비공개 프로젝트를 열 때도 같은 비밀번호를 사용합니다.
-          </p>
-          {fieldErrors.editPassword ? <p className="form-field-error" id="project-password-error">{fieldErrors.editPassword}</p> : null}
+            {t("1~12자, UTF-8 기준 최대 1,024 bytes입니다. 비공개 프로젝트를 열 때도 같은 비밀번호를 사용합니다.")}</p>
+          {fieldErrors.editPassword ? <p className="form-field-error" id="project-password-error">{t(fieldErrors.editPassword)}</p> : null}
         </div>
       </section>
 
       {Object.keys(fieldErrors).length > 0 ? <div className="form-error" ref={errorReference} role="alert" tabIndex={-1}>
-        <strong>프로젝트 입력 {Object.keys(fieldErrors).length}곳을 확인해 주세요.</strong>
+        <strong>{t("프로젝트 입력 ")}{Object.keys(fieldErrors).length}{t("곳을 확인해 주세요.")}</strong>
         <ul>{(["name", "ownerName", "editPassword"] as const).filter((field) => fieldErrors[field]).map((field) => <li key={field}><button type="button" onClick={() => document.getElementById(field === "name" ? "project-name" : field === "ownerName" ? "project-owner" : "project-edit-password")?.focus()}>{fieldErrors[field]}</button></li>)}</ul>
       </div> : error ? (
         <div className="form-error" ref={errorReference} role="alert" tabIndex={-1}>
-          {error}
+          {t(error)}
         </div>
       ) : null}
 
       <button className="primary-button" disabled={isSubmitting} type="submit">
-        {isSubmitting ? "프로젝트를 만드는 중…" : "프로젝트 만들기"}
+        {isSubmitting ? t("프로젝트를 만드는 중…") : t("프로젝트 만들기")}
       </button>
     </form>
   );

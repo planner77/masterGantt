@@ -1,3 +1,16 @@
+## Issue #866 Phase B #879 CI #3510.1 후속 검증 (2026-11-05)
+
+- 최초 Full 41941093006.1: trusted Preflight BLOCKED(base ref가 main 아님) 1건 직접. Fast Gate/Required Quality/E2E/Docker/QA Final은 파생; 실제 TypeScript/Vitest/E2E8/Docker NOT RUN.
+- 다음 Full은 base=main과 새 정확 Head/Test-Merge SHA 및 원본 GitHub run/attempt를 확인한다. Main 대비 Phase A+B를 검증하며 기존 #878 PASS와 이전 #879 FAIL을 서로 섞지 않는다.
+- 위반 경계 교정: TEST_PLAN Phase A Git Blob 보존, Resource Group/Project Master stale revision 번역 초안 저장 거부 테스트, 12 owner SQLite 및 HTTP, Copy/Template/Export 보호. 운영 data backup/restore 및 전 영역 Phase C는 별도.
+- 이번 보완까지 신규 source 실제 실행 NOT TESTED. release_authorized=false, 병합/정식 GHCR/Issue 종료 보류.
+
+## Issue #866 Phase B 종속 PR — 정확 Head 검증 계획 (2026-11-05)
+
+- Phase A PR #878 성공 Full CI #3509.1은 Phase B 검증 근거가 아니다. Phase B는 Phase A HEAD 기반 별도 브랜치의 test-merge SHA·Head/Base를 확인해야 하며, Trusted QA strict main 정책/Owner 수용을 우회하지 않는다.
+- 요구: TypeScript/ESLint/Vitest/SQLite 0035→0036/reopen/FK/권한·stale revision·변조, 실제 E2E8 모두(신규 i18n-master-data shard7), Docker/Compose Smoke, Trusted QA 및 unresolved thread 0. 테스트 미실행은 NOT TESTED.
+- 릴리스 전 운영 DB 사전 백업+복구 리허설, Copy/Template6·Old Consumer 호환, 390~1920px와 베트남어 입력·성조, 프로젝트간 데이터 격리·권한 회수를 별도 인수. HIGH OWNER_MANAGED, release_authorized=false, Issue OPEN.
+
 ## Issue #790 — 캐시 비교기 원격 검증 및 PR 출처 분리 (2026-10-31)
 
 - **소스:** Main `3c73737968dfdbd6817657f3a17bed07c209a528`/앱 `0.138.5`에서 브랜치 `ci/issue-790-cache-audit-current-main`를 생성했다. PR Head/Base/Test-Merge와 Run ID/Attempt 및 실제 Job 결론을 같이 확인한다. #791의 앱 `0.130.2` 결과는 현재 소스의 검증이 아니다.
@@ -1160,3 +1173,60 @@ PR 생성 후 Full run의 URL·run_attempt·Head/base/test merge를 단일 조�
 - **수용 가능한 재시도 예외:** Metadata-only가 성공하고 Preflight/전체 구현 Job은 미실행이며, 새 Attempt ZIP이 실제 없고 최초 성공 changes Job과 승계 결과의 Run/Head/started/completed가 일치하는 경우에만 **원래 Attempt 1 ZIP**을 검증한다. `verified_source`의 PR/base/test-merge/Git Tree 포함 기존 source 확인을 통과하고 최신 성공 Full의 같은 base·정확 artifact·3 Required를 독립 인증해야 `METADATA_ONLY_RECOVERY_NON_AUTHORITATIVE` 감사 N/A이다.
 - **즉시 BLOCKED/FAIL:** Full Run의 source ZIP 결손, metadata 최초 실패·진행 중, expired/doubled/tampered ZIP, 변경 경로 Job 재실행/원본 없음, Run/PR/Head/Base/Test merge drift, Full Required3 미성공·CANCELLED·stale, 암묵적 Owner 승인. 보고에는 `source_ci_run_id`/`source_ci_run_attempt`와 실제 `source_event_artifact_attempt`, `prior_full_run_id`를 분리한다.
 - 안전한 재현은 read-only 모의 GitHub API 테스트 및 원본 실제 Run/Artifact 조회. 새 #873 Full PR CI 및 Trusted QA가 검증을 통과하기 전 본 기능 완료 선언 금지. [원장](ISSUE_873_FAILURE_ANALYSIS.md), [Work Packet](exec-plans/active/ISSUE_873.md).
+
+## Issue #866 Phase A — 실제 브라우저 3언어 원격 검증 (2026-11-05)
+
+- 새 GitHub PR의 exact Head/Base/Test merge와 Full Quality/E2E8/Docker·Trusted QA를 독립 확인한다. 기본 ko-KR E2E는 한국어 기존 화면을 검증하고, 신규 en-US 선택 E2E/ko→en→vi 화면 전환은 `<html lang>`, `mastergantt.ui.locale` 저장, URL 불변, 언어 selector ARIA와 navigation의 정확한 label을 확인한다. 잘못된 저장값·storage 거부 시 fallback은 Vitest/Playwright로 검증한다.
+- SVAR 2.7.3 `Locale words`는 `weekStart=1`을 유지하며 Gantt의 원본 Task/Link/기간·프로젝트 저장과 무관해야 한다. 네이티브 실제 인스턴스/viewport·기준정보 Translation/복수 소유자 DB/HTTP 보안 회귀는 Phase B/C에서 별도 필수 검증한다.
+- 현재 Phase A 원격 CI **NOT TESTED**(시작 전), Phase B/C **NOT IMPLEMENTED**. 이전 PR #870 혼합 브랜치와 #865/#869 별도 Main 승인/이미지는 동일 source의 증거가 아니다. Full 검증 성공·Owner HIGH 수용·정확 버전 Release 승인 없이 병합/GHCR/Issue 종료 금지. [계획](exec-plans/active/ISSUE_866.md).
+## Issue #866 REWORK2 — i18n native Grid/Custom Column Menu 교차 검증 (2026-11-05)
+
+- [PR #878 Full #3508.1](https://github.com/planner77/masterGantt/actions/runs/41924914789)의 Shard4 en-US 원본 `project-workspace-layout.spec.ts:83`은 컬럼 표시 직후 native `외부 ID`를 찾다가 실패했다. `SVAR_LOCALES.en.gantt["외부 ID"]`가 `External ID`로 매핑되어 있는데 기존 E2E가 localized native Grid와 미번역 앱 Column Menu의 문구를 같은 것으로 오인한 **TEST_CONTRACT**다. 날짜/세션/Gantt renderer 결함으로 확대하지 않는다.
+- 전후 실측은 ko-KR native `외부 ID`/en-US native `External ID`를 각각 정확히 확인하고, 두 언어에서 custom menu checkbox `외부 ID` 조작·헤더 표시/숨김/잘못된 언어 부재, `html lang`, 화면 좌표(고정 Header), 동일 DOM/API 인스턴스·scroll 60 Task, date-only의 시간대 표기, pageerror 없음/문서 overflow 제한을 **독립** 검증한다. 스크린리더/베트남어 전체 화면은 Phase C에서 별도 인수한다.
+- 새 Head의 Full Chromium E2E8/8, Quality/Docker/Trusted/Owner 구분: 원본 Shard4 33 PASS/1 FAIL/59 미실행, Shard7만 SUCCESS, 나머지 6 CANCELLED. 과거 Run 결과와 새 수정을 합산하지 않는다. [실패 원장](ISSUE_866_FAILURE_ANALYSIS.md) `FULL-001` + `FULL-002` 확인 후 새 정확 HEAD PR Full을 다시 시작한다.
+## Issue #866 PR #879 — 취소 샤드의 실제 실패와 누적 보완 (2026-11-05)
+
+Full #3519.1 / Run `41970024640`, Head `a7cbef53bd0c89f4f3a7a3c3ed5a76ba7cb2266e`, base `364aa3bdfde16fd3ca79add61c35a1cde21f6395`, test-merge `dbe1ffcb15791c997a974c3bf55479298c8495a0`는 FAILURE다. Shard3 Job `127056885009` 물류 검색 coarse 20px과 **CANCELLED shard7 Job `127056885015`의 프로젝트 생성 option 번역 누락 assertion FAIL**을 모두 직접 오류로 기록한다. Quality·Docker 성공과 이전 마스터 표 교정의 3개 E2E 성공은 해당 원본에만 유효하며 전체 E2E 성공이 아니다.
+
+전체 #3510~#3519 및 선행 #878/#870 원장·수정 코드를 대조한 뒤 검색 높이와 공유 선택 소비자를 함께 보완한다. 새 Head Full CI는 기존 8샤드와 Required3/Trusted 정책으로 시작하며 결과는 시작 시 NOT TESTED다. CI 모니터링·병합·Main/GHCR/Release·Issue 종료는 이번 작업 범위에 포함하지 않는다. [누적 원장](ISSUE_866_FAILURE_ANALYSIS.md).
+
+## Issue #866 Phase C — A+B+C 통합 검증 경계 (2026-11-05)
+
+시작 Head3fb37d77e6b4e80ee1daedf1642b6cfee1c2913b의 [Full #3520.1](https://github.com/planner77/masterGantt/actions/runs/41979842028), Required3/Chromium8 SUCCESS는 A+B baseline이며 Phase C 새 Head에 승계하지 않는다. native locale 전환·전체 화면/ARIA·동적 알림/이동 label·관리형 표시명/입력·날짜/숫자의 변경 영향과 과거 직접 실패 합집합을 Work Packet에서 선정하고 실제 로컬 source 지문·명령·결과를 누적 원장에 남긴다. 자동 Pre-PR UNKNOWN은 수동 실행 결과와 구별한다.
+
+새 exact Head의 Full Quality·E2E8·Docker는 CI 시작 확인 이후 NOT TESTED로 인계하며 모니터링하지 않는다. Trusted source provenance·Owner HIGH 검토·Manager ACCEPT, main/GHCR/Release·운영 backup/restore·Windows Excel·최종 수동 UX와 실제 AT/native125%는 별도 경계다. `release_authorized=false`, #866 OPEN/MERGE_READY=BLOCKED를 유지한다.
+
+## Issue #866 Phase C — 최종 로컬 소비자 검증 인계
+
+25개spec158계획 중고유156PASS/기존2SKIP, 전체Unit3658PASS/기존3SKIP·build/type/lint·문서정합 구조검사를 확보했다. 마지막변경은한E2Espec의500 oracle/응답완료순서뿐이며그파일8사례전체를재실행하고, 다른1316개제품·Unit·공용입력/24spec의byte동일성을증명했다. 전역지문변경과과거C73PASS/1FAIL·중간7PASS/1FAIL은숨기거나합산하지않는다. 상세명령/지문·선정과미검증은 [Work Packet](exec-plans/active/ISSUE_866.md)과 [정제 증거](evidence/issue-866/phasec-local-validation-20261105.json)에있다. 자동Pre-PR는UNKNOWN94/missing0으로BLOCKED, 수동실행과구별한다. 새exactHead quality/e2e/docker·Trusted/인간QA·Owner/Manager ACCEPT는NOT TESTED이며CI시작후모니터링하지않는다.
+
+## Issue #866 REWORK-C001 — Full #3522.1 유형 필터 표시 계약
+
+원본Shard8 milestone-visibility:129의 Task type/task timeout을30.2초로재현했고현재ko작업유형/일반작업과불일치하는TEST_CONTRACT로분리했다. 같은유형4spec와Resource관리자heading1spec를정확표시로고치고기존선택/Data/ID/인스턴스/무mutation·geometry를보존한다. ko/en/vi2사례추가로146spec/882browsercases가되며8shard배치·기존skip/retry/timeout/Required3는불변이다. 전체24회CI목록과취소7샤드를포함한원본8로그, metadata3521 SUPERSEDED/N/A 및기존실패합집합/인접/음성동결검증은 [Work Packet](exec-plans/active/ISSUE_866.md)과 [단일원장](ISSUE_866_FAILURE_ANALYSIS.md)의현재절을따른다. 새exactHead의공식전체CI·Trusted·인간QA/Owner판정은NOT TESTED이며새Full시작만확인하고모니터링하지않는다.
+
+최종 동일 source55c4fbc65ebe9414efa2a608dc3362566a2d5661ef4d1b50465fdb91a2556e97에서 수동25spec의153PASS/기존2SKIP/FAIL0, 관련Unit197PASS와 원본설정 typecheck/5spec lint/탐색882·정책·문서구조를 확인했다. 자동Pre-PR UNKNOWN94/missing0는BLOCKED이며 수동 증거와 구별한다. [최종 명령·선정·지문·결과](evidence/issue-866/ci3522-local-validation-20261105.json)를 참조한다. 새Head Required3·Trusted·인간QA/Owner/Manager는NOT TESTED이며 CI 시작 뒤 모니터링하지 않는다.
+
+## Issue #866 REWORK-C002 — #3523.1 Issue 오류·Project 근거 표시
+
+누적 원장C002는CI25회와새8shard의454관측PASS/2직접FAIL/기존SKIP2/424미완료를구별한다. Issue전용code allowlist의정확3언어안내·wrongPATCH불변/정상재시도와 Resource검증된Project Plan근거wrapper·정확scope/Assignment/조상문맥·80/140/복귀를보완한다. 이전실패25spec+신규직접2/간접2=29고유spec/5수동parts·workers1/retries0/max-failures0/각20분상한으로동일source교차검증한다. Actions진단24spec/4parts정책과기존Full8/Required3/권한은변경하지않는다. 실행결과는후행증거로기록하며이절의존재는PASS가아니다. 별도opaque-error P2는DEFERRED, 새HeadCI/Trusted·Owner/Manager는NOT TESTED를유지한다.
+
+C002 최종동결sourceeaa90be1bb19d08db2091017caf61e45e4bc52d2bf8ba0f3a45c370f1640d99b/1319파일시작=종료에서29고유spec174PASS/기존2SKIP/FAIL0, 전체Unit3666PASS/기존3SKIP·build/type/lint·탐색299/882·정책·문서구조를확인했다. 자동Pre-PR UNKNOWN94/missing0는BLOCKED로보존하고수동실행과구별한다. [정제 최종 증거](evidence/issue-866/ci3523-local-validation-20261105.json)를참조한다. 별도오류경계P2 DEFERRED, 새Head Required3/Trusted/Owner/Manager NOT TESTED이며FullCI시작뒤모니터링하지않는다.
+
+## Issue #866 C003 — 실제 inline 재시작 회귀의 준비/본문 예산
+
+Full #3524.1의 실제 inline 이름 저장 재시작case가 본문30초를 초과했다. 실제PATCH1·revision/If-Match·같은SQLite와새프로세스·기존13경로warmup을전용test-scoped준비fixture120초에서수행하고, 재시작후HTTP/data/Grid/bar/Task Editor/추가PATCH없음은기본30초본문에서검증한다. 이는전체여정30초에서준비120초+검증30초로예산범위를변경한다. 준비중action/navigation/API30초·expect5초·restartstartup90초를명시하며준비완료는전체PASS가아니다. 단언/제품동작/공용fixture/CI권한·Required3/8shard/retry/skip은유지한다. 최초실패·기각후보·통제2CPU반복은최종31spec고유회귀와분리한다. [단일실패원장C003](ISSUE_866_FAILURE_ANALYSIS.md)과[Work Packet](exec-plans/active/ISSUE_866.md)을따른다. 새Head원격Required3/Trusted/Owner/Manager NOT TESTED이며새CI시작뒤모니터링하지않는다.
+
+C003 성능 해석: 분리된 fixture 예산 때문에 Playwright reporter duration은 준비를 제외한 본문 시간이다. 실제 전체 비용은 inline-name-restart-preparation과 isolated-application performance의 준비/restart/전체elapsed를 함께 읽는다. 짧아진 본문 duration을 dev compile 개선·전체여정단축·10개성공run baseline으로 해석하지 않는다. 기존 shard 성능원장/projectedMs/sourceRunIds와 정책은 변경하지 않는다.
+
+C003 최종 동일동결source의31spec/192계획=190PASS/기존2SKIP/FAIL0, 별도2CPU3반복PASS(고유합계미가산), 최종type/lint/탐색/정책/문서구조PASS다. 자동Pre-PR UNKNOWN94는BLOCKED로유지하고원격/Owner/Manager NOT TESTED와구별한다. [최종정제증거](evidence/issue-866/ci3524-local-validation.json), 단일원장C003 E를따른다.
+
+
+## Issue #866 C005 — Full #3526.1 직접 실패와 미실행 구별 (2026-11-06)
+
+[Run42100064413.1](https://github.com/planner77/masterGantt/actions/runs/42100064413)의 Head8f1335cf96d1de8bb3dc767e72683bb8d0148a05/base364aa3bdfde16fd3ca79add61c35a1cde21f6395/testmergee0e77f06469e978c53fb55cc103b7f0b8fa07175에서 Unit Job127500852712/step6 직접3FAIL·3667PASS·기존3SKIP이다. Fast Gate/Required3/Automated QA FAIL은 파생이며 실제 Build/E2E/Docker는 SKIPPED/NOT RUN이다. 확장 전 matrix placeholder를 8shard의 실행 결과로 세지 않는다.
+
+전체53workflow=CI28회(Full25+metadata3, 모두 attempt1)+FAST25SKIPPED를 대조했다. #3525의 이전 Head SUCCESS와 원본 #3526 FAIL은 불변이다. checkout 전 artifact와 API/불변 merge 부모/단일 PR 귀속의 교차 확인은 Trusted QA·의미 검토·Owner 승인과 다르다. [정제 원본 출처](evidence/issue-866/ci3526-source-proof.json), [전체 이력](evidence/issue-866/ci3526-history.json), [실패 매트릭스](evidence/issue-866/ci3526-failure-matrix.json) 참조.
+
+보완 후 로컬 회귀·문서·기술검토는 새 Head Required3를 대체하지 않는다. 새 Full CI Run/Attempt·Head/base/testmerge의 시작만 확인하고 이후 모니터링하지 않는다. HIGH/OWNER_MANAGED/qa_required=true/release_authorized=false, 새 quality/e2e/docker·Trusted·Owner/Manager NOT TESTED/MERGE_READY BLOCKED, main/GHCR/운영환경 별도다.
+
+C005 최종동결source1cdd6edefdd0160dbcd56a290a02fb4c4953bd26c36a596654f1b6499b94d046/1322입력의31고유spec/194계획=192PASS/기존2SKIP/FAIL0,전체Unit3714PASS/기존3SKIP·build/runtime-tools·원본설정typecheck/13파일lint·탐색301/884·문서구조PASS다. 자동Pre-PR UNKNOWN94/missing0/BLOCKED와원격새Head/Trusted·Owner NOT TESTED를구별한다. [정제최종증거](evidence/issue-866/ci3526-local-validation.json)·단일원장C005 D를따르며이전원격/중간/중단관측은보존하고중복가산하지않는다.

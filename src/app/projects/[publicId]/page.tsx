@@ -38,7 +38,7 @@ export default async function ProjectPage({ params }: Readonly<{ params: Promise
     return <div className="project-page-shell"><PrivateProjectUnlock publicId={publicId} /></div>;
   }
   const projectUrl = buildProjectShareUrl(process.env.APP_BASE_URL, process.env.NODE_ENV, publicId, process.env.ALLOW_INSECURE_HTTP);
-  const ownerName = snapshot?.data.project.ownerName ?? "미지정";
+  const ownerName = snapshot?.data.project.ownerName ?? null;
   return <div className="project-page-shell">
     <ProjectPermissionRecheckBoundary publicId={publicId}>
       <ProjectReadonlyView key={publicId} publicId={publicId} projectUrl={projectUrl} ownerName={ownerName}

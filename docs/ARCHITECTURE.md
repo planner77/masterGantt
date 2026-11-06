@@ -650,3 +650,9 @@ Milestone 날짜는 Dashboard 상세/정확한 소속 Task 경로로 안내하�
 ## Issue #342 — builtin과 DB override
 
 국가 Catalog는 immutable builtin + SQLite override를 결합하며 UNAVAILABLE/SUPERSEDED override도 builtin을 차단한다. HTTP handler→admin service→Catalog service→CountryCalendarRepository→SQLite 경계를 사용한다. 서버 검증/Preview HMAC/session·revision과 IMMEDIATE transaction은 공유 service에서 수행한다. 기존 Scheduling pure domain을 수정하지 않고 Project의 명시적 Preview/Save에서만 최신 dataset을 materialize한다. 기본 Project 생성은 effective KR가 없으면 월~금 주간 규칙으로 생성하여 비공식 자료를 되살리지 않는다.
+
+## Issue #866 — Phase C 표시 계층 (2026-11-05)
+
+`I18nProvider`/locale store와 정적 catalog는 클라이언트 표시 계층이다. SSR/첫 hydration은 ko snapshot, 이후 유효한 저장 언어·브라우저 선호로 표시와 html lang을 갱신한다. 현재 locale의 `displayName`과 숫자·날짜 projection은 domain/API/DB/canonical state와 분리하며 locale/t를 데이터 fetch·mutation·초안 reset identity로 사용하지 않는다. Gantt 인스턴스의 언어 key remount를 만들지 않는다.
+
+관리형 translations는 기존 owner별 DTO의 선택 필드이며 별도 무인증 쓰기 경로를 만들지 않는다. 알림은 message/operation key와 opaque parameters·고정 labels descriptor를 보존해 재표시·복사 시 현재 언어를 사용한다. 사용자 텍스트를 key로 재귀 번역하지 않고 date-only 저장과 Intl 표시는 분리한다. 오류 allowlist/context fallback 및 안전한 domain detail 보존은 [Phase C 설계](I18N_PHASE_C.md)를 따른다. Phase C 추가 migration/endpoint는 없고 원격 검증 상태는 해당 Work Packet의 exact Head를 기준으로 한다.

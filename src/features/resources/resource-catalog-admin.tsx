@@ -1,4 +1,9 @@
 "use client";
+import { displayName, translate } from "../../lib/i18n";
+import type { AppLocale } from "../../lib/i18n/locales";
+import { useI18n } from "../../lib/i18n/provider";
+
+import { TranslationFields, TranslationEditor, type DisplayNameTranslations, type TranslationDraftSnapshot } from "@/components/translation-fields";
 import { ContextHelp } from "@/components/ui/context-help";
 
 import { IdentifierDetails } from "@/components/identifier-details";
@@ -71,13 +76,13 @@ function apiErrorCode(value: unknown): string | null {
   return typeof apiError.code === "string" ? apiError.code : null;
 }
 
-function projectUsageReason(target: ResourceDto | ResourceGroupDto): string {
+function projectUsageReason(target: ResourceDto | ResourceGroupDto, locale: AppLocale = "ko"): string {
   if (typeof target.projectUsageCount === "number") {
     return target.projectUsageCount > 0
-      ? `${target.projectUsageCount}개 프로젝트에서 사용 중`
-      : "프로젝트에서 사용하지 않음";
+      ? translate(locale,"{count}개 프로젝트에서 사용 중",{count:target.projectUsageCount})
+      : translate(locale,"프로젝트에서 사용하지 않음");
   }
-  return "프로젝트 사용 여부 확인 필요";
+  return translate(locale,"프로젝트 사용 여부 확인 필요");
 }
 
 type PendingDeleteTarget = Readonly<{
@@ -97,10 +102,15 @@ type DiscardState =
   | { kind: "members"; next: ResourceGroupDto | null };
 
 export function ResourceCatalogAdmin() {
+  const {t, locale, formatNumber } = useI18n();
   const [catalog, setCatalog] = useState<ResourceCatalogResponse | null>(null);
   const [authenticated, setAuthenticated] = useState(false);
   const [catalogState, setCatalogState] = useState<"loading" | "ready" | "error">("error");
   const [notice, setNotice] = useState<string | null>(null);
+  const [translationDrafts,setTranslationDrafts] = useState<Record<string,TranslationDraftSnapshot>>({});
+  function updateTranslationDraft(key:string,value:TranslationDraftSnapshot|undefined) {
+    setTranslationDrafts(previous=>{const next={...previous};if(value===undefined)delete next[key];else next[key]=value;return next;});
+  }
   const pending = useRef(false);
   const panelRef = useRef<HTMLDivElement | null>(null);
   const request = useRef<AbortController | null>(null);
@@ -135,6 +145,7 @@ export function ResourceCatalogAdmin() {
   const [profileGrade, setProfileGrade] = useState<DeveloperGrade | "">("");
   const [profileRoles, setProfileRoles] = useState<ResourceRole[]>([]);
   const [discard, setDiscard] = useState<DiscardState | null>(null);
+  const [groupTranslations, setGroupTranslations] = useState<DisplayNameTranslations>({});
   const [groupName, setGroupName] = useState("");
   const [groupCode, setGroupCode] = useState("");
   const [selectedGroupId, setSelectedGroupId] = useState<string>("");
@@ -390,7 +401,7 @@ export function ResourceCatalogAdmin() {
 
   function editorDirty() {
     if (editor === "resource") return !!(resourceName || resourceCode || resourceDeveloperGrade || resourceRoles.size);
-    if (editor === "group") return !!(groupName || groupCode);
+    if (editor === "group") return !!(groupName || groupCode || Object.values(groupTranslations).some(Boolean));
     return !!profile && (profileGrade !== (profile.developerGrade ?? "") ||
       orderedResourceRoles(profileRoles).join() !== orderedResourceRoles(profile.roles ?? []).join());
   }
@@ -444,7 +455,7 @@ export function ResourceCatalogAdmin() {
 
   function clearEditorDraft() {
     if (editor === "resource") { setResourceName(""); setResourceCode(""); setResourceDeveloperGrade(""); setResourceRoles(new Set()); }
-    if (editor === "group") { setGroupName(""); setGroupCode(""); }
+    if (editor === "group") { setGroupName(""); setGroupCode(""); setGroupTranslations({}); }
     setProfile(null);
   }
 
@@ -475,8 +486,8 @@ export function ResourceCatalogAdmin() {
     const name = groupName.trim();
     const code = groupCode.trim();
     if (!name) return;
-    if (await mutate("/api/resource-groups", "POST", { name, code: code || null })) {
-      setGroupName(""); setGroupCode(""); setEditor(null);
+    if (await mutate("/api/resource-groups", "POST", { name, code: code || null, translations: groupTranslations })) {
+      setGroupName(""); setGroupCode(""); setGroupTranslations({}); setEditor(null);
     }
   }
 
@@ -563,16 +574,15 @@ export function ResourceCatalogAdmin() {
   }
 
   if (!authenticated) {
-    return <AdminAuth title="관리자 로그인" titleId="resource-auth-title"
-      description="프로젝트 편집 비밀번호와 별도의 글로벌 리소스 관리자 권한이 필요합니다.">
+    return <AdminAuth title={t("관리자 로그인")} titleId="resource-auth-title"
+      description={t("프로젝트 편집 비밀번호와 별도의 글로벌 리소스 관리자 권한이 필요합니다.")}>
       <form className={adminAuthStyles.form} onSubmit={(event) => void login(event)}>
-        {error ? <p id="resource-login-error" className={adminAuthStyles.error} role="alert">{error}</p> : null}
+        {error ? <p id="resource-login-error" className={adminAuthStyles.error} role="alert">{t(error ?? "")}</p> : null}
         <div className={adminAuthStyles.controls}>
-          <label className={adminAuthStyles.field}>관리자 비밀번호
-            <input ref={loginInput} type="password" autoComplete="current-password" value={password} disabled={busy}
+          <label className={adminAuthStyles.field}>{t("관리자 비밀번호")}<input ref={loginInput} type="password" autoComplete="current-password" value={password} disabled={busy}
               aria-describedby={error ? "resource-login-error" : undefined} onChange={(event) => setPassword(event.target.value)} />
           </label>
-          <button className={`primary-button ${adminAuthStyles.submit}`} type="submit" disabled={busy || password.length < 1}>{busy ? "확인 중…" : "로그인"}</button>
+          <button className={`primary-button ${adminAuthStyles.submit}`} type="submit" disabled={busy || password.length < 1}>{busy ? t("확인 중…") : t("로그인")}</button>
         </div>
       </form>
     </AdminAuth>;
@@ -580,11 +590,11 @@ export function ResourceCatalogAdmin() {
 
   if (!catalog) {
     return <div className={styles.panel}>
-      {catalogState === "loading" ? <p className={styles.note} role="status">최신 목록을 불러오는 중…</p> : null}
-      {error ? <p className={styles.error} role="alert">{error}</p> : null}
+      {catalogState === "loading" ? <p className={styles.note} role="status">{t("최신 목록을 불러오는 중…")}</p> : null}
+      {error ? <p className={styles.error} role="alert">{t(error ?? "")}</p> : null}
       <div className={styles.actions}>
-        <button className="secondary-button" type="button" disabled={busy} onClick={() => void refreshCatalog()}>다시 시도</button>
-        <button className="secondary-button" type="button" disabled={busy} onClick={() => void logout()}>로그아웃</button>
+        <button className="secondary-button" type="button" disabled={busy} onClick={() => void refreshCatalog()}>{t("다시 시도")}</button>
+        <button className="secondary-button" type="button" disabled={busy} onClick={() => void logout()}>{t("로그아웃")}</button>
       </div>
     </div>;
   }
@@ -595,13 +605,13 @@ export function ResourceCatalogAdmin() {
     currentGroup.memberResourceIds.some((id) => !selectedMembers.has(id)));
   const locked = busy || catalogState !== "ready";
   const filteredResources = filterResources(catalog.data.resources, resourceQuery).filter((r) => resourceStatus === "all" || r.active === (resourceStatus === "active"));
-  const filteredGroups = filterGroups(catalog.data.groups, groupQuery).filter((g) => groupStatus === "all" || g.active === (groupStatus === "active"));
+  const filteredGroups = filterGroups(catalog.data.groups, groupQuery, locale).filter((g) => groupStatus === "all" || g.active === (groupStatus === "active"));
   const filteredMemberResources = filterResources(catalog.data.resources, memberQuery);
 
   const missingMembers = [...selectedMembers].filter((id) => !catalog.data.resources.some((r) => r.id === id));
   const profileCurrent = catalog.data.resources.find((r) => r.id === profile?.id);
   function statusSelect(kind: "resource" | "group") {
-    return <label className={styles.statusField}>상태<select aria-label={kind === "resource" ? "리소스 상태" : "그룹 상태"} value={kind === "resource" ? resourceStatus : groupStatus} onChange={(e) => kind === "resource" ? setResourceStatus(e.target.value) : setGroupStatus(e.target.value)} disabled={busy}><option value="all">전체</option><option value="active">활성</option><option value="inactive">비활성</option></select></label>;
+    return <label className={styles.statusField}>{t("상태")}<select aria-label={kind === "resource" ? t("리소스 상태") : t("그룹 상태")} value={kind === "resource" ? resourceStatus : groupStatus} onChange={(e) => kind === "resource" ? setResourceStatus(e.target.value) : setGroupStatus(e.target.value)} disabled={busy}><option value="all">{t("전체")}</option><option value="active">{t("활성")}</option><option value="inactive">{t("비활성")}</option></select></label>;
   }
   return <div ref={panelRef} className={styles.panel} onKeyDownCapture={(event) => {
     if (event.key === "Escape" && pending.current && panelRef.current?.querySelector("dialog[open]")) {
@@ -617,145 +627,145 @@ export function ResourceCatalogAdmin() {
           disabled={busy}
           onClick={() => { setPasswordDialogOpen(true); setDialogError(null); }}
         >
-          관리자 비밀번호 변경
-        </button>
-        <button className="secondary-button" type="button" disabled={busy} onClick={() => void refreshCatalog()}>{catalogState === "error" ? "다시 시도" : "새로고침"}</button>
-        <button className="secondary-button" type="button" disabled={busy} onClick={() => void logout()}>로그아웃</button>
+          {t("관리자 비밀번호 변경")}</button>
+        <button className="secondary-button" type="button" disabled={busy} onClick={() => void refreshCatalog()}>{catalogState === "error" ? t("다시 시도") : t("새로고침")}</button>
+        <button className="secondary-button" type="button" disabled={busy} onClick={() => void logout()}>{t("로그아웃")}</button>
       </div>
-      {error ? <p className={styles.error} role="alert">{error}</p> : null}
-      {notice ? <p className={styles.note} role="status">{notice}</p> : null}
-      {catalogState !== "ready" ? <p className={styles.note} role="status">{catalogState === "loading" ? "최신 목록을 불러오는 중… 이전 조회 결과를 표시합니다." : "이전 조회 결과입니다. 최신 목록을 확인하기 전에는 변경할 수 없습니다."}</p> : null}
+      {error ? <p className={styles.error} role="alert">{t(error ?? "")}</p> : null}
+      {notice ? <p className={styles.note} role="status">{t(notice ?? "")}</p> : null}
+      {catalogState !== "ready" ? <p className={styles.note} role="status">{catalogState === "loading" ? t("최신 목록을 불러오는 중… 이전 조회 결과를 표시합니다.") : t("이전 조회 결과입니다. 최신 목록을 확인하기 전에는 변경할 수 없습니다.")}</p> : null}
     </div>
 
-    {editor && editorSuspended ? <button className="secondary-button" type="button" disabled={locked} onClick={(e) => { editorTrigger.current = e.currentTarget; setEditorSuspended(false); }}>보존한 초안 계속 편집</button> : null}
-    <div className={styles.tabs} role="tablist" aria-label="리소스 관리 보기">
+    {editor && editorSuspended ? <button className="secondary-button" type="button" disabled={locked} onClick={(e) => { editorTrigger.current = e.currentTarget; setEditorSuspended(false); }}>{t("보존한 초안 계속 편집")}</button> : null}
+    <div className={styles.tabs} role="tablist" aria-label={t("리소스 관리 보기")}>
       {(["resources", "groups"] as const).map((tab, index) => <button key={tab} ref={(node) => { tabRefs.current[index] = node; }} id={`resource-tab-${tab}`} role="tab" aria-selected={activeTab === tab} aria-controls={`resource-panel-${tab}`} tabIndex={activeTab === tab ? 0 : -1} type="button" onClick={() => setActiveTab(tab)} onKeyDown={(e) => {
         const next = e.key === "Home" ? 0 : e.key === "End" ? 1 : e.key === "ArrowLeft" || e.key === "ArrowRight" ? 1 - index : null;
         if (next !== null) { e.preventDefault(); setActiveTab(next === 0 ? "resources" : "groups"); tabRefs.current[next]?.focus({ preventScroll: true }); }
-      }}>{tab === "resources" ? `리소스 ${catalog.data.resources.length}` : `리소스 그룹 ${catalog.data.groups.length}`}</button>)}
+      }}>{tab === "resources" ? t("리소스 {value0}", {value0: catalog.data.resources.length}) : t("리소스 그룹 {value0}", {value0: catalog.data.groups.length})}</button>)}
     </div>
     <section className={styles.card} id="resource-panel-resources" role="tabpanel" aria-labelledby="resource-tab-resources" hidden={activeTab !== "resources"}>
-      <h2 id="resources-title">리소스</h2>
+      <h2 id="resources-title">{t("리소스")}</h2>
       <div className={styles.searchBar}>
-        <label className={styles.searchField}><span>리소스 검색</span><input ref={resourceSearchRef} placeholder="리소스 검색 (이름, 코드 또는 ID)" aria-label="리소스 검색" value={resourceQuery} disabled={busy} onChange={(e) => setResourceQuery(e.target.value)} onKeyDown={(e) => { if (e.key === "Escape") setResourceQuery(""); }} /></label>
-        {statusSelect("resource")}<span className={styles.matchCount} role="status">일치 {filteredResources.length} / 전체 {catalog.data.resources.length}</span>
-        <button className="primary-button" type="button" disabled={locked} onClick={(e) => openEditor("resource", e.currentTarget)}>리소스 추가</button>
+        <label className={styles.searchField}><span>{t("리소스 검색")}</span><input ref={resourceSearchRef} placeholder={t("리소스 검색 (이름, 코드 또는 ID)")} aria-label={t("리소스 검색")} value={resourceQuery} disabled={busy} onChange={(e) => setResourceQuery(e.target.value)} onKeyDown={(e) => { if (e.key === "Escape") setResourceQuery(""); }} /></label>
+        {statusSelect("resource")}<span className={styles.matchCount} role="status">{t("일치")}{" "}{formatNumber(filteredResources.length)} {t("/ 전체")}{" "}{formatNumber(catalog.data.resources.length)}</span>
+        <button className="primary-button" type="button" disabled={locked} onClick={(e) => openEditor("resource", e.currentTarget)}>{t("리소스 추가")}</button>
       </div>
-      <div className={styles.tableScroll} role="region" aria-label="리소스 목록 가로 스크롤" tabIndex={0}>
-        <table className={styles.resourceTable}><caption className={styles.caption}>리소스 목록</caption><colgroup><col /><col style={{ width: 200 }} /><col style={{ width: 112 }} /><col style={{ width: 176 }} /><col style={{ width: 248 }} /></colgroup>
-          <thead><tr>{["이름", "전역 역할", "개발자 등급", "상태 / 사용", "작업"].map((label) => <th scope="col" key={label}>{label}</th>)}</tr></thead>
+      <div className={styles.tableScroll} role="region" aria-label={t("리소스 목록 가로 스크롤")} tabIndex={0}>
+        <table className={styles.resourceTable}><caption className={styles.caption}>{t("리소스 목록")}</caption><colgroup><col /><col style={{ width: 200 }} /><col style={{ width: 112 }} /><col style={{ width: 176 }} /><col style={{ width: 248 }} /></colgroup>
+          <thead><tr>{[t("이름"), t("전역 역할"), t("개발자 등급"), t("상태 / 사용"), t("작업")].map((label) => <th scope="col" key={label}>{label}</th>)}</tr></thead>
           <tbody>{filteredResources.map((resource) => <tr key={resource.id} className={resource.active ? undefined : styles.inactive}>
-            <td><strong title={resource.name}>{resource.name}</strong><IdentifierDetails label={`${resource.name} 식별 정보`} identifiers={[{label:"리소스 ID",value:resource.id},...(resource.code?[{label:"코드",value:resource.code}]:[])]}/></td>
-            <td><div className={styles.roleBadges}>{(resource.roles ?? []).length ? (resource.roles ?? []).map((role) => <span key={role} className={styles.roleBadge}>{resourceRoleLabel(role)}</span>) : <span className={styles.roleBadge}>없음</span>}</div></td><td>{developerGradeLabel(resource.developerGrade)}</td>
-            <td>{resource.active ? "활성" : "비활성"}<span id={`resource-usage-${resource.id}`} className={styles.usageNote}>{projectUsageReason(resource)}</span></td>
+            <td><strong title={resource.name}>{resource.name}</strong><IdentifierDetails label={t("{value0} 식별 정보", {value0: resource.name})} identifiers={[{label:"리소스 ID",value:resource.id},...(resource.code?[{label:"코드",value:resource.code}]:[])]}/></td>
+            <td><div className={styles.roleBadges}>{(resource.roles ?? []).length ? (resource.roles ?? []).map((role) => <span key={role} className={styles.roleBadge}>{t(resourceRoleLabel(role))}</span>) : <span className={styles.roleBadge}>{t("없음")}</span>}</div></td><td>{t(developerGradeLabel(resource.developerGrade))}</td>
+            <td>{resource.active ? t("활성") : t("비활성")}<span id={`resource-usage-${resource.id}`} className={styles.usageNote}>{projectUsageReason(resource,locale)}</span></td>
             <td><div className={styles.rowActions}>
-              <button type="button" className="secondary-button" aria-label={`${resource.name} 프로필 편집`} disabled={locked} onClick={(e) => openEditor("profile", e.currentTarget, resource)}>프로필 편집</button>
-              <button type="button" className="secondary-button" disabled={locked} onClick={() => void mutate(`/api/resources/${encodeURIComponent(resource.id)}`, "PATCH", { active: !resource.active })}>{resource.active ? "비활성화" : "재활성화"}</button>
-              <button type="button" className={resource.deletable === true ? "danger-button" : "secondary-button"} disabled={locked} aria-disabled={resource.deletable !== true} aria-describedby={`resource-usage-${resource.id}`} aria-label={`${resource.name} ${resource.deletable === true ? "삭제" : "삭제 불가"}`} onClick={(e) => requestDelete("resource", resource, e)}>{resource.deletable === true ? "삭제" : "삭제 불가"}</button>
+              <button type="button" className="secondary-button" aria-label={t("{value0} 프로필 편집", {value0: resource.name})} disabled={locked} onClick={(e) => openEditor("profile", e.currentTarget, resource)}>{t("프로필 편집")}</button>
+              <button type="button" className="secondary-button" disabled={locked} onClick={() => void mutate(`/api/resources/${encodeURIComponent(resource.id)}`, "PATCH", { active: !resource.active })}>{resource.active ? t("비활성화") : t("재활성화")}</button>
+              <button type="button" className={resource.deletable === true ? "danger-button" : "secondary-button"} disabled={locked} aria-disabled={resource.deletable !== true} aria-describedby={`resource-usage-${resource.id}`} aria-label={`${resource.name} ${resource.deletable === true ? t("삭제") : t("삭제 불가")}`} onClick={(e) => requestDelete("resource", resource, e)}>{resource.deletable === true ? t("삭제") : t("삭제 불가")}</button>
             </div></td>
           </tr>)}</tbody>
         </table>
       </div>
-      {!filteredResources.length ? <p className={styles.emptyState}>{catalog.data.resources.length ? "조건에 일치하는 리소스가 없습니다." : "등록된 리소스가 없습니다."}</p> : null}
-      {!filteredResources.length && catalog.data.resources.length ? <button className="secondary-button" type="button" onClick={() => { setResourceQuery(""); setResourceStatus("all"); }}>조건 초기화</button> : null}
+      {!filteredResources.length ? <p className={styles.emptyState}>{catalog.data.resources.length ? t("조건에 일치하는 리소스가 없습니다.") : t("등록된 리소스가 없습니다.")}</p> : null}
+      {!filteredResources.length && catalog.data.resources.length ? <button className="secondary-button" type="button" onClick={() => { setResourceQuery(""); setResourceStatus("all"); }}>{t("조건 초기화")}</button> : null}
     </section>
     <section className={styles.card} id="resource-panel-groups" role="tabpanel" aria-labelledby="resource-tab-groups" hidden={activeTab !== "groups"}>
-      <h2 id="groups-title">리소스 그룹</h2>
+      <h2 id="groups-title">{t("리소스 그룹")}</h2>
       <div className={styles.searchBar}>
-        <label className={styles.searchField}><span>리소스 그룹 검색</span><input ref={groupSearchRef} placeholder="리소스 그룹 검색 (이름, 코드 또는 ID)" aria-label="리소스 그룹 검색" value={groupQuery} disabled={busy} onChange={(e) => setGroupQuery(e.target.value)} onKeyDown={(e) => { if (e.key === "Escape") setGroupQuery(""); }} /></label>
-        {statusSelect("group")}<span className={styles.matchCount} role="status">일치 {filteredGroups.length} / 전체 {catalog.data.groups.length}</span>
-        <button className="primary-button" type="button" disabled={locked} onClick={(e) => openEditor("group", e.currentTarget)}>그룹 추가</button>
+        <label className={styles.searchField}><span>{t("리소스 그룹 검색")}</span><input ref={groupSearchRef} placeholder={t("리소스 그룹 검색 (이름, 코드 또는 ID)")} aria-label={t("리소스 그룹 검색")} value={groupQuery} disabled={busy} onChange={(e) => setGroupQuery(e.target.value)} onKeyDown={(e) => { if (e.key === "Escape") setGroupQuery(""); }} /></label>
+        {statusSelect("group")}<span className={styles.matchCount} role="status">{t("일치")}{" "}{formatNumber(filteredGroups.length)} {t("/ 전체")}{" "}{formatNumber(catalog.data.groups.length)}</span>
+        <button className="primary-button" type="button" disabled={locked} onClick={(e) => openEditor("group", e.currentTarget)}>{t("그룹 추가")}</button>
       </div>
-      <div className={styles.tableScroll} role="region" aria-label="리소스 그룹 목록 가로 스크롤" tabIndex={0}>
-        <table className={styles.groupTable}><caption className={styles.caption}>리소스 그룹 목록</caption><colgroup><col /><col style={{ width: 104 }} /><col style={{ width: 176 }} /><col style={{ width: 280 }} /></colgroup>
-          <thead><tr>{["이름", "구성원 수", "상태 / 사용", "작업"].map((label) => <th scope="col" key={label}>{label}</th>)}</tr></thead>
+      <div className={styles.tableScroll} role="region" aria-label={t("리소스 그룹 목록 가로 스크롤")} tabIndex={0}>
+        <table className={styles.groupTable}><caption className={styles.caption}>{t("리소스 그룹 목록")}</caption><colgroup><col /><col style={{ width: 104 }} /><col style={{ width: 176 }} /><col style={{ width: 280 }} /></colgroup>
+          <thead><tr>{[t("이름"), t("구성원 수"), t("상태 / 사용"), t("작업")].map((label) => <th scope="col" key={label}>{label}</th>)}</tr></thead>
           <tbody>{filteredGroups.map((group) => <tr key={group.id} className={group.active ? undefined : styles.inactive}>
-            <td><strong title={group.name}>{group.name}</strong><IdentifierDetails label={`${group.name} 식별 정보`} identifiers={[{label:"그룹 ID",value:group.id},...(group.code?[{label:"코드",value:group.code}]:[])]}/></td><td>{group.memberResourceIds.length}명</td>
-            <td>{group.active ? "활성" : "비활성"}<span id={`group-usage-${group.id}`} className={styles.usageNote}>{projectUsageReason(group)}</span></td>
-            <td><div className={styles.rowActions}><button className="secondary-button" type="button" disabled={locked} onClick={() => requestGroup(group)}>구성원</button><button className="secondary-button" type="button" disabled={locked} onClick={() => void mutate(`/api/resource-groups/${encodeURIComponent(group.id)}`, "PATCH", { active: !group.active })}>{group.active ? "비활성화" : "재활성화"}</button><button className={group.deletable === true ? "danger-button" : "secondary-button"} type="button" disabled={locked} aria-disabled={group.deletable !== true} aria-describedby={`group-usage-${group.id}`} aria-label={`${group.name} ${group.deletable === true ? "삭제" : "삭제 불가"}`} onClick={(e) => requestDelete("group", group, e)}>{group.deletable === true ? "삭제" : "삭제 불가"}</button></div></td>
+            <td><strong title={displayName(group, locale)}>{displayName(group, locale)}</strong><IdentifierDetails label={t("{value0} 식별 정보", {value0: displayName(group, locale)})} identifiers={[{label:"그룹 ID",value:group.id},...(group.code?[{label:"코드",value:group.code}]:[])]}/></td><td>{formatNumber(group.memberResourceIds.length)}{t("명")}</td>
+            <td>{group.active ? t("활성") : t("비활성")}<span id={`group-usage-${group.id}`} className={styles.usageNote}>{projectUsageReason(group,locale)}</span></td>
+            <td><div className={styles.rowActions}><TranslationEditor item={group} revision={catalog.data.revision} cachedDraft={translationDrafts[`resource-group:${group.id}`]} onDraftChange={value=>updateTranslationDraft(`resource-group:${group.id}`,value)} disabled={locked} onSave={translations => mutate(`/api/resource-groups/${encodeURIComponent(group.id)}`, "PATCH", {translations})}/><button className="secondary-button" type="button" disabled={locked} onClick={() => requestGroup(group)}>{t("구성원")}</button><button className="secondary-button" type="button" disabled={locked} onClick={() => void mutate(`/api/resource-groups/${encodeURIComponent(group.id)}`, "PATCH", { active: !group.active })}>{group.active ? t("비활성화") : t("재활성화")}</button><button className={group.deletable === true ? "danger-button" : "secondary-button"} type="button" disabled={locked} aria-disabled={group.deletable !== true} aria-describedby={`group-usage-${group.id}`} aria-label={`${displayName(group, locale)} ${group.deletable === true ? t("삭제") : t("삭제 불가")}`} onClick={(e) => requestDelete("group", group, e)}>{group.deletable === true ? t("삭제") : t("삭제 불가")}</button></div></td>
           </tr>)}</tbody>
         </table>
       </div>
-      {!filteredGroups.length ? <p className={styles.emptyState}>{catalog.data.groups.length ? "조건에 일치하는 리소스 그룹이 없습니다." : "등록된 리소스 그룹이 없습니다."}</p> : null}
-      {!filteredGroups.length && catalog.data.groups.length ? <button className="secondary-button" type="button" onClick={() => { setGroupQuery(""); setGroupStatus("all"); }}>조건 초기화</button> : null}
+      {!filteredGroups.length ? <p className={styles.emptyState}>{catalog.data.groups.length ? t("조건에 일치하는 리소스 그룹이 없습니다.") : t("등록된 리소스 그룹이 없습니다.")}</p> : null}
+      {!filteredGroups.length && catalog.data.groups.length ? <button className="secondary-button" type="button" onClick={() => { setGroupQuery(""); setGroupStatus("all"); }}>{t("조건 초기화")}</button> : null}
 
     {selectedGroup ? <section className={styles.members} aria-labelledby="members-title">
       <div className={styles.headingRow}>
-        <h2 id="members-title">{selectedGroup.name} 구성원</h2>
-        <ContextHelp label="그룹 구성원 도움말"><p>그룹 구성원은 팀 목록이며, 작업의 그룹 할당을 개인 할당으로 자동 복제하지 않습니다.</p></ContextHelp>
+        <h2 id="members-title">{displayName(selectedGroup, locale)} {t("구성원")}</h2>
+        <ContextHelp label={t("그룹 구성원 도움말")}><p>{t("그룹 구성원은 팀 목록이며, 작업의 그룹 할당을 개인 할당으로 자동 복제하지 않습니다.")}</p></ContextHelp>
       </div>
-      {!currentGroup ? <p className={styles.error} role="alert">선택한 그룹이 최신 목록에 없습니다. 구성원 초안을 보존했으며 저장할 수 없습니다.</p> : null}
-      {missingMembers.length ? <p className={styles.error} role="alert">최신 목록에 없는 리소스 {missingMembers.length}개의 선택을 보존했습니다. 최신 목록을 확인해야 저장할 수 있습니다.</p> : null}
-      {membersDiffer ? <p className={styles.note}>저장된 구성원과 현재 선택이 다릅니다. 목록을 확인한 후 구성원을 저장해 주세요.</p> : null}
+      {!currentGroup ? <p className={styles.error} role="alert">{t("선택한 그룹이 최신 목록에 없습니다. 구성원 초안을 보존했으며 저장할 수 없습니다.")}</p> : null}
+      {missingMembers.length ? <p className={styles.error} role="alert">{t("최신 목록에 없는 리소스")}{" "}{formatNumber(missingMembers.length)}{t("개의 선택을 보존했습니다. 최신 목록을 확인해야 저장할 수 있습니다.")}</p> : null}
+      {membersDiffer ? <p className={styles.note}>{t("저장된 구성원과 현재 선택이 다릅니다. 목록을 확인한 후 구성원을 저장해 주세요.")}</p> : null}
       <div className={styles.searchBar}>
-        <label className={styles.searchField}><span>구성원 리소스 검색</span><input
-          placeholder="구성원 리소스 검색 (이름, 코드 또는 ID)"
+        <label className={styles.searchField}><span>{t("구성원 리소스 검색")}</span><input
+          placeholder={t("구성원 리소스 검색 (이름, 코드 또는 ID)")}
           value={memberQuery}
           disabled={busy}
           onChange={(event) => setMemberQuery(event.target.value)}
           onKeyDown={(event) => { if (event.key === "Escape") setMemberQuery(""); }}
-          aria-label={`${selectedGroup.name} 구성원 리소스 검색`}
+          aria-label={t("{value0} 구성원 리소스 검색", {value0: displayName(selectedGroup, locale)})}
         /></label>
         <span className={styles.matchCount} role="status" aria-live="polite" aria-atomic="true">
-          일치 {filteredMemberResources.length} / 전체 {catalog.data.resources.length} · 선택 {selectedMembers.size}
+          {t("일치")}{" "}{formatNumber(filteredMemberResources.length)} {t("/ 전체")}{" "}{formatNumber(catalog.data.resources.length)} {t("· 선택")}{" "}{formatNumber(selectedMembers.size)}
         </span>
       </div>
       {catalog.data.resources.length === 0 ? (
-        <p className={styles.emptyState}>등록된 리소스가 없습니다.</p>
+        <p className={styles.emptyState}>{t("등록된 리소스가 없습니다.")}</p>
       ) : filteredMemberResources.length === 0 ? (
-        <p className={styles.emptyState}>검색 조건과 일치하는 리소스가 없습니다.</p>
+        <p className={styles.emptyState}>{t("검색 조건과 일치하는 리소스가 없습니다.")}</p>
       ) : (
         <div className={styles.memberGrid}>
-          {filteredMemberResources.map((resource) => <label key={resource.id} className={`${styles.member} ${resource.active ? "" : styles.inactive}`}><input aria-label={`${resource.name}${resource.code && filteredMemberResources.some(other=>other.id!==resource.id&&other.name===resource.name) ? ` (${resource.code})` : ""}`} type="checkbox" checked={selectedMembers.has(resource.id)} disabled={locked || !currentGroup} onChange={() => toggleMember(resource.id)} /><span>{resource.name}{resource.code && filteredMemberResources.some(other=>other.id!==resource.id&&other.name===resource.name) ? ` (${resource.code})` : ""}<span className={styles.memberRoleText}> · 역할 {(resource.roles ?? []).length > 0 ? (resource.roles ?? []).map(resourceRoleLabel).join(", ") : "없음"}</span></span></label>)}
+          {filteredMemberResources.map((resource) => <label key={resource.id} className={`${styles.member} ${resource.active ? "" : styles.inactive}`}><input aria-label={`${resource.name}${resource.code && filteredMemberResources.some(other=>other.id!==resource.id&&other.name===resource.name) ? ` (${resource.code})` : ""}`} type="checkbox" checked={selectedMembers.has(resource.id)} disabled={locked || !currentGroup} onChange={() => toggleMember(resource.id)} /><span>{resource.name}{resource.code && filteredMemberResources.some(other=>other.id!==resource.id&&other.name===resource.name) ? ` (${resource.code})` : ""}<span className={styles.memberRoleText}> {t("· 역할")}{" "}{(resource.roles ?? []).length > 0 ? (resource.roles ?? []).map(role=>t(resourceRoleLabel(role))).join(", ") : t("없음")}</span></span></label>)}
         </div>
       )}
       <div className={styles.memberFooterActions}>
-        <button className="secondary-button" type="button" disabled={busy} onClick={() => requestGroup(null)}>닫기</button>
-        <button className="primary-button" type="button" disabled={locked || !currentGroup || missingMembers.length > 0} onClick={() => void saveMembers()}>구성원 저장</button>
+        <button className="secondary-button" type="button" disabled={busy} onClick={() => requestGroup(null)}>{t("닫기")}</button>
+        <button className="primary-button" type="button" disabled={locked || !currentGroup || missingMembers.length > 0} onClick={() => void saveMembers()}>{t("구성원 저장")}</button>
       </div>
     </section> : null}
     </section>
-    {editor && !editorSuspended ? <WorkspaceDialog title={editor === "profile" ? "리소스 프로필 편집" : editor === "resource" ? "리소스 추가" : "그룹 추가"} restoreFocusRef={editorTrigger} busy={busy || !!discard} feedback={false} onClose={closeEditor}>
+    {editor && !editorSuspended ? <WorkspaceDialog title={editor === "profile" ? t("리소스 프로필 편집") : editor === "resource" ? t("리소스 추가") : t("그룹 추가")} restoreFocusRef={editorTrigger} busy={busy || !!discard} feedback={false} onClose={closeEditor}>
       <form className={styles.editorForm} onSubmit={(e) => void (editor === "profile" ? saveProfile(e) : editor === "resource" ? addResource(e) : addGroup(e))}>
         <div className={styles.editorBody}>
-          {error ? <p className={styles.error} role="alert">{error}</p> : null}
+          {error ? <p className={styles.error} role="alert">{t(error ?? "")}</p> : null}
           <div className={styles.actions}>
-            <button className="secondary-button" type="button" disabled={busy || !!discard} onClick={() => void refreshCatalog()}>최신 목록 조회</button>
-            <ContextHelp label="리소스 저장 도움말" disabled={busy || !!discard}><p>최신 목록을 기준으로 저장하며, 저장 전에는 변경이 적용되지 않습니다.</p></ContextHelp>
+            <button className="secondary-button" type="button" disabled={busy || !!discard} onClick={() => void refreshCatalog()}>{t("최신 목록 조회")}</button>
+            <ContextHelp label={t("리소스 저장 도움말")} disabled={busy || !!discard}><p>{t("최신 목록을 기준으로 저장하며, 저장 전에는 변경이 적용되지 않습니다.")}</p></ContextHelp>
           </div>
           {editor === "profile" ? <>
-            <p><strong>{profile?.name}</strong></p>{profile ? <IdentifierDetails label={`${profile.name} 식별 정보`} identifiers={[{label:"리소스 ID",value:profile.id},...(profile.code?[{label:"코드",value:profile.code}]:[])]}/> : null}
-            {!profileCurrent ? <p className={styles.error}>최신 목록에 없는 리소스입니다. 초안을 보존했으며 저장할 수 없습니다.</p> : null}
-            {profileCurrent && profile && (profileCurrent.developerGrade !== profile.developerGrade || orderedResourceRoles(profileCurrent.roles ?? []).join() !== orderedResourceRoles(profile.roles ?? []).join()) ? <p className={styles.note}>최신 저장 값: {developerGradeLabel(profileCurrent.developerGrade)} · 역할 {(profileCurrent.roles ?? []).map(resourceRoleLabel).join(", ") || "없음"}. 아래 보존한 초안을 검토한 후 다시 저장해 주세요.</p> : null}
-          </> : <><label className={styles.field}>이름<input autoFocus ref={(node) => { editorFocus.current = node; node?.setAttribute("autofocus", ""); }} value={editor === "resource" ? resourceName : groupName} maxLength={200} disabled={locked || !!discard} onChange={(e) => editor === "resource" ? setResourceName(e.target.value) : setGroupName(e.target.value)} /></label><label className={styles.field}>코드<input value={editor === "resource" ? resourceCode : groupCode} maxLength={64} disabled={locked || !!discard} onChange={(e) => editor === "resource" ? setResourceCode(e.target.value) : setGroupCode(e.target.value)} /></label></>}
-          {editor !== "group" ? <><label className={styles.field}>개발자 등급<select autoFocus={editor === "profile"} ref={(node) => { if (editor === "profile") { editorFocus.current = node; node?.setAttribute("autofocus", ""); } }} aria-label={editor === "profile" ? `${profile?.name} 개발자 등급` : "신규 리소스 개발자 등급"} value={editor === "profile" ? profileGrade : resourceDeveloperGrade} disabled={locked || !!discard} onChange={(e) => editor === "profile" ? setProfileGrade(e.target.value as DeveloperGrade | "") : setResourceDeveloperGrade(e.target.value as DeveloperGrade | "")}>{DEVELOPER_GRADE_OPTIONS.map((option) => <option key={option.value || "unset"} value={option.value}>{option.label}</option>)}</select></label>
-            <fieldset className={styles.resourceRoleFieldset} disabled={locked || !!discard}><legend>전역 역할</legend><div className={styles.roleOptions}>{RESOURCE_ROLE_OPTIONS.map((option) => <label key={option.value}><input type="checkbox" aria-label={editor === "profile" ? `${profile?.name} ${option.label} 역할` : option.label} checked={editor === "profile" ? profileRoles.includes(option.value) : resourceRoles.has(option.value)} onChange={() => editor === "profile" ? setProfileRoles((current) => current.includes(option.value) ? current.filter((r) => r !== option.value) : orderedResourceRoles([...current, option.value])) : toggleResourceCreateRole(option.value)} />{option.label}</label>)}</div></fieldset></> : null}
+            <p><strong>{profile?.name}</strong></p>{profile ? <IdentifierDetails label={t("{value0} 식별 정보", {value0: profile.name})} identifiers={[{label:"리소스 ID",value:profile.id},...(profile.code?[{label:"코드",value:profile.code}]:[])]}/> : null}
+            {!profileCurrent ? <p className={styles.error}>{t("최신 목록에 없는 리소스입니다. 초안을 보존했으며 저장할 수 없습니다.")}</p> : null}
+            {profileCurrent && profile && (profileCurrent.developerGrade !== profile.developerGrade || orderedResourceRoles(profileCurrent.roles ?? []).join() !== orderedResourceRoles(profile.roles ?? []).join()) ? <p className={styles.note}>{t("최신 저장 값:")}{" "}{t(developerGradeLabel(profileCurrent.developerGrade))} {t("· 역할")}{" "}{(profileCurrent.roles ?? []).map(role=>t(resourceRoleLabel(role))).join(", ") || t("없음")}{t(". 아래 보존한 초안을 검토한 후 다시 저장해 주세요.")}</p> : null}
+          </> : <><label className={styles.field}>{t("이름")}<input autoFocus ref={(node) => { editorFocus.current = node; node?.setAttribute("autofocus", ""); }} value={editor === "resource" ? resourceName : groupName} maxLength={200} disabled={locked || !!discard} onChange={(e) => editor === "resource" ? setResourceName(e.target.value) : setGroupName(e.target.value)} /></label><label className={styles.field}>{t("코드")}<input value={editor === "resource" ? resourceCode : groupCode} maxLength={64} disabled={locked || !!discard} onChange={(e) => editor === "resource" ? setResourceCode(e.target.value) : setGroupCode(e.target.value)} /></label></>}
+          {editor === "group" ? <TranslationFields value={groupTranslations} onChange={setGroupTranslations} disabled={locked || !!discard} /> : null}
+          {editor !== "group" ? <><label className={styles.field}>{t("개발자 등급")}<select autoFocus={editor === "profile"} ref={(node) => { if (editor === "profile") { editorFocus.current = node; node?.setAttribute("autofocus", ""); } }} aria-label={editor === "profile" ? t("{value0} 개발자 등급", {value0: profile?.name}) : t("신규 리소스 개발자 등급")} value={editor === "profile" ? profileGrade : resourceDeveloperGrade} disabled={locked || !!discard} onChange={(e) => editor === "profile" ? setProfileGrade(e.target.value as DeveloperGrade | "") : setResourceDeveloperGrade(e.target.value as DeveloperGrade | "")}>{DEVELOPER_GRADE_OPTIONS.map((option) => <option key={option.value || "unset"} value={option.value}>{t(option.label)}</option>)}</select></label>
+            <fieldset className={styles.resourceRoleFieldset} disabled={locked || !!discard}><legend>{t("전역 역할")}</legend><div className={styles.roleOptions}>{RESOURCE_ROLE_OPTIONS.map((option) => <label key={option.value}><input type="checkbox" aria-label={editor === "profile" ? t("{value0} {value1} 역할", {value0: profile?.name, value1: t(option.label)}) : t(option.label)} checked={editor === "profile" ? profileRoles.includes(option.value) : resourceRoles.has(option.value)} onChange={() => editor === "profile" ? setProfileRoles((current) => current.includes(option.value) ? current.filter((r) => r !== option.value) : orderedResourceRoles([...current, option.value])) : toggleResourceCreateRole(option.value)} />{t(option.label)}</label>)}</div></fieldset></> : null}
         </div>
-        <div className={styles.dialogActions}><button className="secondary-button" type="button" disabled={busy || !!discard} onClick={closeEditor}>취소</button><button className="primary-button" type="submit" disabled={locked || !!discard || (editor === "profile" ? !profileCurrent : !(editor === "resource" ? resourceName : groupName).trim())}>{busy ? "저장 중…" : editor === "profile" ? "프로필 저장" : "추가"}</button></div>
+        <div className={styles.dialogActions}><button className="secondary-button" type="button" disabled={busy || !!discard} onClick={closeEditor}>{t("취소")}</button><button className="primary-button" type="submit" disabled={locked || !!discard || (editor === "profile" ? !profileCurrent : !(editor === "resource" ? resourceName : groupName).trim())}>{busy ? t("저장 중…") : editor === "profile" ? t("프로필 저장") : t("추가")}</button></div>
       </form>
     </WorkspaceDialog> : null}
-    {discard ? <WorkspaceDialog title={discard.kind === "editor-switch" ? "보존한 초안 확인" : "초안 폐기 확인"} feedback={false} restoreFocusRef={continueFocus} busy={busy} onClose={() => { if (!pending.current) setDiscard(null); }}><p className={styles.note}>{discard.kind === "editor-switch" ? "401 이후 보존한 초안이 있습니다. 기존 초안을 유지하거나 폐기한 뒤 요청한 편집 작업을 계속할 수 있습니다." : "저장하지 않은 변경사항을 폐기할까요?"}</p><div className={styles.dialogActions}><button ref={(node) => { discardInitialFocus.current = node; node?.setAttribute("autofocus", ""); }} autoFocus className="secondary-button" type="button" onClick={() => setDiscard(null)}>{discard.kind === "editor-switch" ? "초안 유지" : "계속 편집"}</button><button className="danger-button" type="button" onClick={confirmDiscard}>{discard.kind === "editor-switch" ? `초안 폐기 후 ${discard.next.kind === "resource" ? "리소스 추가" : discard.next.kind === "group" ? "그룹 추가" : "프로필 편집"}` : "초안 폐기"}</button></div></WorkspaceDialog> : null}
+    {discard ? <WorkspaceDialog title={discard.kind === "editor-switch" ? t("보존한 초안 확인") : t("초안 폐기 확인")} feedback={false} restoreFocusRef={continueFocus} busy={busy} onClose={() => { if (!pending.current) setDiscard(null); }}><p className={styles.note}>{discard.kind === "editor-switch" ? t("401 이후 보존한 초안이 있습니다. 기존 초안을 유지하거나 폐기한 뒤 요청한 편집 작업을 계속할 수 있습니다.") : t("저장하지 않은 변경사항을 폐기할까요?")}</p><div className={styles.dialogActions}><button ref={(node) => { discardInitialFocus.current = node; node?.setAttribute("autofocus", ""); }} autoFocus className="secondary-button" type="button" onClick={() => setDiscard(null)}>{discard.kind === "editor-switch" ? t("초안 유지") : t("계속 편집")}</button><button className="danger-button" type="button" onClick={confirmDiscard}>{discard.kind === "editor-switch" ? t("초안 폐기 후 {value0}", {value0: discard.next.kind === "resource" ? t("리소스 추가") : discard.next.kind === "group" ? t("그룹 추가") : t("프로필 편집")}) : t("초안 폐기")}</button></div></WorkspaceDialog> : null}
     {pendingDelete ? (
       <WorkspaceDialog
-        title={pendingDelete.kind === "resource" ? "리소스 삭제" : "리소스 그룹 삭제"}
+        title={pendingDelete.kind === "resource" ? t("리소스 삭제") : t("리소스 그룹 삭제")}
         restoreFocusRef={deleteTriggerRef}
         busy={busy}
         feedback={false}
         onClose={() => { if (!pending.current) setPendingDelete(null); }}
       >
-        <p className={styles.note}><strong>{pendingDelete.name}</strong> 항목을 영구 삭제합니다. 이 작업은 되돌릴 수 없습니다.</p>
+        <p className={styles.note}><strong>{pendingDelete.name}</strong> {t("항목을 영구 삭제합니다. 이 작업은 되돌릴 수 없습니다.")}</p>
         {pendingDelete.kind === "group"
-          ? <p className={styles.note}>그룹만 삭제되며 소속 리소스는 삭제되지 않습니다.</p>
+          ? <p className={styles.note}>{t("그룹만 삭제되며 소속 리소스는 삭제되지 않습니다.")}</p>
           : null}
         <div className={styles.dialogActions}>
-          <button autoFocus className="secondary-button" type="button" disabled={busy} onClick={() => { if (!pending.current) setPendingDelete(null); }}>취소</button>
-          <button className="danger-button" type="button" disabled={busy} onClick={() => void confirmDelete()}>{busy ? "삭제 중…" : "영구 삭제"}</button>
+          <button autoFocus className="secondary-button" type="button" disabled={busy} onClick={() => { if (!pending.current) setPendingDelete(null); }}>{t("취소")}</button>
+          <button className="danger-button" type="button" disabled={busy} onClick={() => void confirmDelete()}>{busy ? t("삭제 중…") : t("영구 삭제")}</button>
         </div>
       </WorkspaceDialog>
     ) : null}
     {passwordDialogOpen ? (
       <WorkspaceDialog
-        title="관리자 비밀번호 변경"
+        title={t("관리자 비밀번호 변경")}
         restoreFocusRef={changePasswordTriggerRef}
         busy={busy}
         onClose={() => {
@@ -768,14 +778,14 @@ export function ResourceCatalogAdmin() {
         }}
       >
         <form className="project-form compact-form" noValidate onSubmit={(event) => void changePassword(event)}>
-          <p className={styles.note}>현재 관리자 권한이 있는 세션에서만 변경할 수 있습니다. 새 비밀번호는 1~12자입니다.</p>
-          {dialogError ? <p className={styles.error} role="alert">{dialogError}</p> : null}
+          <p className={styles.note}>{t("현재 관리자 권한이 있는 세션에서만 변경할 수 있습니다. 새 비밀번호는 1~12자입니다.")}</p>
+          {dialogError ? <p className={styles.error} role="alert">{t(dialogError ?? "")}</p> : null}
           <div className="form-field">
-            <label htmlFor="modal-new-admin-password">새 비밀번호</label>
+            <label htmlFor="modal-new-admin-password">{t("새 비밀번호")}</label>
             <input id="modal-new-admin-password" type="password" autoComplete="new-password" minLength={1} value={newAdminPassword} disabled={busy} onChange={(event) => setNewAdminPassword(event.target.value)} />
           </div>
           <div className="form-field">
-            <label htmlFor="modal-confirm-admin-password">새 비밀번호 확인</label>
+            <label htmlFor="modal-confirm-admin-password">{t("새 비밀번호 확인")}</label>
             <input id="modal-confirm-admin-password" type="password" autoComplete="new-password" minLength={1} value={confirmAdminPassword} disabled={busy} onChange={(event) => setConfirmAdminPassword(event.target.value)} />
           </div>
           <div className={styles.dialogActions}>
@@ -785,9 +795,9 @@ export function ResourceCatalogAdmin() {
               setNewAdminPassword("");
               setConfirmAdminPassword("");
               setDialogError(null);
-            }}>취소</button>
+            }}>{t("취소")}</button>
             <button className="primary-button" type="submit" disabled={busy || !newAdminPassword || newAdminPassword !== confirmAdminPassword}>
-              {busy ? "변경 중…" : "비밀번호 변경"}
+              {busy ? t("변경 중…") : t("비밀번호 변경")}
             </button>
           </div>
         </form>

@@ -1,3 +1,4 @@
+import type { DisplayNameTranslations } from "./display-name-translations";
 import type { ResourceDataContext, ResourceDrillSourceContext } from "./resource-drill";
 import type { TaskStatus } from "./projects";
 import type { DeveloperGrade, ResourceWorkloadRole } from "./resources";
@@ -25,6 +26,7 @@ export interface ResourceDashboardTargetFilters {
 export interface ResourceTargetPathEntry { dimension: ResourceTargetDimension; id: string | null }
 export interface ResourceDashboardTargetNode {
   dimension: ResourceTargetDimension; id: string | null; name: string | null; active: boolean | null;
+  translations?: DisplayNameTranslations;
   summary: ResourceDashboardSummary; sourceKinds: ("target_binding" | "legacy_direct" | "target_unlinked")[];
   equipmentQuantity: number; systemCount: number; children: ResourceDashboardTargetNode[];
 }
@@ -34,7 +36,7 @@ export interface ResourceDashboardTargetProjection {
   relatedMembers: import("../domain/resources/resource-kpi-targets").ResourceKpiTargetMemberSummary;
   diagnostics: { targetUnlinkedTaskCount: number; legacyOnlyTaskCount: number; unusedTargetIds: string[]; projectCommonTargetIds: string[]; noWorkAreaTargetIds: string[]; unmappedProjectProcessIds: string[] };
   metadata: { limits: typeof RESOURCE_TARGET_LIMITS; measure: "related planned effort"; subtotalsAdditive: false; assignmentScope: "A"; memberScope: "T0"; projectReferenceScope: "full canonical Project; same period/calendar/asOf/mdPerMm; no source or user filters" };
-  catalog: { dimension: ResourceTargetDimension | "projectProcess"; id: string; name: string; active: boolean; code: string | null }[];
+  catalog: { dimension: ResourceTargetDimension | "projectProcess"; id: string; name: string; translations?: DisplayNameTranslations; active: boolean; code: string | null }[];
 }
 export interface ResourceDashboardFilterInput extends ResourceDashboardTargetFilters {
   from?: string; to?: string; asOfDate?: string;
@@ -80,6 +82,7 @@ export interface ResourceDashboardSummary {
 export interface ResourceDashboardCell { milestoneTaskId: string | null; summary: ResourceDashboardSummary }
 export interface ResourceDashboardRow {
   id: string | null; name: string; code: string | null; active: boolean;
+  translations?: DisplayNameTranslations;
   summary: ResourceDashboardSummary; milestones: ResourceDashboardCell[];
   /** Project-connected members only. This is not the global Group membership list. */
   resourceIds: string[];
@@ -111,7 +114,7 @@ export interface ResourceDashboardDto {
     unsetTasks: { count: number; selector: ResourceDashboardSelector }; unsetAssignmentCount: number;
     inapplicableFilters: string[]; personalFiltersAppliedToA: boolean };
   catalog: { resources: { id: string; name: string; code: string | null; active: boolean; roles: ResourceWorkloadRole[]; developerGrade: DeveloperGrade | null; groupIds: string[] }[];
-    groups: { id: string; name: string; code: string | null; active: boolean }[];
+    groups: { id: string; name: string; translations?: DisplayNameTranslations; code: string | null; active: boolean }[];
     milestones: { id: string; name: string }[]; wbsRoots: { id: string; name: string; type: "task" | "summary" | "milestone" }[];
     targetOptions?: ResourceDashboardTargetProjection["catalog"] };
   metadata: { groupRoleSubtotalsAdditive: false; precision: "raw"; diagnosticsScope: string; searchScope: string;
@@ -164,7 +167,7 @@ export interface ResourcePlanTargetContext {
 export interface ResourceDashboardPlanDto extends Omit<ResourcePlanResult, "resources" | "groups" | "metadata"> {
   targetContext?: ResourcePlanTargetContext;
   resources: (Omit<ResourcePlanResourceSeries, "milestones"> & ResourcePlanPersonMetadata & { milestones: (ResourcePlanResourceSeries["milestones"][number] & { name: string; scheduledDate: string | null })[] })[];
-  groups: (ResourcePlanGroupSeries & { name: string; code: string | null; active: boolean })[];
+  groups: (ResourcePlanGroupSeries & { name: string; code: string | null; active: boolean; translations?: DisplayNameTranslations })[];
   metadata: ResourcePlanResult["metadata"] & { limits: typeof RESOURCE_PLAN_LIMITS; populationScope: "ordinary-task-personal-assignment-history-classification-only"; groupDisplayScope: "selected-group-and-activity" };
 }
 export type ResourcePlanDetailKind = "daily" | "day-resources" | "day-assignments";

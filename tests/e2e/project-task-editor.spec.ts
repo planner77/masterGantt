@@ -673,7 +673,7 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
     await alphaRow.getByText("Alpha leaf", { exact: true }).click({ button: "right" });
     const contextMenu = taskContextMenu(page);
     await expect(contextMenu).toBeVisible();
-    await contextMenu.getByRole("menuitem", { name: "Copy ID", exact: true }).click();
+    await contextMenu.getByRole("menuitem", { name: "작업 ID 복사", exact: true }).click();
     await expect(page.getByTestId("workspace-toast")).toContainText("작업 ID를 복사했습니다.");
     await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe(id(3));
 

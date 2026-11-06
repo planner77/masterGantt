@@ -1,24 +1,17 @@
-/**
- * Browser-facing date formatting helpers.
- *
- * Client components must render the same value during SSR and their first
- * hydration pass. Use SSR_DATE_LOCALE initially, then pass browserLocales()
- * after mount to honour the user's locale preferences.
- */
-export const SSR_DATE_LOCALE = "en-CA";
-export const SSR_TIME_ZONE = "UTC";
+import { LOCALE_FORMATS } from "./i18n/locales";
+import { getCurrentLocale, subscribeLocale } from "./i18n/store";
 
+/** SSR and the first hydration pass use a deterministic Korean display locale. */
+export const SSR_DATE_LOCALE = "ko-KR";
+export const SSR_TIME_ZONE = "UTC";
 export type DisplayLocales = Intl.LocalesArgument | undefined;
 
+/** Selected UI language takes precedence over browser preferences. */
 export function browserLocales(): DisplayLocales {
-  if (typeof navigator === "undefined") return SSR_DATE_LOCALE;
-
-  // Do not return navigator.languages itself here. Some browsers expose it as
-  // a fresh array-like object on every read, which is not a stable external
-  // store snapshot during hydration. The first preference is the browser's
-  // resolved locale and is the locale Intl uses for ordinary UI formatting.
-  return navigator.languages[0] || navigator.language || SSR_DATE_LOCALE;
+  return LOCALE_FORMATS[getCurrentLocale()];
 }
+
+export const subscribeToDisplayLocale = subscribeLocale;
 
 export function browserTimeZone(): string {
   if (typeof Intl === "undefined") return SSR_TIME_ZONE;

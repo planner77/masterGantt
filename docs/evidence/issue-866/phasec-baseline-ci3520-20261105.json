@@ -1,0 +1,252 @@
+{
+  "schema": "mastergantt-phasec-ci-baseline-v1",
+  "scope": "이미 완료된 원본 Full3520.1에 대한 단발 과거 조회. 새 PhaseC CI 모니터링/권한 변경 없음.",
+  "repository": "planner77/masterGantt",
+  "pull_request": 879,
+  "issue": 866,
+  "run": {
+    "id": 41979842028,
+    "number": 3520,
+    "attempt": 1,
+    "event": "pull_request",
+    "path": ".github/workflows/ci.yml",
+    "status": "completed",
+    "conclusion": "success",
+    "url": "https://github.com/planner77/masterGantt/actions/runs/41979842028",
+    "head_sha": "3fb37d77e6b4e80ee1daedf1642b6cfee1c2913b",
+    "updated_at": "2026-11-05T06:55:25Z"
+  },
+  "source": {
+    "head_sha": "3fb37d77e6b4e80ee1daedf1642b6cfee1c2913b",
+    "base_sha": "364aa3bdfde16fd3ca79add61c35a1cde21f6395",
+    "test_merge_sha": "69fb50e7f3cb12cc0074a1691c69321399eec427",
+    "source_job": 127087162554,
+    "evidence": "GitHub Run API + changes Job checkout/PR_HEAD/PR_BASE/PR_TEST_MERGE 로그",
+    "trusted_artifact_schema_provenance": "NOT AUDITED"
+  },
+  "required": [
+    {
+      "name": "Build, static checks, and unit tests",
+      "job_id": 127088871168,
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "name": "Chromium end-to-end tests",
+      "job_id": 127099090837,
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "name": "Docker build and runtime smoke test",
+      "job_id": 127089918011,
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "implementation_success": {
+    "preflight": 127087278341,
+    "policy": 127087394390,
+    "lint": 127087394396,
+    "typecheck": 127087394470,
+    "unit": 127087394328,
+    "build": 127088304767,
+    "docker": 127088304846,
+    "qa_automated": 127099118623
+  },
+  "unit": {
+    "files_pass": 293,
+    "files_preexisting_skip": 1,
+    "tests_pass": 3541,
+    "tests_preexisting_skip": 3,
+    "duration_seconds": 96.46
+  },
+  "e2e": {
+    "planned": 874,
+    "passed": 871,
+    "preexisting_skipped": 3,
+    "failed": 0,
+    "shards": [
+      {
+        "job_id": 127088304928,
+        "name": "Chromium E2E shard 1/8 · PR",
+        "conclusion": "success",
+        "wall_seconds": 1735,
+        "planned": 129,
+        "passed": 129,
+        "skipped": 0,
+        "summary_lines": [
+          "2026-11-05T06:26:16.9250515Z Running 129 tests using 1 worker",
+          "2026-11-05T06:53:23.1931989Z   129 passed (27.3m)"
+        ]
+      },
+      {
+        "job_id": 127088304944,
+        "name": "Chromium E2E shard 2/8 · PR",
+        "conclusion": "success",
+        "wall_seconds": 1316,
+        "planned": 104,
+        "passed": 104,
+        "skipped": 0,
+        "summary_lines": [
+          "2026-11-05T06:25:37.1125906Z Running 104 tests using 1 worker",
+          "2026-11-05T06:46:23.7429694Z   104 passed (21.0m)"
+        ]
+      },
+      {
+        "job_id": 127088304910,
+        "name": "Chromium E2E shard 3/8 · PR",
+        "conclusion": "success",
+        "wall_seconds": 1681,
+        "planned": 153,
+        "passed": 152,
+        "skipped": 1,
+        "summary_lines": [
+          "2026-11-05T06:25:43.4468351Z Running 153 tests using 1 worker",
+          "2026-11-05T06:52:28.4385777Z   1 skipped",
+          "2026-11-05T06:52:28.4386181Z   152 passed (27.0m)"
+        ]
+      },
+      {
+        "job_id": 127088305083,
+        "name": "Chromium E2E shard 4/8 · PR",
+        "conclusion": "success",
+        "wall_seconds": 1249,
+        "planned": 94,
+        "passed": 93,
+        "skipped": 1,
+        "summary_lines": [
+          "2026-11-05T06:25:36.7087482Z Running 94 tests using 1 worker",
+          "2026-11-05T06:45:16.9829752Z   1 skipped",
+          "2026-11-05T06:45:16.9830090Z   93 passed (19.9m)"
+        ]
+      },
+      {
+        "job_id": 127088305041,
+        "name": "Chromium E2E shard 5/8 · PR",
+        "conclusion": "success",
+        "wall_seconds": 1823,
+        "planned": 111,
+        "passed": 111,
+        "skipped": 0,
+        "summary_lines": [
+          "2026-11-05T06:25:56.0293562Z Running 111 tests using 1 worker",
+          "2026-11-05T06:54:48.9030277Z   111 passed (29.1m)"
+        ]
+      },
+      {
+        "job_id": 127088305016,
+        "name": "Chromium E2E shard 6/8 · PR",
+        "conclusion": "success",
+        "wall_seconds": 1305,
+        "planned": 100,
+        "passed": 99,
+        "skipped": 1,
+        "summary_lines": [
+          "2026-11-05T06:26:19.6560571Z Running 100 tests using 1 worker",
+          "2026-11-05T06:46:12.2552486Z   1 skipped",
+          "2026-11-05T06:46:12.2552702Z   99 passed (20.1m)"
+        ]
+      },
+      {
+        "job_id": 127088304938,
+        "name": "Chromium E2E shard 7/8 · PR",
+        "conclusion": "success",
+        "wall_seconds": 1411,
+        "planned": 79,
+        "passed": 79,
+        "skipped": 0,
+        "summary_lines": [
+          "2026-11-05T06:26:06.9540396Z Running 79 tests using 1 worker",
+          "2026-11-05T06:47:57.6648910Z   79 passed (22.1m)"
+        ]
+      },
+      {
+        "job_id": 127088305053,
+        "name": "Chromium E2E shard 8/8 · PR",
+        "conclusion": "success",
+        "wall_seconds": 941,
+        "planned": 104,
+        "passed": 104,
+        "skipped": 0,
+        "summary_lines": [
+          "2026-11-05T06:25:21.1671115Z Running 104 tests using 1 worker",
+          "2026-11-05T06:40:09.1506467Z   104 passed (15.0m)"
+        ]
+      }
+    ]
+  },
+  "new_primary_failures": [],
+  "failure_union_change": "새 primary failure 없음. 이전21회 원장/실패 합집합 보존. 이 성공은 과거 FAIL/CANCELLED를 소급변경하지 않으며 PhaseC 새Head PASS로 전용하지 않음.",
+  "history_counts_after_baseline": {
+    "pr879": {
+      "total": 11,
+      "full": 9,
+      "metadata": 2
+    },
+    "pr878": {
+      "total": 3
+    },
+    "pr870": {
+      "total": 8
+    },
+    "combined_ci_runs": 22
+  },
+  "phasec_spec_placement": {
+    "baseline_head": "3fb37d77e6b4e80ee1daedf1642b6cfee1c2913b",
+    "baseline_specs": 145,
+    "shard_count": 8,
+    "before_counts": [
+      19,
+      18,
+      18,
+      18,
+      18,
+      18,
+      18,
+      18
+    ],
+    "conditional_new_file": "tests/e2e/i18n.spec.ts",
+    "recommended_shard": 8,
+    "after_counts_if_one_new_spec": [
+      19,
+      18,
+      18,
+      18,
+      18,
+      18,
+      18,
+      19
+    ],
+    "after_specs_if_one_new_spec": 146,
+    "reason": "성공 Full3520.1 실제 wall에서 shard8=941초로 최소. count18 tie중 단일관측 사용; 신규spec 비용/성능개선/10회baseline 주장 아님.",
+    "source_run_id": 41979842028,
+    "source_attempt": 1,
+    "source_job_id": 127088305053,
+    "source_wall_seconds": 941,
+    "new_spec_duration": "REMOTE_UNMEASURED",
+    "preserve": [
+      "기존145spec 이동0",
+      "generatedAt/sourceRunIds/metrics/projectedMs 과거값 불변",
+      "8shards/workers1/timeout35m/fail-fast/retry/skip/Required3/Trusted/Owner 정책 불변"
+    ],
+    "required_edits_handoff": [
+      "추가spec 정확1회 등록",
+      "issue866PhaseCExplicitPlacement source marker",
+      "tests/scripts/e2e-shard-planner.test.ts count [19,18,18,18,18,18,18,19] 및 i18n.spec.ts→8 exact map",
+      "변경후 discover/current plan unique coverage/누락·중복·fallback 정책 정적/Unit 검사"
+    ],
+    "lifecycle_overlap": "archived i18n.spec의 browser preference/invalid storage는 기존 language-shell과 일부중복. liveGantt instance/scroll/cross-tab draft/write0 및 Server Component heading/help가 고유 경계. 기존고유tests삭제금지; ADD/EXTEND/KEEP_UNIQUE/PARTIAL_OVERLAP 기록."
+  },
+  "authority": {
+    "phase_ab_required3": "PASS on exact source only",
+    "phasec_required3": "NOT TESTED",
+    "trusted_qa": "NOT AUDITED",
+    "manager_accept": "NOT TESTED",
+    "release_authorized": false,
+    "main_ghcr_release": "N/A(PR-only source scope)"
+  },
+  "issue_log_type": "STATUS",
+  "issue_log_summary": "PhaseA+B Full3520.1 exact source required3/E2E8 성공 확인, 신규 primary failure 없음. PhaseC 출처와 분리.",
+  "decision_required": false
+}

@@ -71,5 +71,17 @@ describe("resource-search-filter", () => {
       expect(result).toHaveLength(1);
       expect(result[0]?.id).toBe("g3");
     });
+
+    it("선택 언어 표시명과 원본 이름을 검색하고 다른 언어 번역은 노출하지 않는다", () => {
+      const groups: ResourceGroupDto[] = [
+        { ...sampleGroups[0], translations: { en: "Development Team", vi: "Nhóm phát triển" } },
+        ...sampleGroups.slice(1),
+      ];
+      expect(filterGroups(groups, "DEVELOPMENT", "en").map(group => group.id)).toEqual(["g1"]);
+      expect(filterGroups(groups, "phát triển", "vi").map(group => group.id)).toEqual(["g1"]);
+      expect(filterGroups(groups, "development", "vi")).toEqual([]);
+      expect(filterGroups(groups, "개발", "en").map(group => group.id)).toEqual(["g1"]);
+      expect(filterGroups(groups, "g1", "ko").map(group => group.id)).toEqual(["g1"]);
+    });
   });
 });

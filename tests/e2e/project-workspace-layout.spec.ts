@@ -1,3 +1,4 @@
+import { waitForGanttReadiness } from "./helpers/gantt-readiness";
 import { expect, test } from "@playwright/test";
 
 const publicId = "b57bb10c-9cd7-4d00-9c2a-4647e2240024";
@@ -17,8 +18,8 @@ const tasks = Array.from({ length: 60 }, (_, index) => ({
 }));
 
 for (const variant of [
-  { locale: "ko-KR", timezoneId: "Asia/Seoul" },
-  { locale: "en-US", timezoneId: "America/New_York" },
+  { locale: "ko-KR", timezoneId: "Asia/Seoul", nativeExternalIdHeader: "외부 ID", settings: "프로젝트 설정", saveInformation: "프로젝트 정보 저장", security: "편집·보안", changePassword: "편집 비밀번호 변경" },
+  { locale: "en-US", timezoneId: "America/New_York", nativeExternalIdHeader: "External ID", settings: "Project settings", saveInformation: "Save project information", security: "Editing and security", changePassword: "Change edit password" },
 ]) {
   test.describe(variant.locale, () => {
     test.use({ locale: variant.locale, timezoneId: variant.timezoneId, viewport: { width: 1440, height: 900 } });
@@ -41,27 +42,39 @@ for (const variant of [
       const gridHeaders = page.locator(".project-gantt-widget .wx-table-container .wx-header");
       const gridHeader = gridHeaders.first();
       const chartHeader = page.locator(".project-gantt-widget .wx-scale").first();
-      const externalIdHeader = gridHeaders.getByText("외부 ID", { exact: true });
+      // Phase C keeps native Grid and custom column labels in the same UI locale.
+      const externalIdHeader = gridHeaders.getByText(variant.nativeExternalIdHeader, { exact: true });
+      const wrongLocaleHeader = gridHeaders.getByText(
+        variant.locale === "en-US" ? "외부 ID" : "External ID", { exact: true },
+      );
       const columnMenu = page.locator(".project-column-menu");
-      const externalIdOption = columnMenu.getByRole("checkbox", { name: "외부 ID", exact: true });
+      const externalIdOption = columnMenu.getByRole("checkbox", { name: variant.nativeExternalIdHeader, exact: true });
       await expect(gantt).toBeVisible();
+      await expect(page.locator("html")).toHaveAttribute("lang", variant.locale.slice(0, 2));
       await expect(gridHeader).toBeVisible();
       await expect(chartHeader).toBeVisible();
       // #9: 하단 요약/설정 영역은 없어야 하며 설정 기능은 헤더의 모달로 보존한다.
       await expect(page.locator(".project-facts, .edit-panels")).toHaveCount(0);
-      const settings = projectHeader.getByRole("button", { name: "프로젝트 설정", exact: true });
+      const settings = projectHeader.getByRole("button", { name: variant.settings, exact: true });
       await expect(settings).toBeVisible();
       expect((await settings.boundingBox())!.height).toBeGreaterThan(30);
       await expect(page.getByRole("dialog")).toHaveCount(0);
       const frame = page.locator(".project-gantt-frame");
+      // SVAR registers Roboto after mounting; its late font swap can wrap the
+      // search toolbar before the settings dialog has changed any geometry.
+      await page.evaluate(() => document.fonts.ready.then(() => undefined));
       const instance = await frame.getAttribute("data-project-gantt-instance");
       const apiInstance = await frame.getAttribute("data-project-gantt-api-instance");
+      await waitForGanttReadiness(frame, {
+        operation: "observe", api: apiInstance, revision: 1, scale: "day", scope: null, query: "",
+        canonicalIds: tasks.map(task => task.taskId), requireRenderedRows: true, queryWitness: { kind: "unchanged" },
+      });
       const beforeSettings = await Promise.all([projectHeader, gridHeader, chartHeader, gantt].map((locator) => locator.boundingBox()));
       await settings.click();
-      const dialog = page.getByRole("dialog", { name: "프로젝트 설정", exact: true });
-      await expect(dialog.getByRole("button", { name: "프로젝트 정보 저장" })).toBeVisible();
-      await dialog.getByRole("tab", { name: "편집·보안" }).click();
-      await expect(dialog.getByRole("button", { name: "편집 비밀번호 변경" })).toBeVisible();
+      const dialog = page.getByRole("dialog", { name: variant.settings, exact: true });
+      await expect(dialog.getByRole("button", { name: variant.saveInformation })).toBeVisible();
+      await dialog.getByRole("tab", { name: variant.security }).click();
+      await expect(dialog.getByRole("button", { name: variant.changePassword })).toBeVisible();
       expect(await Promise.all([projectHeader, gridHeader, chartHeader, gantt].map((locator) => locator.boundingBox()))).toEqual(beforeSettings);
       await page.keyboard.press("Escape");
       await expect(dialog).toHaveCount(0);
@@ -81,6 +94,8 @@ for (const variant of [
       await expect(externalIdOption).not.toBeChecked();
       await externalIdOption.check();
       await expect(externalIdHeader).toBeVisible();
+      // Both locales must show their exact native label, never a stale prior language.
+      await expect(wrongLocaleHeader).toHaveCount(0);
       await page.keyboard.press("Escape");
       await expect(columnMenu).toBeHidden();
       await gridHeader.click({ button: "right" });

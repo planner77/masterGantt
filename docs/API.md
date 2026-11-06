@@ -1,3 +1,10 @@
+## Issue #866 Phase B — 수동 번역 DTO/API 호환 (2026-11-05)
+
+- 기존 Project Master, Logistics Type, Process Catalog, Project Logistics, Project WorkArea, Resource Group API의 원래 `name`/ID/code/enum 필드는 하위호환 불변. 선택적 `translations: { ko?: string; en?: string; vi?: string }`만 DTO/요청에 추가.
+- POST/PATCH의 translations 생략=보존, 빈 개체={} 전체 삭제, 개별 공백=그 언어 해제. 한 언어 최대 200 codepoint, NFC/trim/제어문자·잘못된 locale 거부. UI 읽기는 해당 언어 번역값 또는 원본 name(다른 언어 fallback 금지).
+- 글로벌 기준정보는 기존 관리자 권한·session, 프로젝트 소유 데이터는 기존 Project edit session·Origin/If-Match revision으로 처리; 별도의 무인증 translation API나 자동 번역 API 없음. 수정·선택은 ID/code를 사용한다. 손실 있는 Schedule JSON/Excel은 409 DISPLAY_NAME_TRANSLATIONS_EXPORT_UNSUPPORTED 등으로 명시 거부.
+- 전체 전역/프로젝트 실제 HTTP 권한·경합 및 Old Consumer 호환은 새 PR CI와 운영 안전 검증이 필요. 상세 [Phase B](I18N_PHASE_B.md).
+
 ## Issue #865 — LLM 내부 호출 계약, 공개 API 추가 없음 (2026-11-04)
 
 `src/server/llm/index.ts`의 서버 전용 `invokeLLM({ providerId?, modelId?, messages, ...boundedOptions })`는 runtime에서 미리 등록한 provider+model 쌍만 허용하며, 설정 오류/미등록 대상·SSRF/timeout/auth/rate/upstream 실패를 타입화한다. API 호출자의 임의 URL/token 또는 모델 자동 fallback은 허용하지 않는다. 이번 이슈에서 `/api/llm` 등 공개 일반 목적 endpoint를 추가하지 않는다. 승인된 내부 소비 기능이 사용자 명시 요청 및 Project 권한/전송 범위 검증을 수행하는 것은 별도 Issue. [LLM 설정](LLM_CONFIGURATION.md).
@@ -1957,3 +1964,9 @@ actual date CRUD는 UNAVAILABLE로 전환하고 sourceVersion/sourceUrl을 null�
 Preview token은 DB secret으로 HMAC 서명하며 원본 UTF-8 content hash/format/선택 country-year/catalog revision/current admin session ID와 token digest/expiry에 묶인다. 유효기간은 min(10분, session expiry)다. raw content의 공백/BOM 변경도 다시 미리보기를 요구한다. token은 권한을 대신하지 않으며 Apply에서 현재 session을 다시 검사한다.
 
 오류는 400 INVALID_COUNTRY_CALENDAR_INPUT(field/row details), 401 PROJECT_MASTER_ADMIN_REQUIRED, 403 ORIGIN_NOT_ALLOWED, 404 COUNTRY_CALENDAR_DATE_NOT_FOUND, 409 COUNTRY_CALENDAR_CONFLICT 또는 COUNTRY_CALENDAR_IMPORT_PREVIEW_MISMATCH, 412 COUNTRY_CALENDAR_REVISION_MISMATCH, 413 IMPORT_TOO_LARGE/REQUEST_TOO_LARGE, 415 UNSUPPORTED_MEDIA_TYPE, 428 PRECONDITION_REQUIRED다. 성공 Apply를 stale revision으로 반복하면 412이며 no-op Preview 반복은 같은 권한·revision·expiry 안에서 write 0이다.
+
+## Issue #866 — Phase C UI 언어와 기존 API 계약 (2026-11-05)
+
+UI locale은 endpoint·route·ID/code·enum·revision/If-Match·날짜·숫자 JSON의 의미를 바꾸지 않는다. locale 변경은 조회나 쓰기 권한이 아니며 새 번역 endpoint를 추가하지 않는다. 관리형 DTO의 name은 원본, translations는 Phase B의 선택 metadata다. 생략은 기존값 보존, 명시적 {}는 전체 해제이며 기존 owner 세션·Origin·CAS 검증이 계속 필요하다. 장비/시스템 편집의 변경 없는 번역은 payload에서 생략하고 사용자 이름·설명·Issue 본문을 자동 변환하지 않는다.
+
+날짜 input과 교환 payload는 기존 date-only/UTC 형식을 유지하고 Intl 포맷 문자열을 API로 전송하지 않는다. 오류 code/requestId·기존 validation field/row detail와 업무 충돌 의미를 보존하며, UI의 allowlisted 번역/context fallback이 서버 응답 계약을 대체하지 않는다. 세부 표시·신뢰 경계는 [Phase C 설계](I18N_PHASE_C.md)를 따른다. 새 Head 원격 회귀는 현재 NOT TESTED다.
