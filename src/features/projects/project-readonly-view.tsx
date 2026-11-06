@@ -3938,7 +3938,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
     </WorkspaceDialog> ) : null}
     <ProjectSettingsDialog
       open={settingsOpen && editing}
-      onClose={() => { if (!busy) { setSettingsOpen(false); setNewPassword(""); } }}
+      onClose={() => { if (!busy) { setMetadataWorkspaceTabs({ ...workspaceTabs }); setSettingsOpen(false); setNewPassword(""); } }}
       busy={busy}
       restoreFocusRef={settingsTriggerReference}
       publicId={publicId}

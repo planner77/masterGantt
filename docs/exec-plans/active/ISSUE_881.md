@@ -20,18 +20,48 @@ Existing contract/security/project-service/project-visibility/project-copy + wor
 
 ## AC_TEST_COVERAGE
 
-- AC1: migration 0037 DEFAULT 1 plus create-service test.
-- AC2/AC7: strict Zod validation, Project edit-session + Origin/If-Match/revision existing handler, new SQLite CAS test.
-- AC3/AC8: isolated Project writes, copy source flags, DB persistence; reopen/legacy migration and JSON compatibility need browser/CI additional evidence.
-- AC4/AC5: shared navigation helper and top tabs; hidden deep link/legacy restore fallback; dirty/pending/focus manual/E2E pending.
-- AC6: on/off canonical project state, original business data unchanged; UI reenable, Issue KPI/Task permissions E2E pending.
-- AC9: full viewport/accessibility and language checks NOT TESTED.
-- AC10: test lifecycle review above; targeted tests added and CI not claimed successful.
-
+- AC1: migration `0037` default-ON / create + historical rows; existing SQLite migration/restart risk noted.
+- AC2: same-project edit session and each independent ON/OFF including all OFF; `project-workspace-tabs-881.test.ts` / Project Settings E2E.
+- AC3: isolated A/B Project persistence in SQLite; multiple browser sessions/DB reopen and production runtime still need verified evidence.
+- AC4: hidden primary tab removal and keyboard semantics; workspace-navigation-881 unit + Project Settings E2E, real ARIA/focus proof pending.
+- AC5: URL/legacy/localStorage/back-forward/internal navigation fallback to Schedule; unit/E2E and explicit dirty/pending/Gantt viewport safety review.
+- AC6: reenable preserves Issue, Dashboard, Master canonical data and session rights; E2E save/reopen plus existing Project Issue suite preserved.
+- AC7: Origin/strong If-Match/session binding/expired/foreign/owner-name spoof/Boolean/unknown key; existing HTTP security + new contract/SQLite regression.
+- AC8: Project Copy copies source flags, new creation ON; existing copy/JSON compatibility and migration rollback/runtime pending full verification.
+- AC9: KO/EN/VI strings in standalone i18n catalog + unit, responsive/keyboard/real 125% & screenreader remain NOT TESTED until evidence.
+- AC10: #711 TEST_LIFECYCLE_REVIEW above, new unit/SQLite/Chromium E2E, PR Full Required3/Trusted QA gates unchanged; initial CI #3534.1 stopped by preflight.
 ## DOCUMENTATION_SYNC
 
-UPDATED: AGENTS.md, DESIGN.md, docs/PROJECT_UX.md, docs/API.md, docs/DB_SCHEMA.md, docs/SECURITY.md, docs/REQUIREMENTS.md, docs/TEST_PLAN.md, CHANGELOG.md, this work packet, docs/ISSUE_881_FAILURE_ANALYSIS.md.
-N/A: docs/CI_CD.md (workflow/required checks unchanged), docs/IMPORT_EXPORT.md (no JSON schema change), SVAR adapter docs (no Core modification), UI_UX_GUIDELINES (existing dialog/accessibility contract reused).
+The following explicit per-path status is checked by trusted `scripts/qa_final_automated.py:docs_gate`; original 5,806-line `docs/TEST_PLAN.md` is preserved from main. A focused [Issue #881 test plan](../../ISSUE_881_TEST_PLAN.md) holds additions.
+
+- `AGENTS.md`: UPDATED
+- `DESIGN.md`: UPDATED
+- `docs/API.md`: UPDATED
+- `docs/DB_SCHEMA.md`: UPDATED
+- `docs/SECURITY.md`: UPDATED
+- `docs/PROJECT_UX.md`: UPDATED
+- `docs/REQUIREMENTS.md`: UPDATED
+- `CHANGELOG.md`: UPDATED
+- `docs/exec-plans/active/ISSUE_881.md`: UPDATED
+- `docs/ISSUE_881_FAILURE_ANALYSIS.md`: UPDATED
+- `docs/ISSUE_881_TEST_PLAN.md`: UPDATED
+- `docs/QA_REVIEW_POLICY.md`: N/A(Existing QA review and Owner Managed policy unchanged)
+- `docs/CI_CD.md`: N/A(Existing PR Quality E2E8 Docker gate unchanged)
+- `docs/TEST_PLAN.md`: N/A(Existing full test lifecycle original preserved, new Issue 881 test plan added)
+- `docs/GITHUB_OPERATIONS.md`: N/A(Existing PR CI and GitHub permissions unchanged)
+- `docs/REMOTE_VALIDATION.md`: N/A(Existing trusted PR and deployment evidence requirements unchanged)
+- `docs/SCHEDULING_ENGINE.md`: N/A(Project schedule calculations and SVAR Core unchanged)
+- `docs/IMPORT_EXPORT.md`: N/A(Existing JSON schema contract unchanged)
+- `docs/IMPORT_SCHEMA.md`: N/A(No change to import schema or version)
+- `docs/UI_UX_GUIDELINES.md`: N/A(Existing dialog focus and keyboard requirements applied)
+
+## 2026-11-07 F881-001 rework — exact provenance
+
+- Original Full Run [#3534.1 / 42305023293](https://github.com/planner77/masterGantt/actions/runs/42305023293), attempt1, HEAD `3842c797cb3106abcf47ae2bb3b93e7c4afb2e67`, main `229604522969133d1ccc6de0477e373252670c86`.
+- Direct failures: QA protected route Job 128192084990 (PR body qa_method parser), QA Preflight Job 128192281867 (risk_level / qa_method / qa_required one-field-per-line and DOC_SYNC syntax). Fast gate, aggregate Required3 are derived failures; TypeScript/Vitest/E2E8/Docker were SKIPPED.
+- Corrected: PR metadata strict declarations in standalone lines, Work Packet path-by-path sync and individual AC1..AC10 mapping, restore historical 5,806-line `docs/TEST_PLAN.md`, add focused Issue #881 test plan and KO/EN/VI static strings, cancel resets pending display draft. No CI gate weakened.
+- New exact PR HEAD and Run/Attempt are recorded only after a real source update and kickoff. Owner-only #882 remains separate.
+- Review threads / mergeability are rechecked before new CI kickoff; no monitor/merge/release/finalize.
 
 ## Verification & release boundary
 
