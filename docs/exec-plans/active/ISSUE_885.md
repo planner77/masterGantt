@@ -54,7 +54,7 @@
 - `docs/ISSUE_885_FAILURE_ANALYSIS.md`: UPDATED
 - `docs/TEST_PLAN.md`: N/A(기존 테스트 정책 불변, #885 AC 검증·회귀는 본 Work Packet 관리)
 - `docs/QA_REVIEW_POLICY.md`: N/A(HIGH Owner Managed 및 Trusted QA 필수 절차 불변)
-- `docs/CI_CD.md`: UPDATED
+- `docs/CI_CD.md`: N/A(이번 PR #888은 0.145.0 버전·릴리스 기록 및 증거 문서만 변경하며 CI workflow·샤드·Runner·게시 정책은 변경하지 않음; #887의 과거 CI 문서 갱신은 Main에 반영됨)
 - `docs/GITHUB_OPERATIONS.md`: N/A(PR push CI만 수행, merge/release 절차 변경 없음)
 - `docs/REMOTE_VALIDATION.md`: N/A(원격 검증 출처/Run Attempt 규칙 변경 없음)
 - `docs/SCHEDULING_ENGINE.md`: UPDATED
@@ -186,3 +186,15 @@
 - **AC_TEST_COVERAGE:** AC01~09 original data/safety/legacy/UI assertions unchanged and required in new Full PR; AC10 adds exact version three-way consistency, Full PR Head/Base/Test-Merge/Required3/Trusted, new Main OCI, annotated v0.145.0/release-image verified digest, Generic Finalizer new-SHA FINAL.
 - **DOCUMENTATION_SYNC:** AGENTS, CHANGELOG, Work Packet, failure ledger UPDATED; other product/API/DB/CI/QA policy docs unchanged, original top `## DOCUMENTATION_SYNC` 23 entries and AC01~10 kept.
 - **Risks/exit:** HIGH/OWNER_MANAGED, qa_required=true, release_required=true, release_authorized=true(v0.145.0 only), manager_decision=NOT TESTED, MERGE_READY=BLOCKED until new Full CI, Trusted/review0/current main. The existing `v0.144.0` is immutable. New PR/CI/Main/GHCR/FINAL results not inferred from original #887.
+
+## F885-010 — PR #888 Full #3566.1 QA Preflight 문서 상태 불일치
+
+- **실패 원본:** [Full #3566.1 / Run 42408202411](https://github.com/planner77/masterGantt/actions/runs/42408202411), attempt1, PR #888, Head `1224bfde7f3f46856a54f23ceb84126dfe6adc8e`, base `43db33030f338406310d8e86d7785aefd0454d4e`, test merge `a48842fe91c7938c18cda39619ac100ab76a8bf9`, overall FAILURE.
+- **직접 실패:** trusted-base QA Preflight Job `128510491829`의 `DOCUMENTATION_SYNC`에서 `docs/CI_CD.md`가 현재 PR에서는 미변경인데 과거 #887에서 상속된 첫 기계 판독 섹션은 `UPDATED`라고 주장했다. 정확한 메시지: `문서 변경 또는 N/A(reason) 미입증: docs/CI_CD.md`. Primary Issue/risk/QA/release/path/Issue AC 점검은 PASS, 5건 final-only 검사는 DEFERRED.
+- **파생 결과:** PR Fast Gate `128510566884` FAILURE, Required Quality/E2E/Docker와 QA Automated FAILURE. 정책/TypeScript/ESLint/Vitest/Next build/Chromium E2E8/Docker 구현은 `SKIPPED`라서 애플리케이션 테스트 실패로 분류하지 않는다.
+- **보완:** 첫 `## DOCUMENTATION_SYNC`의 `docs/CI_CD.md`만 이번 PR의 실제 변경 범위에 맞춰 정확한 `N/A(사유)`로 수정한다. 과거 F885-008에서 `docs/CI_CD.md`가 실제 변경된 이력·원본 Run/원장 및 앱·QA 정책은 그대로 둔다. 이 원장의 F885-010은 append-only이며 기능·DB·package/lock 0.145.0·CI workflow 변경은 없다.
+- **TEST_LIFECYCLE_REVIEW:** 기존147 E2E spec, 모든 Unit/보안/SQLite/정적/브라우저 positive-negative와 Required3/8-shard/Trusted/Owner 게이트 `KEEP_UNIQUE`. ADD/RETIRE/SKIP/timeout/retry 변경0.
+- **AC_TEST_COVERAGE:** AC01~09 원래 구현의 test 증거 요구 유지. AC10에 PR #888의 정확 source/run/attempt, 문서 상태와 실제 diff의 일치, QA 사전 차단·후속 검증 비실행 구분을 추가하며 새 Full CI 결과는 NOT TESTED.
+- **DOCUMENTATION_SYNC:** `docs/exec-plans/active/ISSUE_885.md`, `docs/ISSUE_885_FAILURE_ANALYSIS.md` UPDATED; `docs/CI_CD.md` N/A(이번 릴리스 버전 식별자 교정은 CI/릴리스 실행 계약을 변경하지 않으며 문서는 Main에서 이미 #887 기준 갱신됨). AGENTS/CHANGELOG/API/DB/CI/QA 가이드 추가 수정 없음.
+- **Exit:** 동일 PR의 HEAD를 문서 2파일 단일 commit으로 갱신하여 `pull_request synchronize` Full CI 시작까지만 수행한다. 새 CI 실행·QA/Trusted/Owner의 실제 결과는 아직 NOT TESTED; 모니터링, 병합, Main, GHCR, tag/Release, Finalizer 및 Issue 종료는 수행하지 않는다.
+
