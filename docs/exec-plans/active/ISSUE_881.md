@@ -34,26 +34,26 @@ Existing contract/security/project-service/project-visibility/project-copy + wor
 
 이 첫 섹션은 MAIN-881-001 **교정 PR 단독 diff**의 신뢰된 QA Preflight 경로 정책이다. 이전 #884 초기 구현의 UPDATED 기록은 아래 원본 F881-001~007 이력 및 커밋으로 별도 보존하며 새 PR에 그대로 오인 적용하지 않는다.
 
-- \`AGENTS.md\`: N/A(기존 한 줄 병합 제목·CI 정책 계약을 변경하지 않고 준수)
-- \`DESIGN.md\`: N/A(제품 시각·Gantt 상호작용 코드는 이번 교정 PR에서 변경 없음)
-- \`docs/API.md\`: N/A(Project API 및 인증 DTO를 변경하지 않음)
-- \`docs/DB_SCHEMA.md\`: N/A(기존 SQLite migration 0037 포함 schema를 변경하지 않음)
-- \`docs/SECURITY.md\`: N/A(Project 세션·보안 규약을 변경하지 않음)
-- \`docs/PROJECT_UX.md\`: N/A(프로젝트 화면 표시·Gantt 레이아웃 변경 없음)
-- \`docs/REQUIREMENTS.md\`: N/A(기존 AC1~AC10 사용자 요구를 변경하지 않음)
-- \`CHANGELOG.md\`: N/A(0.144.0 버전·기능 원본과 이미 작성한 변경 이력 유지)
-- \`docs/exec-plans/active/ISSUE_881.md\`: UPDATED
-- \`docs/ISSUE_881_FAILURE_ANALYSIS.md\`: UPDATED
-- \`docs/ISSUE_881_TEST_PLAN.md\`: UPDATED
-- \`docs/QA_REVIEW_POLICY.md\`: N/A(OWNER_MANAGED HIGH·Trusted QA 및 필수 증거 정책 불변)
-- \`docs/CI_CD.md\`: N/A(검증기를 약화하거나 Required3 및 Main E2E8을 바꾸지 않음)
-- \`docs/TEST_PLAN.md\`: N/A(기존 테스트 정책을 유지하고 Issue 881 집중 테스트 계획으로 회귀 기록)
-- \`docs/GITHUB_OPERATIONS.md\`: N/A(기존 one-line empty-body merge API 운영 계약을 변경하지 않고 적용)
-- \`docs/REMOTE_VALIDATION.md\`: N/A(기존 PR Full·Trusted·Main 출처 증명과 GHCR 검증 요구 불변)
-- \`docs/SCHEDULING_ENGINE.md\`: N/A(SVAR Gantt scheduling source를 변경하지 않음)
-- \`docs/IMPORT_EXPORT.md\`: N/A(입출력 계약 및 데이터 포맷 변경 없음)
-- \`docs/IMPORT_SCHEMA.md\`: N/A(Import schema와 버전 변경 없음)
-- \`docs/UI_UX_GUIDELINES.md\`: N/A(제품 UI 스타일·상호작용은 이번 교정 PR에서 변경 없음)
+- `AGENTS.md`: N/A(기존 한 줄 병합 제목·CI 정책 계약을 변경하지 않고 준수)
+- `DESIGN.md`: N/A(제품 시각·Gantt 상호작용 코드는 이번 교정 PR에서 변경 없음)
+- `docs/API.md`: N/A(Project API 및 인증 DTO를 변경하지 않음)
+- `docs/DB_SCHEMA.md`: N/A(기존 SQLite migration 0037 포함 schema를 변경하지 않음)
+- `docs/SECURITY.md`: N/A(Project 세션·보안 규약을 변경하지 않음)
+- `docs/PROJECT_UX.md`: N/A(프로젝트 화면 표시·Gantt 레이아웃 변경 없음)
+- `docs/REQUIREMENTS.md`: N/A(기존 AC1~AC10 사용자 요구를 변경하지 않음)
+- `CHANGELOG.md`: N/A(0.144.0 버전·기능 원본과 이미 작성한 변경 이력 유지)
+- `docs/exec-plans/active/ISSUE_881.md`: UPDATED
+- `docs/ISSUE_881_FAILURE_ANALYSIS.md`: UPDATED
+- `docs/ISSUE_881_TEST_PLAN.md`: UPDATED
+- `docs/QA_REVIEW_POLICY.md`: N/A(OWNER_MANAGED HIGH·Trusted QA 및 필수 증거 정책 불변)
+- `docs/CI_CD.md`: N/A(검증기를 약화하거나 Required3 및 Main E2E8을 바꾸지 않음)
+- `docs/TEST_PLAN.md`: N/A(기존 테스트 정책을 유지하고 Issue 881 집중 테스트 계획으로 회귀 기록)
+- `docs/GITHUB_OPERATIONS.md`: N/A(기존 one-line empty-body merge API 운영 계약을 변경하지 않고 적용)
+- `docs/REMOTE_VALIDATION.md`: N/A(기존 PR Full·Trusted·Main 출처 증명과 GHCR 검증 요구 불변)
+- `docs/SCHEDULING_ENGINE.md`: N/A(SVAR Gantt scheduling source를 변경하지 않음)
+- `docs/IMPORT_EXPORT.md`: N/A(입출력 계약 및 데이터 포맷 변경 없음)
+- `docs/IMPORT_SCHEMA.md`: N/A(Import schema와 버전 변경 없음)
+- `docs/UI_UX_GUIDELINES.md`: N/A(제품 UI 스타일·상호작용은 이번 교정 PR에서 변경 없음)
 
 ## 2026-11-07 F881-001 rework — exact provenance
 
@@ -126,4 +126,4 @@ Remote GitHub connector edits only. There is no locally mounted repository or de
 - **TEST_LIFECYCLE_REVIEW:** EXTEND `tests/e2e/helpers/issue490-settings-fixture.ts` and `tests/e2e/project-settings-dialog-layout.spec.ts` (do not retire #490/#232). Text inputs still require 1px border/background/labels; native checkbox/radio separately require labels, 16~32px non-stretched size, browser-native appearance; #881 three checkboxes additionally 18~28px, 44px label, Tab focus outline, Space OFF/ON. Existing actual #490 five widths, tab clipping, auth, pending, Origin/If-Match, actual keyboard, assertions, retry/skip/timeout/Required E2E8 remain intact.
 - **AC_TEST_COVERAGE:** AC2 three independent toggle values and keyboard operation; AC4 tab content ARIA/focus; AC5 tab refocus/multi-viewport; AC9 390/768/1024/1440/1920, 44px native choice, KO/EN/VI UI; AC10 unchanged trusted Full8 gates. Other AC paths and original tests untouched. New HEAD exact Full CI evidence required, native125%/screenreader manual NOT TESTED.
 - **DOCUMENTATION_SYNC:** `docs/ISSUE_881_FAILURE_ANALYSIS.md`: UPDATED; `docs/exec-plans/active/ISSUE_881.md`: UPDATED; `docs/ISSUE_881_TEST_PLAN.md`: UPDATED. AGENTS.md/DESIGN.md/PROJECT_UX.md/UI_UX_GUIDELINES.md/NFR source contracts and QA/CI/Lifecycle unchanged; UI implements existing 44px/semantic focus guidance. No merge/Main/GHCR/Finalizer/issue closure or CI monitoring requested.
-\n## MAIN-881-001 — 같은 Issue의 최초 Main trace 실패 복구 준비\n\n- Source PR #884 [Full CI #3551.1 / Run42339976906](https://github.com/planner77/masterGantt/actions/runs/42339976906) / [Trusted #1198.1 / Run42342272396](https://github.com/planner77/masterGantt/actions/runs/42342272396)는 정확 원본 HEAD \`b6d64ef0...\`에서 성공. 병합 SHA \`8efe2d90d9de9194587648c77499665ff68c3615\`, 첫 부모 \`8f83083...\`, 둘째 부모 \`b6d64ef...\`, 버전 \`0.144.0\`.\n- [Main #3552.1 / Run42345455498](https://github.com/planner77/masterGantt/actions/runs/42345455498) 최초 직접 실패는 Changes Job128322093695 Step8 \`verify-ci-run-trace.py\`의 multiline merge message rejection. Required Quality/E2E/Docker FAIL은 파생, 실제 구현 Job·Main image 미실행. [MAIN-881-001 누적 원장](../../ISSUE_881_FAILURE_ANALYSIS.md)을 따름. 원본 Main/이전 PR CI를 PASS로 덮어쓰지 않는다.\n- **TEST_LIFECYCLE_REVIEW:** \`EXTEND\` \`scripts/verify-issue-lifecycle.py\` 기존 #582/#586/#603/#639/#808/#825/#854의 merge trace contract에 원본 881 negative 및 SHA-leased/empty-body corrective positive 추가. \`KEEP_UNIQUE\` #881 SQLite/Project 보안/Chrome 8과 기존 Policy/Finalizer tests. 새 test 파일 없이 기존 suite assertion은 강화하며 skip·timeout·문서 원본 삭제 0.\n- **AC_TEST_COVERAGE:** AC10는 merge provenance, original Run/Attempt attribution, immutable failure, 표준 corrective payload 및 exact HEAD PR CI/Trusted/8샤드/Required3 검증; AC1~AC9는 기존 #881 실제 제품 스위트 보존, Main trace 실패로 실행되지 않은 Main 제품 Job은 NOT RUN.\n- **릴리스 범위:** Owner 정식 GHCR 승인 Issue comment \`6703144666\` (`expected_version=0.144.0`) 유지, 별도 #882 owner-only 인증은 본 이슈 선행 아님. 같은 Issue 연속 non-docs corrective + 버전 무변경 시 Generic Finalizer가 처음 실패 merge의 릴리스 의무를 포함하는지 신뢰된 main CI 후 확인. 이전 Main #3552.1은 FAILURE 유지.\n- **병합 시 강제:** 새로운 PR 생성·정확 Head의 Full PR CI Required3+Chromium8/8 및 default-main Trusted SUCCESS·리뷰 0/충돌 0/strict latest Main+Owner HIGH 수용 후 \`main_ci_run_name.merge_api_payload(881, newPR, \"프로젝트 화면 표시 Main CI 복구\", newHead)\`의 \`commit_title\` 및 \`commit_message=\"\"\`, \`expected_head_sha\` 전부 적용. 정식 병합이 실패하면 main 직접 push·CI 우회 금지. 새 Main push Run 시작 뒤 모니터링 중단, GHCR/Release/Issue close는 자동 Fail-closed Finalizer에 맡기고 증거 미확보를 완료로 주장하지 않는다.\n
+\n## MAIN-881-001 — 같은 Issue의 최초 Main trace 실패 복구 준비\n\n- Source PR #884 [Full CI #3551.1 / Run42339976906](https://github.com/planner77/masterGantt/actions/runs/42339976906) / [Trusted #1198.1 / Run42342272396](https://github.com/planner77/masterGantt/actions/runs/42342272396)는 정확 원본 HEAD `b6d64ef0...`에서 성공. 병합 SHA `8efe2d90d9de9194587648c77499665ff68c3615`, 첫 부모 `8f83083...`, 둘째 부모 `b6d64ef...`, 버전 `0.144.0`.\n- [Main #3552.1 / Run42345455498](https://github.com/planner77/masterGantt/actions/runs/42345455498) 최초 직접 실패는 Changes Job128322093695 Step8 `verify-ci-run-trace.py`의 multiline merge message rejection. Required Quality/E2E/Docker FAIL은 파생, 실제 구현 Job·Main image 미실행. [MAIN-881-001 누적 원장](../../ISSUE_881_FAILURE_ANALYSIS.md)을 따름. 원본 Main/이전 PR CI를 PASS로 덮어쓰지 않는다.\n- **TEST_LIFECYCLE_REVIEW:** `EXTEND` `scripts/verify-issue-lifecycle.py` 기존 #582/#586/#603/#639/#808/#825/#854의 merge trace contract에 원본 881 negative 및 SHA-leased/empty-body corrective positive 추가. `KEEP_UNIQUE` #881 SQLite/Project 보안/Chrome 8과 기존 Policy/Finalizer tests. 새 test 파일 없이 기존 suite assertion은 강화하며 skip·timeout·문서 원본 삭제 0.\n- **AC_TEST_COVERAGE:** AC10는 merge provenance, original Run/Attempt attribution, immutable failure, 표준 corrective payload 및 exact HEAD PR CI/Trusted/8샤드/Required3 검증; AC1~AC9는 기존 #881 실제 제품 스위트 보존, Main trace 실패로 실행되지 않은 Main 제품 Job은 NOT RUN.\n- **릴리스 범위:** Owner 정식 GHCR 승인 Issue comment `6703144666` (`expected_version=0.144.0`) 유지, 별도 #882 owner-only 인증은 본 이슈 선행 아님. 같은 Issue 연속 non-docs corrective + 버전 무변경 시 Generic Finalizer가 처음 실패 merge의 릴리스 의무를 포함하는지 신뢰된 main CI 후 확인. 이전 Main #3552.1은 FAILURE 유지.\n- **병합 시 강제:** 새로운 PR 생성·정확 Head의 Full PR CI Required3+Chromium8/8 및 default-main Trusted SUCCESS·리뷰 0/충돌 0/strict latest Main+Owner HIGH 수용 후 `main_ci_run_name.merge_api_payload(881, newPR, \"프로젝트 화면 표시 Main CI 복구\", newHead)`의 `commit_title` 및 `commit_message=\"\"`, `expected_head_sha` 전부 적용. 정식 병합이 실패하면 main 직접 push·CI 우회 금지. 새 Main push Run 시작 뒤 모니터링 중단, GHCR/Release/Issue close는 자동 Fail-closed Finalizer에 맡기고 증거 미확보를 완료로 주장하지 않는다.\n

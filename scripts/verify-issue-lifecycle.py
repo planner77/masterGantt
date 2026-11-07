@@ -644,8 +644,8 @@ require(
 # but the connector supplied a multiline commit_message.  The immutable
 # Main #3552.1 fails in verify-ci-run-trace; no product CI job ran.
 failed_881_message = (
-    "Issue #881 · PR #884 · 프로젝트별 Issue·대시보드·기준정보 표시 설정\\n\\n"
-    "Refs #881\\n\\n"
+    "Issue #881 · PR #884 · 프로젝트별 Issue·대시보드·기준정보 표시 설정\n\n"
+    "Refs #881\n\n"
     "Full PR CI #3551.1 (42339976906.1) and QA Trusted #1198.1 "
     "(42342272396.1) verified. Owner release authorization (v0.144.0): "
     "Issue #881 comment 6703144666. Preserve subsequent Main CI, GHCR "
