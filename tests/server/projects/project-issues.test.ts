@@ -417,11 +417,12 @@ describe("#838-#840 project Issue persistence and API", () => {
         .get(id);
       const checksum = db.prepare("SELECT checksum FROM schema_migrations WHERE version=32").pluck().get();
       expect(db.prepare("SELECT MAX(version) FROM schema_migrations").pluck().get()).toBe(32);
-      expect(runMigrations(db, migrationsDirectory).applied).toEqual(["0033_project_issue_credentials_soft_delete.sql", "0034_project_issue_business_status.sql", "0035_country_calendar_catalog.sql", "0036_display_name_translations.sql", "0037_project_workspace_tabs.sql"]);
-      expect(db.prepare("SELECT MAX(version) FROM schema_migrations").pluck().get()).toBe(37);
+      expect(runMigrations(db, migrationsDirectory).applied).toEqual(["0033_project_issue_credentials_soft_delete.sql", "0034_project_issue_business_status.sql", "0035_country_calendar_catalog.sql", "0036_display_name_translations.sql", "0037_project_workspace_tabs.sql", "0038_description_formats.sql"]);
+      expect(db.prepare("SELECT MAX(version) FROM schema_migrations").pluck().get()).toBe(38);
       expect(db.prepare("SELECT checksum FROM schema_migrations WHERE version=32").pluck().get()).toBe(checksum);
       expect(db.prepare("SELECT public_id, title, description, completed, completed_on, related_task_text, created_at, updated_at FROM project_issues WHERE public_id=?")
         .get(id)).toEqual(original);
+      expect(db.prepare("SELECT description_format FROM project_issues WHERE public_id=?").pluck().get(id)).toBe("plain");
       expect(db.prepare("SELECT credential_state, credential_version, password_hash, lifecycle_state, deleted_at FROM project_issues WHERE public_id=?")
         .get(id)).toEqual({ credential_state: "UNSET", credential_version: 0,
           password_hash: null, lifecycle_state: "ACTIVE", deleted_at: null });
@@ -494,11 +495,12 @@ describe("#838-#840 project Issue persistence and API", () => {
       legacy.close();
       const upgraded = openDatabase({ filename, migrationsDirectory });
       try {
-        expect(upgraded.migrations.applied).toEqual(["0034_project_issue_business_status.sql", "0035_country_calendar_catalog.sql", "0036_display_name_translations.sql", "0037_project_workspace_tabs.sql"]);
+        expect(upgraded.migrations.applied).toEqual(["0034_project_issue_business_status.sql", "0035_country_calendar_catalog.sql", "0036_display_name_translations.sql", "0037_project_workspace_tabs.sql", "0038_description_formats.sql"]);
         const db = upgraded.database;
         expect(db.prepare("SELECT checksum FROM schema_migrations WHERE version=33").pluck().get()).toBe(checksum);
         const after = db.prepare("SELECT * FROM project_issues ORDER BY id").all() as Array<Record<string, unknown>>;
-        expect(after.map(({ issue_status, ...oldFields }) => oldFields)).toEqual(before);
+        expect(after.map(row => Object.fromEntries(Object.entries(row).filter(([name]) => name !== "issue_status" && name !== "description_format")))).toEqual(before);
+        expect(after.map(row => row.description_format)).toEqual(["plain", "plain", "plain"]);
         expect(after.map(row => row.issue_status)).toEqual(["registered", "completed", "completed"]);
         expect(db.prepare("SELECT COUNT(*) FROM project_issues WHERE lifecycle_state='DELETED'").pluck().get()).toBe(1);
         expect(db.pragma("foreign_key_check")).toEqual([]);
