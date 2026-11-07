@@ -352,6 +352,11 @@ describe("Issue727 persisted Project participation", () => {
         expect(observed.map(row => Object.fromEntries(
           Object.entries(row).filter(([name]) => !["visibility", "workspace_issue_visible", "workspace_dashboard_visible", "workspace_master_visible"].includes(name)),
         ))).toEqual(rows);
+      } else if (table === "tasks") {
+        // Pre-0029 records must match byte-for-byte on every original column.
+        // Only 0038 introduced description_format; assert its default separately.
+        expect(observed.map(row => row.description_format)).toEqual(rows.map(() => "plain"));
+        expect(observed.map(({ description_format, ...legacyRow }) => legacyRow)).toEqual(rows);
       } else {
         expect(observed).toEqual(rows);
       }

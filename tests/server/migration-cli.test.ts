@@ -94,9 +94,18 @@ describe("migration CLI", () => {
     const database = new Database(filename, { readonly: true });
     try {
       expect(database.prepare("SELECT count(*) AS count FROM schema_migrations").get())
-        .toEqual({ count: 37 });
+        .toEqual({ count: 38 });
       expect(database.prepare("SELECT name FROM schema_migrations WHERE version=37").pluck().get())
         .toBe("0037_project_workspace_tabs.sql");
+      expect(database.prepare("SELECT name FROM schema_migrations WHERE version=38").pluck().get())
+        .toBe("0038_description_formats.sql");
+      // A fresh CLI migration must expose the checked legacy-safe default on both tables.
+      // Verify the real migrated on-disk database, not a mocked migration list.
+      for (const table of ["tasks", "project_issues"] as const) {
+        expect(database.prepare(`SELECT name, type, "notnull" AS required, dflt_value AS defaultValue
+          FROM pragma_table_info('${table}') WHERE name='description_format'`).get())
+          .toEqual({ name: "description_format", type: "TEXT", required: 1, defaultValue: "'plain'" });
+      }
       expect(database.prepare("SELECT count(*) AS count FROM projects").get())
         .toEqual({ count: 0 });
       expect(database.prepare("SELECT revision FROM resource_catalog_state WHERE id = 1").get())
