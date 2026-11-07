@@ -366,7 +366,10 @@ export class ProjectIssueService {
       this.requireUnchangedIssue(project.id, issueId, initial);
       const input = this.resolveInput(project.id, parseProjectIssueInput(rawInput));
       // Legacy full PATCH without a format must not downgrade unchanged Markdown.
-      input.descriptionFormat ??= input.description === initial.description ? initial.description_format : "plain";
+      if (rawInput.descriptionFormat === undefined && input.description === initial.description.trim() && initial.description_format === "markdown") {
+        input.description = initial.description;
+        input.descriptionFormat = "markdown";
+      } else input.descriptionFormat ??= input.description === initial.description ? initial.description_format : "plain";
       const params = this.issueParams(project.id, input, issueId, nowText);
       const result = this.database.prepare(
         "UPDATE project_issues SET title=@title, description=@description, description_format=@descriptionFormat, reporter_name=@reporterName, reporter_resource_public_id=@reporterResourceId, assignee_name=@assigneeName, assignee_resource_public_id=@assigneeResourceId, occurred_on=@occurredOn, issue_status=@issueStatus, completed=@completed, completed_on=@completedOn, related_task_public_id=@relatedTaskId, related_task_text=@relatedTaskText, updated_at=@updatedAt WHERE public_id=@issueId AND project_id=@projectId AND lifecycle_state='ACTIVE'"

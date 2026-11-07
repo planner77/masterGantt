@@ -7,6 +7,7 @@ import type {
   ProjectIssueListResponse, ProjectIssueMutationResponse,
 } from "@/contracts/project-issues";
 import { formatLocaleDateOnly } from "@/lib/date-display";
+import { DescriptionField } from "@/features/markdown/description-field";
 import { useI18n } from "../../lib/i18n/provider";
 import styles from "./project-issue-workspace.module.css";
 
@@ -40,7 +41,7 @@ function todayInProjectTimezone(date = new Date()): string {
 
 function blankIssue(): ProjectIssueInput {
   return {
-    title: "", description: "", reporterName: "", reporterResourceId: null,
+    title: "", description: "", descriptionFormat: "markdown", reporterName: "", reporterResourceId: null,
     assigneeName: "", assigneeResourceId: null, occurredOn: todayInProjectTimezone(),
     status: "registered", completed: false, completedOn: null, relatedTaskId: null, relatedTaskText: "",
   };
@@ -189,7 +190,7 @@ export function ProjectIssueWorkspace({
     if (createLocked || editorOpen) return;
     setEditingIssue(issue);
     setForm(issue ? {
-      title: issue.title, description: issue.description,
+      title: issue.title, description: issue.description, descriptionFormat: issue.descriptionFormat ?? "plain",
       reporterName: issue.reporterName, reporterResourceId: issue.reporterResourceId,
       assigneeName: issue.assigneeName, assigneeResourceId: issue.assigneeResourceId,
       occurredOn: issue.occurredOn, status: issue.status,
@@ -240,7 +241,7 @@ export function ProjectIssueWorkspace({
     if (event.key === "Escape" && !saving) { event.stopPropagation(); closeEditor(); return; }
     if (event.key !== "Tab") return;
     const controls = Array.from(event.currentTarget.querySelectorAll<HTMLElement>(
-      'input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled])'
+      'input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [contenteditable="true"], button:not([disabled])'
     )).filter(element => element.getClientRects().length > 0);
     const first = controls[0], last = controls[controls.length - 1];
     if (event.shiftKey && document.activeElement === first && last) { event.preventDefault(); last.focus(); }
@@ -523,9 +524,11 @@ export function ProjectIssueWorkspace({
           </div> : null}
         </div>
         <div className={styles.field}><label htmlFor="project-issue-description">{t("Issue 내용")}</label>
-          <textarea id="project-issue-description" rows={8} maxLength={4000}
-            value={form.description} disabled={locked}
-            onChange={event => updateForm({ description: event.target.value })} />
+          <DescriptionField id="project-issue-description" label={t("Issue 내용")}
+            identity={editingIssue?.issueId ?? "issue-create"} value={form.description}
+            format={form.descriptionFormat ?? "plain"} maxLength={4000}
+            readOnly={editingIssue?.credentialState === "unconfigured"} disabled={locked}
+            onChange={(description, descriptionFormat) => updateForm({ description, descriptionFormat })} />
         </div>
         <div className={!editingIssue ? styles.twoColumns : undefined}>
         <div className={styles.field}>

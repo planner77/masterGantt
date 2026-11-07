@@ -26,8 +26,3 @@ export function isSafeMarkdownDescription(value: string): boolean {
   } catch { return false; }
 }
 
-/** Escape Markdown punctuation in legacy plain text, preserving newlines. */
-export function plainToMarkdownLiteral(value: string): string {
-  return value.replace(/([\\\\`*{}_\[\]()#+.!>|~-])/g, "\\\\$1")
-    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
