@@ -501,6 +501,7 @@ describe("route security inventory", () => {
       "PATCH /api/logistics-catalog/admin/system-types/{code}",
       "GET /api/projects/{publicId}/assignment-targets",
       "GET /api/projects/{publicId}/assigned-targets",
+      "GET /api/projects/{publicId}/schedule-view-source",
       "GET /api/projects/{publicId}/resource-dashboard/scope",
       "POST /api/projects/{publicId}/resource-dashboard/query",
       "POST /api/projects/{publicId}/resource-dashboard/views",

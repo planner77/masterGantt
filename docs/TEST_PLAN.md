@@ -1,3 +1,25 @@
+## Issue #880 R2 — readonly 고급 필터 geometry 회귀
+
+TEST_LIFECYCLE_REVIEW=EXTEND 기존 project-search-filter3case 중 readonlycase의 원래1024×900·match1/contextSummary1·같은 instance·자식행 표시/leaf제외 단언을 유지하고 실제 Grid/Chart usableheight·현재 logical/Core/DOM과 header/rowbudget을 확인한다. 같은 case에서390/768/1024/1440/1920 및 낮은1024×480의 필터 내부·schedule scope scroll/focus·조건/초기화/닫기·문서 가로overflow0·원본 쓰기0을 검사한다. 낮은 Fullscreen은 진입/종료 대표 경계를 확인한다. viewport1200은 진단 반사실이며 원본 기대 환경의 교정값으로 사용하지 않는다.
+
+KEEP_UNIQUE R1 schedule6/fullscreen6/scale2/TaskEditor33과 실패 검색/필터3·Grid/Chart 행 정렬13(5폭Day/Week+실제불일치음성)·정보밀도1을 같은 최종source의7spec/64고유case로 검사한다. 기존147spec/890case·정적8shard/Required3·assertion/timeout/retry/skip은 유지한다. CSS-only 배분 변경의 server/API/DB/Scheduling 및 wholeUnit/build/Docker 로컬 반복은 영향 선정에서 구분하며 원격 exact Head의 세 gate는 필수/NOT TESTED다. 원본 전체890 관측455PASS/1FAIL/기존1SKIP/미완료433을 새 후보 PASS로 승계하지 않는다. [단일 원장](ISSUE_880_FAILURE_ANALYSIS.md)·[Packet](exec-plans/active/ISSUE_880.md)·정제실증으로 연결한다.
+
+## Issue #880 R1 — PR 선언 형식과 두 상태 보존 회귀
+
+원본 Full #3533.1은 필수 `qa_required` 독립 줄 누락으로 Preflight에서 FAIL했고 제품 테스트는 미실행이다. unchanged base의 실제 PR metadata/Issue AC/전체diff/Packet replay로 before FAIL2→flags 데이터 교정 after PASS(실패0)/최종5DEFERRED를 검증한다. 검증기·QA/Required/skip/retry 정책은 바꾸지 않는다.
+
+TEST_LIFECYCLE_REVIEW=EXTEND 기존 schedule-views의4case를 보존하고 고유P2두case를 추가한다. 무조작 WBS 왕복의app[A,B]/Core primaryB·재Copy2개·Shift anchorB와 명시새Task 선택 우선, projected nonzero120/512의재조회·Editor취소/If-Match저장·작업면복귀·pendingGET중실제wheel의새위치우선(160/576),stale/401/412/응답역전·빈행/쓰기차단을 검사한다. 같은P2안에서카탈로그이름정렬·소속삭제후canonicalfallback/offset과KO→EN→KO위치보존도확인한다. 기존 fullscreen6/scale2/TaskEditor33은KEEP_UNIQUE이며총47case/4spec로동결회귀한다. source API/SQLite·KPI/일정 산식은 변경하지 않아 기존 고유 Unit을 보존한다. 실제 실행/실패·선정/제외와 원본의 미실행을 [원장](ISSUE_880_FAILURE_ANALYSIS.md)·[Packet](exec-plans/active/ISSUE_880.md)에 구분한다.
+
+## Issue #880 — 일정 View projection·원본 불변
+
+정적8shard plan에 신규 spec만3번으로 등록해 발견147개=명시147개·중복0·누락0을 검증한다. 기존146개 배치와 실행/Required 정책은 유지하며 timing은 미측정이다. planner/optimizer Unit12개를 EXTEND/KEEP_UNIQUE한다.
+
+TEST_LIFECYCLE_REVIEW=ADD 새 `schedule-view-projection` Unit, project read-gated source SQLite/HTTP 및 `schedule-views` Chromium. 기존 scale/fullscreen/selection·canonical projection/viewport·Editor/private visibility·equipment/resource dashboard 및 직접/subtree/legacy resolver는 KEEP_UNIQUE이며 같은 제목/표시 원칙으로 삭제하지 않는다. 별도 AC 표는 [Work Packet AC_TEST_COVERAGE](exec-plans/active/ISSUE_880.md#ac_test_coverage)가 단일 매핑이다.
+
+직접 사례는 공동 개인·복수 Group·Group-only/그룹 미소속/완전 미할당, 설비 direct/subtree/legacy dedupe·다중설비·빈 모델·Fleet quantity>1·Task0, canonicalTaskId/viewRowKey 분리·경로별 중복총계0, 5폭/키보드/day-week/fullscreen·80+row window/Y·같은 WBS instance/원본 수정0이다. 음성은 가상 Summary Editor 금지·native mouse/touch/key/context/inline/clipboard/drag/link/write 차단, private/foreign source·stale/revision/응답 역전·실패/dirty/pending을 포함한다. 기존 Task Editor session/If-Match와 canonical Export는 별도 고유 회귀를 유지한다.
+
+로컬 선정 결과는 원격 Full Required3/Chromium8·Trusted/Owner PASS가 아니다. 실행/실패/미실행·source fingerprint·성능 수치는 [단일 원장](ISSUE_880_FAILURE_ANALYSIS.md)에 기록한다. 실제 AT/터치 기기/native125%·장기 대용량 운영 검증은 NOT TESTED다.
+
 ## Issue #836 — Docker 데몬 로드 시 OCI Config/Runtime 동일성 회귀 (REWORK #3, 2026-10-28)
 
 - 최신 Full PR CI #3377.1: 원본 OCI index/child/config/SBOM·provenance 검증 PASS, Docker daemon ImageID != OCI Config Digest 조건에서 Docker Smoke 직접 FAIL. Quality 및 Chromium 8/8 PASS, Required Docker·자동 QA는 파생 FAIL.

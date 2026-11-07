@@ -1,3 +1,4 @@
+import { scheduleViewMessages } from "./catalogs/schedule-views";
 import { shellMessages } from "./catalogs/shell";
 import { domainsMessages } from "./catalogs/domains";
 import { domainErrorsMessages } from "./catalogs/domain-errors";
@@ -13,7 +14,7 @@ export type MessageEntry = Readonly<{
   plural?: Partial<Record<AppLocale, Readonly<{ one: string; other: string }>>>;
 }>;
 export type MessageCatalog = Readonly<Record<string, MessageEntry>>;
-const catalogs: MessageCatalog[] = [phaseCMessages, coreMessages, shellMessages, domainsMessages, domainErrorsMessages];
+const catalogs: MessageCatalog[] = [scheduleViewMessages, phaseCMessages, coreMessages, shellMessages, domainsMessages, domainErrorsMessages];
 export const messages: MessageCatalog = Object.assign({}, ...catalogs);
 
 /** Values are plain text. Callers render through React, never as HTML. */
@@ -50,4 +51,4 @@ export function translateErrorCode(locale: AppLocale, code: unknown): string {
   return translate(locale, typeof code === "string" && Object.hasOwn(safeErrors, code) ? safeErrors[code] : "요청을 처리하지 못했습니다. 다시 시도해 주세요.");
 }
 
-export type MessageKey = keyof typeof coreMessages | keyof typeof shellMessages | keyof typeof domainsMessages | keyof typeof domainErrorsMessages | keyof typeof phaseCMessages;
+export type MessageKey = keyof typeof scheduleViewMessages | keyof typeof coreMessages | keyof typeof shellMessages | keyof typeof domainsMessages | keyof typeof domainErrorsMessages | keyof typeof phaseCMessages;

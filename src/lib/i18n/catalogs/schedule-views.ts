@@ -1,0 +1,27 @@
+import type { MessageCatalog } from "../index";
+
+export const scheduleViewMessages = {
+  "Summary 직접 배정은 WBS 작업 정보에서 확인하며 하위 작업에 자동 배정하지 않습니다.": { en: "View direct Summary assignments in WBS task information. They are not automatically assigned to child tasks.", vi: "Xem phân công trực tiếp cho Summary trong thông tin công việc WBS. Không tự động phân công cho công việc con." },
+  "View": { en: "View", vi: "View" },
+  "현재 작업을 마친 뒤 View를 전환해 주세요.": { en: "Finish the current operation before switching View.", vi: "Hoàn tất thao tác hiện tại trước khi đổi chế độ xem." },
+  "개인 미지정": { en: "No individual assigned", vi: "Chưa chỉ định cá nhân" },
+  "그룹 미소속": { en: "No group membership", vi: "Không thuộc nhóm" },
+  "완전 미할당": { en: "Unassigned", vi: "Chưa phân công" },
+  "모델 미지정": { en: "Model unspecified", vi: "Chưa chỉ định mẫu" },
+  "설비 미연결": { en: "No equipment linked", vi: "Chưa liên kết thiết bị" },
+  "View 데이터를 확인할 수 없습니다. 최신 일정을 확인한 뒤 다시 조회해 주세요.": { en: "View data could not be verified. Check the latest schedule and reload.", vi: "Không thể xác minh dữ liệu chế độ xem. Kiểm tra lịch mới nhất rồi tải lại." },
+  "일정 조회 View": { en: "Schedule View", vi: "Chế độ xem lịch" },
+  "조회 전용": { en: "Read only", vi: "Chỉ đọc" },
+  " · 고유 작업 {count}개 · 표시 작업 행 {rows}개": { en: " · {count} unique tasks · {rows} task rows", vi: " · {count} công việc duy nhất · {rows} dòng công việc" },
+  "다시 조회": { en: "Reload", vi: "Tải lại" },
+  "View 데이터를 불러오는 중…": { en: "Loading View data…", vi: "Đang tải dữ liệu chế độ xem…" },
+  "일정 축을 확인하는 중…": { en: "Checking the schedule axis…", vi: "Đang kiểm tra trục lịch…" },
+  "일정 조회 Grid와 차트": { en: "Read-only schedule Grid and chart", vi: "Bảng và biểu đồ lịch chỉ đọc" },
+  "가상 계층": { en: "View hierarchy", vi: "Cấu trúc chế độ xem" },
+  "일정 축": { en: "Schedule axis", vi: "Trục lịch" },
+  "{count}개 작업": { en: "{count} tasks", vi: "{count} công việc" },
+  "하위 작업 없음": { en: "No child tasks", vi: "Không có công việc con" },
+  "작업 정보 열기: {name}": { en: "Open task information: {name}", vi: "Mở thông tin công việc: {name}" },
+  "작업 차트 정보: {name}, {start} ~ {end}, {progress}": { en: "Task chart information: {name}, {start} to {end}, {progress}", vi: "Thông tin biểu đồ công việc: {name}, {start} đến {end}, {progress}" },
+  "View 요약 범위": { en: "View summary range", vi: "Phạm vi tổng hợp chế độ xem" },
+} satisfies MessageCatalog;

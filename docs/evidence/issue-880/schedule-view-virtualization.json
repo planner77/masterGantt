@@ -1,0 +1,40 @@
+{
+  "canonicalTaskCount": 93,
+  "rendered": 23,
+  "metrics": {
+    "height": 578,
+    "scrollHeight": 2816,
+    "rows": 23
+  },
+  "settledMs": 371.59999999403954,
+  "wbsState": {
+    "instance": "svar-api-1",
+    "density": "32",
+    "chartLeft": 120,
+    "top": 38,
+    "scope": "22692869-4e34-45fd-8bb3-23475aab6f73",
+    "columns": [
+      {
+        "id": ":copySelection",
+        "width": 56
+      },
+      {
+        "id": ":text",
+        "width": 227
+      },
+      {
+        "id": ":projectStart",
+        "width": 104
+      },
+      {
+        "id": ":projectDuration",
+        "width": 56
+      },
+      {
+        "id": ":add-task",
+        "width": 37
+      }
+    ]
+  },
+  "projectWrites": []
+}

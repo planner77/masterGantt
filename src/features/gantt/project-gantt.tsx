@@ -1,5 +1,7 @@
 "use client";
 
+import { ScheduleViewPanel } from "./schedule-view-panel";
+
 import { observeScaleDecoration } from "./scale-decoration-observer";
 
 import { createDensityWheel, densityHeight, densityFontScale, nextDensityLevel, isDensityWheelTarget } from "./gantt-density";
@@ -440,14 +442,14 @@ function clampMenuPosition(left: number, top: number, width: number, height: num
 /** Browser-only renderer; normal canonical snapshots keep this SVAR instance mounted. */
 export function ProjectGantt({
   operationNotice,
-  viewVisible = true, viewportContinuityKey = "", peerViewportRestore = null,
+  viewVisible: projectViewVisible = true, viewportContinuityKey = "", peerViewportRestore = null,
   onPublicViewportReader,
   milestoneTimeline,
   calendar,
-  editable,
+  editable: projectEditable,
   onSelectionChange,
   selectionRestore,
-  mutationLocked, mutationPending = false, mutationRequest = null, canonicalRecoveryBlocked = false,
+  mutationLocked: projectMutationLocked, mutationPending = false, mutationRequest = null, canonicalRecoveryBlocked = false,
   onCanonicalSyncFailure,
   links,
   onTaskAddRejected,
@@ -474,6 +476,12 @@ export function ProjectGantt({
   projectPublicId,
 }: ProjectGanttProps) {
   const { locale, t, formatLocale: locales } = useI18n();
+  const [scheduleView, setScheduleView] = useState<"wbs" | "resource" | "equipment">("wbs");
+  const scheduleViewReference = useRef(scheduleView);
+  const viewVisible = projectViewVisible && scheduleView === "wbs";
+  const editable = projectEditable && scheduleView === "wbs";
+  const mutationLocked = projectMutationLocked || scheduleView !== "wbs";
+  useLayoutEffect(() => { scheduleViewReference.current = scheduleView; }, [scheduleView]);
   const ganttWords = SVAR_LOCALES[locale];
   const { notify } = useWorkspaceNotifications();
   const [density, setDensity] = useState({ level: 0, coarse: false });
@@ -481,6 +489,7 @@ export function ProjectGantt({
   const densityReference = useRef(density);
   const pendingDensityAnchor = useRef<{ rowId: string; offset: number; left: number; source: ViewportStamp } | null>(null);
   const apiReference = useRef<IApi | null>(null);
+  const readScheduleApi = useCallback(() => apiReference.current, []);
   const projectionReceiptGeneration = useRef(0);
   const projectionObservationAttempt = useRef(0);
   const requestProjectionObservationReference = useRef<(() => void) | null>(null);
@@ -1455,7 +1464,7 @@ export function ProjectGantt({
     const tag = "project-task-editor";
     api.detach(tag);
     api.intercept("show-editor", (event) => {
-      if (apiReference.current === api && root.isConnected && typeof event.id === "string" && tasksByIdReference.current.has(event.id)) {
+      if (scheduleViewReference.current === "wbs" && !mutationLockedReference.current && apiReference.current === api && root.isConnected && typeof event.id === "string" && tasksByIdReference.current.has(event.id)) {
         onTaskEditorOpenReference.current(event.id);
       }
       // The project editor owns explicit server-confirmed saves, not Core's editor.
@@ -4609,18 +4618,46 @@ export function ProjectGantt({
   }, [taskMenu, taskSubmenu]);
 
   return (
-    <div className="project-gantt-frame" ref={fullscreenFrameReference} data-gantt-scale-mode={scaleMode} data-gantt-cell-width={GANTT_CELL_WIDTH[scaleMode]} data-gantt-cell-height={ganttCellHeight} data-gantt-density-level={density.level} style={{ "--project-gantt-density-font": `${Math.max(12, 14 * densityFontScale(density.level, density.coarse))}px` } as React.CSSProperties} data-gantt-timeline-end={timelineEndMs} data-project-gantt-api-instance={apiInstanceId ?? undefined} data-project-gantt-instance={instanceId} data-task-mutation-locked={mutationLocked || undefined} data-task-inline-editable={(editable && !mutationLocked ) || undefined}>
+    <div className="project-gantt-frame" ref={fullscreenFrameReference} data-schedule-view-mode={scheduleView} data-gantt-scale-mode={scaleMode} data-gantt-cell-width={GANTT_CELL_WIDTH[scaleMode]} data-gantt-cell-height={ganttCellHeight} data-gantt-density-level={density.level} style={{ "--project-gantt-density-font": `${Math.max(12, 14 * densityFontScale(density.level, density.coarse))}px` } as React.CSSProperties} data-gantt-timeline-end={timelineEndMs} data-project-gantt-api-instance={apiInstanceId ?? undefined} data-project-gantt-instance={instanceId} data-task-mutation-locked={mutationLocked || undefined} data-task-inline-editable={(editable && !mutationLocked ) || undefined}>
       {operationNotice}
       <CopySelectionContext.Provider value={selectionContext}><Willow>
       <div className="project-gantt-scale-toolbar">
         {isFullscreen ? <LocaleSelector /> : null}
         {process.env.NODE_ENV !== "production" && milestoneTimeline ? <button type="button" aria-pressed={timelinePreview} onClick={() => setTimelinePreview(value => !value)}>{t("Milestone Timeline 기술 미리보기")}</button> : null}
+        <div className="project-schedule-view-controls">
+          <label htmlFor={`${instanceId}-schedule-view`}>{t("View")}</label>
+          <select id={`${instanceId}-schedule-view`} data-schedule-view-selector value={scheduleView}
+            disabled={projectMutationLocked || mutationPending || canonicalRecoveryBlocked}
+            title={projectMutationLocked || mutationPending || canonicalRecoveryBlocked ? t("현재 작업을 마친 뒤 View를 전환해 주세요.") : undefined}
+            onChange={(event) => {
+              const next = event.target.value;
+              if (next !== "wbs" && next !== "resource" && next !== "equipment") return;
+              if (projectMutationLocked || mutationPending || canonicalRecoveryBlocked || inlineSessionReference.current) return;
+              setTaskMenu(null); setRelationMenu(null); setColumnMenuPosition(null);
+              setScheduleView(next);
+              if (next === "wbs") requestAnimationFrame(() => {
+                const api = apiReference.current;
+                if (!api || scheduleViewReference.current !== "wbs") return;
+                const selected = selectedTaskIdsReference.current.filter(id => tasksByIdReference.current.has(id));
+                // A presentation transition is not a new selection gesture.
+                // Keep the existing primary, Copy roots and Shift anchor when
+                // they still belong to the application selection.
+                if ((api.getState().selected ?? []).some(id => selected.includes(String(id)))) return;
+                const primary = selected.at(-1);
+                if (!primary) return;
+                void api.exec("select-task", { id: primary, show: false, eventSource: "project-owned-selection" });
+                void viewportCoordinatorReference.current?.request({ kind: "TASK_REVEAL", taskId: primary });
+              });
+            }}>
+            <option value="wbs">WBS</option><option value="resource">Resource</option><option value="equipment">{t("설비")}</option>
+          </select>
+        </div>
         <div aria-label={t("Gantt 표시 단위")} className="project-gantt-scale-controls" role="group">
           <span aria-hidden="true" className="project-gantt-scale-label">{t("표시 단위")}</span>
           <button aria-pressed={scaleMode === "day"} onClick={() => changeScaleMode("day")} type="button">{t("일")}</button>
           <button aria-pressed={scaleMode === "week"} onClick={() => changeScaleMode("week")} type="button">{t("주")}</button>
         </div>
-        <div className="project-copy-selection-controls" role="group" aria-label={t("복사 대상 선택")}>
+        <div hidden={scheduleView !== "wbs"} className="project-copy-selection-controls" role="group" aria-label={t("복사 대상 선택")}>
           <span role="status" aria-atomic="true">{t("선택 {count}개", { count: selectedTaskIds.length })}{selectionHiddenCount ? t(" · 접힌 하위 {count}개", { count: selectionHiddenCount }) : ""}</span>
           <button type="button" disabled={!selectedTaskIds.length || !editable || mutationLocked} onClick={() => copyCurrentSelection()}>{t("선택 복사")}</button>
           <button type="button" disabled={!selectedTaskIds.length} onClick={() => {
@@ -4643,7 +4680,15 @@ export function ProjectGantt({
         </button>
         <span className="project-gantt-fullscreen-status" role="status" aria-live="polite">{t(fullscreenMessage)}</span>
       </div>
-      <div
+      {scheduleView !== "wbs" ? <ScheduleViewPanel
+        key={projectPublicId} view={scheduleView} projectPublicId={projectPublicId} projectRevision={projectRevision}
+        tasks={tasks} visibleTaskIds={projection.membershipIds} contextKey={viewportContinuityKey}
+        scaleMode={scaleMode} cellHeight={ganttCellHeight} readApi={readScheduleApi}
+        selectedTaskIds={selectedTaskIds} active={projectViewVisible} blocked={projectMutationLocked || mutationPending || canonicalRecoveryBlocked}
+        onSelect={id => applySelectionGesture(id, "single", false, false)}
+        onOpenTask={id => { if (!projectMutationLocked && !mutationPending && !canonicalRecoveryBlocked && tasksByIdReference.current.has(id)) onTaskEditorOpenReference.current(id); }}
+      /> : null}
+      <div hidden={scheduleView !== "wbs"} inert={scheduleView !== "wbs"}
         aria-label={t("프로젝트 일정 Grid와 Gantt 차트")}
           className="project-gantt-scroll"
           onContextMenu={handleHeaderContextMenu}

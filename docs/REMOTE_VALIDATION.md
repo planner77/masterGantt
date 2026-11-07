@@ -1,3 +1,7 @@
+## Issue #880 — 일정 View E2E의 기존 Full8 등록 (2026-11-07)
+
+신규 `tests/e2e/schedule-views.spec.ts`를 기존 정적8shard plan의3번에 등록한다. 발견147spec=명시147spec이며 기존146개 위치·8shard·Required Quality/E2E/Docker·Trusted/Owner·실행 옵션은 유지한다. 과거 timing/generatedAt/sourceRunIds/projectedMs를 새 측정으로 바꾸지 않는다. 이 등록의 실제 원격 비용/실행 결과는 PR Full CI 전 NOT TESTED다. [Work Packet](exec-plans/active/ISSUE_880.md)과 [원장 L-006](ISSUE_880_FAILURE_ANALYSIS.md)을 따른다.
+
 ## Issue #866 Phase B #879 CI #3510.1 후속 검증 (2026-11-05)
 
 - 최초 Full 41941093006.1: trusted Preflight BLOCKED(base ref가 main 아님) 1건 직접. Fast Gate/Required Quality/E2E/Docker/QA Final은 파생; 실제 TypeScript/Vitest/E2E8/Docker NOT RUN.

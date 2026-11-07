@@ -1,3 +1,7 @@
+## Issue #880 — 일정 View E2E의 기존 Full8 등록 (2026-11-07)
+
+신규 `tests/e2e/schedule-views.spec.ts`를 기존 정적8shard plan의3번에 등록한다. 발견147spec=명시147spec이며 기존146개 위치·8shard·Required Quality/E2E/Docker·Trusted/Owner·실행 옵션은 유지한다. 과거 timing/generatedAt/sourceRunIds/projectedMs를 새 측정으로 바꾸지 않는다. 이 등록의 실제 원격 비용/실행 결과는 PR Full CI 전 NOT TESTED다. [Work Packet](exec-plans/active/ISSUE_880.md)과 [원장 L-006](ISSUE_880_FAILURE_ANALYSIS.md)을 따른다.
+
 ## Issue #790 / #444 — 최신 Main 캐시 비교기 통합 (2026-10-31)
 
 - **구현 #790 / 상위 #444:** 구버전 [PR #791](https://github.com/planner77/masterGantt/pull/791)의 범위 지정 비교기·음성 테스트를 앱 `0.138.5`, Main `3c73737968dfdbd6817657f3a17bed07c209a528`로 선택 이식했다. 기존 CI/QA/OCI 계약은 유지한다. 이전 앱 `0.130.2`의 성공은 신규 소스의 PASS가 아니며 PR의 canonical 참조는 `Refs #790` 한 건이다. #444는 별도 검증 전까지 `OPEN`이다.
