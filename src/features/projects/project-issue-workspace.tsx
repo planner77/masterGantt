@@ -523,7 +523,7 @@ export function ProjectIssueWorkspace({
             </button></li>)}</ul> : <p>{t("일치하는 Task가 없습니다. 직접 입력할 수도 있습니다.")}</p>}
           </div> : null}
         </div>
-        <div className={styles.field}><label htmlFor="project-issue-description">{t("Issue 내용")}</label>
+        <div className={styles.field}><span id="project-issue-description-label">{t("Issue 내용")}</span>
           <DescriptionField id="project-issue-description" label={t("Issue 내용")}
             identity={editingIssue?.issueId ?? "issue-create"} value={form.description}
             format={form.descriptionFormat ?? "plain"} maxLength={4000}

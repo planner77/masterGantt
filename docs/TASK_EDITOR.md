@@ -1,3 +1,9 @@
+## Issue #885 — Task/Summary/Milestone Description Markdown (2026-11-07)
+
+기존 Description은 `plain`으로 읽으며 다른 입력을 수정해도 서식이 바뀌지 않는다. **Markdown 편집으로 전환**을 직접 선택하면 안전 이스케이프 후 MDXEditor 시각적 편집이 열리고, 툴바 **Source mode**에서 원문을 입력한다. 저장 시 `description` 원문과 `descriptionFormat: "markdown"`을 함께 PATCH한다. Task 편집 잠금/readonly/stale/unsaved 취소 확인, 일정 계산, 프로젝트 revision/리소스 변경 잠금은 이전과 동일하다. 최대 10,000 Unicode 문자, 이미지·HTML 실행 불가, CodeFence·표·체크리스트·링크는 안전한 AST 렌더러로만 보여 준다.
+
+---
+
 ## Issue #553 — 운영 marker OFF와 Milestone 편집 경로 (2026-10-25)
 
 Milestone은 native WBS Grid 행/inline 편집에 존재하지 않는다. 독립 Dashboard 관리/소속 Task에서 **같은 canonical Editor**로 상세·관계·완료/재개를 수행하며 readiness, 전체 소속·완료 잠금·If-Match·readonly와 origin/revision 정책은 동일하다. Export는 현재 화면 모양과 원본 데이터 출력이 다를 수 있다. [사용자 가이드](MILESTONE_USER_GUIDE.md) / [#553 추적표](MILESTONE_TIMELINE_TRACEABILITY.md).

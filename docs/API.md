@@ -1,3 +1,9 @@
+## Issue #885 — Description 형식 선택형 API (2026-11-07)
+
+Project Issue POST/PATCH 및 Task 생성/수정 명령은 선택형 `descriptionFormat: "plain" | "markdown"`을 추가한다. 응답 DTO는 해당 형식과 원문 `description`을 함께 제공하며, 기존 형식 미포함 생성은 `plain`, 변경 없는 구 Issue PATCH는 기존 저장 형식을 보존한다. 서버에서 Markdown GFM AST HTML/이미지/MDX·비 HTTP(S) 링크를 거부하며 Issue 4,000, Task 10,000 Unicode 문자 제한을 적용한다. 기존 Origin/strong If-Match/credential·session·revision CAS·project binding과 결과 shape는 불변. JSON v1.1/Excel 내보내기에서 Markdown 형식이 존재하면 `EXPORT_UNSUPPORTED`를 반환하여 무손실을 지킨다. 새 포맷 추가는 후속 설계.
+
+---
+
 ## Issue #881 — Project workspace tabs (2026-11-07)
 
 `GET /api/projects/:publicId`은 기존 Project read gate를 통과한 뒤 canonical `data.project.workspaceTabs={issue:boolean,dashboard:boolean,master:boolean}`을 제공한다. `PATCH /api/projects/:publicId`는 정확히 세 boolean key를 갖는 `workspaceTabs` 수정만을 기존 metadata patch로 수용한다. unknown/partial/nonboolean은 400, 무효 edit session 401, Origin mismatch 403, stale strong If-Match 412. 동일 Project/session + revision CAS transaction이 필요하며 응답은 최신 snapshot과 `operation.changedFields`의 `workspaceTabs`를 포함한다. OFF는 API 접근 차단/데이터 제거가 아니다.

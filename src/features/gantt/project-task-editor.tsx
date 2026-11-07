@@ -540,7 +540,7 @@ export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(func
             </fieldset>
             <fieldset className={styles.detailsFields}>
               <legend className={styles.groupLegend}>{t("상세 정보")}</legend>
-            <div className={`${styles.field} ${styles.descriptionField}`}><label htmlFor="task-description">Description</label>
+            <div className={`${styles.field} ${styles.descriptionField}`}><span id="task-description-label">Description</span>
               <DescriptionField id="task-description" identity={base.task.taskId + ":" + base.revision}
                 label="Description" value={draft.description} format={draft.descriptionFormat} maxLength={10000}
                 readOnly={readOnly} disabled={locked || awaitingDecision || basicMutationLocked}

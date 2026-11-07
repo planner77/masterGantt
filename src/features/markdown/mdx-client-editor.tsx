@@ -39,7 +39,7 @@ export function MdxClientEditor({ markdown, disabled, onChange, onError }: Props
       markdownShortcutPlugin(),
       diffSourcePlugin({ viewMode: "rich-text" }),
       toolbarPlugin({
-        toolbarContents: () => <DiffSourceToggleWrapper>
+        toolbarContents: () => <DiffSourceToggleWrapper options={["rich-text", "source"]}>
           <UndoRedo /><BoldItalicUnderlineToggles /><CodeToggle /><BlockTypeSelect />
           <ListsToggle /><CreateLink /><InsertTable /><InsertCodeBlock /><InsertThematicBreak />
         </DiffSourceToggleWrapper>,

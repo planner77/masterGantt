@@ -1,3 +1,11 @@
+## Unreleased — Issue #885 (2026-11-07, PR 검증 전)
+
+- Issue/Task/Summary/Milestone Description 공통 MDXEditor(시각적/Markdown Source), 안전한 읽기 뷰, 명시적인 legacy plain-to-Markdown 전환.
+- SQLite migration 0038 및 `descriptionFormat` API 추가, Markdown GFM 안전 검증·프로젝트 복사 보존, 기존 JSON/Excel에서 형식 유실 방지 차단.
+- **NOT TESTED:** 새로운 PR Required CI, 실제 브라우저/운영 DB 업그레이드 및 다국어·접근성 수동 검증 예정.
+
+---
+
 ## v0.144.0 (Issue #881, 2026-11-07) — Project workspace 표시 설정
 
 - Project edit session 보유자는 프로젝트별 Issue, 대시보드, 기준정보 표시를 ON/OFF 설정할 수 있다. 일정은 항상 표시, 모든 프로젝트 기본 ON, Copy는 원본 설정 보존, DB migration 0037 적용.

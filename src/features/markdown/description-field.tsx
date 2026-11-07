@@ -28,7 +28,7 @@ interface Props {
 export function DescriptionField({ id, label, value, format, maxLength, identity, disabled, readOnly = false, onChange }: Props) {
   const [error, setError] = useState<string | null>(null);
   const plain = format !== "markdown";
-  return <div className={styles.container} id={id} aria-label={label} data-description-format={format}>
+  return <div className={styles.container} id={id} role="group" aria-label={label} data-description-format={format}>
     {plain || readOnly ? <MarkdownDescription value={value} format={format} /> : <ClientEditor
       key={identity} markdown={value} disabled={disabled} onChange={next => {
         if (Array.from(next).length > maxLength) {
