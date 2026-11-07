@@ -1,5 +1,6 @@
 import type { MilestoneMembershipCommand } from "../../contracts/milestones";
 import { z } from "zod";
+import { isSafeMarkdownDescription } from "../../lib/markdown/description-policy";
 
 import type {
   ApiErrorDetail,
@@ -36,6 +37,7 @@ const taskName = wellFormedString
     return length >= 1 && length <= 200;
   });
 
+const descriptionFormat = z.enum(["plain", "markdown"]);
 const taskDescription = wellFormedString
   .refine((value) => codePointLength(value) <= 10_000)
   .transform((value) => value.trim().length === 0 ? null : value)
@@ -77,14 +79,15 @@ const createTaskCommon = {
   convertParentToSummary: z.literal(true).optional(),
   name: taskName,
   description: taskDescription.optional(),
+  descriptionFormat: descriptionFormat.optional(),
   url: taskUrl.optional(),
   parentExternalId: z.null().optional(),
 };
 const createTaskSchema = z.union([
   z.object({ ...createTaskCommon, type: leafType, scheduleMode: scheduleMode.optional(),
-    start: dateLabel, end: dateLabel.optional(), duration, progress, status: taskStatus.optional() }).strict(),
+    start: dateLabel, end: dateLabel.optional(), duration, progress, status: taskStatus.optional() }).strict().refine(value => value.descriptionFormat !== "markdown" || (value.description !== undefined && (value.description === null || isSafeMarkdownDescription(value.description))), { path: ["description"], message: "Unsafe Markdown description." }),
   z.object({ ...createTaskCommon, type: z.literal("summary"), scheduleMode: z.literal("auto").optional(),
-    start: z.null().optional(), end: z.null().optional(), duration: z.null().optional(), progress: z.null().optional() }).strict(),
+    start: z.null().optional(), end: z.null().optional(), duration: z.null().optional(), progress: z.null().optional() }).strict().refine(value => value.descriptionFormat !== "markdown" || (value.description !== undefined && (value.description === null || isSafeMarkdownDescription(value.description))), { path: ["description"], message: "Unsafe Markdown description." }),
 ]).refine(
   (value) => value.convertParentToSummary !== true || value.parentTaskId !== undefined,
   {
@@ -97,6 +100,7 @@ const updateTaskSchema = z.object({
   explicitMilestoneTaskId: z.string().refine(isCanonicalUuidV4).nullable().optional(),
   name: taskName.optional(),
   description: taskDescription.optional(),
+  descriptionFormat: descriptionFormat.optional(),
   url: taskUrl.optional(),
   scheduleMode: scheduleMode.optional(),
   start: dateLabel.optional(),
@@ -111,7 +115,7 @@ const updateTaskSchema = z.object({
     start: dateLabel,
     duration: duration,
   }).nullable().optional(),
-}).strict().refine(
+}).strict().refine(value => value.descriptionFormat !== "markdown" || (value.description !== undefined && (value.description === null || isSafeMarkdownDescription(value.description))), { path: ["description"], message: "Unsafe Markdown description." }).refine(
   (value) => Object.keys(value).length > 0,
   { message: "At least one task field is required." },
 ).refine(

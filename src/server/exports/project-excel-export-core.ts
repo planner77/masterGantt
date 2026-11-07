@@ -1116,6 +1116,8 @@ export function buildProjectExcelWorkbook(
     throw new ProjectExcelExportError("EXPORT_UNSUPPORTED", "Milestone stage summary must be supplied for this snapshot.");
   }
   if (stageDashboard) validateStageDashboard(snapshot, stageDashboard, resourceWorkload);
+  if (snapshot.data.tasks.some(task => task.descriptionFormat === "markdown" && !!task.description))
+    throw new ProjectExcelExportError("EXPORT_UNSUPPORTED", "Markdown Task descriptions need a format-aware Excel schema.");
   const tasks = orderedTasks(snapshot.data.tasks);
   const dates = timeline(tasks);
   if (request.includeDependencies) validateLinks(snapshot.data.links, tasks);

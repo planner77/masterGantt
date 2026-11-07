@@ -1,3 +1,5 @@
+import type { DescriptionFormat } from "./description-format";
+
 /** Project Issues are separate from WBS Tasks and GitHub development issues (#838-#840). */
 export type ProjectIssueStatus = "registered" | "in_progress" | "completed";
 export type IssueStatusFilter = "all" | "open" | ProjectIssueStatus;
@@ -11,6 +13,8 @@ export interface ProjectIssueDto {
   issueId: string;
   title: string;
   description: string;
+  /** Optional for historical fixtures; API responses include format. */
+  descriptionFormat?: DescriptionFormat;
   createdAt: string;
   updatedAt: string;
   reporterName: string;
@@ -29,6 +33,8 @@ export interface ProjectIssueInput {
   status?: ProjectIssueStatus;
   title: string;
   description: string;
+  /** Omitted by old clients; absence does not downgrade unchanged Markdown on PATCH. */
+  descriptionFormat?: DescriptionFormat;
   reporterName: string;
   reporterResourceId: string | null;
   assigneeName: string;

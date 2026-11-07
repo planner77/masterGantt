@@ -28,6 +28,7 @@ export interface ProjectTaskUpdatePayload {
   readonly explicitMilestoneTaskId?: string | null;
   readonly name?: string;
   readonly description?: string | null;
+  readonly descriptionFormat?: "plain" | "markdown";
   readonly url?: string | null;
   readonly progress?: number;
   readonly status?: TaskStatus;
