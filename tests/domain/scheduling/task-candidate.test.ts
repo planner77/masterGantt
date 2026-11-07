@@ -10,6 +10,9 @@ const link = (a: string, b: string): DependencyLinkInput => ({ id: `${a}-${b}`, 
 describe("Task PATCH classification", () => {
   it.each([
     [{ name: "x", description: null, url: null }, false, true, false, false],
+    [{ descriptionFormat: "markdown" }, false, true, false, false],
+    [{ description: "**x**", descriptionFormat: "markdown", url: null }, false, true, false, false],
+    [{ start: "2026-09-14", descriptionFormat: "plain" }, true, true, false, false],
     [{ progress: 12 }, false, false, true, false],
     [{ baseline: null }, false, false, false, true],
     [{ start: "2026-09-14", name: "x", baselineStart: null, progress: 12 }, true, true, true, true],

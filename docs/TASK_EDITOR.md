@@ -2,6 +2,8 @@
 
 기존 Description은 `plain`으로 읽으며 다른 입력을 수정해도 서식이 바뀌지 않는다. **Markdown 편집으로 전환**을 직접 선택하면 안전 이스케이프 후 MDXEditor 시각적 편집이 열리고, 툴바 **Source mode**에서 원문을 입력한다. 저장 시 `description` 원문과 `descriptionFormat: "markdown"`을 함께 PATCH한다. Task 편집 잠금/readonly/stale/unsaved 취소 확인, 일정 계산, 프로젝트 revision/리소스 변경 잠금은 이전과 동일하다. 최대 10,000 Unicode 문자, 이미지·HTML 실행 불가, CodeFence·표·체크리스트·링크는 안전한 AST 렌더러로만 보여 준다.
 
+시각적 편집기의 일반 본문에서 Tab/Shift+Tab은 다음/이전 폼 제어로 이동한다. 본문을 열거나 다른 필드만 수정할 때 URL을 자동 링크 문법으로 다시 쓰지 않으며, 링크 작성은 툴바로 명시한다. 읽기 화면의 안전한 HTTP(S) 링크 표시는 유지한다. Summary의 본문/형식도 저장할 수 있지만 파생 일정·진척·Baseline 직접 수정은 계속 잠긴다.
+
 ---
 
 ## Issue #553 — 운영 marker OFF와 Milestone 편집 경로 (2026-10-25)

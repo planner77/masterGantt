@@ -104,7 +104,9 @@ test("#550 관리 진입 실제 HTTP·SQLite 생성/편집·전체 Gate·보호 
   await expect(descriptionField).toHaveAttribute("data-description-format", "plain");
   await descriptionField.getByRole("button", { name: "Markdown 편집으로 전환" }).click();
   await expect(descriptionField).toHaveAttribute("data-description-format", "markdown");
-  await descriptionField.getByRole("button", { name: /Source mode|원문 모드|Chế độ mã nguồn/ }).click();
+  const sourceMode = descriptionField.getByRole("radio", { name: /Source mode|원문 모드|Chế độ mã nguồn/ });
+  await sourceMode.click();
+  await expect(sourceMode).toBeChecked();
   await descriptionField.locator(".cm-content[contenteditable='true']")
     .fill("합성 설명: 관리 진입의 동일 canonical identity");
   await editor.getByLabel("URL", { exact: true }).fill("https://example.com/milestone-550");

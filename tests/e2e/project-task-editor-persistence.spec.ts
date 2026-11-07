@@ -5,7 +5,9 @@ async function fillTaskMarkdown(dialog: Locator, text: string) {
   const field = dialog.locator("#task-description");
   const convert = field.getByRole("button", { name: "Markdown 편집으로 전환" });
   if (await convert.count()) await convert.click();
-  await field.getByRole("button", { name: /Source mode|원문 모드|Chế độ mã nguồn/ }).click();
+  const sourceMode = field.getByRole("radio", { name: /Source mode|원문 모드|Chế độ mã nguồn/ });
+  await sourceMode.click();
+  await expect(sourceMode).toBeChecked();
   await field.locator(".cm-content[contenteditable='true']").fill(text);
 }
 

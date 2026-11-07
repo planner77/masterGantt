@@ -1,4 +1,5 @@
 import { test, expect } from "./fixtures/isolated-application";
+import type { Route } from "@playwright/test";
 
 test.use({ isolatedProjectMasterAdminPassword: "I18n-test-only-866" });
 
@@ -54,17 +55,75 @@ test("Issue #866: 실제 마스터 표시명 저장·새로고침·해제·동�
   await row.getByRole("button", { name: "Translate display name", exact: true }).click();
   await row.getByLabel("English", { exact: true }).fill("Preserved after 401");
   const patchUrl=`${origin}/api/project-master/admin/items/${items[0]!.id}`;
-  await page.route(patchUrl,route=>route.fulfill({status:401,json:{error:{code:"UNAUTHORIZED",message:"unsafe-upstream-marker"}}}),{times:1});
-  await row.getByRole("button", { name: "Save translations", exact: true }).click();
-  await expect(page.locator('input[autocomplete="current-password"]')).toBeVisible();
+  const unauthorized = async (route: Route) => {
+    if (route.request().method() !== "PATCH") return route.fallback();
+    await route.fulfill({ status:401, json:{ error:{ code:"UNAUTHORIZED", message:"unsafe-upstream-marker" } } });
+  };
+  await page.route(patchUrl, unauthorized);
+  try {
+    const rejected = page.waitForResponse(response => response.url() === patchUrl && response.request().method() === "PATCH");
+    await row.getByRole("button", { name: "Save translations", exact: true }).click();
+    const response = await rejected;
+    expect(response.status()).toBe(401);
+    expect(await response.json()).toMatchObject({ error:{ code:"UNAUTHORIZED", message:"unsafe-upstream-marker" } });
+    await expect(page.locator('input[autocomplete="current-password"]')).toBeVisible();
+    await expect(page.getByText("unsafe-upstream-marker")).toHaveCount(0);
+  } finally { await page.unroute(patchUrl, unauthorized); }
   await ensureAdmin();
   await row.getByRole("button", { name: "Continue preserved draft", exact: true }).click();
   await expect(row.getByLabel("English", { exact: true })).toHaveValue("Preserved after 401");
   expect((await read()).items.find(item=>item.id===items[0]!.id)?.translations?.en).toBe("Assembly Team");
-  await page.route(patchUrl,route=>route.fulfill({status:412,json:{error:{code:"PRECONDITION_FAILED",message:"unsafe-upstream-marker"}}}),{times:1});
-  await row.getByRole("button", { name: "Save translations", exact: true }).click();
-  await expect(row.getByLabel("English", { exact: true })).toHaveValue("Preserved after 401");
-  await expect(page.getByText("unsafe-upstream-marker")).toHaveCount(0);
+  // Advance the real catalog without changing either item's source or display names.
+  // The preserved UI draft must now receive an actual revision-CAS rejection.
+  const beforeConflict = await read();
+  const concurrent = await page.request.patch(`${origin}/api/project-master/admin/items/${items[1]!.id}`, {
+    headers:{ Origin:origin, "If-Match":`"${beforeConflict.revision}"` }, data:{ sortOrder:1 },
+  });
+  expect(concurrent.ok()).toBe(true);
+  const latest = (await concurrent.json()).data as typeof beforeConflict;
+  expect(latest.revision).toBeGreaterThan(beforeConflict.revision);
+  expect(latest.items.find(item => item.id === items[0]!.id)?.translations?.en).toBe("Assembly Team");
+  const catalogUrl = `${origin}/api/project-master/admin/items`;
+  let releaseRefresh!: () => void;
+  let observeRefresh!: () => void;
+  const refreshHeld = new Promise<void>(resolve => { observeRefresh = resolve; });
+  const refreshRelease = new Promise<void>(resolve => { releaseRefresh = resolve; });
+  const holdRefresh = async (route: Route) => {
+    if (route.request().method() !== "GET") return route.fallback();
+    observeRefresh();
+    await refreshRelease;
+    await route.continue();
+  };
+  await page.route(catalogUrl, holdRefresh);
+  try {
+    const rejected = page.waitForResponse(response => response.url() === patchUrl && response.request().method() === "PATCH");
+    const refreshed = page.waitForResponse(response => response.url() === catalogUrl && response.request().method() === "GET");
+    await row.getByRole("button", { name: "Save translations", exact: true }).click();
+    const rejection = await rejected;
+    expect(rejection.status()).toBe(412);
+    const rejectionBody = await rejection.json();
+    expect(rejectionBody).toMatchObject({ error:{ code:"PROJECT_MASTER_REVISION_MISMATCH", message:"Project master catalog changed. Reload and retry." } });
+    await refreshHeld;
+    await expect(row.getByLabel("English", { exact: true })).toHaveValue("Preserved after 401");
+    await expect(row.getByRole("button", { name:"Cancel", exact:true })).toBeDisabled();
+    await expect(row.getByRole("button", { name:"Save translations", exact:true })).toBeDisabled();
+    releaseRefresh();
+    const response = await refreshed;
+    expect(response.status()).toBe(200);
+    const freshCatalog = (await response.json()).data as typeof beforeConflict;
+    expect(freshCatalog.revision).toBe(latest.revision);
+    expect(freshCatalog.items.find(item => item.id === items[0]!.id)?.translations?.en).toBe("Assembly Team");
+    await expect(row.getByRole("alert")).toBeVisible();
+    await expect(row.getByLabel("English", { exact:true })).toHaveValue("Preserved after 401");
+    await expect(row.getByRole("button", { name:"Save translations", exact:true })).toBeDisabled();
+    await expect(row.getByRole("button", { name:"Cancel", exact:true })).toBeEnabled();
+    await expect(page.getByText(rejectionBody.error.message, { exact:true })).toHaveCount(0);
+    await expect(page.getByText("Another administrator change was saved first. Review the latest list before saving again.", { exact:true })).toBeVisible();
+    await expect(page.getByText("unsafe-upstream-marker")).toHaveCount(0);
+  } finally {
+    releaseRefresh();
+    await page.unroute(catalogUrl, holdRefresh);
+  }
   await row.getByRole("button", { name: "Cancel", exact: true }).click();
   await row.getByRole("button", { name: "Translate display name", exact: true }).click();
   await row.getByLabel("English", { exact: true }).fill("");

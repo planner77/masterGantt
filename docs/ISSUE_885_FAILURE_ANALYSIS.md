@@ -71,3 +71,136 @@
 - **AC_TEST_COVERAGE:** AC01/02(legacy plain→WYSIWYG Source 명시 변환), AC04/06(canonical Task/Milestone 저장 응답/재시작, 0038 default), AC09(Next 클라이언트 편집기 진입), AC10(기존 독립 #550 E2E 보존 및 Full8 재검증). 다른 AC01~AC10은 Work Packet 기존 경계를 그대로 요구.
 - **DOCUMENTATION_SYNC:** `docs/ISSUE_885_FAILURE_ANALYSIS.md` UPDATED, `docs/exec-plans/active/ISSUE_885.md` UPDATED, `tests/e2e/milestone-management-persistence.spec.ts` EXTEND. `AGENTS.md`, `DESIGN.md`, `docs/API.md`, `docs/DB_SCHEMA.md`, `docs/TEST_PLAN.md`, `docs/CI_CD.md`, `docs/QA_REVIEW_POLICY.md` 불변. 별도 release/GHCR 승인 없음.
 - **제한:** 이 변경은 Source/static 검토와 GitHub 커밋 증거이며 새 Head의 Chromium8 전체, Trusted QA, Owner 수동 수용 결과는 **NOT TESTED**. 차기 non-draft PR synchronize 후 자동 CI 시작에서 멈추며 모니터링, merge, Main, Release, GHCR, Issue close는 진행하지 않는다.
+
+## F885-006 — 2026-11-07 #3561.1 목록 재조회 정체와 전체 실패 교차 분석
+
+### 원격 출처와 관측
+
+- [PR #887](https://github.com/planner77/masterGantt/pull/887), branch `feat/issue-885-mdxeditor`, workflow `CI`, event `pull_request`, [Full #3561.1 / Run 42367928874](https://github.com/planner77/masterGantt/actions/runs/42367928874), attempt 1, 생성 `2026-11-07T11:22:43Z`, 원본 결론 **FAILURE**.
+- Head `c136213dae525f95697b116b6624ef333320ea70`, base `f3f8b89ef09bab35987b32f4945dac91b6fa223a`, test merge `e44091b98876a4d9b901b8a9226cf74c8d0e3fa7`. 재개 시 최신 main은 동일 base이며 PR mergeable=true, 미해결 리뷰 thread=0이었다. 이는 병합 승인이 아니다.
+- Required Quality Job `128390694876` **SUCCESS**, Docker Job `128391418158` **SUCCESS**, 실제 Next build Job `128390410581` **SUCCESS**. Required E2E Job `128391906373`와 Automated QA Job `128391925884` **FAILURE**. 새 Head에 이 성공을 재사용하지 않는다.
+- 직접 실패는 Chromium shard7 Job `128390410606`, `tests/e2e/i18n-master-data.spec.ts:68`의 `Cancel` 클릭이다. `Test timeout of 180000ms exceeded`; 버튼이 disabled인 채 남았다. **18 PASS / 1 FAIL / 61 NOT RUN**. 다른 7 shard는 **CANCELLED**다.
+- 원본 artifact `playwright-report-shard-7`, ID `13573190319`, SHA256 `27e1957ab97015555f6ddaf6aacba47f05bc28025017fe49b8d71a1d859e6b64`의 trace에서 PATCH 412는 **19.065ms**에 완료했다. 직후 `11:29:16.358Z` collection GET `/api/project-master/admin/items`는 응답 없이 끝까지 미완료(`status=-1`, `time=-1`)였다. `mutate → loadCatalog` 대기 중이므로 pending/Cancel 잠금은 관측과 일치한다.
+- pageError/JS exception은 없고 서버 alive, health 200/130ms, OOM/oomKill=0이었다. GET 정체의 TCP/브라우저 interception/DEV 내부 근인은 **UNKNOWN**이다. UI의 finally 누락, 서버 전체 장애, Markdown 선택자 문제로 확정하지 않는다. 테스트는 기존 초안 값과 악성 marker 부재만 확인해 재조회 완료를 입증하지 못했다(**FIXTURE_OBSERVABILITY**).
+- 반례: 직전 #3560.1의 취소된 shard7 Job `128385358210`에서는 같은 case가 **PASS(10.0s)**였다. 이번 수정 전 동일 Head의 로컬 명령 `npm run test:e2e -- tests/e2e/i18n-master-data.spec.ts --workers=1 --retries=0 --max-failures=0`도 **1 PASS(19.2s, 전체 1.2분)**였다. 이는 원격 실패 비재현이며 원격 FAIL의 해소 증거가 아니다.
+
+### Cross-run 실패 매트릭스
+
+원격 branch 전체 조회 결과 Full CI 6개는 모두 attempt 1의 서로 다른 Run이다. 보조 FAST_DEVELOPMENT #301~306은 모두 SKIPPED이며 추가 성공/실패 표본으로 합산하지 않는다. 기존 F885-001~005의 원본 결론·당시 교정은 그대로 보존한다.
+
+| 실패 | 원본 Run / Head | 최초 실패 계약 | 후속 관측 / 이번 검증 범위 |
+| --- | --- | --- | --- |
+| F885-001 | [3556.1 / 42362045811](https://github.com/planner77/masterGantt/actions/runs/42362045811), `d73f64aa3566d374d8a7213736b96b329f508296` | POLICY_CI: DOC_SYNC 문법; 별도 P1 Link/delete DTO 형식 누락 | #3557~3561 Preflight 성공. 정확 DOC_SYNC/AC parser 및 실제 SQLite projection 회귀 유지 |
+| F885-002 | [3557.1 / 42362952735](https://github.com/planner77/masterGantt/actions/runs/42362952735), `b0085ecd95e0402fa39e05bb8e29a4d32e339d46` | npm lock peer 그래프 누락 | #3558~3561 설치 성공. 이번 격리 worktree 실제 npm ci 711 packages 성공, pin/lock 변경 없음 |
+| F885-003 | [3558.1 / 42363953686](https://github.com/planner77/masterGantt/actions/runs/42363953686), `bbb85a79b67b9d2f305e3bffbe6de96e71017ffe` | TSX/ref 및 0038 schema/DTO/고정 증거의 24 FAIL·18 files | #3559 TS/lint 성공, #3560~3561 Vitest 성공. 이번 full Unit/정책 검증에 18개 실패 파일과 Markdown/projection 음성 포함 |
+| F885-004 | [3559.1 / 42365288584](https://github.com/planner77/masterGantt/actions/runs/42365288584), `47d6f1f820fd5759a07163819b7b3ba05d934fa5` | TEST_CONTRACT: CLI/reopen의 두 번째 assertion 누락 | #3560~3561 Vitest 성공. 이번 CLI/실제 SQLite 재오픈을 포함한 Unit 유지 |
+| F885-005 | [3560.1 / 42366243384](https://github.com/planner77/masterGantt/actions/runs/42366243384), `b7afbb49c41b8909ca59dc1fbd0ddfcd825f7f82` | TEST_CONTRACT: Milestone Description group에 textarea fill | #3561 shard2 취소로 전체 성공 미확정. 이번 Milestone 3case 및 Issue/Task 직접 소비자 동시 선정 |
+| F885-006 | [3561.1 / 42367928874](https://github.com/planner77/masterGantt/actions/runs/42367928874), `c136213dae525f95697b116b6624ef333320ea70` | UNKNOWN GET 정체 + FIXTURE_OBSERVABILITY: 412 후 refresh 완료 미관측 | 수정 전 로컬 비재현. 실제 stale revision·실제 GET·요청 중 잠금/완료 후 해제 검증으로 테스트 경계 보강; transport 근인 미확정 유지 |
+
+누적 재실패는 서로 같은 원인의 반복이 아니다. 초기 문서/설치/정적 gate가 후단 실행을 막았고, 이후 E2E fail-fast가 다른 소비자 실행을 중단했다. 이전 정적 보완만으로 새 단계의 실행을 검증하지 못한 것이 공통 누락이다. 이번에는 과거 실패 파일의 합집합과 직접·간접 소비자를 한정하여 fail-fast 없이 실행한다.
+
+### 취소 로그와 누적 실패 파일 합집합
+
+infra가 #3560/#3561의 취소된 shard **14개** 원문 로그까지 확인했다. 추가 assertion/test FAIL은 발견하지 못했다. 의도된 error-boundary probe와 GitCommitInfo 보조 timeout은 별도 실제 실패로 계산하지 않는다. 취소/미실행 case는 여전히 **NOT TESTED**이며 14 shard PASS라고 보고하지 않는다. #3556~3559 실제 Next/E2E/Docker SKIPPED도 기존 기록 그대로다.
+
+#3558의 18개 실패 파일은 원문으로 재확인했다. 테스트 이름이 유사해도 별개의 SQLite/도메인/Core 증거 경계를 유지한다.
+
+```text
+tests/domain/milestone-editor-model.test.ts
+tests/scripts/prepr-verifier.test.ts
+tests/features/gantt/axis-transaction-runtime-fixture.test.ts
+tests/features/gantt/canonical-recovery-runtime.test.ts
+tests/features/gantt/state-consistency-runtime-fixture.test.ts
+tests/features/gantt/task-editor-model.test.ts
+tests/server/migration-cli.test.ts
+tests/server/calendars/country-calendar-integration.test.ts
+tests/server/db/database.test.ts
+tests/server/db/issue-623-target-migration.test.ts
+tests/server/i18n/managed-display-names.test.ts
+tests/server/logistics/logistics-targets-acceptance.test.ts
+tests/server/logistics/task-target-bindings.test.ts
+tests/server/process-catalog/process-catalog-service.test.ts
+tests/server/process-catalog/process-context-service.test.ts
+tests/server/projects/project-issues.test.ts
+tests/server/projects/task-hierarchy-multi-copy.test.ts
+tests/server/resources/project-resource-memberships.test.ts
+tests/e2e/milestone-management-persistence.spec.ts
+tests/e2e/i18n-master-data.spec.ts
+```
+
+### 보완 설계와 선정
+
+- **EXTEND** 기존 `i18n-master-data.spec.ts` 한 case: 401의 악성 오류 marker 비노출·재인증·보존 초안을 유지한다. 412는 다른 항목의 실제 API 변경으로 catalog revision을 전진시켜 **실제 서버 CAS 거절**을 받는다. 후속 실제 collection GET을 통제 보류해 요청 중 Cancel 잠금/초안을 확인하고, 해제 후 실제 응답·최신 revision·오래된 초안 저장 차단·Cancel 활성화를 확인한다. 임의 sleep/force click/skip/retry/timeout 확대는 사용하지 않는다.
+- 직접/인접/음성 브라우저 집합은 **7 spec / 56 case**: 누적 E2E 실패 2파일 + `project-issues.spec.ts`, `project-task-editor.spec.ts`, `project-task-editor-persistence.spec.ts`(Description/dirty/권한/실제 SQLite) + `project-master-admin.spec.ts`, `project-master-relations.spec.ts`(같은 catalog/권한/관계/화면). `workers=1,retries=0,max-failures=0`으로 한정한다. Unit은 위 18파일과 신규 Markdown/projection 테스트를 포함한 기존 full suite로 검사한다.
+- 제품 `loadCatalog` timeout/재시도, 공통 TranslationEditor, DB/DTO/Markdown/CI 정책은 수정하지 않는다. 원격 GET 정체의 근인이 미확정인 상태에서 제품 범위를 넓히지 않는다. 원격에서 같은 정체가 반복되면 이 Run/trace와 새 실제 HTTP·GET 완료 관측을 대조하여 별도 transport 조사를 수행한다.
+- **AC_TEST_COVERAGE:** AC01/02/04 직접 Description·0038·canonical 회귀, AC03/05/06 악성 오류/401/412·초안·서버 CAS, AC07/08 pending·focus·5폭/3locale/coarse, AC09 Next build, AC10 누적 원장/정책·전체 Required gate를 연결한다. 실제 screen reader/native 125%/운영 DB 복구는 별도 **NOT TESTED**다.
+- **DOCUMENTATION_SYNC:** 이 원장과 Work Packet만 갱신한다. 기존 첫 DOC_SYNC 정확 문법 유지. 제품/API/DB/CI/보안 정책 변경이 없어 관련 가이드는 기존 N/A 근거를 유지한다. 후속 원격 Full Required3/Trusted/Owner는 **NOT TESTED**, `manager_decision=NOT TESTED`, `MERGE_READY=BLOCKED`다.
+- 실행 역할: Manager 통합·문서·게시, infra 원격 원문/취소 로그 읽기 전용, frontend 테스트 보완, qa_docs 별도 사전검토. `OWNER_MANAGED`를 독립 인간 최종 QA PASS로 전용하지 않는다. 원시 trace/DB/인증 로그는 Git에 저장하지 않는다.
+
+### 최종 후보 검증
+
+최종 동일 테스트 source의 실행 결과·hash·로컬 report와 잔여 위험은 아래에 추가한다. 이 절 작성 시 아직 보완 후 검증은 **NOT TESTED**이며 새 PR CI는 모든 보완을 한 묶음으로 게시한 뒤 한 번 시작한다. 시작 이후 결과 모니터링·병합/Main/GHCR/Release/Finalizer/Issue 종료는 승인 범위 밖이다.
+
+- 최초 보완 source `c5fc2849b7adc273dabdfad0f2bea7664093be2e7d3290eb2a2f99f00a67494c`의 단독 Chromium은 **1 PASS(13.6s, 전체47.8s)**, 파일 ESLint PASS였다. qa_docs 사전검토에서 mock401/실제412 구분과 최초 구현 환경 표현을 교정하고, 실제412 원문 message 비노출 및 지역화 충돌 안내 assertion을 추가했다. 이후 최종 spec SHA256은 `9387de789596cee12bd25e0ee25d17e742dc54d9e60ed122e49160840a4d5f36`이다. 앞선 source의 단독 PASS를 최종 spec PASS로 사용하지 않는다.
+- **L885-001 로컬 진단 실패(원격 Run과 별개):** Node22.14.0/npm11.10.0/WSL2에서 `npm run verify:prepr -- --mode=fast --base=c136213dae525f95697b116b6624ef333320ea70 --risk=HIGH --issue=885 --pr=887 --report-dir=.prepr-reports/issue-885-final-fast`를 실제 실행했다. Version/discovery/Markdown links/cache/QA fixture/dependencies/typecheck/lint는 PASS였고 Unit은 **1 FAIL / 3746 PASS / 3 SKIPPED, 308 files, 62.49s**였다. `tests/server/llm/llm-boundary.test.ts:65` 실제 소스 import graph 검사에서 5000ms timeout(5063ms), assertion 위반 출력은 없었다. Pre-PR report는 **FAIL**, sourceStable=true, fingerprint `ba6ea24983ed6ce53aad0944d0f0accd774e6f8cb23ebe76595fdeb6021a0feb`로 보존한다. Production build는 이 실행에서 NOT RUN이다.
+- 같은 LLM 파일 단독 명령 `npm test -- tests/server/llm/llm-boundary.test.ts`는 **3 PASS / 2.12s**였다. 원격 #3561 Unit은 SUCCESS이므로 현재 자료는 로컬 병렬 실행 부하 가설과 양립하지만 시간 초과의 근인을 단정하지 않는다. 테스트 timeout/소스/설정을 변경하지 않고 `npm test -- --maxWorkers=1`로 전체 파일을 한 번 더 실행하여 차이를 확인한다. 최초 FAIL을 삭제하거나 단독 성공으로 전체 성공을 추론하지 않는다.
+- 최종 구현·검증 source 지문은 Git 추적 `src/`, `db/`, `tests/`, `scripts/`, `package.json`, `package-lock.json`의 경로순 SHA256 합성 `4c0920f06ef87c0687ea5d2bf1b92347182d8824754f5761aaa1ffdc963a8008`이다. 문서에 결과를 추가하는 변경 및 Next 자동 생성 타입·스크린샷과 제품/테스트 소스를 구분하며, 아래 최종 검증 후 같은 지문을 다시 비교한다.
+- 최종 source의 `npm test -- --maxWorkers=1`는 **307 files PASS / 1 file SKIPPED, 3747 cases PASS / 기존3 cases SKIPPED(3750), 297.15s, exit0**였다. 과거 실패18 Unit 파일·Markdown/projection/LLM 음성을 모두 포함하며 새로운 skip/timeout/설정 변경은 없다. 로그 `.prepr-reports/issue-885-unit-serial.log`와 최초 fast FAIL report를 함께 보존한다. 원격 병렬 runner와 동일 환경이라는 주장은 하지 않는다.
+- qa_docs `/root/qa_review`가 최종 spec hash를 확인해 별도 **정적 사전검토 PASS**를 반환했다. 두 P2(401 실제/주입 표현, 실제412 원문 오류 비노출)를 해소했고 새 지적은 없었다. 이는 HIGH 최종 Owner 수용/Trusted QA/Manager ACCEPT나 독립 인간 QA 영수증이 아니다.
+- 최종 spec의 `npm run typecheck`, `npx eslint tests/e2e/i18n-master-data.spec.ts`, `NEXT_DIST_DIR=.next-prepr npm run build`는 모두 **PASS/exit0**였다. Next16.4.2 webpack compile42s·후속 TypeScript39.9s·페이지 생성·standalone/runtime-tools까지 완료했다. Next가 생성한 next-env/tsconfig 출력 경로는 실행 후 원본으로 복원하며 게시 diff에 포함하지 않는다. 이 로컬 build는 새로운 PR Head의 Required Quality/Docker PASS가 아니다.
+
+### L885-002 — 확대 브라우저 진단에서 같은 Source 역할 오류 3개 소비자 발견
+
+- 위 첫 후보 지문 `4c0920f0...`로 7spec/56case, workers1/retries0/max-failures0 명령을 실행했다. i18n 최종9387 spec **PASS(20.9s)**, Milestone-only past/future **PASS** 후 Milestone 전체 편집 case가 **180초 FAIL**했다. 당시 401/412 보완의 별개 성공을 전체 E2E 성공으로 확대하지 않는다.
+- trace/error-context에서 실제 원문 전환은 `radio "원문 모드"`였고 `getByRole("button", Source...)`가 잘못된 계약이었다. 설치 MDXEditor4.3.3의 `DiffSourceToggleWrapper → SingleChoiceToggleGroup → Radix ToggleGroup(type=single)` 및 실제 DOM의 `role=radio/aria-checked`가 일치한다. JS/CSS는 200(16~215ms), pageError=0, 서버 health200/45ms, OOM0으로 편집기 미로딩 가설은 기각했다. `.cm-content.fill`에는 도달하지 못했다. **TEST_CONTRACT**로 확정한다.
+- 동일 오류를 `milestone-management-persistence.spec.ts:107`, `project-task-editor-persistence.spec.ts:8` helper, `project-issues.spec.ts:131`의 세 소비자에서 확인했다. 이전 F885-005는 textarea→Source 입력 경로를 정적으로만 교정하여 실제 접근성 역할을 확인하지 못했다. 직전 실패 한 곳뿐 아니라 이들 세 소비자를 함께 `getByRole("radio", ...)`로 교정하고 선택 후 `toBeChecked()`를 추가한다. 원래 저장 payload/DB·revision/dirty/보안 assertions는 보존한다.
+- 같은 잘못된 선택자를 기다리던 Issue case까지 확인한 뒤 Manager가 소유한 진단 프로세스에 SIGINT를 전달해 불필요한 동일 timeout 반복을 중단했다. 첫 명령의 최종 결과는 **3 PASS / 1 FAIL / 1 INTERRUPTED / 51 NOT RUN, 6.6분, exit130**이다. 원본 로그 `.prepr-reports/issue-885-browser-56.log`, partial report/trace `.prepr-reports/issue-885-browser-before-role-fix/`를 보존한다. 중단·미실행을 PASS로 계산하지 않는다. 보완 후 **같은 56개 전체**를 다시 fail-fast 없이 실행한다.
+- 이 추가 보완은 E2E 파일3개의 selector/선택 상태 검증만 변경한다. 제품/Unit/lock/schema/CI source는 위 Unit·build 검증과 같으며, 최종 TypeScript/4개 변경 spec lint와 브라우저 전체 선택 집합을 새 source에서 다시 검사한다. 이전 full Unit307 PASS/기존skip과 새 E2E 결과는 환경·source 경계를 명시하여 기록한다.
+- 세 Source 소비자 교정 후 `npm run typecheck` 및 변경4개 spec의 ESLint는 **PASS/exit0**였다. 최종 구현·전체 테스트 합성 SHA256 `9683a61e0f491013fa97fefa625052c46d315a39f33566493bf8bdcb2855d00b`, 제품/Unit 경계(위 합성에서 `tests/e2e/` 제외) `dfeea1181ae11834f952822bf921ee8cf754d50280c8813cf449edca4dcb4fff`를 동결했다. 후자는 실제 Unit/build를 수행한 parent source와 byte hash가 동일함을 `git show c136213d:<path>` 대조로 확인했다. 최종 56case는 새 동결 source로 별도 실행하며 이전 partial의 3PASS와 합산하지 않는다.
+
+### L885-003 — Summary 저장 허용 목록에서 Description 형식 누락
+
+- Source 역할을 교정한 지문 `9683a61e...`의 다음 56case 실행에서 실제 Task 저장·Milestone·Issue Source 전환은 성공했지만, `project-task-editor-persistence.spec.ts:128` Summary case가 **FAIL**했다. Trace의 요청은 정확히 `description='요약 설명\n상세'`, `descriptionFormat='markdown'`, URL을 보냈고 서버가 **409 SUMMARY_SCHEDULE_READONLY**를 반환했다. Source 선택/입력/MDX 로딩 문제가 아닌 **PRODUCT** 결함이다.
+- `src/server/projects/project-service-core.ts`의 Summary raw-key 허용 목록은 name/description/url/explicitMilestoneTaskId만 알고 새 `descriptionFormat`을 일정 필드로 오인했다. `src/domain/tasks/task-patch-fields.ts`의 메타데이터 분류에도 같은 필드가 없어 unknown으로 분류됐다. 기존 F885-001의 DTO 형식 전파 보완은 mutation 응답에 관한 것이었으며 입력 guard·분류 소비자까지 포괄하지 못했다.
+- 보완은 메타데이터 분류와 Summary 입력 허용 경계를 함께 정합화한다. Description/형식은 본문 메타데이터이고 실제 일정·진척·Baseline·unknown 필드의 Summary 직접 쓰기는 계속 거절한다. 형식 단독 PATCH를 새로 허용하지 않고 description 동반 검증·권한/Origin/If-Match·revision/실패 시 무변경을 유지한다.
+- backend는 기존 `summary-task-details.test.ts`, `task-field-contract.test.ts`, `task-candidate.test.ts`를 EXTEND하여 실제 Markdown Summary 저장/재조회와 형식 누락 호환·명시 plain 전환·format-only 및 일정 혼합 거절을 검증한다. `task-hierarchy-service.test.ts`의 기존 readonly 음성을 유지해 함께 실행한다. 신규 중복 테스트 파일은 만들지 않는다. 실패 테스트를 먼저 실행해 원래409를 확인한 뒤 제품을 교정한다.
+- 이전 Unit/build 성공의 제품 source 지문은 이 제품 보완 이후의 증거로 재사용하지 않는다. 입력 guard/분류 변경은 새 관련 Unit·typecheck/lint/build 및 56case 교차 검증으로 재확인하며 최종 지문·실행/미실행을 별도 추가한다. 과거 모든 FAIL과 UNKNOWN GET 정체는 유지한다.
+- 지문 `9683a61e...`의 전체 실행은 **53 PASS / 3 FAIL, 56case 전부 실행, 10.0분, exit1**로 끝났다. 실패는 Summary409 한 건과 아래 Issue 원문 재작성·Tab trap 두 건이었다. 로그 `.prepr-reports/issue-885-browser-56-final.log`는 당시 명칭 그대로 보존하며 최종 성공 로그로 덮어쓰지 않는다.
+- backend가 기존 테스트를 먼저 확장한 명령은 **5 FAIL / 25 PASS(30), 2.80s**로 원래 SummaryReadonlyError와 format unknown 분류를 재현했다(`issue-885-summary-red.log`). 제품 두 경계를 교정한 뒤 기존 readonly·handler·strict contract·projection까지 **7files/69cases PASS, 5.45s/exit0**, 변경5파일 lint PASS였다. 신규 고유 case는5개이며 최종 전체 수는 다음 실제 실행으로 확인한다. 새 migration·형식 단독 허용·원본 보안/일정 음성 제거는 없다.
+
+### L885-004/005 — Issue 원문 재작성과 키보드 trap의 공통 편집기 보완
+
+- **L885-004 PRODUCT:** `project-issues.spec.ts:200`의 정확한 records 동등 비교에서 상태만 저장한 Issue의 원문 `로그: https://example.com/issues/123\n추적 완료`가 `로그: [https://example.com/issues/123](https://example.com/issues/123)\n추적 완료`로 바뀌었다. MDXEditor의 기본 AutoLink가 초기 정규화 이후에도 URL을 link node로 변환해 onChange를 발행했다. 단순 재개방·다른 필드 편집 시 본문 무변경 계약 위반이며 예상값을 정규화해 통과시키지 않는다. 공통 편집기의 공식 `linkPlugin({disableAutoLink:true})`로 비사용자 자동 변환만 중단하고 수동 링크·읽기 GFM은 유지한다.
+- **L885-005 PRODUCT:** `project-issues.spec.ts:569`의 ko/390 비밀번호 확인 포커스 검증이 실패했다. 원본 제한은20 Tab이었다. trace에서 본문 focus가 고정된 채 빈 paragraph의 들여쓰기가 매 Tab마다 40px씩 증가했으므로 단순 새 툴바 길이 부족으로 단정할 수 없다. 설치 listsPlugin의 TabIndentation이 일반 본문의 Tab을 소비했다.
+- ui_ux의 좁은 설계는 일반 rich-text 본문에서 수정키/IME 없는 Tab·ShiftTab을 브라우저 폼 탐색으로 넘긴다. 가장 가까운 contenteditable이 정확한 앱 rich-text root일 때만 propagation을 중단하고 default를 막지 않는다. toolbar·중첩 표/CodeMirror·Source는 제외해 표의 셀 이동과 코드 들여쓰기 키맵을 임의로 없애지 않는다. 이들 중첩 편집기의 독립 키보드 탈출은 별도 **NOT TESTED**다.
+- frontend는 기존 #869의 원본/dirty·locale·element identity·5폭·title/body scroll·focus/viewport/ring assertions를 유지한다. 실제 유효 tab-stop 수+한 바퀴 상한으로 focus 경로를 검사하고 본문 진입과 전후 필드 이동을 확인한다. timeout/retry 확대나 focus 강제 지정으로 마지막 필드 도달 검증을 대체하지 않는다. 기존 첫 Issue의 정확한 원문 비교도 유지한다. 코드·UI 판단은 ui_ux 읽기 전용 설계와 frontend 구현을 구분한다.
+
+### 제품 보완 후 최종 동결·로컬 실행
+
+- 동결 구현/테스트 합성 SHA256은 `7f3def2bcf854dfab8ed4ee0840f5a38ae848aa8be7546bd9ec0ff99b7549f02`(추적 src/db/tests/scripts/package+lock 1326파일)이다. Summary guard/classifier·Markdown 공통 편집기·기존 Unit3파일·E2E4파일의 최종 검증은 이 source에서 수행한다. 이전 지문들의 FAIL/PASS는 별도 이력이며 새 source에 합산하지 않는다.
+- **LOCAL_PREPR=BLOCKED:** 최종 `verify:prepr --mode=fast` 실행은 두 producer의 자동 매핑 미지원 때문에 명령 실행 전에 안전하게 중단했다. 선택48테스트/UNKNOWN2/missing0, sourceStable=true, fingerprint `c8ebb169f54629e4e627f8478427492b3da198cb5bd26a54b06b2f44557769d0`, report `.prepr-reports/issue-885-product-final-fast/`다. `src/domain/tasks/task-patch-fields.ts`와 `src/features/markdown/mdx-client-editor.tsx`의 누락을 지우거나 catch-all/정책 변경으로 PASS로 만들지 않는다. 이는 실제 테스트 실패나 원격 Required PASS가 아니다.
+- **수동 영향 매핑:** Task classifier→Summary guard/leaf metadata/schedule·progress·baseline·unknown 음성은 `task-candidate`, `summary-task-details`, `task-field-contract`, 기존 hierarchy/handler/projection Unit 및 실제 Summary·Milestone E2E로 검증한다. MDX 공통 편집기→Issue 재개방/상태만 저장·2회 Source↔visual 원문 보존, #869 본문 Tab/ShiftTab·ko/en/vi5폭·Task/Summary 저장/dirty/readonly와 Milestone 입력은 같은 7spec56case로 검증한다. 과거 실패18 Unit과 나머지 음성은 전체 Unit에 포함한다.
+- Manager는 이 명시적 수동 매핑으로 직접 실행한 전체 Unit·typecheck/lint/build·한정 브라우저 결과를 별도로 인계한다. 자동 선정 report는 계속 BLOCKED이며 수동 PASS로 덮어쓰지 않는다. 자동 producer 매핑의 별도 보강과 최종 Owner/Trusted/Required 증거는 후속 검토 항목이다. 현재 사용자 승인 범위는 새 PR CI 시작까지이고 Manager ACCEPT/merge 승인은 아니다.
+- 최종 전체 Unit 명령 `npm test -- --maxWorkers=2`는 **307 files PASS / 기존1 file SKIPPED, 3752 cases PASS / 기존3 cases SKIPPED(3755), 132.59s, exit0**였다(`issue-885-product-unit.log`). 과거 실패18파일과 이번 Summary 추가5case·Markdown/DB/보안/LLM source 경계를 포함한다. 이전 source의 3747PASS와 합산하지 않는다.
+- 최종 `npm run typecheck`, 제품3파일/변경Unit3파일/변경E2E4파일 ESLint 및 `NEXT_DIST_DIR=.next-prepr npm run build`(webpack·Next TypeScript·페이지·standalone/runtime-tools) 모두 **PASS/exit0**였다(`issue-885-product-build.log`). Markdown417파일 링크와 정확한 DOC_SYNC/AC01~10 parser도 PASS이며 parser PASS는 의미 QA/Owner 승인이 아니다. 이전 Next 자동 생성 타입 변경은 원본으로 복원한다.
+- qa_docs의 최종17파일 **정적 사전검토 PASS**를 받았다. Summary의 실제 일정/진척/Baseline/unknown 차단과 엄격 입력/transaction, Tab 적용 범위·수정키/IME/표·CodeMirror 제외, 수동 링크/읽기 renderer 유지와 기존 원문/포커스 assertions 보존을 확인했다. 중첩 키보드 탈출·리스트 계층 Tab·AT/native125%는 독립 실증 전 NOT TESTED, 자동 매핑은 BLOCKED, 최종 원격/Owner/Manager 승인도 NOT TESTED다.
+
+### L885-006 — 최종 집계55 PASS/1 FAIL과 Chromium 날짜 필드의 내부 Tab 정류장
+
+- 지문 `7f3def2b...`의 브라우저 실행 전체 집계는 **55 PASS / 1 FAIL, 10.4분/exit1**이다(`issue-885-product-browser.log`). Summary200 실제저장/재조회, Issue 원문 정확 보존·2회 모드 전환, 다른54개 중 관련 경로는 실제 PASS였지만 #869 ko/390 비밀번호 확인 포커스 검증은 여전히 FAIL이었다. 중간 진행 보고에서 로그 마지막 PASS행만 읽어 실패0으로 전달한 것은 잘못된 집계이며 최종 원장과 보고는 전체 FAIL행을 포함한 집계를 따른다.
+- 새 focus-path는 `tabStopCount=16`, 본문 진입=true, paragraph 들여쓰기 증가=0이었다. 원래 제품 Tab trap은 해소됐지만 DOM input 하나인 날짜 입력이 Chromium의 연/월/일/달력 버튼 여러 native 정류장을 소유해 단순 DOM count가 반복 상한을 과소평가했다(**TEST_CONTRACT**). 테스트는 본문에17번째로 정상 도달한 직후 끝났다.
+- #869에 보이는 활성 날짜 입력당 최대4 native 정류장(기존 DOM count에 이미1개 포함)을 반영해 `nativeStopBudget=tabStopCount+3*nativeDateCount+1`로 한정한다. 기존 password-confirmation 실제 focus/viewport/ring 및 일반 본문 양방향 Tab assertions는 유지한다. timeout/retry나 목표 focus를 강제로 지정하는 변경은 없다.
+- 날짜 상한 교정 source `ebe94388c3e309684c39b6eaad45ab775c68c772a349d8afcb331b8541e4bbb2`의 #869 단독 실행은 **1 FAIL/19.2s**였다. ko390 경로는 실제 `16 DOM stops / 2 date inputs / budget23`에서 **17 본문 → 18 비밀번호 → 19 비밀번호 확인**을 통과했고, 추가한 reverse assertion이 같은 class를 쓰는 placeholder까지2개 선택해 strict violation으로 실패했다. 제품 오류로 바꾸거나 기존 focus 단언을 삭제하지 않고 `[contenteditable='true']`로 실제 본체를 한정한다. 단독 red report/trace는 `.prepr-reports/issue-885-focus-date-budget-red/`에 보존한다.
+- 마지막 변경은 #869 테스트의 계수·진단·실제 본체 선택자뿐이며 제품3파일·Unit3파일은 앞선3752PASS/build 검증 이후 변경하지 않았다. 새 spec SHA256 `c56a4a5ceef3e15e1d5fb16d6e18ee64657b525a4ebbd282cd8e0f225b1254ea`에서 먼저 #869 단독을 재검증하고, 최종56case는 동일 동결 source에서 다시 실행한다. 이전55PASS와 단독PASS를 합산해 새56PASS라고 하지 않는다.
+- **범위 정정:** #869는 **ko 고정·5폭**과 기존 effective125%·coarse·focus 복원 case다. 앞선 수동 매핑의 `#869 ... ko/en/vi5폭`은 부정확한 축약이었다. 3locale×5폭은 별개 `i18n-master-data.spec.ts`의 마스터 입력 검증이며 같은 Issue 편집기의3언어 실증으로 확대하지 않는다. 실제 AT/native125%·중첩 편집기/리스트 Tab은 별도 미검증이다.
+- 마지막 spec `c56a4a5c...`의 #869 단독 재검증은 **1 PASS, 23.0s(전체31.4s), exit0**였다. ko5폭 모두 실제19번째 비밀번호 확인 도달, 390은 DOM16/date2/budget23, 768/1024/1440/1920은 DOM17/date2/budget24였다. 본문 진입·역방향 Tab/ShiftTab·focus ring·viewport·title·effective125%·coarse·focus 복원도 같은 case에서 통과했다. 정제 요약 `.prepr-reports/issue-885-focus-native-summary.json`, raw report `.prepr-reports/issue-885-focus-native-green/`를 보존한다.
+- 이 테스트-only 보완의 별도 정적 사전검토 PASS를 받았고 최종 typecheck/파일 lint도 PASS였다. 게시 후보의 전체 구현·테스트 지문은 `72d20b50953d737e3453991ac7a4b371b9ba178c8c227f1d4249c58c6dd4356c`, E2E 제외 제품/Unit 지문은 `142720631caed24226e13a1290eeec9a65151e6fa8976192f81a40f53d72f827`이다. 마지막 변경 범위는 #869 계수/진단/본체 선택자뿐이며 앞선 제품/Unit/build 실행 이후 제품·Unit 파일을 수정하지 않았다. 최종56case는 이 게시 후보에서 별도 다시 실행한다(`issue-885-publish-browser.log`).
+
+### 게시 후보 최종 결과와 새 CI 인계
+
+- **최종 Chromium: 56 PASS / 0 FAIL / 0 SKIPPED, 7spec, 10.7분, exit0.** `issue-885-publish-browser.log`의 전체 집계이며 이전 부분 실행·55PASS·단독PASS를 합산한 수치가 아니다. 명령은 위 같은7spec에 `--workers=1 --retries=0 --max-failures=0`이다. 최종56에는 누적 E2E 실패의 Milestone/i18n, Issue 원문·모드 전환/Tab·실제 Task/Summary/연결 저장, 권한/오류/충돌·초안 및 인접 마스터 경계를 포함한다.
+- 실행 전후 구현·전체 테스트 지문이 모두 `72d20b50953d737e3453991ac7a4b371b9ba178c8c227f1d4249c58c6dd4356c`로 같았다(`issue-885-publish-source-end.json`, sourceStable=true). 최종 report/첨부와 생성 화면은 `.prepr-reports/issue-885-publish-final/`에 보존하고, Next 자동 생성 타입 및 기존 output 증거 덮어쓰기는 게시 diff에서 제외했다. raw trace/인증·실제 DB는 Git에 넣지 않는다.
+- 로컬 최종 결과는 전체 Unit **3752PASS/기존3SKIP**, 최종 typecheck/변경 TS10파일 lint/build **PASS**, 최종56 Chromium **PASS**, 별도 정적 사전검토 **PASS**다. 69개 focused Unit은 전체 Unit의 일부이며 중복 합산하지 않는다. 초기 fast Unit timeout FAIL, 부분 브라우저 중단,53/3·55/1 및 단독 red는 모두 위에 보존한다. **LOCAL_PREPR 자동 선정은 UNKNOWN2/BLOCKED**로 남고 실제 명령 성공과 구분한다.
+- 게시 전 `2026-11-07 12:59:38 UTC` 원격 재확인: PR887 OPEN/non-draft/mergeable=true, 미해결 review thread0, main/base `f3f8b89ef09bab35987b32f4945dac91b6fa223a`, 원격 작업 branch Head `c136213dae525f95697b116b6624ef333320ea70`로 시작 기준과 동일했다. 이는 새 Head 최종 리뷰나 strict-main/Trusted 성공이 아니다.
+- 변경은 제품3파일·기존 Unit3파일·E2E4파일·관련 문서7파일의 한 묶음으로 게시한다. 새 commit/Full PR CI Run·Attempt·Head/base/test merge는 게시 후 **Issue885 STATUS 및 PR887 댓글**에 남겨 추가 문서 push로 중간 Head/CI를 만들지 않는다. 시작 등록 후 job/완료/Trusted 결과는 모니터링하지 않는다.
+- 최종 상태: `risk_level=HIGH`, `qa_method=OWNER_MANAGED`, `qa_required=true`, `manager_decision=NOT TESTED`, `MERGE_READY=BLOCKED`, `release_required=true`, `release_authorized=false`. 원격 Required Quality/E2E8/Docker·Trusted/Owner 최종 판단은 **NOT TESTED**다. UNKNOWN GET 정체 근인, 자동 producer 매핑2개, MDX 다국어 전체/중첩·리스트 키보드/실제AT/native125%·운영 복구의 미검증은 별도 후속 경계다. 병합·Main/GHCR/Release/Finalizer·브랜치 삭제·Issue 종료는 실행하지 않는다.

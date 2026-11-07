@@ -24,7 +24,13 @@ export function MdxClientEditor({ markdown, disabled, onChange, onError }: Props
   const { locale } = useI18n();
   const [initialMarkdown] = useState(() => markdown);
   const last = useRef(markdown);
-  return <MDXEditor
+  return <div onKeyDownCapture={event => {
+    if (event.key !== "Tab" || event.ctrlKey || event.altKey || event.metaKey || event.nativeEvent.isComposing || !(event.target instanceof HTMLElement)) return;
+    const editable = event.target.closest('[contenteditable="true"]');
+    // The lists plugin indents plain paragraphs with Tab. Preserve native form
+    // navigation here while leaving table, code and toolbar keymaps to their owners.
+    if (editable?.classList.contains("mastergantt-markdown-contenteditable") && !event.target.closest("table, .cm-editor")) event.stopPropagation();
+  }}><MDXEditor
     markdown={initialMarkdown}
     contentEditableClassName="mastergantt-markdown-contenteditable"
     readOnly={disabled}
@@ -37,7 +43,8 @@ export function MdxClientEditor({ markdown, disabled, onChange, onError }: Props
     }}
     onError={({ error }) => onError(error)}
     plugins={[
-      headingsPlugin(), listsPlugin(), quotePlugin(), thematicBreakPlugin(), linkPlugin(),
+      // Autolinking can rewrite untouched source after initial normalization.
+      headingsPlugin(), listsPlugin(), quotePlugin(), thematicBreakPlugin(), linkPlugin({ disableAutoLink: true }),
       linkDialogPlugin(), tablePlugin(), codeBlockPlugin({ defaultCodeBlockLanguage: "text" }),
       codeMirrorPlugin({ codeBlockLanguages: { text: "Plain text", js: "JavaScript", ts: "TypeScript", json: "JSON", sql: "SQL" } }),
       markdownShortcutPlugin(),
@@ -49,5 +56,5 @@ export function MdxClientEditor({ markdown, disabled, onChange, onError }: Props
         </DiffSourceToggleWrapper>,
       }),
     ]}
-  />;
+  /></div>;
 }

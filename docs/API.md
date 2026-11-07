@@ -2,6 +2,8 @@
 
 Project Issue POST/PATCH 및 Task 생성/수정 명령은 선택형 `descriptionFormat: "plain" | "markdown"`을 추가한다. 응답 DTO는 해당 형식과 원문 `description`을 함께 제공하며, 기존 형식 미포함 생성은 `plain`, 변경 없는 구 Issue PATCH는 기존 저장 형식을 보존한다. 서버에서 Markdown GFM AST HTML/이미지/MDX·비 HTTP(S) 링크를 거부하며 Issue 4,000, Task 10,000 Unicode 문자 제한을 적용한다. 기존 Origin/strong If-Match/credential·session·revision CAS·project binding과 결과 shape는 불변. JSON v1.1/Excel 내보내기에서 Markdown 형식이 존재하면 `EXPORT_UNSUPPORTED`를 반환하여 무손실을 지킨다. 새 포맷 추가는 후속 설계.
 
+Summary Description도 `description`과 `descriptionFormat`을 함께 수정할 수 있다. 이는 파생 일정 수정이 아니며 Summary의 실제 일정·진척·Baseline 직접 쓰기는 계속 거절한다. `descriptionFormat`만 있는 PATCH는 본문 동반 검증에서 거절하고, 형식을 생략하면서 본문을 변경하지 않은 기존 Task/Summary PATCH는 저장된 Markdown 형식을 보존한다.
+
 ---
 
 ## Issue #881 — Project workspace tabs (2026-11-07)
