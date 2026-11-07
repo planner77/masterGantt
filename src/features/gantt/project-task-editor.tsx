@@ -4,6 +4,7 @@ import { formatLocaleDateOnly } from "../../lib/date-display";
 import { useI18n } from "../../lib/i18n/provider";
 
 import { IdentifierDetails } from "@/components/identifier-details";
+import { DescriptionField } from "@/features/markdown/description-field";
 
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { linkStructureLocked } from "./relation-editor-model";
@@ -539,7 +540,12 @@ export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(func
             </fieldset>
             <fieldset className={styles.detailsFields}>
               <legend className={styles.groupLegend}>{t("상세 정보")}</legend>
-            <label className={`${styles.field} ${styles.descriptionField}`}>Description<textarea name="task-description" rows={5} value={draft.description} readOnly={basicMutationLocked} disabled={locked} onChange={(event) => change("description", event.target.value)} /></label>
+            <div className={`${styles.field} ${styles.descriptionField}`}><span id="task-description-label">Description</span>
+              <DescriptionField id="task-description" identity={base.task.taskId + ":" + base.revision}
+                label="Description" value={draft.description} format={draft.descriptionFormat} maxLength={10000}
+                readOnly={readOnly} disabled={locked || awaitingDecision || basicMutationLocked}
+                onChange={(value, format) => { change("description", value); change("descriptionFormat", format); }} />
+            </div>
             <label className={`${styles.field} ${styles.urlField}`}>URL<input name="task-url" type="url" inputMode="url" placeholder={t("https://... 또는 http://...")} value={draft.url} readOnly={basicMutationLocked} disabled={locked} onChange={(event) => change("url", event.target.value)} /></label>
             </fieldset>
           </div>

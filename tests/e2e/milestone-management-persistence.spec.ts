@@ -98,18 +98,35 @@ test("#550 관리 진입 실제 HTTP·SQLite 생성/편집·전체 Gate·보호 
   await expectRawIdentifier(editor, "외부 ID", milestone.externalId);
   await editor.getByLabel("작업명", { exact: true }).fill("관리 목록 편집 단계");
   await editor.getByLabel("요청 시작일", { exact: true }).fill("2026-10-12");
-  await editor.getByLabel("Description", { exact: true }).fill("합성 설명: 관리 진입의 동일 canonical identity");
+  // #885: the historical plain Description is a read-only literal preview.
+  // Editing requires an explicit conversion, then the MDXEditor Source mode.
+  const descriptionField = editor.locator("#task-description");
+  await expect(descriptionField).toHaveAttribute("data-description-format", "plain");
+  await descriptionField.getByRole("button", { name: "Markdown 편집으로 전환" }).click();
+  await expect(descriptionField).toHaveAttribute("data-description-format", "markdown");
+  const sourceMode = descriptionField.getByRole("radio", { name: /Source mode|원문 모드|Chế độ mã nguồn/ });
+  await sourceMode.click();
+  await expect(sourceMode).toBeChecked();
+  await descriptionField.locator(".cm-content[contenteditable='true']")
+    .fill("합성 설명: 관리 진입의 동일 canonical identity");
   await editor.getByLabel("URL", { exact: true }).fill("https://example.com/milestone-550");
   const [editResponse] = await Promise.all([
     page.waitForResponse((response) => response.request().method() === "PATCH" && new URL(response.url()).pathname === `${api}/tasks/${milestone.taskId}`),
     editor.getByRole("button", { name: "저장", exact: true }).click(),
   ]);
   expect(editResponse.status()).toBe(200);
+  // Persist the exact Task/Milestone Markdown discriminator with its source.
+  // Do not let later Task/Link mutations silently reinterpret it as plain.
+  expect(editResponse.request().postDataJSON()).toMatchObject({
+    name: "관리 목록 편집 단계",
+    description: "합성 설명: 관리 진입의 동일 canonical identity",
+    descriptionFormat: "markdown",
+  });
   const beforeEditRevision = snapshot.data.project.revision;
   await expect(editor).toHaveCount(0);
   snapshot = await get();
   expect(snapshot.data.project.revision).toBe(beforeEditRevision + 1);
-  expect(task(milestone.taskId)).toMatchObject({ name: "관리 목록 편집 단계", requestedStart: "2026-10-12", start: "2026-10-12", end: "2026-10-12", duration: 0, description: "합성 설명: 관리 진입의 동일 canonical identity", url: "https://example.com/milestone-550", parentExternalId: null, siblingOrder: lastRootOrder + 1 });
+  expect(task(milestone.taskId)).toMatchObject({ name: "관리 목록 편집 단계", requestedStart: "2026-10-12", start: "2026-10-12", end: "2026-10-12", duration: 0, description: "합성 설명: 관리 진입의 동일 canonical identity", descriptionFormat: "markdown", url: "https://example.com/milestone-550", parentExternalId: null, siblingOrder: lastRootOrder + 1 });
 
   await accept(await page.request.post(`${api}/milestone-memberships`, { headers: headers(), data: { changes: [
     { taskId: summary.taskId, milestoneTaskId: milestone.taskId },

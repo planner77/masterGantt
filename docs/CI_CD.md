@@ -1,3 +1,15 @@
+## Issue #885 F885-008 — Full PR CI #3563.1 E2E 35분 상한·8샤드 균형 보정 (2026-11-07)
+
+[PR #887 Full #3563.1 / Run 42376741473](https://github.com/planner77/masterGantt/actions/runs/42376741473)은 QA Preflight·Policy·TypeScript·ESLint·Vitest·Next build·Docker·Required Quality·Docker가 SUCCESS이고 Chromium 샤드 2/4/5/6/7/8이 SUCCESS였다. 샤드 1/3은 공통 `timeout-minutes: 35`에 각각 약35.3분 만에 취소되어 전체 Run이 **CANCELLED**, E2E 집계/QA Final은 미통과했다. 검사 assertion 실패나 단순 `npm ci` 설치 실패로 분류하지 않는다.
+
+실제 성공/취소 Job의 측정된 총 소요시간(샤드1~8): **35.30/29.85/35.28/21.12/32.22/33.23/22.97/28.00분**. 완료된 테스트 파일 경계의 관측 시간으로 shard1→4 `project-summary-bar-visual` 4.06분, `project-grid-reorder-persistence` 3.01분; shard3→7 `project-list-search-filter` 3.94분, `milestone-stage-exchange` 2.41분; shard6→4 `milestone-visibility-persistence` 1.83분; shard5→7 `logistics-dashboard-request-state` 1.57분을 옮긴다. 147개 spec의 집합·고유성 및 8개 그룹은 불변, 명시 개수 **[19,18,19,18,18,18,18,19]→[17,18,17,21,17,17,21,19]**. 각 파일 본문과 선택 테스트는 수정하지 않는다.
+
+원본 실행시간에서 **관측 완료 파일 구간만 더하고 뺀** 단순 예상 분포는 샤드1~8 **[28.23,29.85,28.93,30.02,30.65,31.40,30.89,28.00]분**, 최대 31.40분이다. 취소 당시 남은 케이스/동적 Fixture/Runner의 실제 부하와 환경변화는 미측정이므로 35분 내 성공을 보장하거나 과거 `metrics.projectedMs`를 새 예측으로 수정하지 않는다. 동일한 `tests/config/e2e-shard-plan.json`에 `manualRebalance885` 근거와 정확한 원본 Run/Job/Head·6개 이동을 고정한다. 기존 unit 테스트의 전체147경로 동등성·샤드별 예상 개수·이동 파일의 정확한 소속을 검증하도록 확장한다.
+
+**불변 정책:** `ci.yml`/release Workflow, E2E8, workers1, 35분 timeout, fail-fast, retries, Source·Docker attestation, Required Quality/E2E/Docker, Trusted QA, Owner Managed/Owner 위험 수용/병합, GHCR/Finalizer는 변경하지 않는다. 원본 #3556~#3563 실패와 이번 배치 정적 계획을 [#885 누적 실패 원장](ISSUE_885_FAILURE_ANALYSIS.md) 및 [Work Packet](exec-plans/active/ISSUE_885.md)에서 연결한다. 새 HEAD의 CI는 **NOT TESTED**이며 원본 #3563 취소를 PASS로 대체하지 않는다.
+
+---
+
 ## Issue #880 — 일정 View E2E의 기존 Full8 등록 (2026-11-07)
 
 신규 `tests/e2e/schedule-views.spec.ts`를 기존 정적8shard plan의3번에 등록한다. 발견147spec=명시147spec이며 기존146개 위치·8shard·Required Quality/E2E/Docker·Trusted/Owner·실행 옵션은 유지한다. 과거 timing/generatedAt/sourceRunIds/projectedMs를 새 측정으로 바꾸지 않는다. 이 등록의 실제 원격 비용/실행 결과는 PR Full CI 전 NOT TESTED다. [Work Packet](exec-plans/active/ISSUE_880.md)과 [원장 L-006](ISSUE_880_FAILURE_ANALYSIS.md)을 따른다.

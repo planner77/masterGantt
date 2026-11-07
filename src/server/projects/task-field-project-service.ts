@@ -45,8 +45,8 @@ function enrichTasks(tasks: readonly ProjectTaskDto[], records: readonly TaskRec
   const details = new Map(records.map((task) => [task.publicId, task]));
   return tasks.map((task) => {
     const record = details.get(task.taskId);
-    if (!record) return { ...task, description: null, url: null };
-    return { ...task, description: record.description, url: record.url };
+    if (!record) return { ...task, description: null, descriptionFormat: "plain" as const, url: null };
+    return { ...task, description: record.description, descriptionFormat: record.descriptionFormat, url: record.url };
   });
 }
 
@@ -260,7 +260,7 @@ export class TaskFieldProjectService extends ProjectService {
           ? this.schedulesForFields.findTaskByExternalId(authorization.projectId, createdExternalId)
           : undefined;
         if (!created || !this.schedulesForFields.updateTaskDetails(authorization.projectId, created.publicId, {
-          ...(input.description !== undefined ? { description: input.description } : {}),
+          ...(input.description !== undefined ? { description: input.description, descriptionFormat: input.descriptionFormat ?? "plain" as const } : {}),
           ...(input.url !== undefined ? { url: input.url } : {}),
         })) {
           throw new Error("Created task details could not be persisted.");
@@ -291,7 +291,8 @@ export class TaskFieldProjectService extends ProjectService {
     }
       if (input.description !== undefined || input.url !== undefined) {
         const updated = this.schedulesForFields.updateTaskDetails(authorization.projectId, taskPublicId, {
-          ...(input.description !== undefined ? { description: input.description } : {}),
+          ...(input.description !== undefined ? { description: input.description, descriptionFormat: input.descriptionFormat ?? (input.description === updatedSchedule.description ? updatedSchedule.descriptionFormat : "plain") } : {}),
+          ...(input.description === undefined && input.descriptionFormat !== undefined ? { descriptionFormat: input.descriptionFormat } : {}),
           ...(input.url !== undefined ? { url: input.url } : {}),
         });
         if (!updated) throw new Error("Updated task details could not be persisted.");

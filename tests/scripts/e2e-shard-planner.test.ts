@@ -106,7 +106,8 @@ describe("historical E2E shard planner", () => {
     // 누락·중복은 계속 실패해야 하며 hash fallback으로 대체하지 않는다.
     // #866 Phase A adds language-shell to shard 5; Phase B adds master-data to shard 7.
     // #880 신규 일정 View spec은 기존 배치를 유지하며 shard 3에 명시 등록한다.
-    expect(plan.shards.map(group => group.files.length)).toEqual([19, 18, 19, 18, 18, 18, 18, 19]);
+    // #885 F885-008: preserve 147/147 specs while redistributing six observed long-running files.
+    expect(plan.shards.map(group => group.files.length)).toEqual([17, 18, 17, 21, 17, 17, 21, 19]);
     expect(new Set(entries).size).toBe(entries.length);
     expect([...entries].sort()).toEqual(discovered); // New specs require deliberate plan slots.
     const selected = [1, 2, 3, 4, 5, 6, 7, 8].flatMap(shard =>
@@ -114,6 +115,22 @@ describe("historical E2E shard planner", () => {
     );
     expect([...selected].sort()).toEqual(discovered);
     expect(new Set(selected).size).toBe(discovered.length);
+    const incident = (plan as typeof plan & { manualRebalance885: {
+      sourceRunId: number; originalHeadSha: string; beforeFileCounts: number[];
+      afterFileCounts: number[]; explicitSpecCount: number; jobTimeoutMinutes: number;
+      movedFiles: Array<{ file: string; from: number; to: number }>;
+    } }).manualRebalance885;
+    expect(incident.sourceRunId).toBe(42376741473);
+    expect(incident.originalHeadSha).toBe("26ac9049a82ea143e1aa614039c3cf62041e2a04");
+    expect(incident.beforeFileCounts).toEqual([19, 18, 19, 18, 18, 18, 18, 19]);
+    expect(incident.afterFileCounts).toEqual(plan.shards.map(group => group.files.length));
+    expect(incident.jobTimeoutMinutes).toBe(35);
+    expect(incident.explicitSpecCount).toBe(discovered.length);
+    expect(incident.movedFiles).toHaveLength(6);
+    for (const movement of incident.movedFiles) {
+      expect(plan.shards.filter(group => group.files.includes(movement.file)).map(group => group.shard)).toEqual([movement.to]);
+      expect(movement.from).not.toBe(movement.to);
+    }
     for (const [file, assignedShard] of [
       // Current eight-shard placement supersedes historical six-shard corrections;
       // validate each current destination and preserve every unique current spec.
@@ -141,6 +158,13 @@ describe("historical E2E shard planner", () => {
       ["issue-730-view-composer.spec.ts", 5],
       ["issue-733-process-workarea-dashboard.spec.ts", 4],
       ["issue-726-task-logistics.spec.ts", 6],
+      // #885 Full #3563.1 35-minute canceled shard 1/3 and six-file, timeout-neutral rebalance.
+      ["project-summary-bar-visual.spec.ts", 4],
+      ["project-grid-reorder-persistence.spec.ts", 4],
+      ["project-list-search-filter.spec.ts", 7],
+      ["milestone-stage-exchange.spec.ts", 7],
+      ["milestone-visibility-persistence.spec.ts", 4],
+      ["logistics-dashboard-request-state.spec.ts", 7],
     ] as const) {
       expect(plan.shards.filter(group => group.files.includes(`tests/e2e/${file}`)).map(group => group.shard)).toEqual([assignedShard]);
     }

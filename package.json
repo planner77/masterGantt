@@ -19,13 +19,18 @@
     "verify:prepr": "node scripts/verify-prepr.mjs"
   },
   "dependencies": {
+    "@mdxeditor/editor": "4.3.3",
     "@next/env": "16.4.2",
     "@svar-ui/react-gantt": "2.7.3",
     "better-sqlite3": "13.0.3",
     "next": "16.4.2",
     "react": "19.3.0",
     "react-dom": "19.3.0",
+    "react-markdown": "10.1.0",
+    "remark-gfm": "4.0.1",
+    "remark-parse": "11.0.0",
     "server-only": "^0.0.1",
+    "unified": "11.0.5",
     "zod": "4.6.7"
   },
   "devDependencies": {

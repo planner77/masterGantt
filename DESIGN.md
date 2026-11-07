@@ -1,3 +1,9 @@
+## Issue #885 — Markdown 편집 UX Design Delta B (2026-11-07)
+
+Issue/Task 편집기에서 필드의 폼·sticky title·scroll owner·44px 터치 타깃을 유지하면서 Description만 공유 MDXEditor로 교체한다. 시각적 편집이 기본이며 Markdown 원문 모드 전환은 툴바에서 접근 가능하다. 구 일반 텍스트는 원문 그대로, 명시적 변환 후 Markdown. 허용 서식은 제목·인라인 강조·코드·인용·목록/GFM task list·표·링크·구분선이며 이미지/파일/HTML 임베드/외부 fetch는 제공하지 않는다. 읽기 모드의 Markdown AST 렌더러는 HTML/이미지를 제거하고 HTTP(S) 링크만 안전하게 연다. 잠금·동시성·locale 전환은 초안을 파괴하지 않는다. [상세 #885](docs/exec-plans/active/ISSUE_885.md). 실제 390/768/1024/1440/1920px 화면 및 언어 검증은 아직 NOT TESTED.
+
+---
+
 ## Issue #881 — Project Workspace 화면 표시 설정 (2026-11-07)
 
 프로젝트 설정의 네 번째 `화면 표시` 탭은 Issue/대시보드/기준정보를 개별 체크박스로 제공한다. 일정은 상시 표시하고 각 값은 모든 프로젝트 조회자에 공통 적용한다. 설정 변경은 유효한 **Project edit session**에서만 가능하며 Owner-only 인증은 #882 별도 기능이다. 숨긴 섹션은 주 tablist·roving keyboard에서 제외하고 URL/저장 화면 복원도 일정을 기본 경로로 전환한다. API read ACL/업무 데이터는 영향받지 않으며 #866 한국어/영어/베트남어, keyboard/ARIA/dirty·focus 및 Gantt continuity 정책을 유지한다.

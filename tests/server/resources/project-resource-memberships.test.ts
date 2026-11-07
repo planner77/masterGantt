@@ -320,13 +320,15 @@ describe("Issue727 persisted Project participation", () => {
     // Compare every historical value except the newly introduced public-default column.
     const snapshotRows = () => tables.map(table => {
       const rows = initial.prepare(`SELECT * FROM ${table} ORDER BY id`).all() as Array<Record<string, unknown>>;
-      return { table, rows: table === "projects"
-        ? rows.map(row => Object.fromEntries(Object.entries(row).filter(([name]) => !["visibility", "workspace_issue_visible", "workspace_dashboard_visible", "workspace_master_visible"].includes(name))))
-        : rows };
+      const additions = table === "projects"
+        ? ["visibility", "workspace_issue_visible", "workspace_dashboard_visible", "workspace_master_visible"]
+        : table === "tasks" ? ["description_format"] : [];
+      return { table, rows: rows.map(row => Object.fromEntries(Object.entries(row).filter(([name]) => !additions.includes(name)))) };
     });
     const legacyRows = snapshotRows();
-    expect(runMigrations(initial, migrationsDirectory).applied).toEqual(["0029_project_resource_memberships.sql", "0030_project_work_areas.sql", "0031_project_visibility.sql", "0032_project_issues.sql", "0033_project_issue_credentials_soft_delete.sql", "0034_project_issue_business_status.sql", "0035_country_calendar_catalog.sql", "0036_display_name_translations.sql", "0037_project_workspace_tabs.sql"]);
+    expect(runMigrations(initial, migrationsDirectory).applied).toEqual(["0029_project_resource_memberships.sql", "0030_project_work_areas.sql", "0031_project_visibility.sql", "0032_project_issues.sql", "0033_project_issue_credentials_soft_delete.sql", "0034_project_issue_business_status.sql", "0035_country_calendar_catalog.sql", "0036_display_name_translations.sql", "0037_project_workspace_tabs.sql", "0038_description_formats.sql"]);
     expect(snapshotRows()).toEqual(legacyRows);
+    expect(initial.prepare("SELECT description_format FROM tasks WHERE id=?").pluck().get(legacyTask.id)).toBe("plain");
     expect(initial.prepare("SELECT visibility FROM projects WHERE id = ?").pluck().get(legacyProject.id)).toBe("public");
     expect(initial.prepare("SELECT workspace_issue_visible, workspace_dashboard_visible, workspace_master_visible FROM projects WHERE id = ?").get(legacyProject.id)).toEqual({ workspace_issue_visible: 1, workspace_dashboard_visible: 1, workspace_master_visible: 1 });
     expect(new ProjectResourceMembershipService(initial, { clock }).get(legacyProject.publicId).data.resources).toMatchObject([{ id: legacyResource.publicId, registered: false, usage: { taskAssignments: 1, systemRoles: 1 } }]);
@@ -350,6 +352,11 @@ describe("Issue727 persisted Project participation", () => {
         expect(observed.map(row => Object.fromEntries(
           Object.entries(row).filter(([name]) => !["visibility", "workspace_issue_visible", "workspace_dashboard_visible", "workspace_master_visible"].includes(name)),
         ))).toEqual(rows);
+      } else if (table === "tasks") {
+        // Pre-0029 records must match byte-for-byte on every original column.
+        // Only 0038 introduced description_format; assert its default separately.
+        expect(observed.map(row => row.description_format)).toEqual(rows.map(() => "plain"));
+        expect(observed.map(({ description_format, ...legacyRow }) => legacyRow)).toEqual(rows);
       } else {
         expect(observed).toEqual(rows);
       }

@@ -1,3 +1,4 @@
+import type { DescriptionFormat } from "./description-format";
 import type { MilestoneStageGateDto, TaskMilestoneMembershipDto } from "./milestones";
 import type { ProjectLogisticsDto } from "./logistics";
 import type { ProjectMasterItemDto } from "./project-master";
@@ -77,6 +78,8 @@ export interface ProjectTaskDto {
   name: string;
   /** Present on canonical API snapshots; optional keeps older fixtures/source adapters compatible. */
   description?: string | null;
+  /** Canonical server snapshots include this; historical fixtures omit it. */
+  descriptionFormat?: DescriptionFormat;
   /** Present on canonical API snapshots; only http(s) values are persisted. */
   url?: string | null;
   type: "task" | "summary" | "milestone";
@@ -220,6 +223,7 @@ interface CreateTaskCommon {
   convertParentToSummary?: true;
   name: string;
   description?: string | null;
+  descriptionFormat?: DescriptionFormat;
   url?: string | null;
   parentExternalId?: null;
 }
@@ -236,6 +240,7 @@ export interface UpdateTaskRequest {
   explicitMilestoneTaskId?: string | null;
   name?: string;
   description?: string | null;
+  descriptionFormat?: DescriptionFormat;
   url?: string | null;
   scheduleMode?: "auto" | "manual";
   start?: string;

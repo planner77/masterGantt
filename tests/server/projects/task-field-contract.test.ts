@@ -39,4 +39,17 @@ describe("Issue #36 task detail contract", () => {
       data: { url: "https://example.com/spec/123" },
     });
   });
+
+  it("requires description with a format change and keeps Markdown safety validation", () => {
+    expect(parseUpdateTaskInput({ descriptionFormat: "markdown" }).success).toBe(false);
+    expect(parseUpdateTaskInput({ descriptionFormat: "plain" }).success).toBe(false);
+    expect(parseUpdateTaskInput({ description: "**내용**", descriptionFormat: "markdown" })).toEqual({
+      success: true,
+      data: { description: "**내용**", descriptionFormat: "markdown" },
+    });
+    expect(parseUpdateTaskInput({ description: null, descriptionFormat: "markdown" }).success).toBe(true);
+    expect(parseUpdateTaskInput({ description: "<script>unsafe</script>", descriptionFormat: "markdown" }).success).toBe(false);
+    expect(parseUpdateTaskInput({ description: "text", descriptionFormat: "other" }).success).toBe(false);
+    expect(parseUpdateTaskInput({ description: "text", descriptionFormat: "markdown", externalId: "unsafe" }).success).toBe(false);
+  });
 });

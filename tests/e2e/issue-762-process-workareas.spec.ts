@@ -1,6 +1,7 @@
 import { openWbsViewControls } from "./helpers/wbs-controls";
 import { readLegacyFixtureCounts } from "./fixtures/legacy-logistics-seed";
 import { expect, isolatedApplicationOptions, test } from "./fixtures/isolated-application";
+import { observedReadOnlyGet } from "./fixtures/isolated-application-diagnostics";
 import { chooseTaskInformation } from "./helpers/task-context-menu";
 import { openWorkspaceView } from "./helpers/workspace-navigation";
 import type { CreateProjectResponse, ProjectSnapshotResponse } from "../../src/contracts/projects";
@@ -8,15 +9,22 @@ import type { ProcessContextResponse } from "../../src/contracts/process-catalog
 
 test.use({...isolatedApplicationOptions,isolatedDevBundler:"turbopack",viewport:{width:1440,height:1000}});
 
-test("#762 분류·catalog·Target 없이 공정과 0..N 구역 CRUD·소비자·권한·5폭",async({page,browser,isolatedApplication:origin,restartIsolatedApplication},info)=>{
+test("#762 분류·catalog·Target 없이 공정과 0..N 구역 CRUD·소비자·권한·5폭",async({page,browser,isolatedApplication:origin,restartIsolatedApplication,observeIsolatedApi},info)=>{
   test.setTimeout(180_000);
   page.setDefaultTimeout(10_000);
   const headers={Origin:origin};
   const created=await page.request.post(`${origin}/api/projects`,{headers,data:{name:"공정 직접 관리",description:"",ownerName:"E2E",editPassword:"EditPwd1234!"}});
   expect(created.status()).toBe(201);
   const project=(await created.json() as CreateProjectResponse).data.project;
-  const api=`${origin}/api/projects/${project.publicId}`;
-  const snapshot=async()=>{const response=await page.request.get(api);expect(response.status()).toBe(200);return (await response.json() as ProjectSnapshotResponse).data;};
+  const route=`/api/projects/${project.publicId}`;
+  const api=`${origin}${route}`;
+  // All business GETs go through the existing transport observer. It records the
+  // first ECONNRESET/socket hang up and allows exactly one GET retry (never writes,
+  // timeouts, HTTP errors, or invalid responses). Close sockets instead of reusing
+  // an idle pooled connection across Next dev compilation/restart.
+  const read= (path:string)=>observedReadOnlyGet(observeIsolatedApi,path,()=>
+    page.request.get(`${origin}${path}`,{headers:{Connection:"close"}}));
+  const snapshot=async()=>{const response=await read(route);expect(response.status()).toBe(200);return (await response.json() as ProjectSnapshotResponse).data;};
   const legacyRequests:string[]=[];
   page.on("request",request=>{if(/\/api\/process-catalog\/admin|\/process-mappings\//.test(request.url()))legacyRequests.push(request.method());});
   await page.goto(`${origin}/projects/${project.publicId}`);
@@ -50,12 +58,12 @@ test("#762 분류·catalog·Target 없이 공정과 0..N 구역 CRUD·소비자�
     await dialog.getByRole("button",{name:"저장",exact:true}).click();
     await expect(dialog).toHaveCount(0);await expect(add).toBeFocused();
   }
-  const readContext=async()=>{const response=await page.request.get(`${api}/logistics/process-context`);expect(response.status()).toBe(200);return(await response.json() as ProcessContextResponse).data;};
+  const readContext=async()=>{const response=await read(`${route}/logistics/process-context`);expect(response.status()).toBe(200);return(await response.json() as ProcessContextResponse).data;};
   let context=await readContext();
   expect(context.selectionValid).toBe(false);expect(context.mappings).toEqual([]);
   expect(context.projectWorkAreas).toHaveLength(2);expect(context.projectWorkAreas!.every(a=>a.source==="project"&&a.occurrenceId===null&&a.processId===process.id)).toBe(true);
   expect(context.projectWorkAreas!.some(a=>a.processId===second.id)).toBe(false);
-  const retired = await page.request.get(`${api}/logistics/targets`);
+  const retired = await read(`${route}/logistics/targets`);
   expect(retired.status()).toBe(410);expect((await retired.json()).error.code).toBe("LOGISTICS_API_RETIRED");
   expect(readLegacyFixtureCounts(origin,project.publicId)).toEqual({targets:0,members:0,bindings:0,selectedMembers:0});
   const first=context.projectWorkAreas![0];
@@ -111,20 +119,23 @@ test("#762 분류·catalog·Target 없이 공정과 0..N 구역 CRUD·소비자�
   await expect(page.getByRole("region",{name:"선택 공정 작업 구역"})).toContainText("등록된 작업 구역이 없습니다. 구역 없이 공정을 사용할 수 있습니다.");
 });
 
-test("#762 direct 구역 Task·설비 소비자 저장 및 412/pending 초안 보호",async({page,isolatedApplication:origin})=>{
+test("#762 direct 구역 Task·설비 소비자 저장 및 412/pending 초안 보호",async({page,isolatedApplication:origin,observeIsolatedApi})=>{
   test.setTimeout(150_000);
   page.setDefaultTimeout(10_000);
   const headers={Origin:origin};
   const created=await page.request.post(`${origin}/api/projects`,{headers,data:{name:"직접 구역 소비자",description:"",ownerName:"E2E",editPassword:"EditPwd1234!"}});
   expect(created.status()).toBe(201);
   const project=(await created.json() as CreateProjectResponse).data.project;
-  const api=`${origin}/api/projects/${project.publicId}`;
-  const snapshot=async()=>{const r=await page.request.get(api);expect(r.status()).toBe(200);return(await r.json() as ProjectSnapshotResponse).data;};
+  const route=`/api/projects/${project.publicId}`;
+  const api=`${origin}${route}`;
+  const read= (path:string)=>observedReadOnlyGet(observeIsolatedApi,path,()=>
+    page.request.get(`${origin}${path}`,{headers:{Connection:"close"}}));
+  const snapshot=async()=>{const r=await read(route);expect(r.status()).toBe(200);return(await r.json() as ProjectSnapshotResponse).data;};
   const mutate=async(path:string,data:unknown)=>{const s=await snapshot();const r=await page.request.post(`${api}${path}`,{headers:{...headers,"If-Match":`"${s.project.revision}"`},data});expect(r.ok(),await r.text()).toBe(true);return r.json();};
   let result=await mutate("/logistics/processes",{name:"조립"});
   const process=result.data.logistics.processes[0];
   result=await mutate(`/logistics/processes/${process.id}/work-areas`,{name:"A구역"});
-  const response=await page.request.get(`${api}/logistics/process-context`);const context=(await response.json() as ProcessContextResponse).data;
+  const response=await read(`${route}/logistics/process-context`);expect(response.status()).toBe(200);const context=(await response.json() as ProcessContextResponse).data;
   const area=context.projectWorkAreas![0];
   await mutate("/logistics/equipment",{processId:process.id,code:"E-DIRECT",name:"직접 구역 설비",equipmentType:"amr",managementUnit:"fleet",quantity:10});
   const taskResult=await mutate("/tasks",{name:"구역 작업",type:"task",start:"2026-10-22",duration:2,progress:0});
@@ -147,7 +158,7 @@ test("#762 direct 구역 Task·설비 소비자 저장 및 412/pending 초안 �
   await editor.getByRole("checkbox",{name:/^조립 /}).check();
   await editor.getByRole("checkbox",{name:/^A구역 /}).check();
   await editor.getByRole("button",{name:"직접 공정·작업 구역 저장",exact:true}).click();
-  await expect.poll(async()=>{const r=await page.request.get(`${api}/tasks/${task.taskId}/process-context`);return(await r.json()).data.context.workAreaLinks;}).toEqual([{processId:process.id,workAreaId:area.id,scope:"self"}]);
+  await expect.poll(async()=>{const r=await read(`${route}/tasks/${task.taskId}/process-context`);expect(r.status()).toBe(200);return(await r.json()).data.context.workAreaLinks;}).toEqual([{processId:process.id,workAreaId:area.id,scope:"self"}]);
   await dialog.getByRole("button",{name:"작업 편집기 닫기",exact:true}).click();await expect(dialog).toHaveCount(0);
   await openWorkspaceView(page,"unified");
   const dashboard=page.getByTestId("wbs-view-dashboard").filter({visible:true});

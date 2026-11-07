@@ -1065,17 +1065,11 @@ export class ProjectService {
 
       const tasks = this.schedules.listTasks(project.id);
       const links = this.schedules.listLinks(project.id);
-      const { hasSchedule } = classifyTaskPatch(validatedInput);
+      const { hasSchedule, hasProgress, hasBaseline, unknownFields } = classifyTaskPatch(validatedInput);
       const calendar = workingCalendar(this.database, project, project.id);
       recalculatePersistedHierarchy(tasks, calendar, links);
       if (current.type === "summary") {
-        if (
-          Object.keys(validatedInput).some((field) =>
-            field !== "name" &&
-            field !== "description" &&
-            field !== "url" &&
-            field !== "explicitMilestoneTaskId")
-        ) {
+        if (hasSchedule || hasProgress || hasBaseline || unknownFields.length > 0) {
           throw new SummaryScheduleReadonlyError();
         }
         if (validatedInput.explicitMilestoneTaskId !== undefined) applyExplicitMembership(this.database, project.id, taskPublicId, validatedInput.explicitMilestoneTaskId);
