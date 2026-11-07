@@ -156,11 +156,12 @@ describe("explicit task editor commands", () => {
       url: "  http://10.10.20.30:8080/redmine/issues/123  ",
     }).command?.payload).toEqual({
       description: "첫 줄\n둘째 줄",
+      descriptionFormat: "plain",
       url: "http://10.10.20.30:8080/redmine/issues/123",
     });
     expect(prepareTaskEditorCommand(populated, {
       ...createTaskEditorDraft(populated), description: "   ", url: "   ",
-    }).command?.payload).toEqual({ description: null, url: null });
+    }).command?.payload).toEqual({ description: null, descriptionFormat: "plain", url: null });
   });
   it.each(["javascript:alert(1)", "data:text/html,x", "file:///tmp/a", "vbscript:msgbox(1)", "not-a-url"])("rejects unsafe URL %s", (url) => {
     expect(prepareTaskEditorCommand(task, { ...createTaskEditorDraft(task), url }).error).toContain("http://");
@@ -169,7 +170,7 @@ describe("explicit task editor commands", () => {
     const draft = { ...createTaskEditorDraft(task), start: "2026-09-18", duration: "4", name: "Changed", progress: "100", description: "note", url: "https://example.test/x", end: "2099-01-01", taskId: "wrong", type: "summary" };
     expect(prepareTaskEditorCommand(task, draft).command).toEqual({
       taskId: task.taskId,
-      payload: { start: "2026-09-18", duration: 4, name: "Changed", progress: 100, description: "note", url: "https://example.test/x" },
+      payload: { start: "2026-09-18", duration: 4, name: "Changed", progress: 100, description: "note", descriptionFormat: "plain", url: "https://example.test/x" },
     });
   });
   it("sends start-only requests without changing duration", () => {
@@ -208,6 +209,7 @@ describe("explicit task editor commands", () => {
     }).command?.payload).toEqual({
       name: "Changed",
       description: "요약 설명\n둘째 줄",
+      descriptionFormat: "plain",
       url: "https://example.test/summary",
       explicitMilestoneTaskId: "M",
     });

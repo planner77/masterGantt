@@ -19,6 +19,7 @@ const nextSecurityPackagePaths = [
 ] as const;
 const approvedPatchUrl = new URL("./approved-next-16.4.2-lock.json", import.meta.url);
 const approvedZodUrl = new URL("./approved-zod-4.6.7-lock.json", import.meta.url);
+const approvedMdxUrl = new URL("./approved-issue-885-mdx-lock.json", import.meta.url);
 
 /** Verify immutable Core capture provenance with exact reviewed Next.js 16.4.2
  * and Zod 4.6.7 security patches. All other packages/scripts/metadata and the
@@ -94,6 +95,37 @@ export function assertCapturedInstall(root: string): void {
   manifest.dependencies.zod = oldManifest.dependencies.zod;
   lock.packages[""].dependencies.zod = oldLock.packages[""].dependencies.zod;
   lock.packages["node_modules/zod"] = oldLock.packages["node_modules/zod"];
+
+  // Issue #885: retain historical SVAR evidence byte-for-byte while accepting
+  // only a separately reviewable, exact-Metadata/SRI additive Markdown graph.
+  // Original captured modules, Next/Zod approvals and all old lock entries still
+  // receive the same strict equality checks after the 265 approved entries are stripped.
+  const mdxDirect = {
+    "@mdxeditor/editor": "4.3.3",
+    "react-markdown": "10.1.0",
+    "remark-gfm": "4.0.1",
+    "remark-parse": "11.0.0",
+    "unified": "11.0.5"
+  };
+  const approvedMdx = JSON.parse(readFileSync(approvedMdxUrl, "utf8"));
+  assert.equal(approvedMdx.schema, "mastergantt-issue-885-mdx-lock-additions-v1");
+  assert.deepEqual(approvedMdx.directDependencies, mdxDirect,
+    "Only exact Issue #885 Markdown direct dependency pins are authorized");
+  const newPaths = Object.keys(lock.packages).filter(path => !Object.hasOwn(oldLock.packages, path)).sort();
+  assert.equal(newPaths.length, 265, "Approved #885 package set mismatch");
+  assert.deepEqual(newPaths, Object.keys(approvedMdx.packages).sort(),
+    "Approved #885 package set mismatch");
+  for (const path of newPaths) {
+    assert.deepEqual(lock.packages[path], approvedMdx.packages[path],
+      `Approved #885 Markdown package metadata mismatch: ${path}`);
+    delete lock.packages[path];
+  }
+  for (const [name, version] of Object.entries(mdxDirect)) {
+    assert.equal(manifest.dependencies[name], version, "Only approved #885 Markdown direct dependency pins are authorized");
+    assert.equal(lock.packages[""].dependencies[name], version, "Only approved #885 Markdown lock root pins are authorized");
+    delete manifest.dependencies[name];
+    delete lock.packages[""].dependencies[name];
+  }
 
   // Versions of the app itself changed independently of the browser capture.
   manifest.version = oldManifest.version;

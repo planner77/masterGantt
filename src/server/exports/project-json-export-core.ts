@@ -10,6 +10,9 @@ import { IMPORT_FILE_LIMIT_BYTES } from "../imports/project-import-parser-core";
 /** Canonical sibling order is the file order; source UUIDs are advisory, never import identities. */
 export function buildProjectJsonExport(snapshot: ProjectSnapshotResponse, exportedAt: string): ImportPayload11 {
   const tasks = snapshot.data.tasks;
+  // Archive v1.1 has no format discriminator. Fail closed rather than silently stripping it.
+  if (tasks.some(task => task.descriptionFormat === "markdown" && !!task.description))
+    throw new PublicApiError(422, "EXPORT_UNSUPPORTED", "Markdown Task descriptions need a format-aware export schema.");
   if (tasks.length > 5000 || snapshot.data.links.length > 20000) throw new PublicApiError(422, "EXPORT_LIMIT_EXCEEDED", "The Project exceeds JSON import limits.");
   const byExternal = new Map(tasks.map((task) => [task.externalId, task]));
   const byId = new Map(tasks.map((task) => [task.taskId, task]));

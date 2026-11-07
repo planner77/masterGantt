@@ -13,7 +13,7 @@ function enrichTasks(tasks: readonly ProjectTaskDto[], records: readonly TaskRec
   const details = new Map(records.map((task) => [task.publicId, task]));
   return tasks.map((task) => {
     const record = details.get(task.taskId);
-    return { ...task, description: record?.description ?? null, url: record?.url ?? null };
+    return { ...task, description: record?.description ?? null, descriptionFormat: record?.descriptionFormat ?? "plain", url: record?.url ?? null };
   });
 }
 

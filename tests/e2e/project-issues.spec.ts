@@ -128,7 +128,11 @@ test("#838-#840 Issue tab: register, resource/Task lookup, completion date, secu
   await editor.getByRole("button", { name: "리소스 검색" }).last().click();
   await editor.getByRole("button", { name: "김개발 · DEV" }).click();
   await expect(editor.getByText("선택한 리소스: 김개발")).toBeVisible();
-  await editor.getByLabel("Issue 내용").fill("로그: https://example.com/issues/123\n추적 완료");
+  const sourceMode = editor.locator("#project-issue-description").getByRole("radio", { name: /Source mode|원문 모드|Chế độ mã nguồn/ });
+  await sourceMode.click();
+  await expect(sourceMode).toBeChecked();
+  const issueMarkdownSource = "로그: https://example.com/issues/123\n추적 완료";
+  await editor.locator("#project-issue-description .cm-content[contenteditable='true']").fill(issueMarkdownSource);
   await expect(editor.getByText("링크 미리보기")).toHaveCount(0);
   expect(await editor.locator("#project-issue-task").evaluate(element =>
     element.compareDocumentPosition(document.getElementById("project-issue-description")!) &
@@ -144,6 +148,8 @@ test("#838-#840 Issue tab: register, resource/Task lookup, completion date, secu
   await expect(kpis).toContainText("완료1건");
   await expect(kpis).toContainText("전체1건");
   expect(postCount).toBe(1);
+  expect(records[0].descriptionFormat).toBe("markdown");
+  expect(records[0].description).toBe(issueMarkdownSource);
   await expect(workspace.getByText("검색 결과 1건")).toBeVisible();
   await workspace.locator("#project-issue-status").selectOption("open");
   await expect(workspace.getByText("검색 결과 0건")).toBeVisible();
@@ -154,6 +160,20 @@ test("#838-#840 Issue tab: register, resource/Task lookup, completion date, secu
   await workspace.getByRole("button", { name: "장비 점검 요청" }).click();
   const detail = workspace.getByRole("dialog", { name: "Issue 상세 및 수정" });
   await expect(detail.getByLabel("등록일")).toHaveValue("2026-10-28");
+  const unchangedRevision = state.project.revision;
+  const detailDescription = detail.locator("#project-issue-description");
+  const detailSource = detailDescription.getByRole("radio", { name: "원문 모드", exact: true });
+  const detailVisual = detailDescription.getByRole("radio", { name: "시각적 편집", exact: true });
+  for (let cycle = 0; cycle < 2; cycle++) {
+    await detailSource.click();
+    await expect(detailSource).toBeChecked();
+    await expect.poll(async () => (await detailDescription.locator(".cm-content .cm-line").allTextContents()).join("\n")).toBe(issueMarkdownSource);
+    await detailVisual.click();
+    await expect(detailVisual).toBeChecked();
+    expect(records[0].description).toBe(issueMarkdownSource);
+    expect(state.project.revision).toBe(unchangedRevision);
+    expect(patchAttempts).toHaveLength(0);
+  }
   await detail.getByLabel("상태", { exact: true }).selectOption("registered");
   await expect(detail.getByLabel("완료일")).toBeDisabled();
   const revisionBeforeRejectedEdit = state.project.revision;
@@ -556,12 +576,31 @@ test("#869 Issue list owns vertical scrolling and editor keeps title above the s
       expect(geometry.bodyXOverflow).toBeLessThanOrEqual(1);
       expect(geometry.documentOverflow, `${locale}/${width}`).toBeLessThanOrEqual(1);
       expect(geometry.escapedControls).toBe(0);
-      // Keyboard reveal scrolls the body while leaving the title available.
+      // Bound keyboard traversal by the live tab stops, including the MDX toolbar.
+      // Record identities only: draft text and password values never enter diagnostics.
       await editor.locator("#project-issue-title").focus();
-      for (let step = 0; step < 20; step++) {
+      const tabStopCount = await editor.locator('input,select,textarea,button,a[href],[tabindex],[contenteditable="true"]').evaluateAll(elements => elements.filter(element => {
+        const control = element as HTMLElement;
+        return control.tabIndex >= 0 && !control.matches(":disabled") && !control.closest("[hidden], [inert]") && control.getClientRects().length > 0;
+      }).length);
+      // Chromium exposes up to four native date segments (year/month/day/picker)
+      // behind one DOM input. The DOM count above already includes one of them.
+      const nativeDateCount = await editor.locator('input[type="date"]').evaluateAll(elements => elements.filter(element => {
+        const control = element as HTMLElement;
+        return control.tabIndex >= 0 && !control.matches(":disabled") && !control.closest("[hidden], [inert]") && control.getClientRects().length > 0;
+      }).length);
+      const nativeStopBudget = tabStopCount + nativeDateCount * 3 + 1;
+      const focusPath: Array<{ tag: string; id: string; role: string | null; markdownBody: boolean }> = [];
+      for (let step = 0; step < nativeStopBudget; step++) {
         await page.keyboard.press("Tab");
+        focusPath.push(await editor.evaluate(() => {
+          const active = document.activeElement as HTMLElement;
+          return { tag: active.tagName, id: active.id, role: active.getAttribute("role"), markdownBody: active.classList.contains("mastergantt-markdown-contenteditable") };
+        }));
         if (await editor.locator("#project-issue-password-confirmation").evaluate(element => element === document.activeElement)) break;
       }
+      await test.info().attach(`issue-editor-${locale}-${width}-focus-path`, { body: JSON.stringify({ tabStopCount, nativeDateCount, nativeStopBudget, focusPath }), contentType: "application/json" });
+      expect(focusPath.some(entry => entry.markdownBody), `${locale}/${width} traverses Markdown body`).toBe(true);
       await expect(editor.locator("#project-issue-password-confirmation"), `${locale}/${width} keyboard reveal`).toBeFocused();
       await expect(editor.locator("#project-issue-password-confirmation"), `${locale}/${width} keyboard reveal`).toBeInViewport();
       const ring = await editor.locator("#project-issue-password-confirmation").evaluate(element => {
@@ -578,6 +617,14 @@ test("#869 Issue list owns vertical scrolling and editor keeps title above the s
       expect(ring.right).toBeLessThanOrEqual(ring.bodyRight);
       await page.keyboard.press("Tab");
       await page.keyboard.press("Shift+Tab");
+      await expect(editor.locator("#project-issue-password-confirmation")).toBeFocused();
+      // Shift+Tab from the following form field returns to the Markdown body;
+      // an unmodified Tab leaves it again without indenting the document.
+      await editor.locator("#project-issue-password").focus();
+      await page.keyboard.press("Shift+Tab");
+      await expect(description.locator('.mastergantt-markdown-contenteditable[contenteditable="true"]')).toBeFocused();
+      await page.keyboard.press("Tab");
+      await expect(editor.locator("#project-issue-password")).toBeFocused();
       await expect(editor.locator("#project-issue-title")).toBeInViewport();
       if (width >= 768) await sameRow(["project-issue-created", "project-issue-occurred", "project-issue-completed-on"]);
       if (process.env.CAPTURE_ISSUE_869 && (width === 390 || width === 1440)) {

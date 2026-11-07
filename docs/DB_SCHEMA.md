@@ -1,3 +1,9 @@
+## Issue #885 — Migration 0038: Description Format (2026-11-07)
+
+`db/migrations/0038_description_formats.sql`은 `tasks` 및 `project_issues`의 `description_format TEXT NOT NULL DEFAULT 'plain' CHECK (description_format IN ('plain','markdown'))`을 추가한다. 과거 레코드의 body/hash/삭제·감사 이력은 변경하지 않는다. 애플리케이션만 `descriptionFormat` DTO/API와 연결한다. 재실행 시 checksum/원자적 migration runner의 기존 동작을 따르며 서버 DB 백업·복구 검증은 운영 전 필수. 기존 0032–0037은 수정하지 않는다.
+
+---
+
 ## Issue #881 — Project workspace display flags / migration 0037
 
 프로젝트 테이블에 `workspace_issue_visible`, `workspace_dashboard_visible`, `workspace_master_visible` 3개 SQLite `INTEGER NOT NULL DEFAULT 1 CHECK (value IN (0,1))` 컬럼 추가. 기존 행과 신규 생성 기본 ON, Project Copy는 원본 플래그 보존. Project DTO에서 `workspaceTabs.issue|dashboard|master` Boolean으로 표현. Project revision CAS는 기존 metadata transaction을 사용하며 `owner_name`은 인증되지 않은 표시값이다. 이전 migration/checksum은 변경하지 않는다.

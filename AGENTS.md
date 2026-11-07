@@ -1,3 +1,13 @@
+## Issue #885 — 공통 MDXEditor Markdown Description (2026-11-07)
+
+- Issue 본문과 Task/Summary/Milestone Description은 단일 `DescriptionField`를 사용한다. 신규 Issue는 Markdown, 기존 일반 텍스트는 `plain` 그대로 출력하며 명시적 `Markdown 편집으로 전환`에서만 변환한다. MDXEditor(4.3.3) WYSIWYG/Source(Next 클라이언트 전용), Source는 파서 오류 복구 경로이다.
+- SQLite `0038_description_formats.sql`은 `tasks.description_format` 및 `project_issues.description_format`에 `plain|markdown` CHECK와 기존 행 DEFAULT `plain`을 추가한다. 기존 내용·이력·권한 변경 및 자동 Markdown 재해석 금지.
+- 서버는 GFM AST를 검증하여 HTML·JSX/MDX·이미지·비 HTTP(S) 링크를 거절한다. 읽기는 `react-markdown`의 HTML/이미지 비실행, HTTP(S) 링크만 새 탭(`noopener noreferrer`)이다. 신규 API는 `descriptionFormat` 선택형, 구 호출은 plain이며 변경 없는 구 클라이언트 PATCH는 기존 markdown을 유지한다. Issue 4,000 / Task 10,000 Unicode code point 제한.
+- 기존 Issue 개별 비밀번호/공개 등록/read gate, Task edit session, Origin/If-Match, Project CAS/revision·SQLite transaction, WBS writer 및 복사·설비/Resource 경계를 준수한다. JSON 1.1/Excel은 Markdown 형식 표기를 보존할 수 없으므로 해당 Project Task의 내용이 있을 때 명시적 `EXPORT_UNSUPPORTED`(무손실 안전 종료)로 응답하며 새 내보내기 스키마는 별도 이슈로 처리한다.
+- 최신 헤드의 실제 Full PR CI/브라우저 실증 전은 **NOT TESTED**. HIGH/OWNER_MANAGED/qa_required=true/release_required=true/release_authorized=false. [Work Packet](docs/exec-plans/active/ISSUE_885.md), [Issue 사용 가이드](docs/PROJECT_ISSUES_USER_GUIDE.md), [Task Editor](docs/TASK_EDITOR.md). 이번 지시는 PR CI 시작까지만 승인(모니터링/병합/Main/GHCR/종료 제외).
+
+---
+
 ## Issue #881 — 프로젝트별 화면 표시 설정 (2026-11-07)
 
 - **Owner 결정 A안:** Project Workspace의 Issue/대시보드/기준정보 ON/OFF는 동일 프로젝트의 유효한 edit session 보유자가 관리한다. Owner-only 인증은 #882 후속(본 이슈 선행조건 아님). `owner_name` 표시용 문자열은 인증 증거로 사용 금지.

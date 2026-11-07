@@ -1,3 +1,9 @@
+## Issue #885 — Markdown 원문 무손실 원칙 (2026-11-07)
+
+`schemaVersion: "1.1"` JSON 및 기존 Excel 템플릿에는 Description 형식 식별 필드가 없다. 원본 Project에 비어 있지 않은 Markdown Task Description이 있으면 현행 내보내기를 `EXPORT_UNSUPPORTED`로 안전하게 중단해 Markdown을 `plain`으로 오인하는 재가져오기·원문 파괴를 방지한다. 기존 `plain` Task는 지금처럼 입출력하며 Project Copy는 형식값을 포함해 복제한다. 형식 있는 JSON/Excel roundtrip은 새 schema version·column 계약 승인 후 후속 구현한다.
+
+---
+
 ## Issue #866 Phase B — 수동 번역 및 무손실 전송 (2026-11-05)
 
 - 기준정보의 원본 name/code/ID/FK는 번역 표시명으로 대체하지 않는다. Project Copy 시 새 owner ID별 번역 재매핑, Template snapshot version 6에서 ko/en/vi 관리형 표시명 보존을 구현한다.

@@ -1,4 +1,6 @@
 import { randomUUID } from "node:crypto";
+import { isSafeMarkdownDescription } from "../../lib/markdown/description-policy";
+import type { DescriptionFormat } from "../../contracts/description-format";
 import type Database from "better-sqlite3";
 import type {
   ProjectIssueDto, ProjectIssueInput, ProjectIssueListResponse,
@@ -13,7 +15,7 @@ import {
 } from "../security/password-core";
 
 interface IssueRow {
-  id: number; public_id: string; title: string; description: string; reporter_name: string;
+  id: number; public_id: string; title: string; description: string; description_format: DescriptionFormat; reporter_name: string;
   reporter_resource_public_id: string | null; assignee_name: string;
   assignee_resource_public_id: string | null; occurred_on: string; completed: number;
   completed_on: string | null; related_task_public_id: string | null;
@@ -31,7 +33,7 @@ const invalidPasswordMessage = "Issue 비밀번호를 확인해 주세요.";
 
 function dto(row: IssueRow): ProjectIssueDto {
   return {
-    issueId: row.public_id, title: row.title, description: row.description,
+    issueId: row.public_id, title: row.title, description: row.description, descriptionFormat: row.description_format,
     credentialState: row.credential_state === "ACTIVE" ? "protected" : "unconfigured",
     reporterName: row.reporter_name, reporterResourceId: row.reporter_resource_public_id,
     assigneeName: row.assignee_name, assigneeResourceId: row.assignee_resource_public_id,
@@ -54,6 +56,13 @@ function textField(value: unknown, maximum: number, required = false): string {
   if (Array.from(result).length > maximum || (required && !result) ||
     /[\u0000-\u0008\u000b\u000c\u000e-\u001f]/.test(result)) invalid();
   return result;
+}
+function descriptionValue(value: unknown, format: DescriptionFormat): string {
+  if (format === "plain") return textField(value, 4000);
+  if (typeof value !== "string" || Array.from(value).length > 4000 ||
+    /[\u0000-\u0008\u000b\u000c\u000e-\u001f]/.test(value) ||
+    !isSafeMarkdownDescription(value)) invalid("Markdown 본문은 HTML/이미지/위험한 링크를 포함할 수 없습니다.");
+  return value;
 }
 function dateField(value: unknown): string {
   if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) invalid("날짜는 YYYY-MM-DD 형식이어야 합니다.");
@@ -79,8 +88,11 @@ export function parseProjectIssueInput(raw: unknown): ProjectIssueInput {
   const keys = ["title", "description", "reporterName", "reporterResourceId", "assigneeName",
     "assigneeResourceId", "occurredOn", "completed", "completedOn", "relatedTaskId", "relatedTaskText"];
   const hasStatus = Object.prototype.hasOwnProperty.call(data, "status");
-  if (Object.keys(data).length !== keys.length + (hasStatus ? 1 : 0) ||
-      Object.keys(data).some(key => !keys.includes(key) && key !== "status")) invalid();
+  const hasFormat = Object.prototype.hasOwnProperty.call(data, "descriptionFormat");
+  const descriptionFormat = hasFormat ? data.descriptionFormat : undefined;
+  if (hasFormat && descriptionFormat !== "plain" && descriptionFormat !== "markdown") invalid();
+  if (Object.keys(data).length !== keys.length + (hasStatus ? 1 : 0) + (hasFormat ? 1 : 0) ||
+      Object.keys(data).some(key => !keys.includes(key) && key !== "status" && key !== "descriptionFormat")) invalid();
   if (typeof data.completed !== "boolean") invalid();
   const status: ProjectIssueStatus = hasStatus ? data.status as ProjectIssueStatus :
     (data.completed ? "completed" : "registered");
@@ -91,7 +103,8 @@ export function parseProjectIssueInput(raw: unknown): ProjectIssueInput {
     invalid("Issue 상태·완료 여부·완료일을 함께 지정해 주세요.");
   return {
     title: textField(data.title, 160, true),
-    description: textField(data.description, 4000),
+    description: descriptionValue(data.description, descriptionFormat === "markdown" ? "markdown" : "plain"),
+    ...(hasFormat ? { descriptionFormat: descriptionFormat as DescriptionFormat } : {}),
     reporterName: textField(data.reporterName, 120),
     reporterResourceId: reference(data.reporterResourceId),
     assigneeName: textField(data.assigneeName, 120),
@@ -296,9 +309,9 @@ export class ProjectIssueService {
   private issueParams(projectId: number, input: ProjectIssueInput, issueId: string, nowText: string) {
     // Keep the new status in a single SQL parameter, without passing the
     // transport-only "status" key to better-sqlite3's strict named binding.
-    const { status, ...fields } = input;
+    const { status, descriptionFormat, ...fields } = input;
     return {
-      projectId, ...fields, issueStatus: status ?? (input.completed ? "completed" : "registered"),
+      projectId, ...fields, descriptionFormat: descriptionFormat ?? "plain", issueStatus: status ?? (input.completed ? "completed" : "registered"),
       completed: input.completed ? 1 : 0,
       issueId, createdAt: nowText, updatedAt: nowText,
     };
@@ -321,7 +334,7 @@ export class ProjectIssueService {
       if (!isCanonicalUuidV4(issueId)) invalid("Issue ID가 올바르지 않습니다.");
       const params = { ...this.issueParams(project.id, input, issueId, nowText), ...passwordSql(hashed) };
       this.database.prepare(
-        "INSERT INTO project_issues(public_id, project_id, title, description, reporter_name, reporter_resource_public_id, assignee_name, assignee_resource_public_id, occurred_on, issue_status, completed, completed_on, related_task_public_id, related_task_text, created_at, updated_at, credential_state, credential_version, password_kdf, password_salt, password_hash, scrypt_n, scrypt_r, scrypt_p, scrypt_key_length) VALUES(@issueId,@projectId,@title,@description,@reporterName,@reporterResourceId,@assigneeName,@assigneeResourceId,@occurredOn,@issueStatus,@completed,@completedOn,@relatedTaskId,@relatedTaskText,@createdAt,@updatedAt,'ACTIVE',1,@passwordKdf,@passwordSalt,@passwordHash,@scryptN,@scryptR,@scryptP,@scryptKeyLength)"
+        "INSERT INTO project_issues(public_id, project_id, title, description, description_format, reporter_name, reporter_resource_public_id, assignee_name, assignee_resource_public_id, occurred_on, issue_status, completed, completed_on, related_task_public_id, related_task_text, created_at, updated_at, credential_state, credential_version, password_kdf, password_salt, password_hash, scrypt_n, scrypt_r, scrypt_p, scrypt_key_length) VALUES(@issueId,@projectId,@title,@description,@descriptionFormat,@reporterName,@reporterResourceId,@assigneeName,@assigneeResourceId,@occurredOn,@issueStatus,@completed,@completedOn,@relatedTaskId,@relatedTaskText,@createdAt,@updatedAt,'ACTIVE',1,@passwordKdf,@passwordSalt,@passwordHash,@scryptN,@scryptR,@scryptP,@scryptKeyLength)"
       ).run(params);
       return { data: { projectRevision: this.advance(project.id, expectedRevision, nowText),
         issue: dto(this.findIssue(project.id, issueId)) } };
@@ -352,9 +365,14 @@ export class ProjectIssueService {
       const project = this.currentReadProject(publicId, expectedRevision, readAuthorization);
       this.requireUnchangedIssue(project.id, issueId, initial);
       const input = this.resolveInput(project.id, parseProjectIssueInput(rawInput));
+      // Legacy full PATCH without a format must not downgrade unchanged Markdown.
+      if (rawInput.descriptionFormat === undefined && input.description === initial.description.trim() && initial.description_format === "markdown") {
+        input.description = initial.description;
+        input.descriptionFormat = "markdown";
+      } else input.descriptionFormat ??= input.description === initial.description ? initial.description_format : "plain";
       const params = this.issueParams(project.id, input, issueId, nowText);
       const result = this.database.prepare(
-        "UPDATE project_issues SET title=@title, description=@description, reporter_name=@reporterName, reporter_resource_public_id=@reporterResourceId, assignee_name=@assigneeName, assignee_resource_public_id=@assigneeResourceId, occurred_on=@occurredOn, issue_status=@issueStatus, completed=@completed, completed_on=@completedOn, related_task_public_id=@relatedTaskId, related_task_text=@relatedTaskText, updated_at=@updatedAt WHERE public_id=@issueId AND project_id=@projectId AND lifecycle_state='ACTIVE'"
+        "UPDATE project_issues SET title=@title, description=@description, description_format=@descriptionFormat, reporter_name=@reporterName, reporter_resource_public_id=@reporterResourceId, assignee_name=@assigneeName, assignee_resource_public_id=@assigneeResourceId, occurred_on=@occurredOn, issue_status=@issueStatus, completed=@completed, completed_on=@completedOn, related_task_public_id=@relatedTaskId, related_task_text=@relatedTaskText, updated_at=@updatedAt WHERE public_id=@issueId AND project_id=@projectId AND lifecycle_state='ACTIVE'"
       ).run(params);
       if (result.changes !== 1) throw new PublicApiError(404, "ISSUE_NOT_FOUND", missingMessage);
       return { data: { projectRevision: this.advance(project.id, expectedRevision, nowText),

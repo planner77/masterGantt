@@ -1,4 +1,16 @@
 import { expect, test, isolatedApplicationOptions, submitProjectAndExpectCreated } from "./fixtures/isolated-application";
+import type { Locator } from "@playwright/test";
+
+async function fillTaskMarkdown(dialog: Locator, text: string) {
+  const field = dialog.locator("#task-description");
+  const convert = field.getByRole("button", { name: "Markdown 편집으로 전환" });
+  if (await convert.count()) await convert.click();
+  const sourceMode = field.getByRole("radio", { name: /Source mode|원문 모드|Chế độ mã nguồn/ });
+  await sourceMode.click();
+  await expect(sourceMode).toBeChecked();
+  await field.locator(".cm-content[contenteditable='true']").fill(text);
+}
+
 import type { ProjectSnapshotResponse, TaskMutationResponse } from "../../src/contracts/projects";
 import { chooseTaskInformation } from "./helpers/task-context-menu";
 import { readBrowserCanonicalSnapshot } from "./helpers/browser-canonical-snapshot";
@@ -59,7 +71,7 @@ test("persists explicit editor changes, task details and safe URL click without 
   await progress.fill("75");
   await expect(progress).toHaveValue("75");
   await expect(progress).toHaveAttribute("aria-valuetext", "75%");
-  await editor.getByLabel("Description", { exact: true }).fill("첫 줄\n둘째 줄");
+  await fillTaskMarkdown(editor, "첫 줄\n둘째 줄");
   await editor.getByLabel("URL", { exact: true }).fill(taskUrl);
   await expect(progress).toHaveAttribute("aria-valuetext", "75%");
   expect(patches).toBe(0);
@@ -157,13 +169,13 @@ test("Summary Description and URL persist while derived schedule stays readonly"
   await chooseTaskInformation(page);
   const editor = page.getByRole("dialog", { name: "작업 정보", exact: true });
   await expect(editor.getByLabel("요청 시작일", { exact: true })).toHaveAttribute("readonly", "");
-  await expect(editor.getByLabel("Description", { exact: true })).not.toHaveAttribute("readonly", "");
+  await expect(editor.locator("#task-description").getByRole("button", { name: "Markdown 편집으로 전환" })).toBeEnabled();
   await expect(editor.getByLabel("URL", { exact: true })).not.toHaveAttribute("readonly", "");
-  await editor.getByLabel("Description", { exact: true }).fill("요약 설명\n상세");
+  await fillTaskMarkdown(editor, "요약 설명\n상세");
   await editor.getByLabel("URL", { exact: true }).fill(summaryUrl);
   await editor.getByRole("button", { name: "저장", exact: true }).click();
   await expect(editor).toHaveCount(0);
-  expect(summaryPatches).toEqual([{ description: "요약 설명\n상세", url: summaryUrl }]);
+  expect(summaryPatches).toEqual([{ description: "요약 설명\n상세", descriptionFormat: "markdown", url: summaryUrl }]);
 
   const stored = await readBrowserCanonicalSnapshot(page, api, observeIsolatedApi);
   expect(stored.data.project.revision).toBe(snapshot.data.project.revision + 1);
@@ -201,7 +213,7 @@ test("Summary Description and URL persist while derived schedule stays readonly"
   await chooseTaskInformation(page);
   const reopened = page.getByRole("dialog", { name: "작업 정보", exact: true });
   await expect(reopened).toBeVisible();
-  await expect(reopened.getByRole("textbox", { name: "Description", exact: true })).toHaveValue("요약 설명\n상세");
+  await expect(reopened.locator("#task-description")).toContainText("요약 설명");
   await expect(reopened.getByRole("textbox", { name: "URL", exact: true })).toHaveValue(summaryUrl);
   await reopened.getByRole("button", { name: "취소", exact: true }).click();
 });
@@ -249,7 +261,7 @@ test("linked requested dates, metadata, baseline and successor schedules persist
     await page.screenshot({ path: `output/playwright/issue258-after-${width}.png`, fullPage: true });
   }
   await editor.getByLabel("작업명", { exact: true }).fill("Chain B edited");
-  await editor.getByLabel("Description", { exact: true }).fill("Linked metadata");
+  await fillTaskMarkdown(editor, "Linked metadata");
   await editor.getByLabel("URL", { exact: true }).fill("https://example.invalid/task");
   await editor.getByLabel("진행률 (%)", { exact: true }).fill("40");
   await editor.getByRole("button", { name: "현재 일정으로 설정", exact: true }).click();

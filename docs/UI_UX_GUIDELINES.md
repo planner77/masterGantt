@@ -1,3 +1,7 @@
+## Issue #885 — 본문 원문 보존과 폼 키보드 탐색
+
+Issue/Task 공통 Markdown 편집기는 단순 재개방·모드 전환·다른 필드의 저장만으로 원문 또는 dirty 상태를 변경하지 않는다. 비사용자 자동 링크 변환은 사용하지 않으며 수동 링크 툴바와 읽기용 안전 GFM 링크는 유지한다. 일반 rich-text 본문의 Tab/ShiftTab은 폼 탐색에 사용하고, nested table/code/Source의 고유 키맵을 전역으로 제거하지 않는다. 기존 title/body scroll·locale/element identity·viewport/focus ring을 유지하고 실제 tab-stop 수로 한정한 키보드 경로를 검증한다. 중첩 편집기의 독립 키보드 탈출과 실제 AT/native125%는 실행 전 NOT TESTED다. [실행·실패 증거](ISSUE_885_FAILURE_ANALYSIS.md).
+
 ## Issue #880 — 조회 전용 일정 계층
 
 `View` label/native select는 표시 단위 바로 앞에 묶고 WBS/Resource/설비 순서를 유지한다. 기존 Gantt toolbar34px·coarse44px와 semantic focus ring/내부 scroll을 재사용한다. 새 계층의 Grid/Chart는 동일 논리행·window·세로 scroll owner를 공유하며 긴 이름은 전체 접근 가능한 이름을 유지한다. 가상 Summary toggle은 `aria-expanded`, 실제 Task는 명시적인 작업 정보 열기 button을 제공한다. 선택과 focus는 원본 Task 의미를 따라 복귀하고 hidden WBS는 inert로 만든다.

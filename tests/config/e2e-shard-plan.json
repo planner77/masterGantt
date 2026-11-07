@@ -53,10 +53,8 @@
         "tests/e2e/milestone-timeline-lane.spec.ts",
         "tests/e2e/project-empty-summary.spec.ts",
         "tests/e2e/project-gantt-inline-start-date.spec.ts",
-        "tests/e2e/project-grid-reorder-persistence.spec.ts",
         "tests/e2e/project-resource-memberships-persistence.spec.ts",
         "tests/e2e/project-resource-workload-status.spec.ts",
-        "tests/e2e/project-summary-bar-visual.spec.ts",
         "tests/e2e/resource-admin-layout.spec.ts",
         "tests/e2e/resource-drill-ui.spec.ts",
         "tests/e2e/resource-kpi-integration-ui.spec.ts",
@@ -95,11 +93,9 @@
         "tests/e2e/grid-task-start-reveal.spec.ts",
         "tests/e2e/issue-762-process-workareas.spec.ts",
         "tests/e2e/logistics-table-density.spec.ts",
-        "tests/e2e/milestone-stage-exchange.spec.ts",
         "tests/e2e/milestone-timeline-core.spec.ts",
         "tests/e2e/project-filter-toolbar-consistency.spec.ts",
         "tests/e2e/project-json-import.spec.ts",
-        "tests/e2e/project-list-search-filter.spec.ts",
         "tests/e2e/project-master-admin.spec.ts",
         "tests/e2e/project-repeated-input-accessibility.spec.ts",
         "tests/e2e/project-task-quick-view.spec.ts",
@@ -122,8 +118,11 @@
         "tests/e2e/issue-735-system-dashboard.spec.ts",
         "tests/e2e/milestone-exchange-state.spec.ts",
         "tests/e2e/milestone-timeline-interchange-http.spec.ts",
+        "tests/e2e/milestone-visibility-persistence.spec.ts",
         "tests/e2e/project-edit-authorization.spec.ts",
         "tests/e2e/project-empty-summary-persistence.spec.ts",
+        "tests/e2e/project-grid-reorder-persistence.spec.ts",
+        "tests/e2e/project-summary-bar-visual.spec.ts",
         "tests/e2e/project-workspace-layout.spec.ts",
         "tests/e2e/relation-dialog-ux.spec.ts",
         "tests/e2e/resource-catalog-delete.spec.ts",
@@ -147,7 +146,6 @@
         "tests/e2e/issue-730-view-composer.spec.ts",
         "tests/e2e/issue-736-resource-dashboard.spec.ts",
         "tests/e2e/issue-866-language-shell.spec.ts",
-        "tests/e2e/logistics-dashboard-request-state.spec.ts",
         "tests/e2e/milestone-management.spec.ts",
         "tests/e2e/milestone-wbs-mode.spec.ts",
         "tests/e2e/project-chart-vertical-dnd.spec.ts",
@@ -173,7 +171,6 @@
         "tests/e2e/issue-737-target0-acceptance.spec.ts",
         "tests/e2e/master-controls-density.spec.ts",
         "tests/e2e/milestone-stage-dashboard.spec.ts",
-        "tests/e2e/milestone-visibility-persistence.spec.ts",
         "tests/e2e/project-browser-title-favicon.spec.ts",
         "tests/e2e/project-resource-calendar-exceptions.spec.ts",
         "tests/e2e/project-task-hover-tooltip.spec.ts",
@@ -194,10 +191,13 @@
         "tests/e2e/i18n-master-data.spec.ts",
         "tests/e2e/inline-name-persistence.spec.ts",
         "tests/e2e/issue-732-milestone-dashboard.spec.ts",
+        "tests/e2e/logistics-dashboard-request-state.spec.ts",
         "tests/e2e/logistics-target-authoring.spec.ts",
+        "tests/e2e/milestone-stage-exchange.spec.ts",
         "tests/e2e/project-context-toolbar-responsive.spec.ts",
         "tests/e2e/project-create-and-read.spec.ts",
         "tests/e2e/project-gantt-density.spec.ts",
+        "tests/e2e/project-list-search-filter.spec.ts",
         "tests/e2e/project-logistics-management.spec.ts",
         "tests/e2e/project-resource-memberships-ui.spec.ts",
         "tests/e2e/project-settings-dialog-layout.spec.ts",
@@ -1763,5 +1763,125 @@
     "historicalMetadata": "generatedAt/sourceRunIds/metrics/모든 projectedMs와 과거 수동 배치 기록은 변경하지 않는다. 신규 실행시간을 추정값에 더하거나 성능 개선을 주장하지 않는다.",
     "validation": "STATIC_PLAN_INVENTORY_VERIFIED; NEW_HEAD_FULL_E2E_8_SHARDS_NOT_TESTED",
     "scope": "기존146개 위치·8샤드·workers=1·35분 timeout·PR 첫 실패/Main 전체 수집·Required3·Trusted QA·Owner·릴리스 gate 유지. 테스트 제외·skip·retry·fallback 정책 변경 없음."
+  },
+  "manualRebalance885": {
+    "issue": 885,
+    "incident": "F885-008",
+    "pullRequest": 887,
+    "sourceRunId": 42376741473,
+    "sourceRunNumber": 3563,
+    "runAttempt": 1,
+    "originalConclusion": "cancelled",
+    "originalHeadSha": "26ac9049a82ea143e1aa614039c3cf62041e2a04",
+    "originalBaseSha": "f3f8b89ef09bab35987b32f4945dac91b6fa223a",
+    "reason": "Six Chromium shards succeeded, but Shards 1/3 reached the 35-minute job timeout and were canceled simultaneously; no asserted test failure was observed.",
+    "jobTimeoutMinutes": 35,
+    "originalShardJobs": [
+      128416446815,
+      128416446793,
+      128416446839,
+      128416446750,
+      128416446811,
+      128416446776,
+      128416446810,
+      128416446748
+    ],
+    "originalJobWallMinutes": [
+      35.3,
+      29.85,
+      35.28,
+      21.12,
+      32.22,
+      33.23,
+      22.97,
+      28
+    ],
+    "originalJobConclusions": [
+      "cancelled",
+      "success",
+      "cancelled",
+      "success",
+      "success",
+      "success",
+      "success",
+      "success"
+    ],
+    "beforeFileCounts": [
+      19,
+      18,
+      19,
+      18,
+      18,
+      18,
+      18,
+      19
+    ],
+    "afterFileCounts": [
+      17,
+      18,
+      17,
+      21,
+      17,
+      17,
+      21,
+      19
+    ],
+    "explicitSpecCount": 147,
+    "completedCaseEvidence": {
+      "shard1": "125 observed passes; remaining resource-milestone-ui cases NOT TESTED",
+      "shard3": "149 observed passes; one skipped/last incomplete cases NOT TESTED",
+      "otherShards": "Six successful whole E2E jobs, not a combined Full8 PASS"
+    },
+    "movedFiles": [
+      {
+        "file": "tests/e2e/project-summary-bar-visual.spec.ts",
+        "from": 1,
+        "to": 4,
+        "observedFileSpanMinutes": 4.06
+      },
+      {
+        "file": "tests/e2e/project-grid-reorder-persistence.spec.ts",
+        "from": 1,
+        "to": 4,
+        "observedFileSpanMinutes": 3.01
+      },
+      {
+        "file": "tests/e2e/project-list-search-filter.spec.ts",
+        "from": 3,
+        "to": 7,
+        "observedFileSpanMinutes": 3.94
+      },
+      {
+        "file": "tests/e2e/milestone-stage-exchange.spec.ts",
+        "from": 3,
+        "to": 7,
+        "observedFileSpanMinutes": 2.41
+      },
+      {
+        "file": "tests/e2e/milestone-visibility-persistence.spec.ts",
+        "from": 6,
+        "to": 4,
+        "observedFileSpanMinutes": 1.83
+      },
+      {
+        "file": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "from": 5,
+        "to": 7,
+        "observedFileSpanMinutes": 1.57
+      }
+    ],
+    "estimatedShiftOnlyJobWallMinutes": [
+      28.23,
+      29.85,
+      28.93,
+      30.02,
+      30.65,
+      31.4,
+      30.89,
+      28
+    ],
+    "estimatorCaveat": "Shift-only approximation of the source run's observed whole-file completion intervals; canceled work, fixture/setup contention, host load and downstream cases are unmeasured. Historical projectedMs/metrics/sourceRunIds remain an unchanged dated baseline, not new forecasts.",
+    "constraints": "All 147 E2E files in exactly one of 8 groups; no assertion, test body, test skip, retry, fail-fast, worker, 35m timeout, required Quality/E2E/Docker, Trusted QA or Owner policy changed.",
+    "validation": "STATIC_EXACT_147_FILE_COVERAGE_ONLY; NEW_HEAD_FULL_PR_CI_NOT_TESTED"
   }
 }

@@ -23,6 +23,7 @@ export interface TaskEditorDraft {
   readonly progress: string;
   readonly status: TaskStatus;
   readonly description: string;
+  readonly descriptionFormat: "plain" | "markdown";
   readonly url: string;
   readonly baselineStart: string;
   readonly baselineDuration: string;
@@ -59,8 +60,8 @@ function validHttpUrl(value: string): boolean {
 
 function taskDetailChanges(
   task: ProjectTaskDto,
-  draft: Pick<TaskEditorDraft, "description" | "url">,
-): { readonly payload: Partial<Pick<ProjectTaskUpdatePayload, "description" | "url">>; readonly error: string | null } {
+  draft: Pick<TaskEditorDraft, "description" | "descriptionFormat" | "url">,
+): { readonly payload: Partial<Pick<ProjectTaskUpdatePayload, "description" | "descriptionFormat" | "url">>; readonly error: string | null } {
   if (Array.from(draft.description).length > 10_000) {
     return { payload: {}, error: "Description은 10,000자 이하로 입력해 주세요." };
   }
@@ -71,7 +72,8 @@ function taskDetailChanges(
   }
   return {
     payload: {
-      ...(description !== (task.description ?? null) ? { description } : {}),
+      ...(description !== (task.description ?? null) ? { description, descriptionFormat: draft.descriptionFormat } : {}),
+      ...(description === (task.description ?? null) && draft.descriptionFormat !== (task.descriptionFormat ?? "plain") ? { descriptionFormat: draft.descriptionFormat, description } : {}),
       ...(url !== (task.url ?? null) ? { url } : {}),
     },
     error: null,
@@ -206,6 +208,7 @@ export function createTaskEditorDraft(task: ProjectTaskDto, calendar?: ProjectCa
     progress: task.progress === null ? "" : String(task.progress),
     status: task.status ?? taskStatusFromProgress(task.progress),
     description: task.description ?? "",
+    descriptionFormat: task.descriptionFormat ?? "plain",
     url: task.url ?? "",
     baselineStart: task.baselineStart ?? "",
     baselineDuration: task.baselineDuration !== null && task.baselineDuration !== undefined ? String(task.baselineDuration) : "",
@@ -266,7 +269,7 @@ export function clearBaseline(draft: TaskEditorDraft): TaskEditorDraft {
 export function taskEditorIsDirty(task: ProjectTaskDto, draft: TaskEditorDraft): boolean {
   const initial = createTaskEditorDraft(task);
   const persistedFields: readonly (keyof TaskEditorDraft)[] = [
-    "explicitMilestoneTaskId", "name", "start", "duration", "scheduleMode", "progress", "status", "description", "url",
+    "explicitMilestoneTaskId", "name", "start", "duration", "scheduleMode", "progress", "status", "description", "descriptionFormat", "url",
     "baselineStart", "baselineDuration", "baselineEnd",
   ];
   return persistedFields.some((field) => initial[field] !== draft[field]);

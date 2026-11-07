@@ -266,7 +266,7 @@ describe("atomic multi-root Copy", () => {
     const result = f.copy([second.taskId, first.taskId], target), persisted = f.state(); f.db.close();
     const reopened = openDatabase({ filename, migrationsDirectory }).database; connections.push(reopened);
     const snapshot = new ProjectService(reopened, { clock }).getReadonlySnapshot(f.publicId)!;
-    expect(snapshot.data.tasks).toEqual(result.data.tasks.map((task) => { const dto = { ...task }; delete dto.description; delete dto.url; return dto; })); expect(snapshot.data.links).toEqual(result.data.links);
+    expect(snapshot.data.tasks).toEqual(result.data.tasks.map((task) => { const dto = { ...task }; delete dto.description; delete dto.descriptionFormat; delete dto.url; return dto; })); expect(snapshot.data.links).toEqual(result.data.links);
     expect(snapshot.data.project.revision).toBe(result.data.project.revision);
     expect(reopened.prepare("SELECT * FROM tasks ORDER BY id").all()).toEqual(persisted.tasks);
     expect(reopened.pragma("foreign_key_check")).toEqual([]);
