@@ -640,6 +640,58 @@ require(
 )
 
 
+# MAIN-881-001: Exact merged PR #884 had a valid-looking first-line title,
+# but the connector supplied a multiline commit_message.  The immutable
+# Main #3552.1 fails in verify-ci-run-trace; no product CI job ran.
+failed_881_message = (
+    "Issue #881 · PR #884 · 프로젝트별 Issue·대시보드·기준정보 표시 설정\\n\\n"
+    "Refs #881\\n\\n"
+    "Full PR CI #3551.1 (42339976906.1) and QA Trusted #1198.1 "
+    "(42342272396.1) verified. Owner release authorization (v0.144.0): "
+    "Issue #881 comment 6703144666. Preserve subsequent Main CI, GHCR "
+    "candidate, Release and Generic Finalizer gates."
+)
+require(
+    main_run_name.parse_merge_title(failed_881_message) is None,
+    "historical Main #3552.1 multiline merge must remain invalid",
+)
+try:
+    trace.validate_push({
+        "ref": "refs/heads/main",
+        "head_commit": {"message": failed_881_message},
+    })
+except trace.TraceError:
+    pass
+else:
+    raise SystemExit("Main #3552.1 malformed immutable merge was not rejected")
+
+# Corrective same-Issue, non-docs PR: keep application version 0.144.0
+# and require the full connector payload (one-line Korean subject, empty body,
+# exact Head SHA lease).  This does not retroactively convert the failed Run.
+corrective_881_summary = "프로젝트 화면 표시 Main CI 복구"
+corrective_881_payload = main_run_name.merge_api_payload(
+    881, 999, corrective_881_summary, "d" * 40
+)
+require(
+    corrective_881_payload == {
+        "merge_method": "merge",
+        "commit_title": "Issue #881 · PR #999 · 프로젝트 화면 표시 Main CI 복구",
+        "commit_message": "",
+        "expected_head_sha": "d" * 40,
+    }
+    and main_run_name.parse_merge_title(corrective_881_payload["commit_title"])
+        == (881, 999, corrective_881_summary)
+    and trace.validate_push({
+        "ref": "refs/heads/main",
+        "head_commit": {
+            "message": corrective_881_payload["commit_title"]
+            + corrective_881_payload["commit_message"],
+        },
+    }) == (881, 999),
+    "#881 corrective merge must use the one-line empty-body SHA-leased payload",
+)
+
+
 # Issue #603 / PR #604: a *one-line* English-only merge title was invalid.
 # This exact historical main SHA cannot be rewritten; a later same-Issue PR
 # with full-scope CI and a Korean canonical title must supersede its failed CI.
