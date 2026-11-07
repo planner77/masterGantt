@@ -4,7 +4,8 @@
 - SQLite `0038_description_formats.sql`은 `tasks.description_format` 및 `project_issues.description_format`에 `plain|markdown` CHECK와 기존 행 DEFAULT `plain`을 추가한다. 기존 내용·이력·권한 변경 및 자동 Markdown 재해석 금지.
 - 서버는 GFM AST를 검증하여 HTML·JSX/MDX·이미지·비 HTTP(S) 링크를 거절한다. 읽기는 `react-markdown`의 HTML/이미지 비실행, HTTP(S) 링크만 새 탭(`noopener noreferrer`)이다. 신규 API는 `descriptionFormat` 선택형, 구 호출은 plain이며 변경 없는 구 클라이언트 PATCH는 기존 markdown을 유지한다. Issue 4,000 / Task 10,000 Unicode code point 제한.
 - 기존 Issue 개별 비밀번호/공개 등록/read gate, Task edit session, Origin/If-Match, Project CAS/revision·SQLite transaction, WBS writer 및 복사·설비/Resource 경계를 준수한다. JSON 1.1/Excel은 Markdown 형식 표기를 보존할 수 없으므로 해당 Project Task의 내용이 있을 때 명시적 `EXPORT_UNSUPPORTED`(무손실 안전 종료)로 응답하며 새 내보내기 스키마는 별도 이슈로 처리한다.
-- 최신 헤드의 실제 Full PR CI/브라우저 실증 전은 **NOT TESTED**. HIGH/OWNER_MANAGED/qa_required=true/release_required=true/release_authorized=false. [Work Packet](docs/exec-plans/active/ISSUE_885.md), [Issue 사용 가이드](docs/PROJECT_ISSUES_USER_GUIDE.md), [Task Editor](docs/TASK_EDITOR.md). 이번 지시는 PR CI 시작까지만 승인(모니터링/병합/Main/GHCR/종료 제외).
+- **#885 원본 구현(역사적):** PR #887 Full #3564.1/Trusted #1211.1/Main #3565.3 Required3/E2E8/verified OCI 게시 PASS, Finalizer #1436.1 no-release FINAL/임시 GHCR 정리/Issue CLOSED. 이는 동일 `0.144.0`으로 병합해 version delta가 0인 규칙의 결과이며, 이미 출고된 #881 `v0.144.0` 태그를 #885에 재사용할 수 없다.
+- **#885 후속 정식 릴리스 정책:** 사용자 요청으로 Issue #885 재개, Owner exact-version [RELEASE-885-001](https://github.com/planner77/masterGantt/issues/885#issuecomment-6712149179)에서 다음 MINOR `0.145.0`의 `release_required=true`/`release_authorized=true` 승인. 별도 교정 PR의 package/lock/CHANGELOG 버전 변경 이후 새 Full PR Required3·8 Chromium·Trusted QA, 새 Main verified OCI, immutable `v0.145.0` tag·Release CI·exact GHCR digest, Generic Finalizer의 **새 merge SHA** FINAL/Issue CLOSED까지 요구한다. 구 `v0.144.0` 태그·이미지·FINAL 감사기록은 불변, 후속 Run 성공 전 NOT TESTED. [Work Packet](docs/exec-plans/active/ISSUE_885.md), [원장](docs/ISSUE_885_FAILURE_ANALYSIS.md).
 
 ---
 

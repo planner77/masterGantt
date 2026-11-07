@@ -1,8 +1,10 @@
-## Unreleased — Issue #885 (2026-11-07, PR 검증 전)
+## [0.145.0] — Unreleased / Issue #885 formal GHCR candidate (2026-11-08)
 
 - Issue/Task/Summary/Milestone Description 공통 MDXEditor(시각적/Markdown Source), 안전한 읽기 뷰, 명시적인 legacy plain-to-Markdown 전환.
 - SQLite migration 0038 및 `descriptionFormat` API 추가, Markdown GFM 안전 검증·프로젝트 복사 보존, 기존 JSON/Excel에서 형식 유실 방지 차단.
-- **NOT TESTED:** 새로운 PR Required CI, 실제 브라우저/운영 DB 업그레이드 및 다국어·접근성 수동 검증 예정.
+- **과거 구현 검증:** 원본 PR #887 Full #3564.1 및 Main #3565.3 Required Quality/E2E8/Docker·OCI smoke/PUBLISH PASS. 하지만 Main 버전이 기존 #881의 immutable `v0.144.0`과 같아 Generic Finalizer는 no-release FINAL, ci-SHA 후보 정리 후 #885를 CLOSED 처리했다.
+- **v0.145.0 게시 교정:** 첫 유효한 후속 MINOR 버전으로 package/lock 동기화. Owner 인증 [RELEASE-885-001](https://github.com/planner77/masterGantt/issues/885#issuecomment-6712149179)에 따른 동일 Issue #885 릴리스 승인. Runtime·SQLite migration·E2E suite는 변경 없음.
+- **미실행:** 새 0.145.0 PR Full/Trusted·Main OCI·tag/Release CI·GHCR exact digest/Finalizer, 운영 DB 복구·실제 접근성 실증은 새 source에서 NOT TESTED/NOT PUBLISHED.
 
 ---
 
