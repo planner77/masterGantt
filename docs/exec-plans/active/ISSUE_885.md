@@ -7,7 +7,7 @@
 - qa_method=OWNER_MANAGED
 - qa_required=true
 - release_required=true
-- release_authorized=false
+- release_authorized=true (v0.145.0 only; authenticated Owner marker: https://github.com/planner77/masterGantt/issues/885#issuecomment-6712149179)
 - manager_decision=NOT TESTED
 - MERGE_READY=BLOCKED
 
@@ -176,3 +176,13 @@
 - **AC_TEST_COVERAGE:** AC01~09 기존 #885 Task/Issue/Markdown/legacy/locale/보안·정확 Link/Task DTO/타 언어 UI를 전체8샤드에서 유지. AC10은 전체 인벤토리147·8-shard·실행시간·원본 Run/Attempt/헤드 증명/Required3. 원래 상단 AC01~AC10 선언 유지.
 - **DOCUMENTATION_SYNC:** Work Packet·실패 원장·`docs/CI_CD.md` UPDATED, 계획 JSON과 단위 Test EXTEND. `AGENTS.md`/DESIGN/API/DB_SCHEMA/TEST_PLAN/QA_REVIEW_POLICY 원칙 변경 없음, 첫 정확 `DOCUMENTATION_SYNC` parser 선언 수정 시 경로 `docs/CI_CD.md`를 UPDATED로 기록.
 - **NEXT:** 새 HEAD Push로 non-draft PR Full CI 1회 시작 후 **모니터링 없음**. Merge/Main/Publish/GHCR/Finalizer/Issue close 미승인; Owner HIGH 별도 수용·Trusted QA 및 정확 Full8 원본 PASS 여전히 필수.
+
+## RELEASE-885-001 — v0.145.0 정식 GHCR 보완, 원본 no-release FINAL 유지
+
+- **원본 증거:** PR #887 HEAD `89941acfcf0610e703fff8b5e3ba2fde988e4dc1`, Main `43db33030f338406310d8e86d7785aefd0454d4e`, Full #3564.1/Trusted #1211.1/Main #3565.3 actual 8/8, Docker, OCI publisher PASS. Generic Finalizer [#1436.1](https://github.com/planner77/masterGantt/actions/runs/42406477460) SUCCESS marked `release_required=false`, temporary GHCR candidate deleted and Issue CLOSED, formal version release N/A. Prior FINAL comment #6712009290 is immutable.
+- **근본 원인:** first-parent version `0.144.0` == merged `0.144.0` so `WorkItem.release_required` false; `v0.144.0` annotated tag already belongs to #881 prior Main SHA `f3f8b89ef09bab35987b32f4945dac91b6fa223a`. No retagging or overwrite. User explicitly requested formal GHCR and Issue closure; Issue reopened, Owner [RELEASE-885-001](https://github.com/planner77/masterGantt/issues/885#issuecomment-6712149179) authorizes only new `v0.145.0` under unchanged required checks.
+- **Implementation:** `package.json`, `package-lock.json` top+root version, CHANGELOG candidate, AGENTS current release boundary, this Work Packet, append-only failure ledger. No application code, dependency graph, migration, CI workflow, 8-shard planner, tests, QA/Owner policy or security change.
+- **TEST_LIFECYCLE_REVIEW:** KEEP_UNIQUE original 147 E2E files and all Unit/API/SQLite/AST regression and security negative tests. Manifest/lock must agree on `0.145.0`, all dependencies byte-identical. ADD/RETIRE/SKIP none, no timeout/retry/gate weakening.
+- **AC_TEST_COVERAGE:** AC01~09 original data/safety/legacy/UI assertions unchanged and required in new Full PR; AC10 adds exact version three-way consistency, Full PR Head/Base/Test-Merge/Required3/Trusted, new Main OCI, annotated v0.145.0/release-image verified digest, Generic Finalizer new-SHA FINAL.
+- **DOCUMENTATION_SYNC:** AGENTS, CHANGELOG, Work Packet, failure ledger UPDATED; other product/API/DB/CI/QA policy docs unchanged, original top `## DOCUMENTATION_SYNC` 23 entries and AC01~10 kept.
+- **Risks/exit:** HIGH/OWNER_MANAGED, qa_required=true, release_required=true, release_authorized=true(v0.145.0 only), manager_decision=NOT TESTED, MERGE_READY=BLOCKED until new Full CI, Trusted/review0/current main. The existing `v0.144.0` is immutable. New PR/CI/Main/GHCR/FINAL results not inferred from original #887.
