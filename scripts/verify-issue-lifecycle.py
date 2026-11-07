@@ -640,9 +640,9 @@ require(
 )
 
 
-# MAIN-881-001: Exact merged PR #884 had a valid-looking first-line title,
-# but the connector supplied a multiline commit_message.  The immutable
-# Main #3552.1 fails in verify-ci-run-trace; no product CI job ran.
+# MAIN-881-001: PR #884 병합 제목의 첫 행은 정상처럼 보였으나
+# 커넥터가 본문을 전달해 여러 줄 커밋 메시지가 생성되었다.
+# 변경 불가능한 Main #3552.1은 추적 검증에서 차단되었고 제품 검사는 미실행이었다.
 failed_881_message = (
     "Issue #881 · PR #884 · 프로젝트별 Issue·대시보드·기준정보 표시 설정\n\n"
     "Refs #881\n\n"
@@ -653,7 +653,7 @@ failed_881_message = (
 )
 require(
     main_run_name.parse_merge_title(failed_881_message) is None,
-    "historical Main #3552.1 multiline merge must remain invalid",
+    "과거 Main #3552.1의 여러 줄 병합 메시지는 계속 거부되어야 합니다",
 )
 try:
     trace.validate_push({
@@ -663,11 +663,11 @@ try:
 except trace.TraceError:
     pass
 else:
-    raise SystemExit("Main #3552.1 malformed immutable merge was not rejected")
+    raise SystemExit("Main #3552.1의 잘못된 원본 병합 메시지가 거부되지 않았습니다")
 
-# Corrective same-Issue, non-docs PR: keep application version 0.144.0
-# and require the full connector payload (one-line Korean subject, empty body,
-# exact Head SHA lease).  This does not retroactively convert the failed Run.
+# 동일 Issue의 후속 비문서 교정 PR은 앱 버전 0.144.0을 유지하며
+# 한글 제목 한 줄·빈 본문·정확한 HEAD SHA 조건을 모두 확인한다.
+# 이 검증은 과거 실패 실행을 성공으로 소급하지 않는다.
 corrective_881_summary = "프로젝트 화면 표시 Main CI 복구"
 corrective_881_payload = main_run_name.merge_api_payload(
     881, 999, corrective_881_summary, "d" * 40
@@ -688,7 +688,7 @@ require(
             + corrective_881_payload["commit_message"],
         },
     }) == (881, 999),
-    "#881 corrective merge must use the one-line empty-body SHA-leased payload",
+    "#881 교정 병합은 한 줄 제목·빈 본문·정확한 HEAD SHA 조건을 유지해야 합니다",
 )
 
 
