@@ -80,3 +80,13 @@
 - AC_TEST_COVERAGE: AC04(P1 링크/삭제 DTO), AC06(같은 project binding/revision), AC02(기존 본문 표현 유지), AC10(DOC_SYNC 정책 및 추가 테스트); 나머지는 상단 AC01~AC10 연결 유지. 새 PR CI Head 결과 확인 전 NOT TESTED.
 - DOCUMENTATION_SYNC: 위 정확한 파일 경로별 기록 참조. `docs/exec-plans/active/ISSUE_885.md`와 `docs/ISSUE_885_FAILURE_ANALYSIS.md` 갱신; CI/QA scripts 및 역사적인 SQLite migration 원문 수정 안 함.
 - 이 후속 명령은 **새 HEAD PR Full CI kickoff까지만**, 모니터링/병합/Main/릴리스/Issue 완료 금지.
+
+## F885-002 — #3557.1 lockfile EUSAGE rework
+
+- Exact Run [#3557.1 / 42362952735](https://github.com/planner77/masterGantt/actions/runs/42362952735), attempt1, original Head `b0085ecd95e0402fa39e05bb8e29a4d32e339d46`, Base `f3f8b89ef09bab35987b32f4945dac91b6fa223a`.
+- QA Preflight **PASS**, npm ci **FAIL** identically in four Node setup jobs: missing `yjs@13.6.33`, `lib0@0.2.119`, `isomorphic.js@0.2.5`; Quality/E2E8/Docker/QA Final aggregate derived FAIL, implementation checks NOT RUN.
+- Recovery change restricted to npm v3 `package-lock.json`: add three authenticated registry URL/SHA512 donor entries for `@lexical/yjs` peer and `yjs→lib0→isomorphic.js`. Keep package.json version/root deps intact. Neither npm audit nor the repository's reproducible npm ci gate is weakened.
+- TEST_LIFECYCLE_REVIEW: KEEP_UNIQUE all existing tests, no skip/timeout changes; npm ci as executable lock-graph regression guard. Next Full8 remote CI must provide runtime evidence before any PASS claim.
+- AC_TEST_COVERAGE: AC01/AC04/AC09/AC10 require reproducible npm ci and complete downstream Full CI; other AC mappings preserved.
+- DOCUMENTATION_SYNC: `docs/exec-plans/active/ISSUE_885.md` and `docs/ISSUE_885_FAILURE_ANALYSIS.md` UPDATED; `package-lock.json` UPDATED. Other contracts/QA/docs N/A unchanged, existing first `## DOCUMENTATION_SYNC` parser section retained verbatim.
+- No release authorization; HEAD synchronization triggers a new Full PR CI but no monitoring/merge/Main/release/closure.
