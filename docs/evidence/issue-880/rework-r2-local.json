@@ -1,0 +1,2869 @@
+{
+  "schema": "issue-880-rework-r2-local/1",
+  "issue": 880,
+  "pr": 883,
+  "dateKst": "2026-11-07",
+  "baselineMainSha": "229604522969133d1ccc6de0477e373252670c86",
+  "originalHeadSha": "89e45ad49df4df4a6c905101b0cf07c8a20d704e",
+  "originalTestMergeSha": "05e31649926801e8160fb01237a1f7e07874e880",
+  "scope": "로컬 빠른 검증·통제 진단만 해당한다. 새 원격 CI·Trusted·Owner·Manager 승인이 아니다.",
+  "source": {
+    "format": "sorted-path-sha256-map/json-compact/sort-keys",
+    "sha256": "7e9163c0ea293d898c883c82c38d8c62a0c5de0e33b232f217a4ef31b1dc43b7",
+    "fileCount": 1310,
+    "scope": "src/·tests/·scripts/·db/·package.json·package-lock.json·next.config.ts. Next 자동 생성 진입점은 원본 보존 후 baseline으로 복원한다.",
+    "changedInputCount": 24,
+    "changedInputSha256": {
+      "package-lock.json": "6cca360fbe47965887111e1f6fb25bad7bc545b200ab65a40ba554de1fdf01de",
+      "package.json": "b8ea5325483c0b62bea236b4406564f24983393a031a6dea37a62f32b11024fc",
+      "src/app/api/projects/[publicId]/schedule-view-source/route.ts": "3a35e989a90082eba750e5a28d14daf7defd5fba2dcd14c55b8d670bccb19d08",
+      "src/app/globals.css": "f06a91f113aa45dcf781f7c31dfc6cb893eac04d7435712f8289799e35018100",
+      "src/contracts/schedule-views.ts": "5a80e7d75b141c66cf3fd2bc1bdf018d4115f43dcb5b8e2426d3f0872194cad2",
+      "src/features/gantt/project-gantt.tsx": "a12a1b230a7423df47775ba63be2e451f62b9a94d4868268f2576aa28819f8ba",
+      "src/features/gantt/schedule-view-panel.css": "1131c2492a7842397d1cebe93db5f68198a573b9070622d4d056cf9bb25fa076",
+      "src/features/gantt/schedule-view-panel.tsx": "24399c8b23abbbd0c4228d2ae372a5575517929cc680950166099654f9c1d8bb",
+      "src/features/gantt/schedule-view-projection.ts": "bde7044632a2f5ffa2b28dc0069daa7614ef8221237542701f6550a745716fa2",
+      "src/features/projects/project-readonly-view.tsx": "cfa19a5d078428ffd69b9a5506cfd9c4d401a62210b99fa58b1f2ba002661d82",
+      "src/lib/i18n/catalogs/schedule-views.ts": "f650b2ca157fdf1426f9aaf4c39c140888123101c3f46dc80ba4ed2dbfc78486",
+      "src/lib/i18n/index.ts": "d60e9be53c42f4dc8eab7d7132108c729bd24dbae829dc8519572ab292ecd12d",
+      "src/server/projects/schedule-view-source-handler-core.ts": "e601ad87eb18ecc76acf14ef378cb83a4d8f8e100fed6db00469ccbfb91cb0ff",
+      "src/server/projects/schedule-view-source-service-core.ts": "adc0b0aa425ae57b81162e86ced5afbcb510c8cfdaba353631b191e654b24769",
+      "src/server/repositories/schedule-view-source-repository-core.ts": "656247ed22666ee5b6f062e34ff2a176a66ea454cce130e99178c0743386ae58",
+      "src/server/security/route-security-inventory.ts": "ef21e647d7f85b4713ff2342514f6b9c07771006bf4b2a1a8a7bead6cc74c828",
+      "tests/config/e2e-shard-plan.json": "ad14c9b181be6646d04360ec2e171594c9b5f638a230f8a659bc94af93fcd4f5",
+      "tests/e2e/fixtures/schedule-views.ts": "fedad8f0fbfb299577437bbc3ca4fd549c9708e28fa91e993a647b96a4819e3e",
+      "tests/e2e/project-search-filter.spec.ts": "4ae7273718b13f78d039af3abac9db75fc6566c4c3de705a3d71b0e95f75bfab",
+      "tests/e2e/schedule-views.spec.ts": "549f7ed0b84fadb1ccb14e15c6918e0306829a2e5b2b87c74d854c98b516c053",
+      "tests/features/gantt/schedule-view-projection.test.ts": "52341c5b61aaea360a9d3aa41586009ff7313d1c74a6eafbf9a4672841fcb198",
+      "tests/scripts/e2e-shard-planner.test.ts": "f2df4b3bd8a0bc236f899eab76695f9dbfe2b973dc073818f19b3aa091716522",
+      "tests/server/projects/edit-authorization-handlers.test.ts": "35465b8d99d19d331eb44caf06a3c58eeb60fc48d034cf90e610f38fbe091d92",
+      "tests/server/projects/schedule-view-source.test.ts": "4656650b656fedf3c869a3b8f06b8f192486a7b2579bacd37811f9c2a093993d"
+    },
+    "reworkDeltaInputs": [
+      "src/app/globals.css",
+      "tests/e2e/project-search-filter.spec.ts"
+    ],
+    "directGreenStartEqualsEnd": true,
+    "finalBrowserStartEqualsEnd": true
+  },
+  "originalRemote": {
+    "runId": 42308825744,
+    "attempt": 1,
+    "result": "FAIL",
+    "quality": "PASS",
+    "docker": "PASS",
+    "e2e": "FAIL",
+    "directJobId": 128206275141,
+    "directFile": "tests/e2e/project-search-filter.spec.ts",
+    "directLine": 64,
+    "evidence": "ci3537-source.json",
+    "plannedBrowserCases": 890,
+    "observedPassed": 455,
+    "actualFailed": 1,
+    "existingSkipped": 1,
+    "incomplete": 433,
+    "cancelledShards": 7,
+    "additionalActualFailuresInCancelledShards": 0
+  },
+  "pristineReproduction": {
+    "status": "FAIL",
+    "exitCode": 1,
+    "failed": 1,
+    "testSeconds": 9.7,
+    "viewport": {
+      "width": 1024,
+      "height": 900
+    },
+    "symptom": "Existing summary child Grid 행 없음/5000ms, 원격 실패와 동일",
+    "raw": "/tmp/issue880-r2-repro",
+    "sourceSha256": "1b165cd33266318c0e2b8c6e598a574e527b08ca7d01ced4759ebf536a09f280"
+  },
+  "controlledDiagnosis": {
+    "status": "PASS",
+    "scope": "원래900px 실패를 보존한 뒤 height만1200으로 변경한 통제 진단이다. 제품 수정 PASS가 아니다.",
+    "before": {
+      "width": 1024,
+      "height": 900,
+      "coreFilteredRows": 2,
+      "parentOpen": true,
+      "gridDomRows": 1,
+      "nativeClientHeight": 0,
+      "coreChartHeight": -72,
+      "advancedFilterHeight": 384,
+      "toolbarHeight": 100
+    },
+    "afterHeightOnly": {
+      "width": 1024,
+      "height": 1200,
+      "coreFilteredRows": 2,
+      "parentOpen": true,
+      "gridDomRows": 2,
+      "nativeClientHeight": 293,
+      "coreChartHeight": 221
+    },
+    "sameApiInstance": true,
+    "projectRevision": 40,
+    "projectWrites": 0,
+    "filterOrExpandCommandsAdded": 0,
+    "sourceStartEqualsEnd": true,
+    "raw": "/tmp/issue880-r2-repro/height-counterfactual.json"
+  },
+  "reworkFailures": [
+    {
+      "id": "F880-R2-LOCAL-001",
+      "classification": "TEST_LOCATOR",
+      "passedOriginal900And390Geometry": true,
+      "exitCode": 1,
+      "testSeconds": 14.4,
+      "error": "getByLabel 설명 조건 exact 선택 실패/5000ms; 실제 accessible combobox는 존재",
+      "correction": "같은 role/name의 getByRole combobox로 한줄 교정; focus/timeout/원래 Task 단언 유지",
+      "raw": "/tmp/issue880-r2-green",
+      "sourceStartEqualsEnd": true,
+      "sourceSha256": "04aab3432faccc5dc0982b870ee6a10eff00f63d2dcafb09c58b7f6f6a144bf2"
+    }
+  ],
+  "checks": {
+    "postcssParse": "PASS",
+    "typecheck": "PASS",
+    "changedFileLint": {
+      "status": "PASS",
+      "errors": 0,
+      "warnings": 4,
+      "newWarningsInR2": 0,
+      "note": "기존 Gantt3개와 R1 captureBookmark dependency1개를 유지한다.",
+      "scope": "기존 Gantt 통합2파일과 보강spec의 관련 ESLint이며 변경 CSS는 별도 PostCSS parse로 확인했다."
+    },
+    "selectedUnit": {
+      "status": "PASS",
+      "files": 9,
+      "passed": 190,
+      "failed": 0,
+      "skipped": 0,
+      "maxWorkers": 2,
+      "durationSeconds": 4.81,
+      "scope": "선택자 교정 뒤 최종1310지문의 같은 source에서9파일190개를 별도확인했다. 첫190PASS와합산하지않는다.",
+      "finalSourceSha256": "7e9163c0ea293d898c883c82c38d8c62a0c5de0e33b232f217a4ef31b1dc43b7"
+    },
+    "version": "PASS",
+    "preflightFixture": {
+      "status": "PASS",
+      "tests": 11
+    },
+    "discovery": {
+      "status": "PASS",
+      "unitFiles": 303,
+      "browserCases": 890,
+      "rootAndExternalCwd": true
+    },
+    "markdown": "PASS",
+    "finalMetadataReplay": {
+      "status": "PASS",
+      "deterministicFailures": 0,
+      "deferred": 5,
+      "changedPaths": 55,
+      "validatorBase": "229604522969133d1ccc6de0477e373252670c86",
+      "scope": "현재 Issue AC·제안 PR 본문·전체 작업트리경로/Packet을 unchanged base checker에 로컬 재생했다. 원본89e를Head anchor로사용한데이터검사이며새원격Headprovenance·CI/Owner판정이아니다. 실제최종localcommit에도별도재생하고Issue STATUS에연결한다.",
+      "checks": [
+        {
+          "name": "PRIMARY_ISSUE",
+          "status": "PASS",
+          "where": "PR title 및 PR 본문 단일 Refs #N"
+        },
+        {
+          "name": "RISK_LEVEL",
+          "status": "PASS",
+          "where": "PR body: risk_level"
+        },
+        {
+          "name": "QA_METHOD",
+          "status": "PASS",
+          "where": "PR body: qa_method"
+        },
+        {
+          "name": "QA_REQUIRED",
+          "status": "PASS",
+          "where": "PR body: qa_required"
+        },
+        {
+          "name": "RELEASE_REQUIRED",
+          "status": "PASS",
+          "where": "PR body: release_required (선택)"
+        },
+        {
+          "name": "RELEASE_AUTHORIZED",
+          "status": "PASS",
+          "where": "PR body: release_authorized (선택)"
+        },
+        {
+          "name": "PATH_POLICY",
+          "status": "PASS",
+          "where": "PR diff (rename 원본 포함), risk_level/qa_required/release 플래그"
+        },
+        {
+          "name": "ISSUE_AC",
+          "status": "PASS",
+          "where": "Issue #880 Acceptance Criteria"
+        },
+        {
+          "name": "DOCUMENTATION_SYNC",
+          "status": "PASS",
+          "where": "docs/exec-plans/active/ISSUE_880.md: DOCUMENTATION_SYNC / AC_TEST_COVERAGE"
+        },
+        {
+          "name": "MERGE_CONFLICT",
+          "status": "DEFERRED",
+          "where": "GitHub PR mergeability",
+          "reason": "사전 시점의 계산은 최종 test-merge 증거가 아님"
+        },
+        {
+          "name": "LATEST_FULL_CI",
+          "status": "DEFERRED",
+          "where": "Final QA/Owner gate",
+          "reason": "세 required aggregate/run/attempt는 아직 완료되지 않음"
+        },
+        {
+          "name": "REVIEW_OWNER",
+          "status": "DEFERRED",
+          "where": "Final QA/Owner gate",
+          "reason": "최종 review thread·Trusted QA·Owner ACCEPT는 사후 검증"
+        },
+        {
+          "name": "BASE_TEST_MERGE",
+          "status": "DEFERRED",
+          "where": "Final QA/Owner gate",
+          "reason": "최신 main, 정확한 test merge는 마지막 QA에서 재확인"
+        },
+        {
+          "name": "DOCUMENT_MEANING",
+          "status": "DEFERRED",
+          "where": "Final QA/Owner gate",
+          "reason": "문서 영향 의미 적합성은 Owner 수동 검토"
+        }
+      ]
+    },
+    "cacheContract": "PASS"
+  },
+  "directGreen": {
+    "status": "PASS",
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "exitCode": 0,
+    "testSeconds": 26.9,
+    "totalSeconds": 40.2,
+    "workers": 1,
+    "retries": 0,
+    "maxFailures": 0,
+    "raw": "/tmp/issue880-r2-green-2",
+    "nativeBodyAt900": 150,
+    "nativeBodyAt480": 150,
+    "nativeHeight": 222,
+    "nativeHeaderHeight": 72,
+    "fullscreenBodyAt480": 254,
+    "fullscreenReturnBody": 150,
+    "horizontalOverflow": 0,
+    "projectRevision": 40,
+    "projectWrites": 0
+  },
+  "finalBrowser": {
+    "status": "PASS",
+    "plannedUniqueCases": 64,
+    "specs": [
+      "tests/e2e/project-search-filter.spec.ts",
+      "tests/e2e/schedule-views.spec.ts",
+      "tests/e2e/project-gantt-fullscreen.spec.ts",
+      "tests/e2e/project-gantt-scale.spec.ts",
+      "tests/e2e/project-task-editor.spec.ts",
+      "tests/e2e/projection-row-alignment.spec.ts",
+      "tests/e2e/project-gantt-density.spec.ts"
+    ],
+    "workers": 1,
+    "retries": 0,
+    "maxFailures": 0,
+    "passed": 64,
+    "failed": 0,
+    "flaky": 0,
+    "skipped": 0,
+    "uniqueCases": 64,
+    "exitCode": 0,
+    "duration": "13.7분",
+    "raw": "/tmp/issue880-r2-final64",
+    "sourceStartEqualsEnd": true,
+    "sourceSha256": "7e9163c0ea293d898c883c82c38d8c62a0c5de0e33b232f217a4ef31b1dc43b7",
+    "groupCounts": {
+      "searchFilter": 3,
+      "scheduleViews": 6,
+      "fullscreen": 6,
+      "scale": 2,
+      "editor": 33,
+      "rowAlignment": 13,
+      "informationDensity": 1
+    },
+    "newViewCaseSeconds": [
+      45.8,
+      21.7,
+      29.8,
+      23.1,
+      8.9,
+      37.0
+    ],
+    "readonlyExtendedCaseSeconds": 15.1,
+    "proofs": {
+      "readonly-filter-geometry": {
+        "identity": {
+          "apiId": "svar-api-1",
+          "instanceId": "project-gantt-hijfer25wwe"
+        },
+        "receipts": [
+          {
+            "label": "original-1024x900",
+            "geometry": {
+              "viewport": {
+                "width": 1024,
+                "height": 900
+              },
+              "fullscreen": false,
+              "nativeHeight": 222,
+              "chartHeight": 222,
+              "gridHeight": 222,
+              "scaleHeight": 72,
+              "gridHeaderHeight": 72,
+              "bodyHeight": 150,
+              "horizontalOverflow": 0,
+              "scope": {
+                "height": 711,
+                "scrollHeight": 711,
+                "top": 0,
+                "overflow": "auto"
+              },
+              "nativeScroll": {
+                "left": 0,
+                "top": 0
+              },
+              "core": {
+                "instance": "svar-api-1",
+                "top": 0,
+                "left": 0,
+                "rows": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000001",
+                    "y": 3,
+                    "x": 36,
+                    "height": 27
+                  },
+                  {
+                    "id": "00000000-0000-4000-8000-000000000002",
+                    "y": 37,
+                    "x": 36,
+                    "height": 27
+                  }
+                ],
+                "canonicalIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002",
+                  "00000000-0000-4000-8000-000000000003",
+                  "00000000-0000-4000-8000-000000000004"
+                ]
+              }
+            },
+            "readiness": {
+              "connected": true,
+              "visible": true,
+              "sameOwners": true,
+              "api": "svar-api-1",
+              "scale": "day",
+              "coreScale": "day",
+              "scope": null,
+              "query": "",
+              "canonical": {
+                "generation": "4",
+                "settled": "4",
+                "depth": 0,
+                "recovery": "SETTLED"
+              },
+              "lastSuccess": {
+                "apiInstance": "svar-api-1",
+                "generation": 3,
+                "reasons": [
+                  "membership",
+                  "layout"
+                ],
+                "scale": "day",
+                "scope": null,
+                "filterKey": "fbd0f39c1",
+                "taskSelectionChanged": false,
+                "queryConditionsChanged": true,
+                "expectedColumns": [
+                  {
+                    "id": "copySelection",
+                    "hidden": false
+                  },
+                  {
+                    "id": "text",
+                    "hidden": false
+                  },
+                  {
+                    "id": "externalId",
+                    "hidden": true
+                  },
+                  {
+                    "id": "projectStart",
+                    "hidden": false
+                  },
+                  {
+                    "id": "projectDuration",
+                    "hidden": false
+                  },
+                  {
+                    "id": "baselineStart",
+                    "hidden": true
+                  },
+                  {
+                    "id": "milestoneStage",
+                    "hidden": true
+                  },
+                  {
+                    "id": "baselineEnd",
+                    "hidden": true
+                  },
+                  {
+                    "id": "add-task",
+                    "hidden": false
+                  }
+                ],
+                "revision": 40,
+                "outcome": "SETTLED",
+                "logicalVisibleIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002"
+                ],
+                "coreVisibleIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002"
+                ],
+                "domIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002"
+                ],
+                "columns": "[[\"copySelection\",56,false],[\"text\",1,false],[\"externalId\",108,true],[\"projectStart\",104,false],[\"projectDuration\",56,false],[\"baselineStart\",104,true],[\"milestoneStage\",180,true],[\"baselineEnd\",104,true],[\"add-task\",37,null]]",
+                "selectedIds": []
+              },
+              "latestAttempt": {
+                "generation": 5,
+                "stage": "delivery",
+                "outcome": "SETTLED"
+              },
+              "semantic": {
+                "semanticId": 3,
+                "observation": 3,
+                "reused": false
+              },
+              "currentWork": null,
+              "core": {
+                "ready": true,
+                "instance": "svar-api-1",
+                "left": 0,
+                "top": 0,
+                "width": 12564,
+                "chartWidth": 490,
+                "axisStart": "2026-01-03T15:00:00.000Z",
+                "axisEnd": "2026-12-18T15:00:00.000Z",
+                "canonicalIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002",
+                  "00000000-0000-4000-8000-000000000003",
+                  "00000000-0000-4000-8000-000000000004"
+                ],
+                "coreTaskCount": 4,
+                "coreVisibleIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002"
+                ],
+                "scaleRows": [
+                  {
+                    "width": 12564,
+                    "labels": [
+                      "2026년 1월",
+                      "2026년 2월",
+                      "2026년 3월",
+                      "2026년 10월",
+                      "2026년 11월",
+                      "2026년 12월"
+                    ]
+                  },
+                  {
+                    "width": 12564,
+                    "labels": [
+                      "4",
+                      "5",
+                      "6",
+                      "16",
+                      "17",
+                      "18"
+                    ]
+                  }
+                ]
+              },
+              "native": {
+                "left": 0,
+                "top": 0,
+                "capacity": 12075,
+                "clientWidth": 489,
+                "clientHeight": 222
+              },
+              "domIds": [
+                "00000000-0000-4000-8000-000000000001",
+                "00000000-0000-4000-8000-000000000002"
+              ],
+              "axisExists": true,
+              "header": true,
+              "geometry": [
+                489,
+                222,
+                12564,
+                974,
+                222,
+                222,
+                976,
+                352,
+                0,
+                510,
+                638,
+                12564,
+                73,
+                1024,
+                900,
+                0
+              ],
+              "coordinate": null,
+              "hover": null
+            }
+          },
+          {
+            "label": "390x844",
+            "geometry": {
+              "viewport": {
+                "width": 390,
+                "height": 844
+              },
+              "fullscreen": false,
+              "nativeHeight": 480,
+              "chartHeight": 480,
+              "gridHeight": 480,
+              "scaleHeight": 72,
+              "gridHeaderHeight": 72,
+              "bodyHeight": 408,
+              "horizontalOverflow": 0,
+              "scope": {
+                "height": 608,
+                "scrollHeight": 1158,
+                "top": 0,
+                "overflow": "visible"
+              },
+              "nativeScroll": {
+                "left": 0,
+                "top": 0
+              },
+              "core": {
+                "instance": "svar-api-1",
+                "top": 0,
+                "left": 0,
+                "rows": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000001",
+                    "y": 3,
+                    "x": 36,
+                    "height": 27
+                  },
+                  {
+                    "id": "00000000-0000-4000-8000-000000000002",
+                    "y": 37,
+                    "x": 36,
+                    "height": 27
+                  }
+                ],
+                "canonicalIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002",
+                  "00000000-0000-4000-8000-000000000003",
+                  "00000000-0000-4000-8000-000000000004"
+                ]
+              }
+            },
+            "readiness": {
+              "connected": true,
+              "visible": true,
+              "sameOwners": true,
+              "api": "svar-api-1",
+              "scale": "day",
+              "coreScale": "day",
+              "scope": null,
+              "query": "",
+              "canonical": {
+                "generation": "4",
+                "settled": "4",
+                "depth": 0,
+                "recovery": "SETTLED"
+              },
+              "lastSuccess": {
+                "apiInstance": "svar-api-1",
+                "generation": 4,
+                "reasons": [
+                  "membership",
+                  "layout"
+                ],
+                "scale": "day",
+                "scope": null,
+                "filterKey": "fbd0f39c1",
+                "taskSelectionChanged": false,
+                "queryConditionsChanged": false,
+                "expectedColumns": [
+                  {
+                    "id": "copySelection",
+                    "hidden": false
+                  },
+                  {
+                    "id": "text",
+                    "hidden": false
+                  },
+                  {
+                    "id": "externalId",
+                    "hidden": true
+                  },
+                  {
+                    "id": "projectStart",
+                    "hidden": false
+                  },
+                  {
+                    "id": "projectDuration",
+                    "hidden": false
+                  },
+                  {
+                    "id": "baselineStart",
+                    "hidden": true
+                  },
+                  {
+                    "id": "milestoneStage",
+                    "hidden": true
+                  },
+                  {
+                    "id": "baselineEnd",
+                    "hidden": true
+                  },
+                  {
+                    "id": "add-task",
+                    "hidden": false
+                  }
+                ],
+                "revision": 40,
+                "outcome": "SETTLED",
+                "logicalVisibleIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002"
+                ],
+                "coreVisibleIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002"
+                ],
+                "domIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002"
+                ],
+                "columns": "[[\"copySelection\",56,false],[\"text\",1,false],[\"externalId\",108,true],[\"projectStart\",104,false],[\"projectDuration\",56,false],[\"baselineStart\",104,true],[\"milestoneStage\",180,true],[\"baselineEnd\",104,true],[\"add-task\",37,null]]",
+                "selectedIds": []
+              },
+              "latestAttempt": {
+                "generation": 6,
+                "stage": "delivery",
+                "outcome": "SETTLED"
+              },
+              "semantic": {
+                "semanticId": 4,
+                "observation": 4,
+                "reused": false
+              },
+              "currentWork": null,
+              "core": {
+                "ready": true,
+                "instance": "svar-api-1",
+                "left": 0,
+                "top": 0,
+                "width": 12564,
+                "chartWidth": 236,
+                "axisStart": "2026-01-03T15:00:00.000Z",
+                "axisEnd": "2026-12-18T15:00:00.000Z",
+                "canonicalIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002",
+                  "00000000-0000-4000-8000-000000000003",
+                  "00000000-0000-4000-8000-000000000004"
+                ],
+                "coreTaskCount": 4,
+                "coreVisibleIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002"
+                ],
+                "scaleRows": [
+                  {
+                    "width": 12564,
+                    "labels": [
+                      "2026년 1월",
+                      "2026년 2월",
+                      "2026년 3월",
+                      "2026년 10월",
+                      "2026년 11월",
+                      "2026년 12월"
+                    ]
+                  },
+                  {
+                    "width": 12564,
+                    "labels": [
+                      "4",
+                      "5",
+                      "6",
+                      "16",
+                      "17",
+                      "18"
+                    ]
+                  }
+                ]
+              },
+              "native": {
+                "left": 0,
+                "top": 0,
+                "capacity": 12329,
+                "clientWidth": 235,
+                "clientHeight": 480
+              },
+              "domIds": [
+                "00000000-0000-4000-8000-000000000001",
+                "00000000-0000-4000-8000-000000000002"
+              ],
+              "axisExists": true,
+              "header": true,
+              "geometry": [
+                235,
+                480,
+                12564,
+                720,
+                480,
+                480,
+                366,
+                24,
+                0,
+                498,
+                1007.796875,
+                12564,
+                73,
+                390,
+                844,
+                0
+              ],
+              "coordinate": null,
+              "hover": null
+            }
+          },
+          {
+            "label": "768x900",
+            "geometry": {
+              "viewport": {
+                "width": 768,
+                "height": 900
+              },
+              "fullscreen": false,
+              "nativeHeight": 352,
+              "chartHeight": 352,
+              "gridHeight": 352,
+              "scaleHeight": 72,
+              "gridHeaderHeight": 72,
+              "bodyHeight": 280,
+              "horizontalOverflow": 0,
+              "scope": {
+                "height": 663,
+                "scrollHeight": 1064,
+                "top": 0,
+                "overflow": "visible"
+              },
+              "nativeScroll": {
+                "left": 0,
+                "top": 0
+              },
+              "core": {
+                "instance": "svar-api-1",
+                "top": 0,
+                "left": 0,
+                "rows": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000001",
+                    "y": 3,
+                    "x": 36,
+                    "height": 27
+                  },
+                  {
+                    "id": "00000000-0000-4000-8000-000000000002",
+                    "y": 37,
+                    "x": 36,
+                    "height": 27
+                  }
+                ],
+                "canonicalIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002",
+                  "00000000-0000-4000-8000-000000000003",
+                  "00000000-0000-4000-8000-000000000004"
+                ]
+              }
+            },
+            "readiness": {
+              "connected": true,
+              "visible": true,
+              "sameOwners": true,
+              "api": "svar-api-1",
+              "scale": "day",
+              "coreScale": "day",
+              "scope": null,
+              "query": "",
+              "canonical": {
+                "generation": "4",
+                "settled": "4",
+                "depth": 0,
+                "recovery": "SETTLED"
+              },
+              "lastSuccess": {
+                "apiInstance": "svar-api-1",
+                "generation": 5,
+                "reasons": [
+                  "membership",
+                  "layout"
+                ],
+                "scale": "day",
+                "scope": null,
+                "filterKey": "fbd0f39c1",
+                "taskSelectionChanged": false,
+                "queryConditionsChanged": false,
+                "expectedColumns": [
+                  {
+                    "id": "copySelection",
+                    "hidden": false
+                  },
+                  {
+                    "id": "text",
+                    "hidden": false
+                  },
+                  {
+                    "id": "externalId",
+                    "hidden": true
+                  },
+                  {
+                    "id": "projectStart",
+                    "hidden": false
+                  },
+                  {
+                    "id": "projectDuration",
+                    "hidden": false
+                  },
+                  {
+                    "id": "baselineStart",
+                    "hidden": true
+                  },
+                  {
+                    "id": "milestoneStage",
+                    "hidden": true
+                  },
+                  {
+                    "id": "baselineEnd",
+                    "hidden": true
+                  },
+                  {
+                    "id": "add-task",
+                    "hidden": false
+                  }
+                ],
+                "revision": 40,
+                "outcome": "SETTLED",
+                "logicalVisibleIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002"
+                ],
+                "coreVisibleIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002"
+                ],
+                "domIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002"
+                ],
+                "columns": "[[\"copySelection\",56,false],[\"text\",1,false],[\"externalId\",108,true],[\"projectStart\",104,false],[\"projectDuration\",56,false],[\"baselineStart\",104,true],[\"milestoneStage\",180,true],[\"baselineEnd\",104,true],[\"add-task\",37,null]]",
+                "selectedIds": []
+              },
+              "latestAttempt": {
+                "generation": 7,
+                "stage": "delivery",
+                "outcome": "SETTLED"
+              },
+              "semantic": {
+                "semanticId": 5,
+                "observation": 5,
+                "reused": false
+              },
+              "currentWork": null,
+              "core": {
+                "ready": true,
+                "instance": "svar-api-1",
+                "left": 0,
+                "top": 0,
+                "width": 12564,
+                "chartWidth": 236,
+                "axisStart": "2026-01-03T15:00:00.000Z",
+                "axisEnd": "2026-12-18T15:00:00.000Z",
+                "canonicalIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002",
+                  "00000000-0000-4000-8000-000000000003",
+                  "00000000-0000-4000-8000-000000000004"
+                ],
+                "coreTaskCount": 4,
+                "coreVisibleIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002"
+                ],
+                "scaleRows": [
+                  {
+                    "width": 12564,
+                    "labels": [
+                      "2026년 1월",
+                      "2026년 2월",
+                      "2026년 3월",
+                      "2026년 10월",
+                      "2026년 11월",
+                      "2026년 12월"
+                    ]
+                  },
+                  {
+                    "width": 12564,
+                    "labels": [
+                      "4",
+                      "5",
+                      "6",
+                      "16",
+                      "17",
+                      "18"
+                    ]
+                  }
+                ]
+              },
+              "native": {
+                "left": 0,
+                "top": 0,
+                "capacity": 12329,
+                "clientWidth": 235,
+                "clientHeight": 352
+              },
+              "domIds": [
+                "00000000-0000-4000-8000-000000000001",
+                "00000000-0000-4000-8000-000000000002"
+              ],
+              "axisExists": true,
+              "header": true,
+              "geometry": [
+                235,
+                352,
+                12564,
+                720,
+                352,
+                352,
+                720,
+                75,
+                0,
+                510,
+                525,
+                12564,
+                73,
+                768,
+                900,
+                0
+              ],
+              "coordinate": null,
+              "hover": null
+            }
+          },
+          {
+            "label": "1024x900",
+            "geometry": {
+              "viewport": {
+                "width": 1024,
+                "height": 900
+              },
+              "fullscreen": false,
+              "nativeHeight": 222,
+              "chartHeight": 222,
+              "gridHeight": 222,
+              "scaleHeight": 72,
+              "gridHeaderHeight": 72,
+              "bodyHeight": 150,
+              "horizontalOverflow": 0,
+              "scope": {
+                "height": 711,
+                "scrollHeight": 711,
+                "top": 0,
+                "overflow": "auto"
+              },
+              "nativeScroll": {
+                "left": 0,
+                "top": 0
+              },
+              "core": {
+                "instance": "svar-api-1",
+                "top": 0,
+                "left": 0,
+                "rows": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000001",
+                    "y": 3,
+                    "x": 36,
+                    "height": 27
+                  },
+                  {
+                    "id": "00000000-0000-4000-8000-000000000002",
+                    "y": 37,
+                    "x": 36,
+                    "height": 27
+                  }
+                ],
+                "canonicalIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002",
+                  "00000000-0000-4000-8000-000000000003",
+                  "00000000-0000-4000-8000-000000000004"
+                ]
+              }
+            },
+            "readiness": {
+              "connected": true,
+              "visible": true,
+              "sameOwners": true,
+              "api": "svar-api-1",
+              "scale": "day",
+              "coreScale": "day",
+              "scope": null,
+              "query": "",
+              "canonical": {
+                "generation": "4",
+                "settled": "4",
+                "depth": 0,
+                "recovery": "SETTLED"
+              },
+              "lastSuccess": {
+                "apiInstance": "svar-api-1",
+                "generation": 6,
+                "reasons": [
+                  "membership",
+                  "layout"
+                ],
+                "scale": "day",
+                "scope": null,
+                "filterKey": "fbd0f39c1",
+                "taskSelectionChanged": false,
+                "queryConditionsChanged": false,
+                "expectedColumns": [
+                  {
+                    "id": "copySelection",
+                    "hidden": false
+                  },
+                  {
+                    "id": "text",
+                    "hidden": false
+                  },
+                  {
+                    "id": "externalId",
+                    "hidden": true
+                  },
+                  {
+                    "id": "projectStart",
+                    "hidden": false
+                  },
+                  {
+                    "id": "projectDuration",
+                    "hidden": false
+                  },
+                  {
+                    "id": "baselineStart",
+                    "hidden": true
+                  },
+                  {
+                    "id": "milestoneStage",
+                    "hidden": true
+                  },
+                  {
+                    "id": "baselineEnd",
+                    "hidden": true
+                  },
+                  {
+                    "id": "add-task",
+                    "hidden": false
+                  }
+                ],
+                "revision": 40,
+                "outcome": "SETTLED",
+                "logicalVisibleIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002"
+                ],
+                "coreVisibleIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002"
+                ],
+                "domIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002"
+                ],
+                "columns": "[[\"copySelection\",56,false],[\"text\",1,false],[\"externalId\",108,true],[\"projectStart\",104,false],[\"projectDuration\",56,false],[\"baselineStart\",104,true],[\"milestoneStage\",180,true],[\"baselineEnd\",104,true],[\"add-task\",37,null]]",
+                "selectedIds": []
+              },
+              "latestAttempt": {
+                "generation": 8,
+                "stage": "delivery",
+                "outcome": "SETTLED"
+              },
+              "semantic": {
+                "semanticId": 6,
+                "observation": 6,
+                "reused": false
+              },
+              "currentWork": null,
+              "core": {
+                "ready": true,
+                "instance": "svar-api-1",
+                "left": 0,
+                "top": 0,
+                "width": 12564,
+                "chartWidth": 490,
+                "axisStart": "2026-01-03T15:00:00.000Z",
+                "axisEnd": "2026-12-18T15:00:00.000Z",
+                "canonicalIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002",
+                  "00000000-0000-4000-8000-000000000003",
+                  "00000000-0000-4000-8000-000000000004"
+                ],
+                "coreTaskCount": 4,
+                "coreVisibleIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002"
+                ],
+                "scaleRows": [
+                  {
+                    "width": 12564,
+                    "labels": [
+                      "2026년 1월",
+                      "2026년 2월",
+                      "2026년 3월",
+                      "2026년 10월",
+                      "2026년 11월",
+                      "2026년 12월"
+                    ]
+                  },
+                  {
+                    "width": 12564,
+                    "labels": [
+                      "4",
+                      "5",
+                      "6",
+                      "16",
+                      "17",
+                      "18"
+                    ]
+                  }
+                ]
+              },
+              "native": {
+                "left": 0,
+                "top": 0,
+                "capacity": 12075,
+                "clientWidth": 489,
+                "clientHeight": 222
+              },
+              "domIds": [
+                "00000000-0000-4000-8000-000000000001",
+                "00000000-0000-4000-8000-000000000002"
+              ],
+              "axisExists": true,
+              "header": true,
+              "geometry": [
+                489,
+                222,
+                12564,
+                974,
+                222,
+                222,
+                976,
+                352,
+                0,
+                510,
+                637,
+                12564,
+                73,
+                1024,
+                900,
+                0
+              ],
+              "coordinate": null,
+              "hover": null
+            }
+          },
+          {
+            "label": "1440x900",
+            "geometry": {
+              "viewport": {
+                "width": 1440,
+                "height": 900
+              },
+              "fullscreen": false,
+              "nativeHeight": 222,
+              "chartHeight": 222,
+              "gridHeight": 222,
+              "scaleHeight": 72,
+              "gridHeaderHeight": 72,
+              "bodyHeight": 150,
+              "horizontalOverflow": 0,
+              "scope": {
+                "height": 711,
+                "scrollHeight": 711,
+                "top": 0,
+                "overflow": "auto"
+              },
+              "nativeScroll": {
+                "left": 0,
+                "top": 0
+              },
+              "core": {
+                "instance": "svar-api-1",
+                "top": 0,
+                "left": 0,
+                "rows": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000001",
+                    "y": 3,
+                    "x": 36,
+                    "height": 27
+                  },
+                  {
+                    "id": "00000000-0000-4000-8000-000000000002",
+                    "y": 37,
+                    "x": 36,
+                    "height": 27
+                  }
+                ],
+                "canonicalIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002",
+                  "00000000-0000-4000-8000-000000000003",
+                  "00000000-0000-4000-8000-000000000004"
+                ]
+              }
+            },
+            "readiness": {
+              "connected": true,
+              "visible": true,
+              "sameOwners": true,
+              "api": "svar-api-1",
+              "scale": "day",
+              "coreScale": "day",
+              "scope": null,
+              "query": "",
+              "canonical": {
+                "generation": "4",
+                "settled": "4",
+                "depth": 0,
+                "recovery": "SETTLED"
+              },
+              "lastSuccess": {
+                "apiInstance": "svar-api-1",
+                "generation": 7,
+                "reasons": [
+                  "membership",
+                  "layout"
+                ],
+                "scale": "day",
+                "scope": null,
+                "filterKey": "fbd0f39c1",
+                "taskSelectionChanged": false,
+                "queryConditionsChanged": false,
+                "expectedColumns": [
+                  {
+                    "id": "copySelection",
+                    "hidden": false
+                  },
+                  {
+                    "id": "text",
+                    "hidden": false
+                  },
+                  {
+                    "id": "externalId",
+                    "hidden": true
+                  },
+                  {
+                    "id": "projectStart",
+                    "hidden": false
+                  },
+                  {
+                    "id": "projectDuration",
+                    "hidden": false
+                  },
+                  {
+                    "id": "baselineStart",
+                    "hidden": true
+                  },
+                  {
+                    "id": "milestoneStage",
+                    "hidden": true
+                  },
+                  {
+                    "id": "baselineEnd",
+                    "hidden": true
+                  },
+                  {
+                    "id": "add-task",
+                    "hidden": false
+                  }
+                ],
+                "revision": 40,
+                "outcome": "SETTLED",
+                "logicalVisibleIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002"
+                ],
+                "coreVisibleIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002"
+                ],
+                "domIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002"
+                ],
+                "columns": "[[\"copySelection\",56,false],[\"text\",1,false],[\"externalId\",108,true],[\"projectStart\",104,false],[\"projectDuration\",56,false],[\"baselineStart\",104,true],[\"milestoneStage\",180,true],[\"baselineEnd\",104,true],[\"add-task\",37,null]]",
+                "selectedIds": []
+              },
+              "latestAttempt": {
+                "generation": 9,
+                "stage": "delivery",
+                "outcome": "SETTLED"
+              },
+              "semantic": {
+                "semanticId": 7,
+                "observation": 7,
+                "reused": false
+              },
+              "currentWork": null,
+              "core": {
+                "ready": true,
+                "instance": "svar-api-1",
+                "left": 0,
+                "top": 0,
+                "width": 12564,
+                "chartWidth": 906,
+                "axisStart": "2026-01-03T15:00:00.000Z",
+                "axisEnd": "2026-12-18T15:00:00.000Z",
+                "canonicalIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002",
+                  "00000000-0000-4000-8000-000000000003",
+                  "00000000-0000-4000-8000-000000000004"
+                ],
+                "coreTaskCount": 4,
+                "coreVisibleIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002"
+                ],
+                "scaleRows": [
+                  {
+                    "width": 12564,
+                    "labels": [
+                      "2026년 1월",
+                      "2026년 2월",
+                      "2026년 3월",
+                      "2026년 10월",
+                      "2026년 11월",
+                      "2026년 12월"
+                    ]
+                  },
+                  {
+                    "width": 12564,
+                    "labels": [
+                      "4",
+                      "5",
+                      "6",
+                      "16",
+                      "17",
+                      "18"
+                    ]
+                  }
+                ]
+              },
+              "native": {
+                "left": 0,
+                "top": 0,
+                "capacity": 11659,
+                "clientWidth": 905,
+                "clientHeight": 222
+              },
+              "domIds": [
+                "00000000-0000-4000-8000-000000000001",
+                "00000000-0000-4000-8000-000000000002"
+              ],
+              "axisExists": true,
+              "header": true,
+              "geometry": [
+                905,
+                222,
+                12564,
+                1390,
+                222,
+                222,
+                1392,
+                304,
+                0,
+                510,
+                637,
+                12564,
+                73,
+                1440,
+                900,
+                0
+              ],
+              "coordinate": null,
+              "hover": null
+            }
+          },
+          {
+            "label": "1920x900",
+            "geometry": {
+              "viewport": {
+                "width": 1920,
+                "height": 900
+              },
+              "fullscreen": false,
+              "nativeHeight": 222,
+              "chartHeight": 222,
+              "gridHeight": 222,
+              "scaleHeight": 72,
+              "gridHeaderHeight": 72,
+              "bodyHeight": 150,
+              "horizontalOverflow": 0,
+              "scope": {
+                "height": 711,
+                "scrollHeight": 711,
+                "top": 0,
+                "overflow": "auto"
+              },
+              "nativeScroll": {
+                "left": 0,
+                "top": 0
+              },
+              "core": {
+                "instance": "svar-api-1",
+                "top": 0,
+                "left": 0,
+                "rows": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000001",
+                    "y": 3,
+                    "x": 36,
+                    "height": 27
+                  },
+                  {
+                    "id": "00000000-0000-4000-8000-000000000002",
+                    "y": 37,
+                    "x": 36,
+                    "height": 27
+                  }
+                ],
+                "canonicalIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002",
+                  "00000000-0000-4000-8000-000000000003",
+                  "00000000-0000-4000-8000-000000000004"
+                ]
+              }
+            },
+            "readiness": {
+              "connected": true,
+              "visible": true,
+              "sameOwners": true,
+              "api": "svar-api-1",
+              "scale": "day",
+              "coreScale": "day",
+              "scope": null,
+              "query": "",
+              "canonical": {
+                "generation": "4",
+                "settled": "4",
+                "depth": 0,
+                "recovery": "SETTLED"
+              },
+              "lastSuccess": {
+                "apiInstance": "svar-api-1",
+                "generation": 8,
+                "reasons": [
+                  "membership",
+                  "layout"
+                ],
+                "scale": "day",
+                "scope": null,
+                "filterKey": "fbd0f39c1",
+                "taskSelectionChanged": false,
+                "queryConditionsChanged": false,
+                "expectedColumns": [
+                  {
+                    "id": "copySelection",
+                    "hidden": false
+                  },
+                  {
+                    "id": "text",
+                    "hidden": false
+                  },
+                  {
+                    "id": "externalId",
+                    "hidden": true
+                  },
+                  {
+                    "id": "projectStart",
+                    "hidden": false
+                  },
+                  {
+                    "id": "projectDuration",
+                    "hidden": false
+                  },
+                  {
+                    "id": "baselineStart",
+                    "hidden": true
+                  },
+                  {
+                    "id": "milestoneStage",
+                    "hidden": true
+                  },
+                  {
+                    "id": "baselineEnd",
+                    "hidden": true
+                  },
+                  {
+                    "id": "add-task",
+                    "hidden": false
+                  }
+                ],
+                "revision": 40,
+                "outcome": "SETTLED",
+                "logicalVisibleIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002"
+                ],
+                "coreVisibleIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002"
+                ],
+                "domIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002"
+                ],
+                "columns": "[[\"copySelection\",56,false],[\"text\",1,false],[\"externalId\",108,true],[\"projectStart\",104,false],[\"projectDuration\",56,false],[\"baselineStart\",104,true],[\"milestoneStage\",180,true],[\"baselineEnd\",104,true],[\"add-task\",37,null]]",
+                "selectedIds": []
+              },
+              "latestAttempt": {
+                "generation": 10,
+                "stage": "delivery",
+                "outcome": "SETTLED"
+              },
+              "semantic": {
+                "semanticId": 8,
+                "observation": 8,
+                "reused": false
+              },
+              "currentWork": null,
+              "core": {
+                "ready": true,
+                "instance": "svar-api-1",
+                "left": 0,
+                "top": 0,
+                "width": 12564,
+                "chartWidth": 1386,
+                "axisStart": "2026-01-03T15:00:00.000Z",
+                "axisEnd": "2026-12-18T15:00:00.000Z",
+                "canonicalIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002",
+                  "00000000-0000-4000-8000-000000000003",
+                  "00000000-0000-4000-8000-000000000004"
+                ],
+                "coreTaskCount": 4,
+                "coreVisibleIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002"
+                ],
+                "scaleRows": [
+                  {
+                    "width": 12564,
+                    "labels": [
+                      "2026년 1월",
+                      "2026년 2월",
+                      "2026년 3월",
+                      "2026년 10월",
+                      "2026년 11월",
+                      "2026년 12월"
+                    ]
+                  },
+                  {
+                    "width": 12564,
+                    "labels": [
+                      "4",
+                      "5",
+                      "6",
+                      "16",
+                      "17",
+                      "18"
+                    ]
+                  }
+                ]
+              },
+              "native": {
+                "left": 0,
+                "top": 0,
+                "capacity": 11179,
+                "clientWidth": 1385,
+                "clientHeight": 222
+              },
+              "domIds": [
+                "00000000-0000-4000-8000-000000000001",
+                "00000000-0000-4000-8000-000000000002"
+              ],
+              "axisExists": true,
+              "header": true,
+              "geometry": [
+                1385,
+                222,
+                12564,
+                1870,
+                222,
+                222,
+                1872,
+                304,
+                0,
+                510,
+                637,
+                12564,
+                73,
+                1920,
+                900,
+                0
+              ],
+              "coordinate": null,
+              "hover": null
+            }
+          },
+          {
+            "label": "1024x480",
+            "geometry": {
+              "viewport": {
+                "width": 1024,
+                "height": 480
+              },
+              "fullscreen": false,
+              "nativeHeight": 222,
+              "chartHeight": 222,
+              "gridHeight": 222,
+              "scaleHeight": 72,
+              "gridHeaderHeight": 72,
+              "bodyHeight": 150,
+              "horizontalOverflow": 0,
+              "scope": {
+                "height": 291,
+                "scrollHeight": 668,
+                "top": 0,
+                "overflow": "auto"
+              },
+              "nativeScroll": {
+                "left": 0,
+                "top": 0
+              },
+              "core": {
+                "instance": "svar-api-1",
+                "top": 0,
+                "left": 0,
+                "rows": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000001",
+                    "y": 3,
+                    "x": 36,
+                    "height": 27
+                  },
+                  {
+                    "id": "00000000-0000-4000-8000-000000000002",
+                    "y": 37,
+                    "x": 36,
+                    "height": 27
+                  }
+                ],
+                "canonicalIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002",
+                  "00000000-0000-4000-8000-000000000003",
+                  "00000000-0000-4000-8000-000000000004"
+                ]
+              }
+            },
+            "readiness": {
+              "connected": true,
+              "visible": true,
+              "sameOwners": true,
+              "api": "svar-api-1",
+              "scale": "day",
+              "coreScale": "day",
+              "scope": null,
+              "query": "",
+              "canonical": {
+                "generation": "4",
+                "settled": "4",
+                "depth": 0,
+                "recovery": "SETTLED"
+              },
+              "lastSuccess": {
+                "apiInstance": "svar-api-1",
+                "generation": 9,
+                "reasons": [
+                  "membership",
+                  "layout"
+                ],
+                "scale": "day",
+                "scope": null,
+                "filterKey": "fbd0f39c1",
+                "taskSelectionChanged": false,
+                "queryConditionsChanged": false,
+                "expectedColumns": [
+                  {
+                    "id": "copySelection",
+                    "hidden": false
+                  },
+                  {
+                    "id": "text",
+                    "hidden": false
+                  },
+                  {
+                    "id": "externalId",
+                    "hidden": true
+                  },
+                  {
+                    "id": "projectStart",
+                    "hidden": false
+                  },
+                  {
+                    "id": "projectDuration",
+                    "hidden": false
+                  },
+                  {
+                    "id": "baselineStart",
+                    "hidden": true
+                  },
+                  {
+                    "id": "milestoneStage",
+                    "hidden": true
+                  },
+                  {
+                    "id": "baselineEnd",
+                    "hidden": true
+                  },
+                  {
+                    "id": "add-task",
+                    "hidden": false
+                  }
+                ],
+                "revision": 40,
+                "outcome": "SETTLED",
+                "logicalVisibleIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002"
+                ],
+                "coreVisibleIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002"
+                ],
+                "domIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002"
+                ],
+                "columns": "[[\"copySelection\",56,false],[\"text\",1,false],[\"externalId\",108,true],[\"projectStart\",104,false],[\"projectDuration\",56,false],[\"baselineStart\",104,true],[\"milestoneStage\",180,true],[\"baselineEnd\",104,true],[\"add-task\",37,null]]",
+                "selectedIds": []
+              },
+              "latestAttempt": {
+                "generation": 11,
+                "stage": "delivery",
+                "outcome": "SETTLED"
+              },
+              "semantic": {
+                "semanticId": 9,
+                "observation": 9,
+                "reused": false
+              },
+              "currentWork": null,
+              "core": {
+                "ready": true,
+                "instance": "svar-api-1",
+                "left": 0,
+                "top": 0,
+                "width": 12564,
+                "chartWidth": 490,
+                "axisStart": "2026-01-03T15:00:00.000Z",
+                "axisEnd": "2026-12-18T15:00:00.000Z",
+                "canonicalIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002",
+                  "00000000-0000-4000-8000-000000000003",
+                  "00000000-0000-4000-8000-000000000004"
+                ],
+                "coreTaskCount": 4,
+                "coreVisibleIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002"
+                ],
+                "scaleRows": [
+                  {
+                    "width": 12564,
+                    "labels": [
+                      "2026년 1월",
+                      "2026년 2월",
+                      "2026년 3월",
+                      "2026년 10월",
+                      "2026년 11월",
+                      "2026년 12월"
+                    ]
+                  },
+                  {
+                    "width": 12564,
+                    "labels": [
+                      "4",
+                      "5",
+                      "6",
+                      "16",
+                      "17",
+                      "18"
+                    ]
+                  }
+                ]
+              },
+              "native": {
+                "left": 0,
+                "top": 0,
+                "capacity": 12075,
+                "clientWidth": 489,
+                "clientHeight": 222
+              },
+              "domIds": [
+                "00000000-0000-4000-8000-000000000001",
+                "00000000-0000-4000-8000-000000000002"
+              ],
+              "axisExists": true,
+              "header": true,
+              "geometry": [
+                489,
+                222,
+                12564,
+                974,
+                222,
+                222,
+                976,
+                352,
+                0,
+                510,
+                594,
+                12564,
+                73,
+                1024,
+                480,
+                0
+              ],
+              "coordinate": null,
+              "hover": null
+            }
+          },
+          {
+            "label": "fullscreen-1024x480",
+            "geometry": {
+              "viewport": {
+                "width": 1024,
+                "height": 480
+              },
+              "fullscreen": true,
+              "nativeHeight": 326,
+              "chartHeight": 326,
+              "gridHeight": 326,
+              "scaleHeight": 72,
+              "gridHeaderHeight": 72,
+              "bodyHeight": 254,
+              "horizontalOverflow": 0,
+              "scope": {
+                "height": 291,
+                "scrollHeight": 316,
+                "top": 25,
+                "overflow": "auto"
+              },
+              "nativeScroll": {
+                "left": 0,
+                "top": 0
+              },
+              "core": {
+                "instance": "svar-api-1",
+                "top": 0,
+                "left": 0,
+                "rows": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000001",
+                    "y": 3,
+                    "x": 36,
+                    "height": 27
+                  },
+                  {
+                    "id": "00000000-0000-4000-8000-000000000002",
+                    "y": 37,
+                    "x": 36,
+                    "height": 27
+                  }
+                ],
+                "canonicalIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002",
+                  "00000000-0000-4000-8000-000000000003",
+                  "00000000-0000-4000-8000-000000000004"
+                ]
+              }
+            },
+            "readiness": {
+              "connected": true,
+              "visible": true,
+              "sameOwners": true,
+              "api": "svar-api-1",
+              "scale": "day",
+              "coreScale": "day",
+              "scope": null,
+              "query": "",
+              "canonical": {
+                "generation": "4",
+                "settled": "4",
+                "depth": 0,
+                "recovery": "SETTLED"
+              },
+              "lastSuccess": {
+                "apiInstance": "svar-api-1",
+                "generation": 10,
+                "reasons": [
+                  "membership"
+                ],
+                "scale": "day",
+                "scope": null,
+                "filterKey": "fbd0f39c1",
+                "taskSelectionChanged": false,
+                "queryConditionsChanged": false,
+                "expectedColumns": [
+                  {
+                    "id": "copySelection",
+                    "hidden": false
+                  },
+                  {
+                    "id": "text",
+                    "hidden": false
+                  },
+                  {
+                    "id": "externalId",
+                    "hidden": true
+                  },
+                  {
+                    "id": "projectStart",
+                    "hidden": false
+                  },
+                  {
+                    "id": "projectDuration",
+                    "hidden": false
+                  },
+                  {
+                    "id": "baselineStart",
+                    "hidden": true
+                  },
+                  {
+                    "id": "milestoneStage",
+                    "hidden": true
+                  },
+                  {
+                    "id": "baselineEnd",
+                    "hidden": true
+                  },
+                  {
+                    "id": "add-task",
+                    "hidden": false
+                  }
+                ],
+                "revision": 40,
+                "outcome": "SETTLED",
+                "logicalVisibleIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002"
+                ],
+                "coreVisibleIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002"
+                ],
+                "domIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002"
+                ],
+                "columns": "[[\"copySelection\",56,false],[\"text\",1,false],[\"externalId\",108,true],[\"projectStart\",104,false],[\"projectDuration\",56,false],[\"baselineStart\",104,true],[\"milestoneStage\",180,true],[\"baselineEnd\",104,true],[\"add-task\",37,null]]",
+                "selectedIds": []
+              },
+              "latestAttempt": {
+                "generation": 14,
+                "stage": "delivery",
+                "outcome": "SETTLED"
+              },
+              "semantic": {
+                "semanticId": 10,
+                "observation": 10,
+                "reused": false
+              },
+              "currentWork": null,
+              "core": {
+                "ready": true,
+                "instance": "svar-api-1",
+                "left": 0,
+                "top": 0,
+                "width": 12564,
+                "chartWidth": 514,
+                "axisStart": "2026-01-03T15:00:00.000Z",
+                "axisEnd": "2026-12-18T15:00:00.000Z",
+                "canonicalIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002",
+                  "00000000-0000-4000-8000-000000000003",
+                  "00000000-0000-4000-8000-000000000004"
+                ],
+                "coreTaskCount": 4,
+                "coreVisibleIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002"
+                ],
+                "scaleRows": [
+                  {
+                    "width": 12564,
+                    "labels": [
+                      "2026년 1월",
+                      "2026년 2월",
+                      "2026년 3월",
+                      "2026년 10월",
+                      "2026년 11월",
+                      "2026년 12월"
+                    ]
+                  },
+                  {
+                    "width": 12564,
+                    "labels": [
+                      "4",
+                      "5",
+                      "6",
+                      "16",
+                      "17",
+                      "18"
+                    ]
+                  }
+                ]
+              },
+              "native": {
+                "left": 0,
+                "top": 0,
+                "capacity": 12051,
+                "clientWidth": 513,
+                "clientHeight": 326
+              },
+              "domIds": [
+                "00000000-0000-4000-8000-000000000001",
+                "00000000-0000-4000-8000-000000000002"
+              ],
+              "axisExists": true,
+              "header": true,
+              "geometry": [
+                513,
+                326,
+                12564,
+                998,
+                326,
+                326,
+                1024,
+                480,
+                0,
+                498,
+                113,
+                12564,
+                73,
+                1024,
+                480,
+                1
+              ],
+              "coordinate": null,
+              "hover": null
+            }
+          },
+          {
+            "label": "fullscreen-return-1024x480",
+            "geometry": {
+              "viewport": {
+                "width": 1024,
+                "height": 480
+              },
+              "fullscreen": false,
+              "nativeHeight": 222,
+              "chartHeight": 222,
+              "gridHeight": 222,
+              "scaleHeight": 72,
+              "gridHeaderHeight": 72,
+              "bodyHeight": 150,
+              "horizontalOverflow": 0,
+              "scope": {
+                "height": 291,
+                "scrollHeight": 668,
+                "top": 368,
+                "overflow": "auto"
+              },
+              "nativeScroll": {
+                "left": 0,
+                "top": 0
+              },
+              "core": {
+                "instance": "svar-api-1",
+                "top": 0,
+                "left": 0,
+                "rows": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000001",
+                    "y": 3,
+                    "x": 36,
+                    "height": 27
+                  },
+                  {
+                    "id": "00000000-0000-4000-8000-000000000002",
+                    "y": 37,
+                    "x": 36,
+                    "height": 27
+                  }
+                ],
+                "canonicalIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002",
+                  "00000000-0000-4000-8000-000000000003",
+                  "00000000-0000-4000-8000-000000000004"
+                ]
+              }
+            },
+            "readiness": {
+              "connected": true,
+              "visible": true,
+              "sameOwners": true,
+              "api": "svar-api-1",
+              "scale": "day",
+              "coreScale": "day",
+              "scope": null,
+              "query": "",
+              "canonical": {
+                "generation": "4",
+                "settled": "4",
+                "depth": 0,
+                "recovery": "SETTLED"
+              },
+              "lastSuccess": {
+                "apiInstance": "svar-api-1",
+                "generation": 11,
+                "reasons": [
+                  "membership"
+                ],
+                "scale": "day",
+                "scope": null,
+                "filterKey": "fbd0f39c1",
+                "taskSelectionChanged": false,
+                "queryConditionsChanged": false,
+                "expectedColumns": [
+                  {
+                    "id": "copySelection",
+                    "hidden": false
+                  },
+                  {
+                    "id": "text",
+                    "hidden": false
+                  },
+                  {
+                    "id": "externalId",
+                    "hidden": true
+                  },
+                  {
+                    "id": "projectStart",
+                    "hidden": false
+                  },
+                  {
+                    "id": "projectDuration",
+                    "hidden": false
+                  },
+                  {
+                    "id": "baselineStart",
+                    "hidden": true
+                  },
+                  {
+                    "id": "milestoneStage",
+                    "hidden": true
+                  },
+                  {
+                    "id": "baselineEnd",
+                    "hidden": true
+                  },
+                  {
+                    "id": "add-task",
+                    "hidden": false
+                  }
+                ],
+                "revision": 40,
+                "outcome": "SETTLED",
+                "logicalVisibleIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002"
+                ],
+                "coreVisibleIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002"
+                ],
+                "domIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002"
+                ],
+                "columns": "[[\"copySelection\",56,false],[\"text\",1,false],[\"externalId\",108,true],[\"projectStart\",104,false],[\"projectDuration\",56,false],[\"baselineStart\",104,true],[\"milestoneStage\",180,true],[\"baselineEnd\",104,true],[\"add-task\",37,null]]",
+                "selectedIds": []
+              },
+              "latestAttempt": {
+                "generation": 17,
+                "stage": "delivery",
+                "outcome": "SETTLED"
+              },
+              "semantic": {
+                "semanticId": 11,
+                "observation": 11,
+                "reused": false
+              },
+              "currentWork": null,
+              "core": {
+                "ready": true,
+                "instance": "svar-api-1",
+                "left": 0,
+                "top": 0,
+                "width": 12564,
+                "chartWidth": 490,
+                "axisStart": "2026-01-03T15:00:00.000Z",
+                "axisEnd": "2026-12-18T15:00:00.000Z",
+                "canonicalIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002",
+                  "00000000-0000-4000-8000-000000000003",
+                  "00000000-0000-4000-8000-000000000004"
+                ],
+                "coreTaskCount": 4,
+                "coreVisibleIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002"
+                ],
+                "scaleRows": [
+                  {
+                    "width": 12564,
+                    "labels": [
+                      "2026년 1월",
+                      "2026년 2월",
+                      "2026년 3월",
+                      "2026년 10월",
+                      "2026년 11월",
+                      "2026년 12월"
+                    ]
+                  },
+                  {
+                    "width": 12564,
+                    "labels": [
+                      "4",
+                      "5",
+                      "6",
+                      "16",
+                      "17",
+                      "18"
+                    ]
+                  }
+                ]
+              },
+              "native": {
+                "left": 0,
+                "top": 0,
+                "capacity": 12075,
+                "clientWidth": 489,
+                "clientHeight": 222
+              },
+              "domIds": [
+                "00000000-0000-4000-8000-000000000001",
+                "00000000-0000-4000-8000-000000000002"
+              ],
+              "axisExists": true,
+              "header": true,
+              "geometry": [
+                489,
+                222,
+                12564,
+                974,
+                222,
+                222,
+                976,
+                352,
+                0,
+                510,
+                226,
+                12564,
+                73,
+                1024,
+                480,
+                0
+              ],
+              "coordinate": null,
+              "hover": null
+            }
+          },
+          {
+            "label": "reset-1024x480",
+            "geometry": {
+              "viewport": {
+                "width": 1024,
+                "height": 480
+              },
+              "fullscreen": false,
+              "nativeHeight": 222,
+              "chartHeight": 222,
+              "gridHeight": 222,
+              "scaleHeight": 72,
+              "gridHeaderHeight": 72,
+              "bodyHeight": 150,
+              "horizontalOverflow": 0,
+              "scope": {
+                "height": 291,
+                "scrollHeight": 648,
+                "top": 0,
+                "overflow": "auto"
+              },
+              "nativeScroll": {
+                "left": 0,
+                "top": 0
+              },
+              "core": {
+                "instance": "svar-api-1",
+                "top": 0,
+                "left": 0,
+                "rows": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000000001",
+                    "y": 3,
+                    "x": 36,
+                    "height": 27
+                  },
+                  {
+                    "id": "00000000-0000-4000-8000-000000000002",
+                    "y": 37,
+                    "x": 36,
+                    "height": 27
+                  },
+                  {
+                    "id": "00000000-0000-4000-8000-000000000003",
+                    "y": 71,
+                    "x": 9180,
+                    "height": 27
+                  }
+                ],
+                "canonicalIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002",
+                  "00000000-0000-4000-8000-000000000003",
+                  "00000000-0000-4000-8000-000000000004"
+                ]
+              }
+            },
+            "readiness": {
+              "connected": true,
+              "visible": true,
+              "sameOwners": true,
+              "api": "svar-api-1",
+              "scale": "day",
+              "coreScale": "day",
+              "scope": null,
+              "query": "",
+              "canonical": {
+                "generation": "7",
+                "settled": "7",
+                "depth": 0,
+                "recovery": "SETTLED"
+              },
+              "lastSuccess": {
+                "apiInstance": "svar-api-1",
+                "generation": 14,
+                "reasons": [
+                  "membership"
+                ],
+                "scale": "day",
+                "scope": null,
+                "filterKey": "f503993a4",
+                "taskSelectionChanged": false,
+                "queryConditionsChanged": true,
+                "expectedColumns": [
+                  {
+                    "id": "copySelection",
+                    "hidden": false
+                  },
+                  {
+                    "id": "text",
+                    "hidden": false
+                  },
+                  {
+                    "id": "externalId",
+                    "hidden": true
+                  },
+                  {
+                    "id": "projectStart",
+                    "hidden": false
+                  },
+                  {
+                    "id": "projectDuration",
+                    "hidden": false
+                  },
+                  {
+                    "id": "baselineStart",
+                    "hidden": true
+                  },
+                  {
+                    "id": "milestoneStage",
+                    "hidden": true
+                  },
+                  {
+                    "id": "baselineEnd",
+                    "hidden": true
+                  },
+                  {
+                    "id": "add-task",
+                    "hidden": false
+                  }
+                ],
+                "revision": 40,
+                "outcome": "SETTLED",
+                "logicalVisibleIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002",
+                  "00000000-0000-4000-8000-000000000003"
+                ],
+                "coreVisibleIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002",
+                  "00000000-0000-4000-8000-000000000003"
+                ],
+                "domIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002",
+                  "00000000-0000-4000-8000-000000000003"
+                ],
+                "columns": "[[\"copySelection\",56,false],[\"text\",1,false],[\"externalId\",108,true],[\"projectStart\",104,false],[\"projectDuration\",56,false],[\"baselineStart\",104,true],[\"milestoneStage\",180,true],[\"baselineEnd\",104,true],[\"add-task\",37,null]]",
+                "selectedIds": []
+              },
+              "latestAttempt": {
+                "generation": 20,
+                "stage": "delivery",
+                "outcome": "SETTLED"
+              },
+              "semantic": {
+                "semanticId": 14,
+                "observation": 14,
+                "reused": false
+              },
+              "currentWork": null,
+              "core": {
+                "ready": true,
+                "instance": "svar-api-1",
+                "left": 0,
+                "top": 0,
+                "width": 12564,
+                "chartWidth": 490,
+                "axisStart": "2026-01-03T15:00:00.000Z",
+                "axisEnd": "2026-12-18T15:00:00.000Z",
+                "canonicalIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002",
+                  "00000000-0000-4000-8000-000000000003",
+                  "00000000-0000-4000-8000-000000000004"
+                ],
+                "coreTaskCount": 4,
+                "coreVisibleIds": [
+                  "00000000-0000-4000-8000-000000000001",
+                  "00000000-0000-4000-8000-000000000002",
+                  "00000000-0000-4000-8000-000000000003"
+                ],
+                "scaleRows": [
+                  {
+                    "width": 12564,
+                    "labels": [
+                      "2026년 1월",
+                      "2026년 2월",
+                      "2026년 3월",
+                      "2026년 10월",
+                      "2026년 11월",
+                      "2026년 12월"
+                    ]
+                  },
+                  {
+                    "width": 12564,
+                    "labels": [
+                      "4",
+                      "5",
+                      "6",
+                      "16",
+                      "17",
+                      "18"
+                    ]
+                  }
+                ]
+              },
+              "native": {
+                "left": 0,
+                "top": 0,
+                "capacity": 12075,
+                "clientWidth": 489,
+                "clientHeight": 222
+              },
+              "domIds": [
+                "00000000-0000-4000-8000-000000000001",
+                "00000000-0000-4000-8000-000000000002",
+                "00000000-0000-4000-8000-000000000003"
+              ],
+              "axisExists": true,
+              "header": true,
+              "geometry": [
+                489,
+                222,
+                12564,
+                974,
+                222,
+                222,
+                976,
+                352,
+                0,
+                510,
+                573.5,
+                12564,
+                73,
+                1024,
+                480,
+                0
+              ],
+              "coordinate": null,
+              "hover": null
+            }
+          }
+        ],
+        "mutations": [],
+        "revision": 40
+      },
+      "schedule-view-selection-roundtrip": {
+        "selectedBefore": {
+          "instance": "svar-api-1",
+          "app": [
+            "24037d50-6180-4a6e-9ef2-a65c5e2ac932",
+            "df6f365f-b4fc-4cc6-aa5e-0a94228bafc9"
+          ],
+          "primary": [
+            "df6f365f-b4fc-4cc6-aa5e-0a94228bafc9"
+          ],
+          "clipboard": [
+            "24037d50-6180-4a6e-9ef2-a65c5e2ac932",
+            "df6f365f-b4fc-4cc6-aa5e-0a94228bafc9"
+          ]
+        },
+        "afterRoundTrip": {
+          "instance": "svar-api-1",
+          "app": [
+            "24037d50-6180-4a6e-9ef2-a65c5e2ac932",
+            "df6f365f-b4fc-4cc6-aa5e-0a94228bafc9"
+          ],
+          "primary": [
+            "df6f365f-b4fc-4cc6-aa5e-0a94228bafc9"
+          ],
+          "clipboard": [
+            "24037d50-6180-4a6e-9ef2-a65c5e2ac932",
+            "df6f365f-b4fc-4cc6-aa5e-0a94228bafc9"
+          ]
+        },
+        "afterRangeGesture": {
+          "instance": "svar-api-1",
+          "app": [
+            "9a35adef-dc39-4681-a884-94d8499f917e",
+            "df6f365f-b4fc-4cc6-aa5e-0a94228bafc9"
+          ],
+          "primary": [
+            "9a35adef-dc39-4681-a884-94d8499f917e"
+          ],
+          "clipboard": [
+            "24037d50-6180-4a6e-9ef2-a65c5e2ac932",
+            "df6f365f-b4fc-4cc6-aa5e-0a94228bafc9"
+          ]
+        },
+        "afterExplicitSelection": {
+          "instance": "svar-api-1",
+          "app": [
+            "9a35adef-dc39-4681-a884-94d8499f917e"
+          ],
+          "primary": [
+            "9a35adef-dc39-4681-a884-94d8499f917e"
+          ],
+          "clipboard": [
+            "24037d50-6180-4a6e-9ef2-a65c5e2ac932",
+            "df6f365f-b4fc-4cc6-aa5e-0a94228bafc9"
+          ]
+        },
+        "afterExplicitRange": {
+          "instance": "svar-api-1",
+          "app": [
+            "9a35adef-dc39-4681-a884-94d8499f917e",
+            "df6f365f-b4fc-4cc6-aa5e-0a94228bafc9"
+          ],
+          "primary": [
+            "df6f365f-b4fc-4cc6-aa5e-0a94228bafc9"
+          ],
+          "clipboard": [
+            "24037d50-6180-4a6e-9ef2-a65c5e2ac932",
+            "df6f365f-b4fc-4cc6-aa5e-0a94228bafc9"
+          ]
+        },
+        "projectWrites": []
+      },
+      "schedule-view-viewport-refresh": {
+        "phases": [
+          {
+            "name": "다시 조회",
+            "before": {
+              "x": 120,
+              "y": 512
+            },
+            "after": {
+              "x": 120,
+              "y": 512
+            }
+          },
+          {
+            "name": "Editor 취소",
+            "before": {
+              "x": 120,
+              "y": 512
+            },
+            "after": {
+              "x": 120,
+              "y": 512
+            }
+          },
+          {
+            "name": "Editor 저장",
+            "before": {
+              "x": 120,
+              "y": 512
+            },
+            "after": {
+              "x": 120,
+              "y": 512
+            }
+          },
+          {
+            "name": "workspace 복귀",
+            "before": {
+              "x": 120,
+              "y": 512
+            },
+            "after": {
+              "x": 120,
+              "y": 512
+            }
+          },
+          {
+            "name": "새 wheel 우선",
+            "before": {
+              "x": 160,
+              "y": 576
+            },
+            "after": {
+              "x": 160,
+              "y": 576
+            }
+          }
+        ],
+        "logicalIndex": 2,
+        "anchorTop": 68,
+        "originalAnchor": {
+          "canonicalTaskId": "a6d6546f-3689-4bdd-81fd-30ca57f4cc7f",
+          "viewRowKey": "[\"resource\",\"[\\\"resource\\\",\\\"group\\\",\\\"9d4ff5ec-b8ff-4c28-a5ce-95f0c6864b3a\\\",\\\"resource\\\",\\\"5da15535-9567-4b04-94fd-ad4e8e6ea0c2\\\"]\",\"task\",\"a6d6546f-3689-4bdd-81fd-30ca57f4cc7f\"]",
+          "y": 65
+        },
+        "afterRename": {
+          "canonicalTaskId": "a6d6546f-3689-4bdd-81fd-30ca57f4cc7f",
+          "viewRowKey": "[\"resource\",\"[\\\"resource\\\",\\\"group\\\",\\\"9d4ff5ec-b8ff-4c28-a5ce-95f0c6864b3a\\\",\\\"resource\\\",\\\"5da15535-9567-4b04-94fd-ad4e8e6ea0c2\\\"]\",\"task\",\"a6d6546f-3689-4bdd-81fd-30ca57f4cc7f\"]",
+          "y": 65
+        },
+        "afterMembership": {
+          "canonicalTaskId": "a6d6546f-3689-4bdd-81fd-30ca57f4cc7f",
+          "viewRowKey": "[\"resource\",\"[\\\"resource\\\",\\\"group\\\",\\\"19dc6c95-0ccb-4179-aa63-4ce77843f13f\\\",\\\"resource\\\",\\\"5da15535-9567-4b04-94fd-ad4e8e6ea0c2\\\"]\",\"task\",\"a6d6546f-3689-4bdd-81fd-30ca57f4cc7f\"]",
+          "y": 65
+        },
+        "localeBefore": {
+          "x": 120,
+          "y": 68
+        },
+        "localeAfter": {
+          "x": 120,
+          "y": 68
+        }
+      },
+      "schedule-view-virtualization": {
+        "canonicalTaskCount": 93,
+        "rendered": 23,
+        "metrics": {
+          "height": 578,
+          "scrollHeight": 2816,
+          "rows": 23
+        },
+        "settledMs": 326.80000001192093,
+        "wbsState": {
+          "instance": "svar-api-1",
+          "density": "32",
+          "chartLeft": 120,
+          "top": 38,
+          "scope": "b4d77faa-e3ca-469d-9085-eef023fb3673",
+          "columns": [
+            {
+              "id": ":copySelection",
+              "width": 56
+            },
+            {
+              "id": ":text",
+              "width": 227
+            },
+            {
+              "id": ":projectStart",
+              "width": 104
+            },
+            {
+              "id": ":projectDuration",
+              "width": 56
+            },
+            {
+              "id": ":add-task",
+              "width": 37
+            }
+          ]
+        },
+        "projectWrites": []
+      }
+    },
+    "cleanup": {
+      "ownNext": 0,
+      "port3100Listeners": 0,
+      "isolatedDist": 0,
+      "isolatedDb": 0,
+      "generatedTrackedFilesPreservedThenRestored": 3
+    }
+  },
+  "automaticPrepr": {
+    "status": "BLOCKED",
+    "runs": [
+      {
+        "mode": "fast",
+        "status": "BLOCKED",
+        "exitCode": 1,
+        "unknown": 8,
+        "missing": 0,
+        "sourceStable": true,
+        "errors": [
+          "BLOCKED: unknown/missing impacted tests; Manager must map scope before local PASS"
+        ]
+      },
+      {
+        "mode": "targeted",
+        "status": "BLOCKED",
+        "exitCode": 1,
+        "unknown": 8,
+        "missing": 0,
+        "sourceStable": true,
+        "errors": [
+          "BLOCKED: unknown/missing impacted tests; Manager must map scope before local PASS"
+        ]
+      }
+    ],
+    "note": "미등록 영향 매핑은 차단 상태로 보존하며 수동 선정 PASS로 도구 판정을 바꾸지 않는다.",
+    "policyChanged": false,
+    "newUnknownInR2": "src/app/globals.css"
+  },
+  "localExcluded": {
+    "wholeUnit": "CSS 공간 배분만 수정하며 직접·간접·음성 Unit9파일190개·Chromium7spec64case를 선정했다. 이전Head3738PASS를 새Head로 승계하지 않는다.",
+    "productionBuild": "실제Next 브라우저/CSS parse를 로컬로 확인하고 새Head Quality의 production build는 원격 필수로 유지한다.",
+    "docker": "배포·Docker·API·DB 변경 없음. 새Head Required Docker는 필수/NOT TESTED다."
+  },
+  "uiUxReview": {
+    "status": "PASS",
+    "reviewer": "/root/view_design_r2",
+    "scope": "동일 소스의 직접 단일case·PNG3·geometry/CSS 구현 비교에 한정한다. 비WBS/원격/환경별 최종 수용이 아니다.",
+    "unresolvedDirectP1P2": 0
+  },
+  "preQa": {
+    "status": "PASS",
+    "reviewer": "/root/preqa",
+    "scope": "별도 read-only qa_docs의 최종 소스·실증·문서 기술검토이며 인간 QA_FINAL/Owner/Manager 승인과 구분한다.",
+    "unresolvedDirectP1P2": 0,
+    "sourceSha256": "7e9163c0ea293d898c883c82c38d8c62a0c5de0e33b232f217a4ef31b1dc43b7",
+    "sourceDrift": 0
+  },
+  "risk": {
+    "riskLevel": "HIGH",
+    "qaRequired": true,
+    "qaMethod": "OWNER_MANAGED",
+    "releaseRequired": true,
+    "releaseAuthorized": false
+  },
+  "remote": {
+    "quality": "NOT TESTED",
+    "e2e": "NOT TESTED",
+    "docker": "NOT TESTED",
+    "trusted": "NOT TESTED",
+    "owner": "NOT TESTED",
+    "manager": "NOT TESTED",
+    "mergeReady": "BLOCKED",
+    "monitorAfterRegistration": false
+  },
+  "notTested": [
+    "모든 고급 필드 전수Tab/ShiftTab",
+    "실제 coarse/touch 하드웨어·AT·native125%",
+    "장기 대용량/production 운영",
+    "새 원격 Head Required3/Trusted/Owner/Manager"
+  ],
+  "screenshots": [
+    {
+      "path": "docs/evidence/issue-880/r2-after-1024x480.png",
+      "sha256": "a375cfc02ad60f9ae0e53c21b2c86fadf096f0d9d6fadbe4faec5679a5c5f3b1",
+      "sourceScope": "최종64동결source의실제캡처"
+    },
+    {
+      "path": "docs/evidence/issue-880/r2-after-1024x900.png",
+      "sha256": "1e4617b5005cf33bbcbce1168286c442ef17d8a216221bed6f8907ad37dd5da2",
+      "sourceScope": "최종64동결source의실제캡처"
+    },
+    {
+      "path": "docs/evidence/issue-880/r2-after-390x844.png",
+      "sha256": "5800beaa026f6909ebfab59948b9241ca53cdd4d7a59c514b3f1c85e1f3ffdc5",
+      "sourceScope": "최종64동결source의실제캡처"
+    },
+    {
+      "path": "docs/evidence/issue-880/r2-before-1024x900.png",
+      "sha256": "16f0e4abba83bafe863bc23ffa65ba970a42872ba33c47d0923f0c0b61d60b00",
+      "sourceScope": "원본 Head89e45ad의 실패 화면"
+    }
+  ]
+}

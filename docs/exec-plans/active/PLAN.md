@@ -1,3 +1,7 @@
+## Issue #880 — PR #883 Full #3537.1 REWORK R2 (2026-11-07)
+
+[Packet R2](ISSUE_880.md)와 [누적 원장](../../ISSUE_880_FAILURE_ANALYSIS.md)을 따른다. 최초3533선언실패·R1 두P2/전체이력과 이번3537 Quality/DockerPASS·E2E readonly필터 실패/취소7을 대조했다. pristineRED와 높이만 바꾼 반사실로 native 작업면0을 확정했고 CSS의 필터/일정 높이·overflow 배분을 보완한다. 원래readonly단언과5폭·낮은창/Fullscreen·현재receipt·원본쓰기0를확장하며 기존R1고유회귀와같은동결7spec/64case로검증한다. HIGH/OWNER_MANAGED/qa_required=true·후보0.143.0/release_authorized=false,새Head원격·Owner/Manager NOT TESTED/MERGE_READY BLOCKED. 동결1310입력7e9163c0.../64Chromium·190Unit·type/lint검증PASS이며문서·리뷰·충돌·사전기술검토후새FullCI등록까지만진행하며이후모니터링/병합/GHCR/Issue종료없다.
+
 ## Issue #880 — PR #883 Full #3533.1 REWORK R1 (2026-11-07)
 
 [Packet R1](ISSUE_880.md)의 QA_REQUIRED 독립 줄 선언 누락을 실제 metadata→unchanged base preflight replay로 교정한다. 원격제품검사는미실행이고원본FAIL은[원장](../../ISSUE_880_FAILURE_ANALYSIS.md)에보존한다. 미해결P2 다중선택/Copy 및 source재조회viewport손실을 실제2RED로확인해제품/회귀를보완했다. 동결1310입력SHA1b165cd3.../최종47case·선정Unit175·type/lintPASS이며문서·리뷰·충돌검증후동일PR새FullCI등록까지만진행한다. HIGH/OWNER_MANAGED/qa_required=true,후보0.143.0/release_required=true/release_authorized=false,새원격/Owner·Manager NOT TESTED/MERGE_READY BLOCKED다.

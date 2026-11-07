@@ -1,3 +1,19 @@
+## REWORK R2 — Full #3537.1 readonly 고급 필터 회귀 (현재 단계)
+
+현재Head89e45ad49df4df4a6c905101b0cf07c8a20d704e/base229604522969133d1ccc6de0477e373252670c86/testmerge05e31649926801e8160fb01237a1f7e07874e880. 원본Run42308825744.1은Preflight/quality/Docker PASS,Shard2 project-search-filter:52(line64자식Task행)FAIL/다른7CANCELLED다. [단일원장 R2](../../ISSUE_880_FAILURE_ANALYSIS.md)에최초부터누적하고infra가전체원격이력·attempt/취소로그와출처를대조한다. worker가pristine원본case의실제RED/PASS를먼저확인하며제품수정은원인/설계후frontend가소유한다. Manager는통합/문서·Issue댓글,qa_docs는독립read-only기술검토,ui_ux는responsive높이/overflow설계를읽기전용담당한다.
+
+GSC1.0.0-candidate/standard_read_commit=229604522969133d1ccc6de0477e373252670c86. GSC02/04/06/08/09/11의실제Core·logicalrows·가상DOM/geometry·소유권·누적회귀를적용하고임의remount/새writer/timeout·assertion완화는금지한다. 원본CI실패합집합∪R1 View/selection/Editor/readonly·검색/필터직접·간접·음성을실제수정영향에맞춰같은최종source로검증한다. 상세선정은원인확정후기록한다.
+
+HIGH/OWNER_MANAGED/qa_required=true·후보0.143.0/release_required=true/release_authorized=false 유지. 현재LOCAL_VALIDATED/PR_READY,새Head CI/Trusted/Owner/Manager NOT TESTED,MERGE_READY BLOCKED. 종료점은기존PR883의새FullCI등록이며모니터링/병합/Main/GHCR/Issue종료는제외한다. 아래R1과최초Packet은역사이며이전PASS를새Head로승계하지않는다.
+
+R2원인/설계: pristineRED와height900→1200만바꾼반사실에서Core2행/open/권한/조건은같고native0/Corechart−72→native293/chart221·childDOM복구를확인했다. geometry경계가확정됐으며filter/open알고리즘은기각한다. 고급필터만shrink·내부scroll,Gantttoolbar+header+3coarse행최소공간,낮은창scheduleScope내부scrollfallback을CSS로보장한다. UI조건/밀도/폰트/날짜축/원본writer·인스턴스는유지한다.
+
+TEST_LIFECYCLE_REVIEW=EXTEND 기존project-search-filter3case의readonlycase에원래1024×900자식행단언과실제usableheight·5폭/낮은창/내부scroll/focus·sameinstance/write0를보강한다. KEEP_UNIQUE R1 schedule6/fullscreen6/scale2/TaskEditor33 및 공유 CSS의 Grid/Chart geometry 소비자 projection-row-alignment13(5폭Day/Week+실제visible불일치음성), actualHTTP 정보밀도 project-gantt-density1. 최종7spec/64고유case를worker1/retries0/max-failures0로같은동결source에서검증한다. API/DB/Scheduling/의존성·CI정책불변으로wholeUnit/build/Docker로컬반복은미선정하되새Head Full Required3의전체회귀는필수/NOT TESTED로유지한다.
+
+R2최종동결검증은7spec/64고유case PASS/FAIL0/SKIP0/flaky0(exit0,13.7분),1310입력SHA256 `7e9163c0ea293d898c883c82c38d8c62a0c5de0e33b232f217a4ef31b1dc43b7` before=after=current다. 같은최종지문의선정Unit9파일190PASS/전체typecheck/관련lint0error4기존warning/PostCSSparse/version/cache/discovery303Unit·890browser/preflight11PASS. 원래900px 자식행/현재receipt·body150·5폭/낮은480/Fullscreen·Grid/Chart오류음성·원본쓰기0와이전View선택/viewport회귀를같은실행에서검증했다. [R2정제증거](../../evidence/issue-880/rework-r2-local.json),원격이력은[ci3537-source](../../evidence/issue-880/ci3537-source.json)를따른다. 자동fast/targeted는UNKNOWN8/missing0/sourceStable=true/BLOCKED(기존7+globals.css1),제안metadata/currentIssueAC/전체55경로/currentPacket의base WT replay는PASS(실패0)/최종5DEFERRED,Markdown412/diffcheckPASS다. 원격Head판정으로확대하지않으며별도read-only `/root/preqa`의동결소스·실제64증거·문서/보안기술검토PASS/직접미해결P1·P2=0이다. 이는인간QA_FINAL/Owner/Manager승인이아니며현재리뷰·충돌·최종localcommit40SHA재생/동일Tree게시를마지막확인한다.
+
+R2생산자→소비자선정: globals.css의scope/filter축소·fallback→검색/필터3의원래900조건·5폭/low480/focus/write0; 같은파일의native/intrinsicmin→Fullscreen6/scale2/Editor33/정보밀도1/행정렬13(실제mismatch음성포함); projectedheight0/min17rem→View6의boundedDOM/원본Editor/source오류·응답역전/다중선택/viewport·locale. 순수filter/density·canonical/selection/Coordinator/source경계는Unit9파일190으로검증했다. 새매핑globals.css의자동미등록상태를이수동검증으로PASS취급하지않는다.
+
 ## REWORK R1 — Full #3533.1 metadata 실패와 P2 상태 보존 (현재 단계)
 
 사용자 요청 종료점은 PR #883 새 Full CI 등록이다. 원본 Run42301302919.1은 Preflight의 QA_REQUIRED 독립 줄 누락 직접FAIL/PATH_POLICY파생이며 실제 품질·8Chromium·Docker는 SKIPPED/NOT RUN이다. 본문 flag형식은 검증기를 바꾸지 않고 실제 captured PR payload→base preflight 전체 replay로 beforeFAIL2/afterPASS(실패0)·최종5DEFERRED를 확인했다. [누적 원장 R1](../../ISSUE_880_FAILURE_ANALYSIS.md)의 원본결과를 보존한다.
@@ -93,6 +109,12 @@ Design Delta B: 기존 파란 Light/system font/semantic token/내부 scroll/키
 - `docs/evidence/issue-880/ci3533-source.json`: UPDATED
 - `docs/evidence/issue-880/preflight-r1-replay.json`: UPDATED
 - `docs/evidence/issue-880/rework-r1-local.json`: UPDATED
+- `docs/evidence/issue-880/ci3537-source.json`: UPDATED
+- `docs/evidence/issue-880/rework-r2-local.json`: UPDATED
+- `docs/evidence/issue-880/r2-before-1024x900.png`: UPDATED
+- `docs/evidence/issue-880/r2-after-1024x900.png`: UPDATED
+- `docs/evidence/issue-880/r2-after-390x844.png`: UPDATED
+- `docs/evidence/issue-880/r2-after-1024x480.png`: UPDATED
 - `docs/REQUIREMENTS.md`: UPDATED
 - `docs/ARCHITECTURE.md`: UPDATED
 - `docs/PROJECT_UX.md`: UPDATED

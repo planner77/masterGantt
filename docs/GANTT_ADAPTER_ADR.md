@@ -1,3 +1,9 @@
+## Issue #880 R2 — 필터 확장 시 실제 geometry 보장
+
+1024×900 readonly 고급 필터에서 Core의 현재2행/open이 정상이어도 native client0/Core chart−72가 되어 자식 Grid 행을 만들지 못했다. 높이만1200으로 바꾼 반사실에서 같은 API/조건·권한으로 복구되어 실제 layout 원인을 확인했다. stale SETTLED receipt를 현재 행 표시의 PASS로 재사용하지 않는다.
+
+일정 범위의 CSS 공간 배분만 보완한다. 고급 필터의 축소·내부 scroll과 Gantt의 intrinsic toolbar/native 최소면적, 낮은 창의 scope 내부 fallback을 사용한다. 비WBS virtual canvas는 zero flex base와 bounded minimum으로 상위 min-content에 전체 가상 높이를 전파하지 않는다. 실제 container resize는 기존 Core/Coordinator 관측 경로를 유지하며 resize/filter/open 명령·새 writer/private store/remount를 추가하지 않는다. GSC04/05/08/09/11의 실제 capacity·현재 receipt·같은 instance/원본 쓰기0을 [실행 원장](ISSUE_880_FAILURE_ANALYSIS.md)에서 검증한다.
+
 ## Issue #880 R1 — 재조회 공간 보존과 선택 ingress
 
 기존 Core/WBS selection·Viewport Coordinator 소유권은 유지한다. 표시 View에서 돌아왔다는 이유로 app single-selection gesture를 실행하지 않으며, 실제 Task를 새로 선택한 경우에만 기존 선택 ingress로 anchor를 갱신한다. 필요한 Core primary mirror는 기존 project-owned 경로를 사용하고 새 WBS scroll writer/private store/remount를 추가하지 않는다.

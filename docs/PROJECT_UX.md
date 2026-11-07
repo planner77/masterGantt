@@ -1,3 +1,9 @@
+## Issue #880 R2 — 고급 필터와 Gantt 작업면의 높이 배분
+
+데스크톱에서 고급 Task 필터는 잔여 높이에 맞춰 축소하고 자체 세로 스크롤을 사용한다. 첫 필드·44px control 접근을 위한 최소7rem을 확보하며 기존 최대높이와 모든 필드·조건을 유지한다. 일정 Gantt는 toolbar의 실제 높이 외에 native header72px·coarse3행132px·scrollbar/border 여유를 포함한 최소14rem 작업면을 가진다. Resource/설비의 가상화된 조회면은 최소17rem을 갖고 canvas 전체높이가 상위 작업면 크기를 늘리지 않도록 유지한다.
+
+두 최소영역도 들어가지 않는 낮은 창에서는 schedule scope-panel 내부의 안전 세로 스크롤로 필터와 작업 행에 접근한다. 문서 전체의 가로 overflow나 필터 필드 삭제로 해결하지 않는다. 모바일의 기존22rem, Fullscreen의 실제 viewport 배분, hidden/inert WBS의 공간0과 mounted instance를 유지한다. 표시영역 변경은 filter/open/선택·scroll 상태·날짜축/원본 권한·mutation의 변경 근거가 아니다. [원장 R2](ISSUE_880_FAILURE_ANALYSIS.md)와 [Packet](exec-plans/active/ISSUE_880.md)의 실제 geometry/keyboard·동결회귀 결과로 판정한다.
+
 ## Issue #880 R1 — View 왕복의 선택과 재조회 위치
 
 WBS에서 선택한 여러 Task·Core primary·Shift anchor·기존 Copy는 Task를 새로 선택하지 않는 View 왕복에서 유지한다. 비-WBS에서 특정 원본 Task를 명시적으로 열면 그 새 선택이 우선한다. WBS 복귀 자체를 새 single-selection gesture로 취급하지 않는다.

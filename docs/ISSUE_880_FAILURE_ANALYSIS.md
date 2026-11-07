@@ -2,9 +2,9 @@
 
 Primary Issue: [#880](https://github.com/planner77/masterGantt/issues/880). Source of truth: [PR CI 실패 처리](PR_CI_FAILURE_TRIAGE.md). 갱신일: 2026-11-07.
 
-## 현재 판정 — R1
+## 현재 판정 — R2
 
-PR #883 원본 Full #3533.1/42301302919.1은 qa_required 독립 줄 누락으로 FAIL했다. 실제 Quality/E2E/Docker 구현은 SKIPPED/NOT RUN이다. 문서 하단 R1에 원본 출처·실제 P2 RED·보완 중 실패와 재검증을 누적한다. 새 Head 원격/Owner/Manager는 NOT TESTED이며 요청 종료점은 새 Full CI 등록이다. 다음 최초 등록 전 이력은 당시 snapshot으로 보존한다.
+최신 Full #3537.1/42308825744.1은 Preflight·Quality·Docker PASS, E2E shard2의 readonly 고급필터 자식 Task 행 미표시로 FAIL했다. 나머지7shard는 CANCELLED이며 실제 실패 합집합과 미실행을 구별해 문서 하단 R2에 누적한다. 최초 #3533.1 metadata FAIL과 R1 두 P2/보완 이력은 보존한다. 새 Head 원격/Owner/Manager는 NOT TESTED이며 요청 종료점은 새 Full CI 등록이다. 다음 최초 등록 전 이력은 당시 snapshot으로 보존한다.
 
 ## Run/Attempt 전체 목록
 
@@ -225,3 +225,67 @@ fixture교정후동일P2두case는2/2PASS(exit0,6.9/27.6초,전체1.2분),worker
 ### F880-R1-LOCAL-003 — 최종 재생 명령의 축약 SHA 인수
 
 최초localcandidate `c5d2c4279fe7462cd0dc8568bdaf54750cb7cd3d`에대한사후재생명령에Manager가축약8자리SHA를넘겨exit1/Blocked `원본 이벤트의 PR/Head/base 출처 불일치`였다. 검증기는정확40자리SHA를요구하므로정상fail-closed이며제품/원격CI실패가아니다. 같은commit의40자리전체SHA로인수를교정한실제재생은PASS(실패0)/최종5DEFERRED/exit0이었다. verifier나원격자료를수정하지않았다. 이추가기록은문서전용이며제품/test1310지문은동일하다. 게시대상최종commit도전체SHA로재생하고실제값은Issue STATUS에서연결한다.
+
+
+## R2 — Full #3537.1 읽기 전용 고급 필터 회귀 (2026-11-07)
+
+### 원본 실행과 전체 이력 재개
+
+- [Full #3537.1 / Run42308825744](https://github.com/planner77/masterGantt/actions/runs/42308825744),attempt1,pull_request/synchronize,Head `89e45ad49df4df4a6c905101b0cf07c8a20d704e`,base `229604522969133d1ccc6de0477e373252670c86`,test merge `05e31649926801e8160fb01237a1f7e07874e880`. 원본결론FAIL불변이다.
+- Preflight128205094178/Quality aggregate128206999570/Docker aggregate128207901828 및실제type/unit/lint/policy/build/Docker가PASS했다. R1 qa_required 선언누락은이번Run에서통과했으며첫원인재발과구별한다.
+- 직접실패: Shard2 Job128206275141,step7 `E2E shard 실행`,2026-11-06T23:17:53Z. `tests/e2e/project-search-filter.spec.ts:52` readonly고급필터case,line64 `Existing summary child`행 visible기대/실제elementnotfound,5000ms. 직전일치Task1/contextSummary1status 및Stable summary행검사는통과했다. Shard2는42PASS/1FAIL/61NOTRUN(104계획),test외error1표기도보존·추가대조한다.
+- 나머지7shard는CANCELLED이며각로그의실제assertion실패합집합을infra가전수대조한다. E2E aggregate128212027893/QA Automated128212060132는파생FAIL이다. 취소·미실행을PASS로대체하지않는다.
+- oldHeadf9의edited metadata#3536.1/42308816676 및새HeadFAST290/42308825846,원본3533/Trusted와branch전체attempt·원본sourceArtifact는정제[ci3537-source.json](evidence/issue-880/ci3537-source.json)에추가대조한다.
+
+### F880-CI-002 — 검색 필터 자식 행 미표시 (초기 UNKNOWN, geometry 확정)
+
+현재확정은readonly필터의일치계수/ancestor행과실제자식DOM표시가불일치했다는점이다. nativeCore투영/접힘/렌더상태/가상화geometry·fixture준비를구별하며원인확정전제품/테스트를수정하지않는다. pristine89e45ad의원래단일case를worker1/retries0/max-failures0로실행해실제RED/PASS와trace/DOM·지문을보존한다. R1소스의47PASS는새로발견된검색필터회귀의PASS가아니며그커버리지누락을기록한다.
+
+누적원격실패파일합집합은현재 `tests/e2e/project-search-filter.spec.ts`1개이며,최초metadata실패와R1 local두P2/가상행준비·권한오라클·Unit/type/lint경계도교차선정에유지한다. 최신main/head는2296/89e45ad,mergeable=true,기존두리뷰resolved/현재미해결0이다. 새source Required3/Trusted/Owner/Manager는NOTTESTED,MERGE_READY BLOCKED,HIGH/OWNER_MANAGED/qa_required=true/후보0.143.0/release_required=true/release_authorized=false를유지한다. 다음FullCI는동결소스·문서·사전기술검토·현재리뷰/충돌처리후등록하며이후모니터링하지않는다.
+
+
+### R2 pristine RED와 통제 가설
+
+worker가원래 `project-search-filter.spec.ts`의readonlycase를pristine89e45ad에서실행하여같은line64/5000ms/DOM0을재현했다(exit1,test9.7초). 제품/spec/fixture수정0이며원본은 `/tmp/issue880-r2-repro`에보존한다. trace에서canonicalrecoverySETTLED와현재rowsNOT_MEASURABLE,publicresizeheight362→-30→-72를확인했다. 마지막성공receipt는필터전3개ID의옛관측이므로현재필터PASS근거로사용하지않는다.
+
+user공유가설순위:①control확장으로실제높이/가상window부족→height만증가시키면같은Core/filter/open에서child가복구,②Coremembership부분적용→geometry정상인데Corelogicalchild부재/현재filter재적용만복구,③Coreopen과표시불일치→parentopenfalse/expand만복구. UIcount1/contextSummary1·Summaryexpanded·Chartchildtext관측은②③보다①을강화하나최종원인은통제probe후확정한다. frontend/독립qa_docs가고정desktop높이와non-shrinkcontrols·minheight0경계를대조했고ui_ux가responsive공간/overflowowner설계를읽기전용검토한다.
+
+Shard2report.stats는total104/expected42/unexpected1/skipped61,errors는 `Testing stopped early after 1 maximum allowed failures.` 하나다. 따라서test외error1은제한도달파생통지이며추가제품실패가아니다. 전8shard의계획890=관측455PASS/직접1FAIL/기존1SKIP/미완료433,다른7CANCELLED로그에서추가실제FAIL0이다. 이관측을전체회귀PASS로확대하지않는다.
+
+
+### R2 인과 확인 — geometry-only 반사실
+
+원래1024×900을유지한RED후height만1200으로바꾼통제진단에서자식행이복구됐다. baselineCorefilteredRows=Summary+child2,parentopen=true/childparent정상,GridDOM1,scopefilter384px/toolbar100px/frame123px/nativeclientHeight0/CorechartHeight−72였다. height1200후같은Core/권한/조건/Task/open에서GridDOM2/native293px/Corechart221px·새SETTLED를확인했다. 추가filter/expand/data명령0,sameAPI/instance,POST/PATCH0/revision40불변,제품/spec/fixture1310지문시작=종료다. 정제probe·PNG는 `/tmp/issue880-r2-repro/height-counterfactual.json` 및height900/height1200.png,throwaway코드/trace는같은경로에보존한다. probe1PASS는원래casePASS가아니다.
+
+가설1제품geometry를확정하고membership/부모접힘원인은기각했다. 고정desktop높이+non-shrink고급필터+Ganttminheight0이조합돼작업면을소진하며기존Viewtoolbar추가높이가이경계를드러냈다. viewport를1200으로바꾸거나Task단언을없애는것은보완이아니다. 설계는고급필터의잔여높이shrink/자체scroll,Gantt의intrinsictoolbar+nativeheader+최소3coarse행작업면,둘의최소공간도부족한낮은창은scheduleScope내부scrollfallback으로전체controls와작업면접근을보장한다. 날짜축/Corefilter/open/상태/서버writer는변경하지않는다. ui_ux·frontend가구체CSS를조율하고Manager승인후최소패치한다.
+
+R2최종회귀budget은원격실패합집합search-filter3∪이전고유47=50에공유CSS의실제Grid/Chart소비자projection-row-alignment11(5폭Day/Week+genuinevisible불일치음성)과actualHTTP정보밀도1을추가한7spec/62고유case다. 새case/spec을늘리는것이아니라기존고유검증을선정하며기존총147spec/890case·8shard/gate는불변이다. 선택Unit은기존선택/Coordinator/Canonical/projection/source7파일에검색필터·밀도2파일을추가한9파일로고정한다. 62의최종source·원본실패/진단·중간GREEN은별도로기록한다.
+
+
+### F880-R2-LOCAL-001 — 추가 키보드 검사의 label 선택자
+
+첫교정GREEN은1FAIL/exit1/test14.4초였다. 원래1024×900의자식행단언과현재receipt/actualbody≥132,다음390폭geometry는통과했고,추가Tabfocus검사의 `getByLabel('설명 조건',{exact:true})`가line141에서elementnotfound/5000ms였다. error-context에는실제accessiblecombobox `설명 조건`이존재한다. 실제role/name/aria-label을대조한뒤해당 `getByRole('combobox',{name:'설명 조건',exact:true})`로한줄교정하며focus기대/timeout/조건은변경하지않는다. 분류TEST_LOCATOR,제품교정실패로합산하지않고후단width/low/fullscreen/reset은NOT RUN이다.
+
+원본 `/tmp/issue880-r2-green`·before/after1310SHA `04aab3432faccc5dc0982b870ee6a10eff00f63d2dcafb09c58b7f6f6a144bf2` 동일·실패trace/로그를보존한다. 제품CSS추가변경0,기존typecheck/lint0error4warning/선정Unit9파일190PASS와PostCSSparsePASS를기록한다. locator수정후새testhash로정적검사와같은단일case를확인하고최종62case는별도한번의동결실행으로판정한다.
+
+
+### R2 직접 GREEN 및 최종 탐색 수 정정
+
+selector한줄교정후동일readonlycase는1PASS/exit0,test26.9초/전체40.2초다. 1310입력SHA `7e9163c0ea293d898c883c82c38d8c62a0c5de0e33b232f217a4ef31b1dc43b7` 시작=종료를확인했다. 원래900/낮은480의native222/header72/body150px,390 body408px/768 body280px,낮은Fullscreen body254/복귀150px,overflowX0,scope291/scrollHeight668·실제Taskfocus에따른내부scroll·sameinstance/API·조건/Escape/reopen/reset·nativeX/Y0·write0/revision40불변을실증했다. 원본/정제JSON·PNG3는 `/tmp/issue880-r2-green-2`이며최종전체실행과합산하지않는다.
+
+최종실행전같은7spec discovery는실제64case였다. Manager가행정렬file을11로추정했으나실제13(5폭Day/Week10+native ownerY/wideGridX Day/Week2+genuine mismatch1)이다. 원래5spec50+행정렬13+정보밀도1=64로계획을정정한다. discoveryexit0이며제품/테스트실패가아니고테스트제외·spec추가·단언수정0이다. 같은7spec전체를64고유case로동결실행한다.
+
+
+### R2 최종 동결 검증
+
+최종7spec 단일Chromium은64/64PASS/FAIL0/SKIP0/flaky0/exit0(13.7분)였다. workers1/retries0/max-failures0와원래단언·기본timeout을유지했다. 검색3·View6·Fullscreen6·scale2·Editor33·행정렬13·정보밀도1=64이며추정62/discovery정정/단일GREEN과합산하지않는다. 실제readonly확장case는15.1초,View6은45.8/21.7/29.8/23.1/8.9/37.0초다. 현재Grid/Chart정합뿐아니라genuinevisible불일치음성도본래대로감지했다. R1 다중선택/Copy/Shift/explicit선택·nonzero120/512·newwheel160/576·source차단/역전·metadatafallback/locale 및85Task가상화·원본Editor실제저장이같은실행에서통과했다.
+
+1310입력SHA256 `7e9163c0ea293d898c883c82c38d8c62a0c5de0e33b232f217a4ef31b1dc43b7`은before/after/current가동일하다. 같은최종지문에서선정Unit9파일190개를별도로확인했고앞선190PASS와합산하지않는다. 전체typecheck/관련ESLint0error·기존4warning/PostCSSparse·version/cache/discovery303Unit·890browser/Pythonpreflight11PASS다. wholeUnit/build/Docker로컬반복제외는변경영향선정이며새Head공식Quality/Chromium8/Docker를대체하지않는다.
+
+원본전체·50attachment는 `/tmp/issue880-r2-final64`에보존하며[정제R2증거](evidence/issue-880/rework-r2-local.json)와최종64실제PNG3를게시한다. 정상종료후ownNext/3100listener/isolateddist/DB잔여0. Next2파일과기존Issue461picker는 `/tmp/issue880-r2-generated-final`에원본보존하고HEAD bytes로복원했다. 원본before900PNG는pristine89e45ad,afterPNG3는최종64실행으로source를구별한다. ui_ux는같은소스의단일GREEN/대표PNG3·geometry구현비교PASS/추가P1P2=0을반환했고전수Tab/ShiftTab·실coarse/AT/native125%·운영환경은NOTTESTED다. 최종qa_docs·metadata/docs·리뷰/충돌/게시동등성을추가확인후새FullCI등록까지만진행한다.
+
+최종fast/targeted자동Pre-PR두실제실행은exit1/BLOCKED,UNKNOWN8/missing0/sourceStable=true였다. R1의7개에이번생산자 `src/app/globals.css`의도구영향매핑미등록1개가추가됐다. 수동생산자→소비자매핑은동결64case/190Unit의직접·간접·음성으로검증했으며catch-all·mapping/정책완화나도구PASS승격은없다. `.prepr-reports/issue880-r2-final-{fast,targeted}`의원본을보존한다.
+
+최종제안본문·최신IssueAC(기존captured와동일)·전체55경로/currentPacket의unchangedbase checker WT replay는PASS(실패0)/최종5DEFERRED/exit0였다. 원본89e를Head anchor로쓴prospective데이터검사이며새원격Head출처/CI/Owner승인이아니다. 최종localcommit생성후그전체40자리SHA의본문/경로/Packet도재생해게시STATUS에연결한다. Markdown412/diffcheckPASS다.
+
+별도read-only `/root/preqa`가최종64원본/정제4proof·PNG4source구분·before/after/current1310지문·같은소스190Unit·type/lint/PostCSS·전체55경로문서의미/AC·보안/제외범위를교차검토해PRE_QA기술검토PASS/직접미해결P1·P2=0을반환했다. 인간QA_FINAL·Owner승인·ManagerACCEPT가아니며새HeadRequired3/Trusted/Owner/Manager는NOTTESTED/MERGE_READY BLOCKED다. 최종commit전체SHA의basechecker재생·현재main/head/리뷰·충돌·원격전체Tree/입력24개/PNG7개동등성을확인해기존PR883새FullCI등록으로인계한다. 등록후job/결론/Trusted/artifact모니터링이나추가push/본문편집을하지않는다. 실제게시Head/Run/Attempt/merge는Issue STATUS에이어기록한다.

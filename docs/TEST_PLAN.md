@@ -1,3 +1,9 @@
+## Issue #880 R2 — readonly 고급 필터 geometry 회귀
+
+TEST_LIFECYCLE_REVIEW=EXTEND 기존 project-search-filter3case 중 readonlycase의 원래1024×900·match1/contextSummary1·같은 instance·자식행 표시/leaf제외 단언을 유지하고 실제 Grid/Chart usableheight·현재 logical/Core/DOM과 header/rowbudget을 확인한다. 같은 case에서390/768/1024/1440/1920 및 낮은1024×480의 필터 내부·schedule scope scroll/focus·조건/초기화/닫기·문서 가로overflow0·원본 쓰기0을 검사한다. 낮은 Fullscreen은 진입/종료 대표 경계를 확인한다. viewport1200은 진단 반사실이며 원본 기대 환경의 교정값으로 사용하지 않는다.
+
+KEEP_UNIQUE R1 schedule6/fullscreen6/scale2/TaskEditor33과 실패 검색/필터3·Grid/Chart 행 정렬13(5폭Day/Week+실제불일치음성)·정보밀도1을 같은 최종source의7spec/64고유case로 검사한다. 기존147spec/890case·정적8shard/Required3·assertion/timeout/retry/skip은 유지한다. CSS-only 배분 변경의 server/API/DB/Scheduling 및 wholeUnit/build/Docker 로컬 반복은 영향 선정에서 구분하며 원격 exact Head의 세 gate는 필수/NOT TESTED다. 원본 전체890 관측455PASS/1FAIL/기존1SKIP/미완료433을 새 후보 PASS로 승계하지 않는다. [단일 원장](ISSUE_880_FAILURE_ANALYSIS.md)·[Packet](exec-plans/active/ISSUE_880.md)·정제실증으로 연결한다.
+
 ## Issue #880 R1 — PR 선언 형식과 두 상태 보존 회귀
 
 원본 Full #3533.1은 필수 `qa_required` 독립 줄 누락으로 Preflight에서 FAIL했고 제품 테스트는 미실행이다. unchanged base의 실제 PR metadata/Issue AC/전체diff/Packet replay로 before FAIL2→flags 데이터 교정 after PASS(실패0)/최종5DEFERRED를 검증한다. 검증기·QA/Required/skip/retry 정책은 바꾸지 않는다.

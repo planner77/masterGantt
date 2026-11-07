@@ -6,6 +6,7 @@
 
 ### Fixed
 
+- 읽기 전용 일정의 고급 필터가 Gantt 작업면을 소진해 일치 Task 행이 사라지는 문제를 보완한다. 필터 내부 스크롤과 일정 최소 작업면을 보장한다. (#880 R2)
 - 일정 View 왕복에서 다중 선택·Copy/Shift 기준과 Resource·설비 재조회/원본 Editor 복귀의 viewport를 보존한다. (#880 R1)
 
 ## Unreleased — Issue #866 Phase C 통합 (2026-11-05)
