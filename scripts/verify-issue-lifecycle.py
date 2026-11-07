@@ -640,6 +640,58 @@ require(
 )
 
 
+# MAIN-881-001: PR #884 병합 제목의 첫 행은 정상처럼 보였으나
+# 커넥터가 본문을 전달해 여러 줄 커밋 메시지가 생성되었다.
+# 변경 불가능한 Main #3552.1은 추적 검증에서 차단되었고 제품 검사는 미실행이었다.
+failed_881_message = (
+    "Issue #881 · PR #884 · 프로젝트별 Issue·대시보드·기준정보 표시 설정\n\n"
+    "Refs #881\n\n"
+    "Full PR CI #3551.1 (42339976906.1) and QA Trusted #1198.1 "
+    "(42342272396.1) verified. Owner release authorization (v0.144.0): "
+    "Issue #881 comment 6703144666. Preserve subsequent Main CI, GHCR "
+    "candidate, Release and Generic Finalizer gates."
+)
+require(
+    main_run_name.parse_merge_title(failed_881_message) is None,
+    "과거 Main #3552.1의 여러 줄 병합 메시지는 계속 거부되어야 합니다",
+)
+try:
+    trace.validate_push({
+        "ref": "refs/heads/main",
+        "head_commit": {"message": failed_881_message},
+    })
+except trace.TraceError:
+    pass
+else:
+    raise SystemExit("Main #3552.1의 잘못된 원본 병합 메시지가 거부되지 않았습니다")
+
+# 동일 Issue의 후속 비문서 교정 PR은 앱 버전 0.144.0을 유지하며
+# 한글 제목 한 줄·빈 본문·정확한 HEAD SHA 조건을 모두 확인한다.
+# 이 검증은 과거 실패 실행을 성공으로 소급하지 않는다.
+corrective_881_summary = "프로젝트 화면 표시 Main CI 복구"
+corrective_881_payload = main_run_name.merge_api_payload(
+    881, 999, corrective_881_summary, "d" * 40
+)
+require(
+    corrective_881_payload == {
+        "merge_method": "merge",
+        "commit_title": "Issue #881 · PR #999 · 프로젝트 화면 표시 Main CI 복구",
+        "commit_message": "",
+        "expected_head_sha": "d" * 40,
+    }
+    and main_run_name.parse_merge_title(corrective_881_payload["commit_title"])
+        == (881, 999, corrective_881_summary)
+    and trace.validate_push({
+        "ref": "refs/heads/main",
+        "head_commit": {
+            "message": corrective_881_payload["commit_title"]
+            + corrective_881_payload["commit_message"],
+        },
+    }) == (881, 999),
+    "#881 교정 병합은 한 줄 제목·빈 본문·정확한 HEAD SHA 조건을 유지해야 합니다",
+)
+
+
 # Issue #603 / PR #604: a *one-line* English-only merge title was invalid.
 # This exact historical main SHA cannot be rewritten; a later same-Issue PR
 # with full-scope CI and a Korean canonical title must supersede its failed CI.
