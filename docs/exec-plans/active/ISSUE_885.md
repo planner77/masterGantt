@@ -154,3 +154,14 @@
 ### 게시 준비 결과
 
 게시 후보 `72d20b50953d737e3453991ac7a4b371b9ba178c8c227f1d4249c58c6dd4356c`의 전체56 Chromium은 **56PASS/0FAIL/0SKIP, 10.7분/exit0**였고 실행 전후 sourceStable=true다. 전체 Unit3752PASS/기존3SKIP, 최종 typecheck/변경 lint/build 및 별도 정적 QA PASS를 확인했다. 자동 선정 CLI는 UNKNOWN2/BLOCKED를 유지하며 수동 검사 성공으로 덮어쓰지 않는다. 새 Head Full Required3/E2E8·Trusted/Owner와 중첩 키보드/다국어 전체/실제AT/native125%·운영 복구는 NOT TESTED다. 원장에 모든 원본 실패와 최종 명령·지문·제외/미검증·역할을 보존한다. 변경17파일을 한 번 push하고 새 CI 출처를 Issue/PR STATUS에 기록한 뒤 모니터링 없이 종료한다. Manager ACCEPT/merge/Main/Release/GHCR/Issue 종료는 이번 승인 범위가 아니다.
+
+## F885-007 — #3562.1 E2E shard3 read ECONNRESET 및 실패 원장 총괄
+
+- 원본 [PR #887 Full #3562.1 / Run 42375152828](https://github.com/planner77/masterGantt/actions/runs/42375152828), attempt1, HEAD `346610481b4265757329866caa2bab9ed227d773`, base `f3f8b89ef09bab35987b32f4945dac91b6fa223a`. Policy/Preflight, npm ci, TypeScript/ESLint/Vitest, Next build, Docker/Required Quality+Docker **SUCCESS**. Shard3 `128411888070` issue-762 canonical GET `ECONNRESET` 직접 FAIL (26 PASS, 1 FAIL, 132 NOT RUN); 다른 7 shard CANCELLED; Required E2E 및 QA Final FAIL.
+- F885-001~005의 문서 형식/npm/JSX·SQLite·구 Markdown textarea 누락은 후속 최신 직접 Gate 성공 또는 #3561 로컬 56PASS로 분리 검증되었다. F885-006의 GET 응답 정체는 이번 #762와 동일한 read boundary의 별개 현상이며 **공통 전송 근인은 미확정**. 최초 검증7spec/56case에서 제외됐던 기존 #762의 두 E2E 소비자가 관측 누락이었다. 누적 원장의 F885-007 trace/실패 표를 이 Work Packet에 연결한다.
+- Forensic artifact `playwright-report-shard-3` ID `13575093837`의 sanitized fixture diagnostics: failure 이후 Next server alive, `/api/health/ready` HTTP200/37ms, cgroup oom0/oomKill0. 단일 TCP reset의 원인은 UNKNOWN이며 전송 오류를 product HTTP500/OOM/서버 종료로 가정하지 않는다.
+- 설계: 기존 엄격 helper `observedReadOnlyGet` (#703/#860)와 `observeIsolatedApi`를 #762 두 E2E의 읽기 전용 Project/Process/Target/Task GET 전체에 적용, keepalive 재사용 방지를 위해 `Connection: close`; 첫 에러의 건강/프로세스/자원 진단 안전 기록, `ECONNRESET/socket hang up`만 **단 한 번 더 GET**. 기존 endpoint HTTP 결과/JSON·revision/관계·원문·권한/재시작/5폭 정확 assert, writes 무재시도; 실패 지속 시 원본 FAIL. 제품/DB/Node 설정/Playwright timeout/Retry/Shard/Required3 불변.
+- **TEST_LIFECYCLE_REVIEW:** EXTEND #762 기존 2 unique E2E, KEEP_UNIQUE `tests/scripts/isolated-readonly-get.test.ts` 200/404/409/503/timeout/second-reset 음성과 #885/#550/#866/#869 기존 원본/8-shard. 다른 suites skip/retire/retry/timeout 확대0.
+- **AC_TEST_COVERAGE:** AC04/06의 정확 Task·Project REST/DB read-after-write, AC07/08의 공정·구역 UI와 다양한 폭, AC10의 누적 실패·자격 증거; 나머지 AC01~10 기존 매핑 유지. 수정 후 로컬 E2E/원격 Full8·Trusted/Owner는 NOT TESTED.
+- **DOCUMENTATION_SYNC:** 실패 원장과 본 Work Packet UPDATED, #762 E2E EXTEND. 상단 trusted `## DOCUMENTATION_SYNC` 정확 23경로 및 AC01~AC10 선언 유지, 앱/API/DB/CI/QA policy 변경 없음.
+- **Exit:** 새 commit을 기존 non-draft PR HEAD로 Push하여 Full PR CI 시작 후 종료, 모니터링·Main·merge·GHCR·Finalizer·Issue 종료 금지.
