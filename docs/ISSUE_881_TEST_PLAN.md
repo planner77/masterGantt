@@ -44,3 +44,10 @@
 - `tests/server/db/database.test.ts` 신규 schema와 legacy 0021 upgrade의 적용 migration 리스트에 0037을 추가하고, `tests/server/resources/project-resource-memberships.test.ts` legacy 0028 upgrade 기대 목록에 0037을 추가한다.
 - Old Project row equality는 0031 `visibility` 및 새 0037 세 `workspace_*_visible` 컬럼만 명시적으로 제외한다. 원래 존재하던 컬럼과 관련 업무 테이블은 정확히 비교하고 추가 칼럼은 `1/1/1` default로 별도 assertion한다. 데이터 보존 보호를 느슨하게 하는 과도한 필드 제외/skip/후처리 삭제를 금지한다.
 - 新 HEAD actual Vitest/TypeScript/ESLint/Chromium8/Docker·TrustedQA는 원격 PR CI 결과 전 NOT TESTED.
+
+## F881-004 — 4개 Project Settings 탭의 keyboard·ARIA E2E (2026-11-07)
+
+- Exact [Full #3542.1 / Run 42314053741](https://github.com/planner77/masterGantt/actions/runs/42314053741), Attempt1, HEAD `4d771854c2a4a49d249fa9c8cc64821d11a2caf9`: QA·정적 검사·unit·build·Docker PASS, Chromium shard8 #490 테스트 `End` 키 기대 `편집·보안` (구 3-tab) 오류로 FAIL. 제품은 현재 4-tab 구성의 네 번째 `화면 표시`로 정상 이동.
+- EXTEND `tests/e2e/project-settings-layout-490.spec.ts`: 초깃값 tab count4; `일반→캘린더→End=화면 표시→ArrowLeft=보안→Home=일반` 키보드/aria-selected/focus 경계, 일반 초안 보존, 비밀번호 회전 PUT pending 중 `End→화면 표시→ArrowLeft→보안`의 안전성. 기존 원본 5폭/비밀번호/Origin/If-Match/401/412/timeout/escape 검증은 유지한다.
+- EXTEND `tests/e2e/project-settings-dialog-layout.spec.ts`: #232 및 #881의 tab count4와 신규 `화면 표시` 활성화/포커스, End+ArrowLeft, 저장 후 기존 Issue·대시보드·기준정보 복구를 검사한다.
+- E2E suite 등록·샤드 배치·timeout·skip·최종 E2E8 Required gate 불변. Retry 결과가 아니라 신 Head Full CI에서 실제 8/8 성공 근거가 필요하다.

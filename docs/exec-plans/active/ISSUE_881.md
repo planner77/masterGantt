@@ -82,6 +82,15 @@ The following explicit per-path status is checked by trusted `scripts/qa_final_a
 - DOCUMENTATION_SYNC: `docs/ISSUE_881_FAILURE_ANALYSIS.md`: UPDATED, `docs/exec-plans/active/ISSUE_881.md`: UPDATED, `docs/ISSUE_881_TEST_PLAN.md`: UPDATED. AGENTS.md/DESIGN.md/API.md/DB_SCHEMA.md/SECURITY.md/CI·QA 정책 원문은 기술 계약 변경 없으므로 유지.
 - Previous F881-001/002/003 are immutable FAILURE provenance; next exact Head Full PR CI starts via branch synchronize, not a rerun of the old failure. Review/mergeability read-only check; no monitor/merge/Main/GHCR/Issue close.
 
+## F881-004 — #3542.1 E2E 구 탭 인수기준 정렬
+
+- 原 CI [Full #3542.1 / Run42314053741](https://github.com/planner77/masterGantt/actions/runs/42314053741), Attempt1, Head `4d771854c2a4a49d249fa9c8cc64821d11a2caf9`, Base `229604522969133d1ccc6de0477e373252670c86`: QA Preflight/TypeScript/ESLint/Vitest/Build/Required Quality/Docker PASS, Chromium shard8 E2E 단일 직접 FAIL. 전체 E2E Required·QA Final FAILURE.
+- `tests/e2e/project-settings-layout-490.spec.ts` #490 E2E의 old 3-tab assumption 때문에 `End` key가 세 번째 `편집·보안`에 포커스되어야 한다고 판정한 오류. #881 새 `화면 표시`는 네 번째이므로 제품 `End`가 마지막 탭으로 이동하는 것이 정상. Source `handleTabKeyDown` 변경·권한 완화 없이 테스트 기대만 바로잡는다.
+- **TEST_LIFECYCLE_REVIEW:** EXTEND `tests/e2e/project-settings-layout-490.spec.ts`(기존 E2E End 4곳, 새 4개 탭·아리아 선택/포커스, ArrowLeft 보안 패널 복귀, 실제 비밀번호 변경 PUT pending)과 `tests/e2e/project-settings-dialog-layout.spec.ts`(#232 초안 보존·4-tab End/ArrowLeft). KEEP_UNIQUE 기존 보안·UI/실제 API·5폭/화면·Gantt 원본 검증. Skip/timeout/retry/기존 assertion 약화 0.
+- **AC_TEST_COVERAGE:** AC2/AC4/AC5/AC9에 네 번째 탭 표준 keyboard End/ArrowLeft/Home 및 focus, dirty·busy·pending 보존 경로를 추가한다. AC1/3/6/7/8/10은 상단 매핑 유지하며 새 Full CI evidence가 필요하다.
+- **DOCUMENTATION_SYNC:** `docs/ISSUE_881_FAILURE_ANALYSIS.md`: UPDATED; `docs/exec-plans/active/ISSUE_881.md`: UPDATED; `docs/ISSUE_881_TEST_PLAN.md`: UPDATED. 정책·제품 키보드 handler/UI/DB/CI workflow는 계약 변경 없음.
+- 주의: shard8 Playwright fail-fast 1건 후 다른 6 shards `cancelled`, shard2 SUCCESS. 전체 Chromium8 PASS가 아니며 별도 신 HEAD의 재검증 전 성공 선언 금지. 단일 전체 CI 시작까지만 요청 승인, 이후 모니터링/merge/Main/Release/GHCR/Issue 종료 금지.
+
 ## Verification & release boundary
 
 Remote GitHub connector edits only. There is no locally mounted repository or dependency tree; full TypeScript/Vitest/Playwright/Docker local execution NOT TESTED. Work performed is implementation+commit+new PR to begin full CI; requested stop after kickoff. Existing review threads/mergeable state to be read at PR creation, no monitor after. No merge/Main/GHCR/tag/Issue close/Owner release approval.

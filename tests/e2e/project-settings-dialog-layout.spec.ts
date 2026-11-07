@@ -28,21 +28,25 @@ test("Issue #232: 프로젝트 설정 다이얼로그 정보 구조, 탭 전환 
   const dialog = page.getByRole("dialog", { name: "프로젝트 설정", exact: true });
   await expect(dialog).toBeVisible();
 
-  // 2. 3개 탭 확인
+  // 2. #881: 기존 세 탭과 신규 화면 표시 탭 모두 확인
   const tablist = dialog.getByRole("tablist", { name: "프로젝트 설정 범주" });
   await expect(tablist).toBeVisible();
   const generalTab = dialog.getByRole("tab", { name: "기본 정보" });
   const calendarTab = dialog.getByRole("tab", { name: "작업 캘린더" });
   const securityTab = dialog.getByRole("tab", { name: "편집·보안" });
+  const displayTab = dialog.getByRole("tab", { name: "화면 표시" });
 
   await expect(generalTab).toBeVisible();
   await expect(calendarTab).toBeVisible();
   await expect(securityTab).toBeVisible();
+  await expect(displayTab).toBeVisible();
+  await expect(tablist.getByRole("tab")).toHaveCount(4);
 
   // 기본적으로 기본 정보 탭이 선택되어 있음
   await expect(generalTab).toHaveAttribute("aria-selected", "true");
   await expect(calendarTab).toHaveAttribute("aria-selected", "false");
   await expect(securityTab).toHaveAttribute("aria-selected", "false");
+  await expect(displayTab).toHaveAttribute("aria-selected", "false");
 
   // 기본 정보 폼 필드 확인
   const nameInput = dialog.getByLabel("프로젝트 이름");
@@ -70,6 +74,14 @@ test("Issue #232: 프로젝트 설정 다이얼로그 정보 구조, 탭 전환 
   await expect(calendarTab).toBeFocused();
 
   await page.keyboard.press("ArrowRight");
+  await expect(securityTab).toHaveAttribute("aria-selected", "true");
+  await expect(securityTab).toBeFocused();
+
+  // Home/End refer to the first and fourth tabs; ArrowLeft reaches security.
+  await page.keyboard.press("End");
+  await expect(displayTab).toHaveAttribute("aria-selected", "true");
+  await expect(displayTab).toBeFocused();
+  await page.keyboard.press("ArrowLeft");
   await expect(securityTab).toHaveAttribute("aria-selected", "true");
   await expect(securityTab).toBeFocused();
 
