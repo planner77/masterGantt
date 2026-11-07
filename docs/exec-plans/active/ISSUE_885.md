@@ -54,7 +54,7 @@
 - `docs/ISSUE_885_FAILURE_ANALYSIS.md`: UPDATED
 - `docs/TEST_PLAN.md`: N/A(기존 테스트 정책 불변, #885 AC 검증·회귀는 본 Work Packet 관리)
 - `docs/QA_REVIEW_POLICY.md`: N/A(HIGH Owner Managed 및 Trusted QA 필수 절차 불변)
-- `docs/CI_CD.md`: N/A(Full PR Quality E2E8 Docker 필수 검사 불변)
+- `docs/CI_CD.md`: UPDATED
 - `docs/GITHUB_OPERATIONS.md`: N/A(PR push CI만 수행, merge/release 절차 변경 없음)
 - `docs/REMOTE_VALIDATION.md`: N/A(원격 검증 출처/Run Attempt 규칙 변경 없음)
 - `docs/SCHEDULING_ENGINE.md`: UPDATED
@@ -165,3 +165,14 @@
 - **AC_TEST_COVERAGE:** AC04/06의 정확 Task·Project REST/DB read-after-write, AC07/08의 공정·구역 UI와 다양한 폭, AC10의 누적 실패·자격 증거; 나머지 AC01~10 기존 매핑 유지. 수정 후 로컬 E2E/원격 Full8·Trusted/Owner는 NOT TESTED.
 - **DOCUMENTATION_SYNC:** 실패 원장과 본 Work Packet UPDATED, #762 E2E EXTEND. 상단 trusted `## DOCUMENTATION_SYNC` 정확 23경로 및 AC01~AC10 선언 유지, 앱/API/DB/CI/QA policy 변경 없음.
 - **Exit:** 새 commit을 기존 non-draft PR HEAD로 Push하여 Full PR CI 시작 후 종료, 모니터링·Main·merge·GHCR·Finalizer·Issue 종료 금지.
+
+## F885-008 — Full #3563.1 Chromium 1·3번 35분 JOB TIMEOUT과 실패 원장 전부 재분석
+
+- **원본/영향:** [#3563.1 / Run 42376741473](https://github.com/planner77/masterGantt/actions/runs/42376741473), attempt1, Head `26ac9049a82ea143e1aa614039c3cf62041e2a04`, base `f3f8b89ef09bab35987b32f4945dac91b6fa223a`. 결론은 **CANCELLED**. QA Preflight/Policy/npm/TypeScript/ESLint/Vitest/Next build/Docker/Required Quality·Docker SUCCESS; E2E2/4/5/6/7/8 SUCCESS, 1/3은 약35.3분에서 동시 CANCELLED, Required E2E/QA Final 미통과. 텍스트 assertion/제품 버그 직접 실패로 오인하지 않는다.
+- **종합 실패 계보:** F885-001 DOC_SYNC/P1, 002 npm peer lock, 003 TSX/ref·SQLite/DTO/immutable, 004 0038 legacy assertion, 005 구 textarea/Markdown Source, 006 catalog GET 정체, 007 #762 GET ECONNRESET의 실제 원본 Run/Head·다음 PASS/원인 미확정은 누적 [F885-008](../../ISSUE_885_FAILURE_ANALYSIS.md)에서 교차 검증. 취소된 테스트 및 이전 HTTP 연결 불안정의 근본 원인은 계속 UNKNOWN.
+- **설계:** 테스트 본문·CI scripts/.github workflow·35분·workers1·8-shard·fail-fast·retry/skip/Required3·Trusted/Owner/최종 릴리스 보호 불변. 기존 `tests/config/e2e-shard-plan.json`에서 **단지 전체 E2E 파일6개를 느린 shard1/3/5/6→여유 있는 shard4/7로 이전**. Full8 총 파일 147/147, 모든 기존 스펙 본문과 141개 비대상 파일의 소속은 보존한다. 기존 `tests/scripts/e2e-shard-planner.test.ts` 파일 전체 inventory·고정 소속/정확 새로운6개 위치와 original Run metadata를 추가 검증한다. 자세한 원본·6파일/각 실측 wall 및 추정 한계는 CI/CD 상단 절과 F885-008 참조.
+- **추정:** 실제 #3563 Job wall `[35.30,29.85,35.28,21.12,32.22,33.23,22.97,28.00]`, 완료 파일구간 이동 연산 후 `[28.23,29.85,28.93,30.02,30.65,31.40,30.89,28.00]`분. 소스 Run cancelled·마지막 케이스 미완료/새 Runner 성능 차이는 미측정이므로 FULL PASS 예측/보장이나 과거 metadata 교체 아님.
+- **TEST_LIFECYCLE_REVIEW:** KEEP_UNIQUE 기존147개 E2E 본문/positive-negative/security/SQLite/HTTP/Markdown/UX assertions, EXTEND 계획·핀·정확 source provenance unit, 테스트 누락/중복0·삭제/skip/timeout/retry 완화0. 새 Run 이전 실증 NOT TESTED.
+- **AC_TEST_COVERAGE:** AC01~09 기존 #885 Task/Issue/Markdown/legacy/locale/보안·정확 Link/Task DTO/타 언어 UI를 전체8샤드에서 유지. AC10은 전체 인벤토리147·8-shard·실행시간·원본 Run/Attempt/헤드 증명/Required3. 원래 상단 AC01~AC10 선언 유지.
+- **DOCUMENTATION_SYNC:** Work Packet·실패 원장·`docs/CI_CD.md` UPDATED, 계획 JSON과 단위 Test EXTEND. `AGENTS.md`/DESIGN/API/DB_SCHEMA/TEST_PLAN/QA_REVIEW_POLICY 원칙 변경 없음, 첫 정확 `DOCUMENTATION_SYNC` parser 선언 수정 시 경로 `docs/CI_CD.md`를 UPDATED로 기록.
+- **NEXT:** 새 HEAD Push로 non-draft PR Full CI 1회 시작 후 **모니터링 없음**. Merge/Main/Publish/GHCR/Finalizer/Issue close 미승인; Owner HIGH 별도 수용·Trusted QA 및 정확 Full8 원본 PASS 여전히 필수.
