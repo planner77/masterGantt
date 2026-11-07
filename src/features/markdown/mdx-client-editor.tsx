@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useI18n } from "@/lib/i18n/provider";
 import { translateMarkdownToolbar } from "./description-translations";
 import {
@@ -22,10 +22,10 @@ interface Props {
 /** Loaded only in a client-only dynamic import. 'markdown' is an initial value, never a controlled value. */
 export function MdxClientEditor({ markdown, disabled, onChange, onError }: Props) {
   const { locale } = useI18n();
-  const initial = useRef(markdown);
+  const [initialMarkdown] = useState(() => markdown);
   const last = useRef(markdown);
   return <MDXEditor
-    markdown={initial.current}
+    markdown={initialMarkdown}
     contentEditableClassName="mastergantt-markdown-contenteditable"
     readOnly={disabled}
     suppressHtmlProcessing

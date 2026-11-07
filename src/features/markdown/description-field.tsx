@@ -43,7 +43,7 @@ export function DescriptionField({ id, label, value, format, maxLength, identity
     {plain && !readOnly && !disabled ? <button type="button" className="secondary-button" onClick={() => {
       onChange(plainToMarkdownLiteral(value), "markdown");
       setError(null);
-    }>{ui.convert}</button> : null}
+    }}>{ui.convert}</button> : null}
     <div className={styles.meta}>
       <span>{format === "markdown" ? ui.markdown : ui.plain}</span>
       <span>{Array.from(value).length.toLocaleString()} / {maxLength.toLocaleString()}</span>

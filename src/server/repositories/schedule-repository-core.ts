@@ -30,7 +30,29 @@ export class ScheduleRepository{
  countTasks(projectId:number){return this.database.prepare("SELECT count(*) FROM tasks WHERE project_id=?").pluck().get(projectId) as number}
  nextRootSortOrder(projectId:number){return this.nextSiblingSortOrder(projectId,null)}
  nextSiblingSortOrder(projectId:number,parentId:number|null){return this.database.prepare("SELECT COALESCE(MAX(sort_order),-1)+1 FROM tasks WHERE project_id=? AND parent_id IS ?").pluck().get(projectId,parentId) as number}
- insertTask(task:NewTaskRecord){const status=task.status??taskStatusFromProgress(task.progress);if(!taskStatusProgressConsistent(status,task.progress))throw new Error("Task status/progress is inconsistent.");const result=this.database.prepare(`INSERT INTO tasks(project_id,external_id,public_id,name,description,description_format,url,type,schedule_mode,requested_start,start_date,end_date,duration,progress,status,parent_id,sort_order,baseline_start,baseline_duration,baseline_end,created_at,updated_at) VALUES(@projectId,@externalId,@publicId,@name,@description,@descriptionFormat,@url,@type,@scheduleMode,@requestedStart,@startDate,@endDate,@duration,@progress,@status,@parentId,@sortOrder,@baselineStart,@baselineDuration,@baselineEnd,@createdAt,@updatedAt)`).run({...task,status,description:task.description??null,descriptionFormat:task.descriptionFormat??"plain",url:task.url??null,baselineStart:task.baselineStart??null,baselineDuration:task.baselineDuration??null,baselineEnd:task.baselineEnd??null});const row=this.database.prepare("SELECT * FROM tasks WHERE id=?").get(Number(result.lastInsertRowid)) as TaskRow|undefined;if(!row)throw new Error("Inserted task could not be read back.");return mapTask(row)}
+ insertTask(task:NewTaskRecord){
+   const status=task.status??taskStatusFromProgress(task.progress);
+   if(!taskStatusProgressConsistent(status,task.progress))throw new Error("Task status/progress is inconsistent.");
+   // Legacy pre-0038 databases have no format column. DEFAULT 'plain' is
+   // preserved without a schema write; explicit Markdown requires 0038.
+   const markdown=task.descriptionFormat==="markdown";
+   const sql=markdown
+     ? `INSERT INTO tasks(project_id,external_id,public_id,name,description,description_format,url,type,schedule_mode,requested_start,start_date,end_date,duration,progress,status,parent_id,sort_order,baseline_start,baseline_duration,baseline_end,created_at,updated_at) VALUES(@projectId,@externalId,@publicId,@name,@description,@descriptionFormat,@url,@type,@scheduleMode,@requestedStart,@startDate,@endDate,@duration,@progress,@status,@parentId,@sortOrder,@baselineStart,@baselineDuration,@baselineEnd,@createdAt,@updatedAt)`
+     : `INSERT INTO tasks(project_id,external_id,public_id,name,description,url,type,schedule_mode,requested_start,start_date,end_date,duration,progress,status,parent_id,sort_order,baseline_start,baseline_duration,baseline_end,created_at,updated_at) VALUES(@projectId,@externalId,@publicId,@name,@description,@url,@type,@scheduleMode,@requestedStart,@startDate,@endDate,@duration,@progress,@status,@parentId,@sortOrder,@baselineStart,@baselineDuration,@baselineEnd,@createdAt,@updatedAt)`;
+   const bind={
+     projectId:task.projectId,externalId:task.externalId,publicId:task.publicId,
+     name:task.name,description:task.description??null,url:task.url??null,type:task.type,
+     scheduleMode:task.scheduleMode,requestedStart:task.requestedStart,startDate:task.startDate,
+     endDate:task.endDate,duration:task.duration,progress:task.progress,status,
+     parentId:task.parentId,sortOrder:task.sortOrder,baselineStart:task.baselineStart??null,
+     baselineDuration:task.baselineDuration??null,baselineEnd:task.baselineEnd??null,
+     createdAt:task.createdAt,updatedAt:task.updatedAt,
+   };
+   const result=this.database.prepare(sql).run(markdown?{...bind,descriptionFormat:"markdown"}:bind);
+   const row=this.database.prepare("SELECT * FROM tasks WHERE id=?").get(Number(result.lastInsertRowid)) as TaskRow|undefined;
+   if(!row)throw new Error("Inserted task could not be read back.");
+   return mapTask(row);
+ }
  updateTask(projectId:number,taskPublicId:string,task:UpdatedTaskRecord){const current=this.findTaskByPublicId(projectId,taskPublicId);if(!current)return undefined;const status=task.status??(task.progress===current.progress?current.status:taskStatusFromProgress(task.progress));if(!taskStatusProgressConsistent(status,task.progress))throw new Error("Task status/progress is inconsistent.");const result=this.database.prepare(`UPDATE tasks SET name=@name,type=@type,schedule_mode=@scheduleMode,requested_start=@requestedStart,start_date=@startDate,end_date=@endDate,duration=@duration,progress=@progress,status=@status,updated_at=@updatedAt WHERE project_id=@projectId AND public_id=@taskPublicId`).run({...task,status,projectId,taskPublicId});return result.changes===1?this.findTaskByPublicId(projectId,taskPublicId):undefined}
  /** Caller owns the aggregate transaction and candidate validation. No per-leaf reread. */
  updateLeafSchedules(projectId: number, tasks: readonly { taskPublicId: string; startDate: string; endDate: string }[], updatedAt: string): boolean {
