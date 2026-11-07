@@ -128,7 +128,7 @@ test("#838-#840 Issue tab: register, resource/Task lookup, completion date, secu
   await editor.getByRole("button", { name: "리소스 검색" }).last().click();
   await editor.getByRole("button", { name: "김개발 · DEV" }).click();
   await expect(editor.getByText("선택한 리소스: 김개발")).toBeVisible();
-  await editor.locator("#project-issue-description").getByRole("button", { name: "Source mode" }).click();
+  await editor.locator("#project-issue-description").getByRole("button", { name: /Source mode|원문 모드|Chế độ mã nguồn/ }).click();
   await editor.locator("#project-issue-description .cm-content[contenteditable='true']").fill("로그: https://example.com/issues/123\n추적 완료");
   await expect(editor.getByText("링크 미리보기")).toHaveCount(0);
   expect(await editor.locator("#project-issue-task").evaluate(element =>

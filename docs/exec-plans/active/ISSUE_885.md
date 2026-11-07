@@ -6,7 +6,7 @@
 - risk_level=HIGH
 - qa_method=OWNER_MANAGED
 - qa_required=true
-- release_required=false
+- release_required=true
 - release_authorized=false
 - manager_decision=NOT TESTED
 - MERGE_READY=BLOCKED

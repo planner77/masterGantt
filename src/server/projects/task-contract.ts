@@ -115,7 +115,7 @@ const updateTaskSchema = z.object({
     start: dateLabel,
     duration: duration,
   }).nullable().optional(),
-}).strict().refine(value => value.descriptionFormat !== "markdown" || (value.description !== undefined && (value.description === null || isSafeMarkdownDescription(value.description))), { path: ["description"], message: "Unsafe Markdown description." }).refine(
+}).strict().refine(value => value.descriptionFormat === undefined || value.description !== undefined, { path: ["descriptionFormat"], message: "Description must accompany a format change." }).refine(value => value.descriptionFormat !== "markdown" || (value.description !== undefined && (value.description === null || isSafeMarkdownDescription(value.description))), { path: ["description"], message: "Unsafe Markdown description." }).refine(
   (value) => Object.keys(value).length > 0,
   { message: "At least one task field is required." },
 ).refine(
