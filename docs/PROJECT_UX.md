@@ -2,6 +2,8 @@
 
 기본 일정 / Issue / 대시보드 / 기준정보 주 탭의 표시 여부는 프로젝트별 canonical `workspaceTabs`를 따른다. Issue·대시보드·기준정보는 각각 숨길 수 있고 일정은 항상 남는다. 표시 설정 UI는 프로젝트 설정의 네 번째 탭이며 편집 세션 보유자가 저장한다(Owner-only 후속 #882). DB 저장값은 모든 조회자에게 동일하며 비활성화된 탭의 URL/legacy navigation/브라우저 복원/내부 목적지 요청은 일정으로 안전하게 fallback한다. 현재 dirty/pending 상태와 Gantt/Editor/Task 선택은 비정상 종료되거나 remount되어서는 안 된다. 탭 숨김은 서버 ACL이나 데이터 삭제가 아니다.
 
+프로젝트 설정은 기본 정보·작업 캘린더·편집·보안·화면 표시의 **네 탭**을 유지한다. 48rem 이하의 좁은 화면에서는 탭 목록이 가용 너비에 따라 줄바꿈되며, 한 행에 탭을 강제로 눌러 넣거나 390px 포커스 테두리를 가로 스크롤 영역 바깥에서 잘라서는 안 된다. 1440px에서 `End`로 네 번째 탭을 선택한 뒤 390px로 변경해도 포커스 6px outline·offset이 tablist 영역 내부에 전부 남아야 한다. 다른 탭의 초안/권한, keyboard Home/End/Arrow, 기존 modal 닫기/포커스 복원 계약은 그대로 유지한다. [F881-006 원장](ISSUE_881_FAILURE_ANALYSIS.md).
+
 ---
 
 ## Issue #880 R2 — 고급 필터와 Gantt 작업면의 높이 배분

@@ -89,13 +89,32 @@ test("Issue #232: 프로젝트 설정 다이얼로그 정보 구조, 탭 전환 
   await expect(calendarTab).toHaveAttribute("aria-selected", "true");
   await expect(calendarTab).toBeFocused();
 
-  // 5. 반응형 뷰포트(390, 768, 1024, 1440)에서 수평 오버플로우 없음 검증
+  // 5. #881/#490: wide viewport에서 선택·포커스된 네 번째 탭을
+  // 다시 focus()하지 않은 채 390px로 줄여도 outline까지 클립되지 않아야 한다.
+  // 화면 너비 변경 자체는 focus 이벤트가 아니므로 브라우저의 자동 scroll에 의존하지 않는다.
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.keyboard.press("End");
+  await expect(displayTab).toBeFocused();
+  await expect(displayTab).toHaveAttribute("aria-selected", "true");
   for (const width of [390, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     const hasHorizontalScroll = await page.evaluate(
       () => document.documentElement.scrollWidth > document.documentElement.clientWidth
     );
     expect(hasHorizontalScroll).toBe(false);
+    const focusRing = await displayTab.evaluate((node) => {
+      const control = node.getBoundingClientRect();
+      const owner = node.closest('[role="tablist"]')!.getBoundingClientRect();
+      const style = getComputedStyle(node);
+      const outset = Math.max(0, parseFloat(style.outlineWidth) + parseFloat(style.outlineOffset));
+      return {
+        left: control.left - outset, right: control.right + outset,
+        ownerLeft: owner.left, ownerRight: owner.right,
+      };
+    });
+    await expect(displayTab).toBeFocused();
+    expect(focusRing.left, `width ${width}: focus ring must remain inside the tab list`).toBeGreaterThanOrEqual(focusRing.ownerLeft - 1);
+    expect(focusRing.right, `width ${width}: focus ring must not be clipped at the right edge`).toBeLessThanOrEqual(focusRing.ownerRight + 1);
   }
 
   await captureUi(page, testInfo, "settings-draft-1440", "dialog[open]");

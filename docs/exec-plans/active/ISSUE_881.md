@@ -106,6 +106,15 @@ The following explicit per-path status is checked by trusted `scripts/qa_final_a
 - Git merge object `d7b5874ad6c7d9963d2216d908d0ba6a1f753849`: first parent Issue #881 `eaa64b38f049a8cd2b48806c9ce3ccbf0e95f15b`, second parent latest main/#880 `8f83083e01a79933d516ac200912de63c3cc45f6`; resulting tree `44770f65375e8f4d6248dfc8bcc43c2c7c479798`. User-requested main alignment without force push. Both Gantt source #880 and top-level display #881 present in tree; i18n registry includes both catalogs.
 - Source tree read-back verified, branch update and CI result remain distinct steps. Historical failure #3546.1 not relabeled PASS. E2E8/Required3/Trusted QA/Owner acceptance must be obtained for final exact Head.
 
+## F881-006 — #3548.1 좁은 화면 설정 탭 포커스 클리핑 보완
+
+- **원본:** [Full #3548.1 / Run42326071407](https://github.com/planner77/masterGantt/actions/runs/42326071407), attempt1, Head `65dc51c35bd26edccc5a7c8f79c01698f9bbc2e1`, Base latest main `8f83083e01a79933d516ac200912de63c3cc45f6`: policy/Preflight/TypeScript/Lint/Vitest/Next build/Quality/Docker PASS, Chromium shard8 #490 focused `화면 표시` 탭의 390px focus outline right449px이 clip-owner right357px 밖으로 나가 FAIL. 나머지 shards 7개는 fail-fast로 CANCELLED, E2E8/QA Automated FAIL.
+- **UI 원인/조치:** 기존 세 탭용 horizontal flex row에 네 번째 설정 탭 추가. 1440px에서 focused End 탭이 390px로 리사이즈될 때 가로 클리핑이 남음. `project-settings-dialog.module.css`에서 `max-width:48rem` 시 wrap을 허용해 네 탭 전부 보이고 기존 6px outline inset/desktop single-line 유지. DOM tab order/aria, password/edit session/Project metadata/Gantt 변경 없이 수정.
+- **TEST_LIFECYCLE_REVIEW:** KEEP_UNIQUE 기존 `#490` 5-width capture+focused outline geometry, EXTEND `tests/e2e/project-settings-dialog-layout.spec.ts` viewport transition 1440→390 with active fourth tab, explicit focus-ring boundary and no horizontal document scroll, focus retained through 390/768/1024/1440. Failed E2E regression remains enabled; no skip, timeout/retry/threshold modification.
+- **AC_TEST_COVERAGE:** AC4 keyboard/ARIA/focused 4-tab DOM, AC5 active tab while resizing with no hidden bypass/dirty loss, AC9 390/768/1024/1440/1920 geometry + 6px ring, AC10 existing #490 and #232 preservation; all other AC mappings remain above. Browser E2E/new Head evidence still NOT TESTED.
+- **DOCUMENTATION_SYNC:** `docs/PROJECT_UX.md`: UPDATED; `docs/ISSUE_881_FAILURE_ANALYSIS.md`: UPDATED; `docs/ISSUE_881_TEST_PLAN.md`: UPDATED; `docs/exec-plans/active/ISSUE_881.md`: UPDATED. Existing AGENTS/DESIGN/API/DB/SECURITY/CI/QA contracts unchanged.
+- **작업 한계:** 신규 exact-head full PR CI 시작과 단발성 충돌·review 확인까지; 이후 모니터링, 승인, merge, Main CI, GHCR, Issue close 미실행.
+
 ## Verification & release boundary
 
 Remote GitHub connector edits only. There is no locally mounted repository or dependency tree; full TypeScript/Vitest/Playwright/Docker local execution NOT TESTED. Work performed is implementation+commit+new PR to begin full CI; requested stop after kickoff. Existing review threads/mergeable state to be read at PR creation, no monitor after. No merge/Main/GHCR/tag/Issue close/Owner release approval.

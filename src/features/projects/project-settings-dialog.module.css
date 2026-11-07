@@ -105,6 +105,13 @@
 }
 
 @media (max-width: 48rem) {
+  /* Four tabs (and longer EN/VI labels) must stay fully visible when a focused
+     tab is carried from a wide viewport to 390px. Preserve the existing
+     6px focus-ring inset and scroll owner; wrap instead of clipping a tab. */
+  .tabList {
+    flex-wrap: wrap;
+  }
+
   .generalFormGrid {
     grid-template-columns: 1fr;
   }

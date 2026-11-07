@@ -59,3 +59,10 @@
 - Latest Main 8-shard planner and #880 schedule-view source API, source tests, resource/equipment E2E, 0037 DB tests, #881 keyboard tests remain active. New merge Head needs exact full Quality + E2E8 + Docker and Trusted/Owner checks; source-level three-way hunks are not PASS.
 - Prior #3546.1 shard7 #866 UI `Cancel disabled` timeout after 401 is unresolved. Keep original trace/run evidence, do not weaken timeout or disabled-state assertion merely to pass unrelated old failure. If it recurs, inspect isolated #866 flow separately.
 - Test Lifecycle: KEEP_UNIQUE #880/#866/#881 scenario coverage; EXTEND Work Packet documentation and failure origin; 0 deleted, 0 skipped or relaxed tests.
+
+## F881-006 — 4-tab focus ring viewport-transition regression
+
+- 실패 provenance: [Full #3548.1 / Run 42326071407](https://github.com/planner77/masterGantt/actions/runs/42326071407), exact HEAD `65dc51c35bd26edccc5a7c8f79c01698f9bbc2e1`: Required Quality와 Docker PASS, shard8/8의 #490 테스트 `tab-display-focus`에서 focus ring right449가 scroll owner right357을 초과하여 390px clipping. E2E aggregate는 FAIL; other 7 shards CANCELLED.
+- 제품 레이아웃: Project Settings 네 번째 `화면 표시` 탭은 48rem 이하에서 flex-wrap되며 CSS `6px` focus outline+offset은 기존대로 유지. Tab list 밖에 잘리거나 접근 불가능한 focus control이 없어야 한다.
+- 핵심 회귀: 기존 #490 capture490('tab-display-focus') 390/768/1024/1440/1920 + `assertFocusVisible` 유지, #232/#881 프로젝트 설정 E2E에서 `End`로 네 번째 탭 focus 후 1440→390/768/1024/1440 리사이즈. Re-focus 없이 `toBeFocused()`, `aria-selected=true`, focused rect ± outline-inset inside owner, 문서 수평 overflow=0, 이후 Escape 닫기/restore focus 및 일반 설명 초안 보존을 검사.
+- Existing #880 schedule source, Project API/SQLite, Test Lifecycle/Required E2E8/QA gates, E2E timeout 및 skip 설정은 변경하지 않는다. New CI 실행 전 결과 NOT TESTED; AT/native 125%는 별도 수동 인수.
