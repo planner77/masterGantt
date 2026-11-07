@@ -119,3 +119,27 @@
 - **교정:** `failed_881_message`의 불변 원본 영어 본문/식별자는 변경하지 않고, 이번 신규 회귀 블록의 설명 주석과 `require/SystemExit`에서 직접 작성한 오류 설명만 한글화한다. 음성 `parse_merge_title/validate_push` 거부, 양성 `merge_api_payload`의 한 줄 제목·빈 본문·SHA lease 단언과 기존 모든 회귀는 동일하게 유지한다. 누적 원장/Work Packet/테스트 계획의 이전 추가 절에 있던 Markdown 줄바꿈의 리터럴 `\\n` 표기만 문서 구조로 교정한다. 기존 내용·Run/Attempt/상태는 삭제/교체하지 않는다.
 - **TEST_LIFECYCLE_REVIEW:** `EXTEND` 기존 동일 정책 회귀의 진단 문구·주석 언어, `KEEP_UNIQUE` 원본 실패 fixture와 다른 버전/Issue의 회귀 및 #881 Project UI·SQLite·권한·실제 브라우저 테스트. CI 정책·Required3/8-shard·QA 차단·retry/timeout/skip 완화는 0. 새 커밋의 TypeScript/Vitest/정책/QA/Trusted와 최종 결과는 새 정확 HEAD/Run에서 다시 판단해야 한다.
 - **검증/실행 경계:** P1에 대해 코드 보완 후 원본 스레드에 근거를 답하고 `resolved` 여부를 직접 확인. 교정 commit `synchronize`로 새 PR CI를 시작하되 사용자 지시에 따라 이후 모니터링하지 않는다. 과거 Run42346136823 결과를 PASS로 소급 수정하지 않는다. 별도 Main/GHCR/Release/Finalizer/Issue 종료 미진행.
+
+## RELEASE-881-001 — v0.144.0 최초 정식 GHCR Release #220.1 E2E 실패 (2026-11-07 KST)
+
+### 원본 실행과 독립적인 성공·실패
+
+- 대상: [Issue #881](https://github.com/planner77/masterGantt/issues/881), 최초 기능 PR #884 및 same-Issue corrective PR #886. 정확한 성공 Main [#3555.1 / Run42349170700](https://github.com/planner77/masterGantt/actions/runs/42349170700) attempt1, merged main SHA `f3f8b89ef09bab35987b32f4945dac91b6fa223a`, `release_required=true`, 기존 Owner `0.144.0` 승인 댓글 6703144666.
+- [Generic Finalizer #1424.1 / Run42349491854](https://github.com/planner77/masterGantt/actions/runs/42349491854)는 최초 기능 실패 main SHA `8efe2d90...`를 동일 Issue 비문서 교정으로 승계하고, Main 검증 임시 GHCR `ci-<SHA>` PASS 및 annotated `v0.144.0` tag 생성·Release workflow dispatch 성공까지만 수행. **정식 GHCR 게시 또는 Issue 종료 성공이 아님**.
+- [Release #220.1 / Run42349527144](https://github.com/planner77/masterGantt/actions/runs/42349527144) attempt1, event `workflow_dispatch`, head SHA `f3f8b89ef09bab35987b32f4945dac91b6fa223a`, tag `v0.144.0` annotated tag object `6d7a980ea5e4545335ce25b95b8da55acf1146a9`; source commit 정확 일치. `prepare`, `Release static quality`, Release Chromium 1/2/4/5/6/7/8 총 **7개 샤드 SUCCESS**.
+- **유일한 구현 직접 실패:** [Release Chromium E2E 3/8 Job128334661918](https://github.com/planner77/masterGantt/actions/runs/42349527144/job/128334661918), `tests/e2e/grid-task-start-reveal.spec.ts:568` (#852 Week 미래 날짜축 3회 연속 확장), line585 `expect.poll(...RANGE_EXTENSION.outcome).toBe("SETTLED")`가 5초 후 `NO_SCROLL_CAPACITY`로 실패. Shard3 **157 passed / 1 failed / 1 skipped**; 제품 기능 #881 화면 표시 토글 자체의 직접 실패 증거는 없음.
+- **파생/미실행:** Release quality aggregate Job128342007364 FAIL(`E2E=failure`), Main verified release candidate 재검증 Job128342025308 SKIPPED, exact tag/digest promotion Job128342025873 SKIPPED, lifecycle handoff Job128342025569 SKIPPED. 따라서 `ghcr.io/planner77/mastergantt:0.144.0` 정식 게시·Digest/SBOM/OCI 승격/Issue CLOSED는 **NOT RUN / 미완료**. 원본 Release FAIL을 재실행 성공으로 소급 기록하지 않는다.
+
+### 실패 원본 Playwright Trace / 진단
+
+- 실패 원본 Artifact: [Release Playwright report shard3 #13564804770](https://github.com/planner77/masterGantt/actions/runs/42349527144/artifacts/13564804770) (7일 보존). `test.trace` 및 내부 `1-trace.trace`에서 실행 1회가 관측됨. 첫 edge wheel `deltaX=999`, 이후 실제 `data-gantt-timeline-end`는 `1775001600000`에서 `1783468800000`으로 증가, native `.wx-chart.scrollWidth`는 `1904 → 2856`, `clientWidth=905`이므로 마지막 물리적 horizontal capacity는 약 `1951`. Core `left=998`, native `left=999`로 차이는 1px.
+- 같은 실패 시점 frame의 마지막 `data-gantt-viewport-coordinator`: `kind=RANGE_EXTENSION`, `outcome=NO_SCROLL_CAPACITY`, `writes=7`, `intentEpoch=3`, `projectionEpoch=2`. 이 값만으로 실제 scrollWidth 부족이라고 결론낼 수 없음. `data-gantt-axis-transaction`에는 `outcome=TIMED_OUT`, `viewport=UNAVAILABLE`, 요청 left998이 별도로 보존됨. `data-gantt-axis-recovery`는 `outcome=SETTLED`/`reason=NATURAL_GEOMETRY_CONFIRMED`/`capacity.left=999`를 보여준다.
+- Coordinator history는 초기 Context/gesture 전환 후 `RANGE_EXTENSION`의 다수 `SUPERSEDED`(reason `USER_GESTURE`)와 마지막 `NO_SCROLL_CAPACITY`를 보고한다. 물리적 축 확대는 이뤄졌으나 같은 lease의 확장 Transaction이 정착했는지는 **증명되지 않았다**. 분류는 `RELEASE_E2E / RANGE_EXTENSION_SETTLEMENT`, 최종 **원인 미확정(비동기 Axis/Core/native 관측 또는 제품 상태 전환)**. #852의 과거 고정 RAF 대신 receipt를 기다리는 테스트 계약과 관련 있지만 단지 timeout 상향/expectation 완화/실패를 flaky로 단정해 무시할 수 없다.
+
+### 보완·안전한 재실행 판단과 미완료
+
+- **운영 조치:** 이미 승인한 동일 immutable `v0.144.0`/source `f3f8b89e...`에서 GitHub Actions `re-run failed jobs`를 **한 번** 실행하여 실패한 Shard3 및 의존 aggregate/후속 검증·게시 Job을 정규 조건 그대로 재수행한다. GitHub 공식 문서상 실패 Job 재실행은 의존 Job도 재실행하고, 동일 GitHub SHA/ref 및 원래 trigger 권한을 사용한다. 새로운 빌드, tag 이동/덮어쓰기, image 수동 push, test skip/retry/timeout/QA Gate 완화 또는 임의 PASS 선언은 하지 않는다.
+- 실패 재발 시에는 `tests/e2e/grid-task-start-reveal.spec.ts`, `src/features/gantt/viewport/{viewport-coordinator,svar-viewport-port,axis-transaction}.ts`의 `RANGE_EXTENSION` lease/Axis `TIMED_OUT` 원인과 원본 trace를 새 소스에서 진단하는 **별도 코드 교정 PR/신규 main full gate**가 필요하다. 기존 annotated `v0.144.0` 태그는 재배치 불가; 소스가 바뀌면 이후 새 SemVer 범위와 해당 버전 Owner 승인을 다시 검사해야 한다.
+- `TEST_LIFECYCLE_REVIEW`: 본 운영 조치는 현재 검증 테스트 삭제·변경 없음, #852 Week 3회 및 기존 #881 실제 UI/SQLite/security 테스트는 `KEEP_UNIQUE`; 실질 코드 교정 필요성은 재현·Trace 후 `EXTEND` 결정. `DOCUMENTATION_SYNC`: 이 누적 실패 원장은 최신 정식 Release source 보존을 위해 별도 문서 브랜치에서 작성되었으며 Release immutable tag의 소스·version·CI 계약을 변경하지 않는다.
+- **실행 경계:** 사용자가 재시작 이후 모니터링을 원하지 않으므로 새로운 Release attempt 생성 직후 Run/Attempt 확인까지만 하고 결론을 관측하지 않는다. 원본 Release attempt1 FAILURE, 이후 새 attempt 결과는 관측 전 `NOT TESTED`; GHCR 정식 게시와 Issue 종료는 모든 원격 release/finalizer gate 성공 전까지 미완료.
+
