@@ -101,6 +101,11 @@ The following explicit per-path status is checked by trusted `scripts/qa_final_a
 - **DOCUMENTATION_SYNC:** `docs/ISSUE_881_FAILURE_ANALYSIS.md`: UPDATED, `docs/exec-plans/active/ISSUE_881.md`: UPDATED, `docs/ISSUE_881_TEST_PLAN.md`: UPDATED. Also merge latest main CHANGELOG/API/PROJECT_UX/REQUIREMENTS/SECURITY prepend sections losslessly. Main-only `docs/TEST_PLAN.md` and CI_CD/REMOTE_VALIDATION/ADR updates remain unchanged.
 - **New remote validation:** exact 2-parent Merge Head/Tree, Main ancestry, zero unresolved review threads, no merge conflicts, then **Full PR CI start only**. This Work Packet does not assert TypeScript/Vitest/E2E/Docker PASS on new head. No merge/Main CI/Publish/Finalizer/Issue completion.
 
+## MAIN-001 merge object — exact source
+
+- Git merge object `d7b5874ad6c7d9963d2216d908d0ba6a1f753849`: first parent Issue #881 `eaa64b38f049a8cd2b48806c9ce3ccbf0e95f15b`, second parent latest main/#880 `8f83083e01a79933d516ac200912de63c3cc45f6`; resulting tree `44770f65375e8f4d6248dfc8bcc43c2c7c479798`. User-requested main alignment without force push. Both Gantt source #880 and top-level display #881 present in tree; i18n registry includes both catalogs.
+- Source tree read-back verified, branch update and CI result remain distinct steps. Historical failure #3546.1 not relabeled PASS. E2E8/Required3/Trusted QA/Owner acceptance must be obtained for final exact Head.
+
 ## Verification & release boundary
 
 Remote GitHub connector edits only. There is no locally mounted repository or dependency tree; full TypeScript/Vitest/Playwright/Docker local execution NOT TESTED. Work performed is implementation+commit+new PR to begin full CI; requested stop after kickoff. Existing review threads/mergeable state to be read at PR creation, no monitor after. No merge/Main/GHCR/tag/Issue close/Owner release approval.
