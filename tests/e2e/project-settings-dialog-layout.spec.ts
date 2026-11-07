@@ -117,6 +117,45 @@ test("Issue #232: 프로젝트 설정 다이얼로그 정보 구조, 탭 전환 
     expect(focusRing.right, `width ${width}: focus ring must not be clipped at the right edge`).toBeLessThanOrEqual(focusRing.ownerRight + 1);
   }
 
+  // #881/#490: three native checkboxes have their own form-control geometry,
+  // an accessible label, and real keyboard operation (not a text-field border).
+  await expect(dialog.getByRole("checkbox")).toHaveCount(3);
+  for (const label of ["Issue", "대시보드", "기준정보"]) {
+    await expect(dialog.getByRole("checkbox", { name: label, exact: true })).toBeChecked();
+  }
+  const nativeOptions = await dialog.locator('input[type="checkbox"]').evaluateAll(nodes => nodes.map(node => {
+    const rect = node.getBoundingClientRect();
+    return {
+      appearance: getComputedStyle(node).appearance,
+      width: rect.width,
+      height: rect.height,
+      labelHeight: node.closest("label")?.getBoundingClientRect().height ?? 0,
+    };
+  }));
+  for (const choice of nativeOptions) {
+    expect(choice.appearance, "preserve browser-native checkbox").not.toBe("none");
+    expect(choice.width).toBeGreaterThanOrEqual(18);
+    expect(choice.width).toBeLessThanOrEqual(28);
+    expect(choice.height).toBeGreaterThanOrEqual(18);
+    expect(choice.height).toBeLessThanOrEqual(28);
+    expect(choice.labelHeight, "checkbox label keyboard/touch target").toBeGreaterThanOrEqual(44);
+  }
+  const issueCheckbox = dialog.getByRole("checkbox", { name: "Issue", exact: true });
+  await displayTab.focus();
+  await page.keyboard.press("Tab");
+  await expect(issueCheckbox).toBeFocused();
+  const focus = await issueCheckbox.evaluate(node => {
+    const style = getComputedStyle(node);
+    return { visible: node.matches(":focus-visible"), outlineStyle: style.outlineStyle, outlineWidth: parseFloat(style.outlineWidth) };
+  });
+  expect(focus.visible).toBe(true);
+  expect(focus.outlineStyle).not.toBe("none");
+  expect(focus.outlineWidth).toBeGreaterThan(0);
+  await page.keyboard.press("Space");
+  await expect(issueCheckbox).not.toBeChecked();
+  await page.keyboard.press("Space");
+  await expect(issueCheckbox).toBeChecked();
+
   await captureUi(page, testInfo, "settings-draft-1440", "dialog[open]");
 
   // 6. Escape 닫기 및 포커스 복원 검증

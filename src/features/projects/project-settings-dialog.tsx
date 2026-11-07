@@ -232,9 +232,14 @@ export function ProjectSettingsDialog({
           <form className="project-form compact-form" noValidate onSubmit={onSaveWorkspaceTabs}>
             <p>{t("이 프로젝트의 모든 조회자에게 적용되는 화면 표시 설정입니다.")}</p>
             {([{ key: "issue", label: "Issue" }, { key: "dashboard", label: "대시보드" }, { key: "master", label: "기준정보" }] as const).map(({ key, label }) => (
-              <label key={key} className="form-field">
-                <span><input type="checkbox" disabled={busy} checked={metadataWorkspaceTabs[key]}
-                  onChange={event => onMetadataWorkspaceTabsChange({ ...metadataWorkspaceTabs, [key]: event.target.checked })} /> {t(label)}</span>
+              <label key={key} className={styles.visibilityOption}>
+                <input
+                  type="checkbox"
+                  disabled={busy}
+                  checked={metadataWorkspaceTabs[key]}
+                  onChange={event => onMetadataWorkspaceTabsChange({ ...metadataWorkspaceTabs, [key]: event.target.checked })}
+                />
+                <span>{t(label)}</span>
               </label>
             ))}
             <p>{t("일정은 항상 표시됩니다. 이 설정은 접근 권한이나 데이터를 변경하지 않습니다.")}</p>
