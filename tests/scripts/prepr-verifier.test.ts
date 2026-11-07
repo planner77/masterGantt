@@ -367,6 +367,24 @@ describe("Issue #699/#752/#762/#556 — immutable historical capture with review
     expect(() => assertCapturedInstall(dir)).toThrow(/same complete locked dependency tree/);
     ganttCore.version = savedGanttVersion;
 
+    // #885 reviewable dependency snapshot rejects replaced SRI and extra packages.
+    const editorPackage = lock.packages["node_modules/@mdxeditor/editor"];
+    const savedEditorIntegrity = editorPackage.integrity;
+    editorPackage.integrity = "sha512-unverified-markdown-payload";
+    write();
+    expect(() => assertCapturedInstall(dir)).toThrow(/Approved #885 Markdown package metadata mismatch/);
+    editorPackage.integrity = savedEditorIntegrity;
+
+    lock.packages["node_modules/unapproved-extra-package"] = {
+      version: "1.0.0", resolved: "https://registry.npmjs.org/unapproved-extra-package/-/unapproved-extra-package-1.0.0.tgz",
+      integrity: "sha512-unverified-payload",
+    };
+    write();
+    expect(() => assertCapturedInstall(dir)).toThrow(/Approved #885 package set mismatch/);
+    delete lock.packages["node_modules/unapproved-extra-package"];
+    write();
+    expect(() => assertCapturedInstall(dir)).not.toThrow();
+
     // #556 F-002 — actual current manifest/lock may differ only by the
     // reviewed Zod security update. Keep the historic snapshots unchanged.
     const installedZod = lock.packages["node_modules/zod"];

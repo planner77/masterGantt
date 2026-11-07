@@ -90,3 +90,12 @@
 - AC_TEST_COVERAGE: AC01/AC04/AC09/AC10 require reproducible npm ci and complete downstream Full CI; other AC mappings preserved.
 - DOCUMENTATION_SYNC: `docs/exec-plans/active/ISSUE_885.md` and `docs/ISSUE_885_FAILURE_ANALYSIS.md` UPDATED; `package-lock.json` UPDATED. Other contracts/QA/docs N/A unchanged, existing first `## DOCUMENTATION_SYNC` parser section retained verbatim.
 - No release authorization; HEAD synchronization triggers a new Full PR CI but no monitoring/merge/Main/release/closure.
+
+## F885-003 — #3558.1 고정 증거를 유지한 0038/MDX 회귀 교정
+
+- Exact prior [Run #3558.1 / 42363953686](https://github.com/planner77/masterGantt/actions/runs/42363953686), attempt1, original HEAD `bbb85a79b67b9d2f305e3bffbe6de96e71017ffe`, base `f3f8b89ef09bab35987b32f4945dac91b6fa223a`.
+- Preflight/Policy/npm ci PASS; TSX Syntax/Hooks errors, Vitest 24 FAILED/3723 PASSED/3 SKIPPED. E2E8/Docker/Next actual stages NOT TESTED. Ledger F885-003 lists exact job IDs.
+- **TEST_LIFECYCLE_REVIEW:** KEEP_UNIQUE original 308 suites and immutable Gantt capture; EXTEND migration 0038 ledger/checksum and raw row comparisons (new column excluded only from pre-0038 legacy projection; separately check DEFAULT plain), Task Editor format DTO and legacy plain Task writer, newly reviewed MDX dependency package SRI and unapproved injection negative checks. Original captured bytes never rewritten, no skipped tests and no QA gate weakening.
+- **AC_TEST_COVERAGE:** AC01,AC09: valid TSX/React lazy state and client-only editor; AC02,AC04: checked SQLite legacy→38 forward migration/default, old Task write identity; AC06: exact Task/Summary format DTO; AC10: historical Gantt source/SRI evidence and Full CI contract retained. Other AC01–AC10 links above remain in force.
+- **DOCUMENTATION_SYNC:** `docs/ISSUE_885_FAILURE_ANALYSIS.md` and this Work Packet UPDATED; immutable historical captures and 0038 source schema untouched; exact new `tests/fixtures/gantt-state-consistency/approved-issue-885-mdx-lock.json` for additive 265 packages is independently reviewable. Existing AGENTS/DESIGN/API/DB_SCHEMA/QA/CI policy unchanged (top exact syntax DOC_SYNC remains original).
+- **Exit:** push latest change HEAD and start non-draft PR Full CI, then stop without monitoring. No merge/Main/Release/GHCR/close authority.
