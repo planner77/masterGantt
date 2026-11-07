@@ -8,6 +8,7 @@ import { openDatabase } from "../../../src/server/db/core";
 import { ProjectService } from "../../../src/server/projects/project-service-core";
 import { ProjectCopyService } from "../../../src/server/projects/project-copy-service-core";
 import { ProjectRepository } from "../../../src/server/repositories/project-repository-core";
+import { insertHistoricalPublicProject } from "../../fixtures/legacy-project";
 import { WorkCalendarRepository } from "../../../src/server/repositories/work-calendar-repository-core";
 import { ScheduleRepository } from "../../../src/server/repositories/schedule-repository-core";
 import { ProjectMasterRepository } from "../../../src/server/repositories/project-master-repository-core";
@@ -196,7 +197,7 @@ describe("catalog and materialized calendar boundaries", () => {
     expect(() => future.calendar.preview(empty.response.data.project.publicId, { countryRules: [{ countryCode: "KR", scope: "FULL_PROJECT" }], customDates: [] })).toThrow(WorkCalendarCountryUnavailableError);
   });
 
-  it("migration 34→35 preserves aggregate bytes and catalog override survives reopen", () => {
+  it("migration 34→latest preserves aggregate bytes and catalog override survives reopen", () => {
     const directory = mkdtempSync(join(tmpdir(), "country-migration-")); directories.push(directory);
     const legacyDir = join(directory, "legacy");
     mkdirSync(legacyDir);
@@ -204,16 +205,25 @@ describe("catalog and materialized calendar boundaries", () => {
     const filename = join(directory, "catalog.sqlite3"), legacy = openDatabase({ filename, migrationsDirectory: legacyDir }).database;
     const repo = new ProjectMasterRepository(legacy), token = createSessionToken(); repo.insertAdminSession({ tokenHash: token.tokenHash, createdAt: "2026-10-07T13:00:00Z", expiresAt: "2026-10-07T21:00:00Z" });
     const stamp = "2026-10-07T13:00:00Z";
-    const project = new ProjectRepository(legacy).insert({ publicId: randomUUID(), name: "Existing project", description: "Preserve migration state", passwordKdf: "scrypt", passwordSalt: Buffer.alloc(16, 1), passwordHash: Buffer.alloc(32, 2), scryptN: 32768, scryptR: 8, scryptP: 3, scryptKeyLength: 32, calendarTimezone: "Asia/Seoul", createdAt: stamp, updatedAt: stamp });
+    // The old SQLite file predates workspace flags; use the historical INSERT fixture.
+    const project = insertHistoricalPublicProject(legacy, { publicId: randomUUID(), name: "Existing project", description: "Preserve migration state", passwordKdf: "scrypt", passwordSalt: Buffer.alloc(16, 1), passwordHash: Buffer.alloc(32, 2), scryptN: 32768, scryptR: 8, scryptP: 3, scryptKeyLength: 32, calendarTimezone: "Asia/Seoul", createdAt: stamp, updatedAt: stamp });
     const calendars = new WorkCalendarRepository(legacy);
     const rule = calendars.insertRule({ publicId: randomUUID(), projectId: project.id, kind: "COUNTRY", name: "Preserved country calendar", countryCode: "KR", targetType: "PROJECT", targetPublicId: null, scope: "FULL_PROJECT", effectiveFrom: null, effectiveTo: null, sourceVersion: "KR-2026-existing", now: stamp });
     calendars.insertDate({ calendarRuleId: rule.id, date: "2026-10-07", dayType: "NON_WORKING", name: "Existing", sourceKey: "existing", sourceVersion: "KR-2026-existing", now: stamp });
     new ScheduleRepository(legacy).insertTask({ projectId: project.id, publicId: randomUUID(), externalId: "EXISTING", name: "Existing task", type: "task", scheduleMode: "auto", requestedStart: "2026-10-08", startDate: "2026-10-08", endDate: "2026-10-08", duration: 1, progress: 0, status: "not_started", parentId: null, sortOrder: 0, createdAt: stamp, updatedAt: stamp });
-    const aggregate = (db: Database.Database) => [new ProjectRepository(db).findById(project.id), new ScheduleRepository(db).listTasks(project.id), new WorkCalendarRepository(db).listRules(project.id), new WorkCalendarRepository(db).listDates(project.id), db.prepare("SELECT * FROM project_master_admin_sessions").all()];
+    // Compare the exact original project columns; newly added checked defaults are asserted separately.
+    const aggregate = (db: Database.Database) => [
+      db.prepare("SELECT id, public_id, name, description, status, visibility, calendar_timezone, auth_version, revision, created_at, updated_at FROM projects WHERE id = ?").get(project.id),
+      new ScheduleRepository(db).listTasks(project.id),
+      new WorkCalendarRepository(db).listRules(project.id),
+      new WorkCalendarRepository(db).listDates(project.id),
+      db.prepare("SELECT * FROM project_master_admin_sessions").all(),
+    ];
     const before = aggregate(legacy); legacy.close();
     const upgraded = openDatabase({ filename, migrationsDirectory: sourceMigrations });
-    expect(upgraded.migrations.applied).toEqual(["0035_country_calendar_catalog.sql", "0036_display_name_translations.sql"]);
+    expect(upgraded.migrations.applied).toEqual(["0035_country_calendar_catalog.sql", "0036_display_name_translations.sql", "0037_project_workspace_tabs.sql"]);
     expect(aggregate(upgraded.database)).toEqual(before);
+    expect(new ProjectRepository(upgraded.database).findById(project.id)?.workspaceTabs).toEqual({ issue: true, dashboard: true, master: true });
     expect(upgraded.database.prepare("PRAGMA foreign_key_check").all()).toEqual([]);
     const service = new CountryCalendarAdminService(upgraded.database, { clock: () => new Date("2026-10-07T13:00:00Z") }), file = uploaded("2026-10-07"), preview = service.previewImport(token.rawToken, 1, file);
     service.applyImport(token.rawToken, 1, { envelope: file, previewToken: preview.data.previewToken }); upgraded.database.close();

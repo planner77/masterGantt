@@ -219,6 +219,7 @@ function projectDto(
     description: string;
     status: ProjectDto["status"];
     visibility?: ProjectDto["visibility"];
+    workspaceTabs?: ProjectDto["workspaceTabs"];
     revision: number;
     calendarTimezone: string;
   },
@@ -234,6 +235,7 @@ function projectDto(
     description: project.description,
     status: project.status,
     visibility: project.visibility ?? "public",
+    workspaceTabs: project.workspaceTabs ?? { issue: true, dashboard: true, master: true },
     revision: project.revision,
     calendar,
   };
@@ -1405,11 +1407,12 @@ export class ProjectService {
       );
       const tasks = this.schedules.listTasks(project.id);
       const links = this.schedules.listLinks(project.id);
-      const changedFields: ("name" | "description" | "status" | "visibility")[] = [];
+      const changedFields: ("name" | "description" | "status" | "visibility" | "workspaceTabs")[] = [];
       if (input.name !== undefined) changedFields.push("name");
       if (input.description !== undefined) changedFields.push("description");
       if (input.status !== undefined) changedFields.push("status");
       if (input.visibility !== undefined) changedFields.push("visibility");
+      if (input.workspaceTabs !== undefined) changedFields.push("workspaceTabs");
       return withStageProjection(this.database, project.id, {
         data: {
           project: projectDto(updated, projectCalendarDto(this.database, project.id)),

@@ -1,3 +1,9 @@
+## Issue #881 — Project workspace 표시/권한 경계 (2026-11-07)
+
+설정의 조회는 #479 Project read gate, 변경은 유효한 해당 Project edit session + exact Origin + strong If-Match + revision transaction 내 auth 재검증을 요구한다. 타 Project·조회 세션만 있음·만료·위조 owner_name·전역 관리자 credential·Issue 비밀번호로는 저장할 수 없다. 탭 숨김/URL fallback은 사용자 화면 탐색일 뿐 API ACL을 변경하지 않는다. Owner-only 인증은 #882 별도 과제이며 이번 버전의 보안 보장은 '프로젝트 편집 세션'이다.
+
+---
+
 ## Issue #880 — 일정 View source와 canonical 편집
 
 `GET /api/projects/{publicId}/schedule-view-source`는 기존 Project read gate를 적용하고 service의 동일 SQLite 읽기 snapshot에서 public/private·same-project session 권한을 다시 확인한다. Project에 배정된 개인 및 직접 배정/그 개인 소속 Group만 반환하며 관계 없는 전역 개인 정보/관리자 catalog 권한을 노출하지 않는다. 모든 설비와 유효 관계는 같은 Project에 한정한다. 응답은 private/no-store/nosniff이고 조회는 Project revision·원본 Task/Assignment/설비·session을 쓰지 않는다.

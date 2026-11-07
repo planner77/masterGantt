@@ -1,3 +1,9 @@
+## Issue #881 — Project workspace tabs (2026-11-07)
+
+`GET /api/projects/:publicId`은 기존 Project read gate를 통과한 뒤 canonical `data.project.workspaceTabs={issue:boolean,dashboard:boolean,master:boolean}`을 제공한다. `PATCH /api/projects/:publicId`는 정확히 세 boolean key를 갖는 `workspaceTabs` 수정만을 기존 metadata patch로 수용한다. unknown/partial/nonboolean은 400, 무효 edit session 401, Origin mismatch 403, stale strong If-Match 412. 동일 Project/session + revision CAS transaction이 필요하며 응답은 최신 snapshot과 `operation.changedFields`의 `workspaceTabs`를 포함한다. OFF는 API 접근 차단/데이터 제거가 아니다.
+
+---
+
 ## Issue #880 — 일정 View source GET
 
 `GET /api/projects/{publicId}/schedule-view-source`는 일정 Resource/설비의 표시 전용 자료를 반환한다. Body/query 없음; canonical Project UUID와 기존 public/private Project read gate를 적용한다. private는 현재 same-project edit session이 필요하고 public anonymous read는 유지한다. 신규 관리자 catalog 접근 권한이나 Project edit session을 만들지 않는다.

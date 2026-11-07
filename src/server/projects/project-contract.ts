@@ -50,6 +50,7 @@ const newPassword = wellFormedString.refine((value) => {
 });
 const projectStatus = z.enum(["planned", "in_progress", "completed"]);
 const projectVisibility = z.enum(["public", "private"]);
+const projectWorkspaceTabs = z.object({ issue: z.boolean(), dashboard: z.boolean(), master: z.boolean() }).strict();
 const projectMasterId = z.string().uuid().nullable();
 
 const createProjectSchema = z.object({
@@ -122,6 +123,7 @@ const unlockProjectSchema = z.object({
 }).strict();
 
 const updateProjectSchema = z.object({
+  workspaceTabs: projectWorkspaceTabs.optional(),
   name: projectName.optional(),
   description: projectDescription.optional(),
   status: projectStatus.optional(),
@@ -130,7 +132,7 @@ const updateProjectSchema = z.object({
   productId: projectMasterId.optional(),
   siteEntityId: projectMasterId.optional(),
 }).strict().refine(
-  (value) => value.name !== undefined || value.description !== undefined || value.status !== undefined || value.visibility !== undefined ||
+  (value) => value.name !== undefined || value.description !== undefined || value.status !== undefined || value.visibility !== undefined || value.workspaceTabs !== undefined ||
     value.businessUnitId !== undefined || value.productId !== undefined || value.siteEntityId !== undefined,
 );
 

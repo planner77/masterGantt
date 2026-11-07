@@ -81,6 +81,7 @@ import { EMPTY_TASK_FILTER, activeTaskFilterCount, filterTasksWithAncestors, typ
 import { WorkspaceDialog } from "@/components/workspace-dialog";
 import { WorkspaceNotifications, useWorkspaceNotifications } from "@/components/workspace-notifications";
 import feedbackStyles from "@/components/workspace-feedback.module.css";
+import { DEFAULT_PROJECT_WORKSPACE_TABS, type ProjectWorkspaceTabs } from "@/contracts/projects";
 import type { DependencyType, LinkMutationResponse, ProjectMetadataMutationResponse, ProjectSnapshotResponse, ProjectStatus, ProjectVisibility, TaskHierarchyCommandRequest, TaskMutationResponse } from "@/contracts/projects";
 import { PROJECT_STATUS_OPTIONS, projectStatusLabel } from "@/features/projects/project-status";
 import {
@@ -117,7 +118,7 @@ type LoadState = | { status: "loading" } | { status: "ready"; snapshot: ProjectS
 type Permission = "readonly" | "edit";
 type PermissionCheckState = "checking" | "complete";
 type PendingTaskDelete = TaskDeletePlan & Readonly<{ revision: number }>;
-import { DASHBOARD_SCREENS, MASTER_SCREENS, normalizeWorkspaceScreen, legacyWorkspaceScreen, logisticsSubview, workspaceSection, workspaceView, type WorkspaceScreen, type WorkspaceSection, type WorkspaceView } from "./project-workspace-navigation";
+import { DASHBOARD_SCREENS, MASTER_SCREENS, availableWorkspaceScreen, isWorkspaceSectionVisible, normalizeWorkspaceScreen, legacyWorkspaceScreen, logisticsSubview, workspaceSection, workspaceView, type WorkspaceScreen, type WorkspaceSection, type WorkspaceView } from "./project-workspace-navigation";
 import resourceMembershipStyles from "@/features/resources/project-resource-memberships.module.css";
 import { ProjectResourceMemberships } from "@/features/resources/project-resource-memberships";
 import { IdentifierDetails } from "@/components/identifier-details";
@@ -310,7 +311,16 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
   const [unlockOpen, setUnlockOpen] = useState(false);
   const [actionMenuOpen, setActionMenuOpen] = useState(false);
   const [infoPopoverOpen, setInfoPopoverOpen] = useState(false);
-  const [activeScreen, setActiveScreen] = useState<WorkspaceScreen>("schedule");
+  const workspaceTabs = state.status === "ready" ? state.snapshot.data.project.workspaceTabs ?? DEFAULT_PROJECT_WORKSPACE_TABS : DEFAULT_PROJECT_WORKSPACE_TABS;
+  const [requestedScreen, setActiveScreen] = useState<WorkspaceScreen>("schedule");
+  const activeScreen = availableWorkspaceScreen(requestedScreen, workspaceTabs);
+  useEffect(() => {
+    if (requestedScreen === activeScreen) return;
+    // Reconcile legacy URL/hidden destination after the canonical read; never set state synchronously in the effect.
+    let cancelled = false;
+    queueMicrotask(() => { if (!cancelled) setActiveScreen("schedule"); });
+    return () => { cancelled = true; };
+  }, [requestedScreen, activeScreen]);
   const [workspaceMigrationNotice, setWorkspaceMigrationNotice] = useState(false);
   const activeView = workspaceView(activeScreen);
   const activeSection = workspaceSection(activeScreen);
@@ -330,6 +340,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
     setActiveScreen(current => workspaceView(current) === view ? current : legacyWorkspaceScreen(view));
   }
   function selectScreen(screen: WorkspaceScreen, focus = true) {
+    if (!isWorkspaceSectionVisible(workspaceSection(screen), workspaceTabs)) return;
     // #854 P1: do not change the focus/view owner while a saved Issue is
     // reconciling and preparing to restore its original Task Editor.
     if (taskIssueRestoringReference.current ||
@@ -358,6 +369,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
     return isVisibleFocusTarget(parentTab) ? parentTab : null;
   }
   function selectSection(section: WorkspaceSection) {
+    if (!isWorkspaceSectionVisible(section, workspaceTabs)) return;
     // A keyboard user can focus a primary tab without activating it. If its
     // section is already active, keep the current subview instead of restoring
     // a possibly stale saved subview and remounting the focus owner.
@@ -420,6 +432,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
   const [metadataDescription, setMetadataDescription] = useState("");
   const [metadataStatus, setMetadataStatus] = useState<ProjectStatus>("planned");
   const [metadataVisibility, setMetadataVisibility] = useState<ProjectVisibility>("public");
+  const [metadataWorkspaceTabs, setMetadataWorkspaceTabs] = useState<ProjectWorkspaceTabs>({ ...DEFAULT_PROJECT_WORKSPACE_TABS });
   const [masterSelection, setMasterSelection] = useState({ businessUnitId: "", productId: "", siteEntityId: "" });
   const [columnVisibility, setColumnVisibility] = useState<ProjectGridColumnVisibility>(INITIAL_COLUMN_VISIBILITY);
   const [pendingTaskDelete, setPendingTaskDelete] = useState<PendingTaskDelete | null>(null);
@@ -685,9 +698,10 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
     }
     setMetadataName(value.data.project.name); setMetadataDescription(value.data.project.description); setMetadataStatus(value.data.project.status);
     setMetadataVisibility(value.data.project.visibility ?? "public");
+    setMetadataWorkspaceTabs({ ...(value.data.project.workspaceTabs ?? DEFAULT_PROJECT_WORKSPACE_TABS) });
     setMasterSelection({ businessUnitId: value.data.project.businessUnit?.id ?? "", productId: value.data.project.product?.id ?? "", siteEntityId: value.data.project.siteEntity?.id ?? "" });
     return true;
-  }, [publicId, setMasterSelection, setMetadataDescription, setMetadataName, setMetadataStatus, setMetadataVisibility]);
+  }, [publicId, setMasterSelection, setMetadataDescription, setMetadataName, setMetadataStatus, setMetadataVisibility, setMetadataWorkspaceTabs]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -1078,6 +1092,34 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
     } catch { notify("error", "네트워크 연결을 확인한 뒤 다시 시도해 주세요.", "프로젝트 정보 저장"); }
     finally { setIsSavingMetadata(false); }
   }
+  async function saveWorkspaceTabs(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (state.status !== "ready" || isSavingMetadata || busy) return;
+    setIsSavingMetadata(true); clearToast();
+    try {
+      const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}`, {
+        method: "PATCH", credentials: "same-origin",
+        headers: { "Content-Type": "application/json", "If-Match": revisionTag(state.snapshot.data.project.revision) },
+        body: JSON.stringify({ workspaceTabs: metadataWorkspaceTabs }),
+      });
+      const body: unknown = await response.json().catch(() => null);
+      const snapshot = snapshotFromMetadataMutation(body);
+      if (response.ok && snapshot && applySnapshot(snapshot)) {
+        setSettingsOpen(false);
+        notify("success", "화면 표시 설정을 저장했습니다.", "화면 표시 저장");
+      } else if (response.status === 401) {
+        closeSettingsAsReadonly();
+        notify("error", "편집 권한이 만료되었습니다. 다시 잠금을 해제해 주세요.", "화면 표시 저장", body);
+      } else if (response.status === 412) {
+        conflict("화면 표시 저장", body);
+      } else {
+        notify("error", "화면 표시 설정을 저장할 수 없습니다. 다시 확인해 주세요.", "화면 표시 저장", body);
+      }
+    } catch {
+      notify("error", "네트워크 연결을 확인하고 최신 설정을 다시 조회해 주세요.", "화면 표시 저장");
+    } finally { setIsSavingMetadata(false); }
+  }
+
   async function changePassword(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (state.status !== "ready" || isChangingPassword) return;
@@ -3314,12 +3356,12 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
 
     {workspaceMigrationNotice ? <p role="status" className="field-help">{t("이전 조회 구성을 현재 보기로 전환했습니다. 기존 작업과 배정은 유지됩니다.")}</p> : null}
     <div className="project-workspace-tabs project-primary-tabs" role="tablist" aria-label={t("프로젝트 작업공간")}>
-      {([{ key: "schedule", label: "일정" }, { key: "issue", label: "Issue" }, { key: "dashboard", label: "대시보드" }, { key: "master", label: "기준정보" }] as const).map(({ key, label }) => <button
+      {([{ key: "schedule", label: "일정" }, { key: "issue", label: "Issue" }, { key: "dashboard", label: "대시보드" }, { key: "master", label: "기준정보" }] as const).filter(({ key }) => isWorkspaceSectionVisible(key, workspaceTabs)).map(({ key, label }) => <button
         key={key} ref={node => { if (node) screenTabReferences.current.set(key, node); else screenTabReferences.current.delete(key); if (key === "schedule") scheduleTabReference.current = node; }}
         id={`project-tab-${key}`} role="tab" type="button" aria-controls={key === "schedule" || key === "issue" ? `project-panel-${key}` : `project-navigation-${key}`}
         aria-selected={activeSection === key} tabIndex={activeSection === key ? 0 : -1}
         disabled={taskIssueRestoring || taskIssueCreateRequest !== null}
-        onClick={() => selectSection(key)} onKeyDown={event => handleNavigationKey(event, key, ["schedule", "issue", "dashboard", "master"], value => selectSection(value as WorkspaceSection))}>{t(label)}</button>)}
+        onClick={() => selectSection(key)} onKeyDown={event => handleNavigationKey(event, key, (["schedule", "issue", "dashboard", "master"] as WorkspaceSection[]).filter(section => isWorkspaceSectionVisible(section, workspaceTabs)), value => selectSection(value as WorkspaceSection))}>{t(label)}</button>)}
     </div>
     {(["dashboard", "master"] as const).map(section => <div key={section} id={`project-navigation-${section}`} role="tabpanel" aria-labelledby={`project-tab-${section}`} hidden={activeSection !== section}>
       <div className="project-workspace-tabs project-primary-tabs project-secondary-tabs" role="tablist" aria-label={section === "dashboard" ? t("대시보드 보기") : t("기준정보 보기")}>
@@ -3932,7 +3974,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
     </WorkspaceDialog> ) : null}
     <ProjectSettingsDialog
       open={settingsOpen && editing}
-      onClose={() => { if (!busy) { setSettingsOpen(false); setNewPassword(""); } }}
+      onClose={() => { if (!busy) { setMetadataWorkspaceTabs({ ...workspaceTabs }); setSettingsOpen(false); setNewPassword(""); } }}
       busy={busy}
       restoreFocusRef={settingsTriggerReference}
       publicId={publicId}
@@ -3941,6 +3983,9 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
       metadataDescription={metadataDescription}
       metadataStatus={metadataStatus}
        metadataVisibility={metadataVisibility}
+      metadataWorkspaceTabs={metadataWorkspaceTabs}
+      onMetadataWorkspaceTabsChange={setMetadataWorkspaceTabs}
+      onSaveWorkspaceTabs={saveWorkspaceTabs}
        onMetadataVisibilityChange={setMetadataVisibility}
       onMetadataNameChange={setMetadataName}
       onMetadataDescriptionChange={setMetadataDescription}

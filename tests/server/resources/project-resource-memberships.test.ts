@@ -321,13 +321,14 @@ describe("Issue727 persisted Project participation", () => {
     const snapshotRows = () => tables.map(table => {
       const rows = initial.prepare(`SELECT * FROM ${table} ORDER BY id`).all() as Array<Record<string, unknown>>;
       return { table, rows: table === "projects"
-        ? rows.map(row => Object.fromEntries(Object.entries(row).filter(([name]) => name !== "visibility")))
+        ? rows.map(row => Object.fromEntries(Object.entries(row).filter(([name]) => !["visibility", "workspace_issue_visible", "workspace_dashboard_visible", "workspace_master_visible"].includes(name))))
         : rows };
     });
     const legacyRows = snapshotRows();
-    expect(runMigrations(initial, migrationsDirectory).applied).toEqual(["0029_project_resource_memberships.sql", "0030_project_work_areas.sql", "0031_project_visibility.sql", "0032_project_issues.sql", "0033_project_issue_credentials_soft_delete.sql", "0034_project_issue_business_status.sql", "0035_country_calendar_catalog.sql", "0036_display_name_translations.sql"]);
+    expect(runMigrations(initial, migrationsDirectory).applied).toEqual(["0029_project_resource_memberships.sql", "0030_project_work_areas.sql", "0031_project_visibility.sql", "0032_project_issues.sql", "0033_project_issue_credentials_soft_delete.sql", "0034_project_issue_business_status.sql", "0035_country_calendar_catalog.sql", "0036_display_name_translations.sql", "0037_project_workspace_tabs.sql"]);
     expect(snapshotRows()).toEqual(legacyRows);
     expect(initial.prepare("SELECT visibility FROM projects WHERE id = ?").pluck().get(legacyProject.id)).toBe("public");
+    expect(initial.prepare("SELECT workspace_issue_visible, workspace_dashboard_visible, workspace_master_visible FROM projects WHERE id = ?").get(legacyProject.id)).toEqual({ workspace_issue_visible: 1, workspace_dashboard_visible: 1, workspace_master_visible: 1 });
     expect(new ProjectResourceMembershipService(initial, { clock }).get(legacyProject.publicId).data.resources).toMatchObject([{ id: legacyResource.publicId, registered: false, usage: { taskAssignments: 1, systemRoles: 1 } }]);
     expect(runMigrations(initial, migrationsDirectory).applied).toEqual([]);
     initial.close();
@@ -347,7 +348,7 @@ describe("Issue727 persisted Project participation", () => {
         // Every original project retains its full legacy row plus the 0031 public default.
         expect(observed.map(row => row.visibility)).toEqual(rows.map(() => "public"));
         expect(observed.map(row => Object.fromEntries(
-          Object.entries(row).filter(([name]) => name !== "visibility"),
+          Object.entries(row).filter(([name]) => !["visibility", "workspace_issue_visible", "workspace_dashboard_visible", "workspace_master_visible"].includes(name)),
         ))).toEqual(rows);
       } else {
         expect(observed).toEqual(rows);

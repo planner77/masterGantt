@@ -1,3 +1,9 @@
+## Issue #881 — Project workspace tabs visibility
+
+프로젝트 편집 권한자는 Issue, 대시보드, 기준정보 상위 탭을 프로젝트별로 독립 표시·숨김 설정할 수 있다. 일정은 항상 표시, 기본은 모두 ON. 설정은 모든 조회자에게 공통으로 DB 저장되고 Project Copy 시 승계된다. 숨겨진 탭의 직접 URL/저장 화면/내부 navigation은 일정으로 복귀하며 프로젝트 업무 데이터/API 권한을 변경하지 않는다. Owner 전용 인증은 #882 범위이다.
+
+---
+
 ## Issue #880 — 일정 조회 계층 View
 
 프로젝트 일정 toolbar의 `View`는 기본 WBS와 조회 전용 Resource/설비의 세 계층을 제공한다. 같은 canonical 일반 Task를 현재 WBS scope/검색/상태 필터 안에서 재배치하며 원본 Summary·Assignment·설비·revision을 변경하지 않는다. Resource의 실제 복수 Group/개인 배정, Group-only 개인 미지정, 그룹 미소속과 완전 미할당을 구분한다. 설비는 유형→모델→실제 원본 순으로 direct/subtree/legacy 유효 연결을 표시하고 Fleet 수량으로 단품을 만들지 않는다. 모델 미지정·설비 미연결·작업0 설비도 보존한다.

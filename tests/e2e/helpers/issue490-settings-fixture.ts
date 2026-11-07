@@ -42,7 +42,20 @@ export async function capture490(page: Page, info: TestInfo, key: string, select
     if (process.env.ISSUE_490_PHASE !== "before" && selector === "dialog[open]") {
       if(key.startsWith("tab-") || key.startsWith("calendar-field-")){const focused=facts.controls.find(c=>c.focused);expect(focused).toBeDefined();assertFocusVisible(focused!);if(key.startsWith("calendar-field-")){expect(focused!.rect.y).toBeGreaterThanOrEqual(0);expect(focused!.rect.bottom).toBeLessThanOrEqual(page.viewportSize()!.height);}}
       expect(modal.scrollWidth).toBeLessThanOrEqual(modal.clientWidth + 1);
-      for (const c of facts.controls.filter(c => ["INPUT", "SELECT", "TEXTAREA"].includes(c.tag))) assertIdentifiableInput(c);
+      // Text fields need a visible 1px box; browser-native choices use their own
+      // rendering and must instead remain labeled, identifiable and operable.
+      for (const c of facts.controls.filter(c => ["INPUT", "SELECT", "TEXTAREA"].includes(c.tag) && !["checkbox", "radio"].includes(c.type ?? ""))) assertIdentifiableInput(c);
+      for (const c of facts.controls.filter(c => c.tag === "INPUT" && ["checkbox", "radio"].includes(c.type ?? ""))) {
+        expect(c.labels.length > 0 || Boolean(c.label), "native choice label association").toBe(true);
+        expect(c.rect.width, "native choice width").toBeGreaterThanOrEqual(16);
+        expect(c.rect.height, "native choice height").toBeGreaterThanOrEqual(16);
+        expect(c.rect.width, "native choice must not stretch like a text field").toBeLessThanOrEqual(32);
+        expect(c.rect.height, "native choice must not stretch like a text field").toBeLessThanOrEqual(32);
+      }
+      const nativeAppearances = await page.locator(selector).locator('input[type="checkbox"],input[type="radio"]').evaluateAll(nodes =>
+        nodes.filter(node => node.checkVisibility()).map(node => getComputedStyle(node).appearance)
+      );
+      for (const appearance of nativeAppearances) expect(appearance, "native checkbox/radio appearance must remain intact").not.toBe("none");
       const preview=facts.controls.find(c=>c.label==="미리보기 계산"||c.label==="계산 중…");
       const save=facts.controls.find(c=>c.label==="작업 캘린더 저장");
       if(preview&&save&&Math.abs(preview.rect.y-save.rect.y)<=1){expect(Math.abs(preview.rect.height-save.rect.height)).toBeLessThanOrEqual(1);expect(save.rect.x-preview.rect.right).toBeGreaterThanOrEqual(8);}
