@@ -1,3 +1,23 @@
+## Issue #880 R2 — 필터 확장 시 실제 geometry 보장
+
+1024×900 readonly 고급 필터에서 Core의 현재2행/open이 정상이어도 native client0/Core chart−72가 되어 자식 Grid 행을 만들지 못했다. 높이만1200으로 바꾼 반사실에서 같은 API/조건·권한으로 복구되어 실제 layout 원인을 확인했다. stale SETTLED receipt를 현재 행 표시의 PASS로 재사용하지 않는다.
+
+일정 범위의 CSS 공간 배분만 보완한다. 고급 필터의 축소·내부 scroll과 Gantt의 intrinsic toolbar/native 최소면적, 낮은 창의 scope 내부 fallback을 사용한다. 비WBS virtual canvas는 zero flex base와 bounded minimum으로 상위 min-content에 전체 가상 높이를 전파하지 않는다. 실제 container resize는 기존 Core/Coordinator 관측 경로를 유지하며 resize/filter/open 명령·새 writer/private store/remount를 추가하지 않는다. GSC04/05/08/09/11의 실제 capacity·현재 receipt·같은 instance/원본 쓰기0을 [실행 원장](ISSUE_880_FAILURE_ANALYSIS.md)에서 검증한다.
+
+## Issue #880 R1 — 재조회 공간 보존과 선택 ingress
+
+기존 Core/WBS selection·Viewport Coordinator 소유권은 유지한다. 표시 View에서 돌아왔다는 이유로 app single-selection gesture를 실행하지 않으며, 실제 Task를 새로 선택한 경우에만 기존 선택 ingress로 anchor를 갱신한다. 필요한 Core primary mirror는 기존 project-owned 경로를 사용하고 새 WBS scroll writer/private store/remount를 추가하지 않는다.
+
+앱 전용 조회 Scroller는 마지막 검증 표시의 geometry와 활성 데이터의 권위를 구분한다. pending/error의 빈 canvas가 scroll capacity를0으로 만들지 않도록 이전 공간만 보존하며, 이전 Task 행은 현재 검증 데이터처럼 렌더하거나 조작하지 않는다. same project/view/scale/scope/filter/layout 및 최신 request/user-intent에 묶인 원본 행/날짜 bookmark만 같은 Scroller에 복구한다. 새 검증 응답 세대는 sourceKey의 왕복과 구별한다. locale·밀도는 표시 변화로 취급하고 같은 검증 자료의 행/날짜 앵커를 새 geometry에 해석한다. 원래 Core의 좌표/날짜축은 관측 권위로 유지하고 새 입력·문맥 변경이 과거 복원을 취소한다. [R1 실패·실증](ISSUE_880_FAILURE_ANALYSIS.md)과 [Packet](exec-plans/active/ISSUE_880.md) 참조.
+
+## Issue #880 — 비-WBS app-owned 조회 전용 adapter 채택
+
+결정: Resource·설비 계층은 별도 read-only Grid+Chart renderer에서 표시하고 기존 WBS Core는 mounted/hidden/inert 상태로 유지한다. 설치 Core2.7.3의 canonical projection/recovery·selection/link 전제를 바꾸지 않기 위해 가상 ID를 Core tasks/links에 주입하지 않는다. PRO 전용 groupBy/group-tasks를 호출하거나 구현을 복제하지 않는다. 이는 #569의 실험 adapter A/B/C 또는 비문서화 Core writer를 채택하는 결정이 아니다.
+
+새 adapter의 `viewRowKey`는 path별 표시 identity, `canonicalTaskId`는 기존 Task Editor 대상이다. 가상 Summary는 표시행이며 원본 Summary type/parent/siblingOrder·Export를 만들지 않는다. 동일 canonical 일반 Task의 확정 날짜/progress/status만 표시하고 분기 내 고유 Task로 집계를 제한한다. 단일 세로 scroll owner·논리 row window로 Grid/Chart Y를 맞추며 기존 axis/day-week·density를 읽는다. WBS 복귀의 원본 scroll/선택은 기존 Coordinator에 맡기고 두 번째 WBS scroll writer를 추가하지 않는다.
+
+2026-11-07 공식 [Grouping tasks](https://docs.svar.dev/react/gantt/guides/data-operations/grouping-tasks/)·[groupBy](https://docs.svar.dev/react/gantt/api/properties/groupby/)의 PRO 표시를 확인했다. 문서 URL 조회는 demo 실제 조작이나 제품 runtime 성공이 아니다. 명시 대안의 instance/axis/viewport·80+row/5폭·조회 오류/역전·직접 mutation0은 [#880 Work Packet](exec-plans/active/ISSUE_880.md)과 [누적 원장](ISSUE_880_FAILURE_ANALYSIS.md)의 실행별 증거로 판정한다.
+
 ## Issue #852 — 일반 Grid 클릭의 시작점 정렬 의도
 
 일반 Grid 좌클릭만 기존 `TASK_REVEAL`에 시작점 정렬 의도를 명시한다. port는 canonical start가 실제 Core 날짜축 안에 있는지와 실제 Task geometry/native capacity를 확인한 후 같은 단일 Coordinator에서 적용한다. 화면 안 오른쪽에 보이는 시작점도 Chart 왼쪽으로 배치하되 왼쪽 한 셀 이내이면 유지한다. Editor locate·Context Menu `show:false`·modifier/checkbox/keyboard·canonical mirror를 정렬 요청으로 일반화하지 않는다. native와 app이 같은 클릭의 수평 scroll을 중복 쓰지 않으며 별도 DOM writer/private store/remount를 도입하지 않는다.

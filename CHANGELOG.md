@@ -4,6 +4,17 @@
 - Project metadata PATCH에 workspaceTabs strict Boolean과 기존 Origin/If-Match/session/revision 보호를 재사용한다. 숨김은 서버 ACL 변경이나 데이터 삭제가 아니며 Owner-only 인증은 #882로 분리한다.
 - 화면 설정 네 번째 탭, 숨겨진 메뉴/URL 복원·내부 탐색 fallback, 서버/클라이언트 회귀 테스트 및 문서를 갱신한다. 전체 PR CI 결과는 아직 확인되지 않았다.
 
+## [0.143.0] - 2026-11-07
+
+### Added
+
+- 일정 Gantt에 WBS / Resource / 설비 View를 추가한다. Resource·설비는 원본 Task의 조회 전용 계층이며 복수 Group/설비·미할당·모델 미지정·Fleet/작업0 원본을 보존한다. 원본 작업 정보는 기존 Editor로 열고 canonical 일정·Export와 WBS 편집은 유지한다. (#880)
+
+### Fixed
+
+- 읽기 전용 일정의 고급 필터가 Gantt 작업면을 소진해 일치 Task 행이 사라지는 문제를 보완한다. 필터 내부 스크롤과 일정 최소 작업면을 보장한다. (#880 R2)
+- 일정 View 왕복에서 다중 선택·Copy/Shift 기준과 Resource·설비 재조회/원본 Editor 복귀의 viewport를 보존한다. (#880 R1)
+
 ## Unreleased — Issue #866 Phase C 통합 (2026-11-05)
 
 - Project/Issue/Task Editor/Gantt/Resource/Milestone/Logistics/관리·Calendar의 고정 UI·도움말·접근성 이름·검증·날짜/숫자 및 관리형 표시명을 ko/en/vi로 연결합니다. 사용자 내용·ID·일정/권한/revision 계약은 유지합니다.

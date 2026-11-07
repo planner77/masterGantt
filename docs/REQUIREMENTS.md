@@ -4,6 +4,12 @@
 
 ---
 
+## Issue #880 — 일정 조회 계층 View
+
+프로젝트 일정 toolbar의 `View`는 기본 WBS와 조회 전용 Resource/설비의 세 계층을 제공한다. 같은 canonical 일반 Task를 현재 WBS scope/검색/상태 필터 안에서 재배치하며 원본 Summary·Assignment·설비·revision을 변경하지 않는다. Resource의 실제 복수 Group/개인 배정, Group-only 개인 미지정, 그룹 미소속과 완전 미할당을 구분한다. 설비는 유형→모델→실제 원본 순으로 direct/subtree/legacy 유효 연결을 표시하고 Fleet 수량으로 단품을 만들지 않는다. 모델 미지정·설비 미연결·작업0 설비도 보존한다.
+
+비-WBS 직접 일정/구조 편집은 차단하며 실제 작업 정보는 canonical Task Editor로 연다. 서버 권한·session/If-Match는 기존 정책을 따른다. 표시행 key와 원본 ID·고유 업무 집계를 분리하고 WBS Core/축/선택·Export를 보존한다. [Work Packet](exec-plans/active/ISSUE_880.md)의 AC1~AC9 및 [원장](ISSUE_880_FAILURE_ANALYSIS.md)의 실제 검증 상태를 따른다.
+
 ## Issue #866 Phase B — 관리형 번역 저장 및 UI (2026-11-05)
 
 - FR-I18N-03: global/project별 기존 owner ID+locale에 귀속되는 ko/en/vi 표시명 저장; 기존 id/code/name/UNIQUE/참조·수량/권한·Free Text 불변. 관리자 수동 CRUD, 원본 fallback, ID 선택, Owner/Project Edit 권한 및 revision CAS 유지. migration 0036/Copy/Template6/Export guard를 구현한다.

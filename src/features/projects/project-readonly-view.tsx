@@ -467,6 +467,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
   const projectTaskEditorReference = useRef<ProjectTaskEditorHandle>(null);
   const relationEditorTriggerReference = useRef<HTMLElement | null>(null);
   const editorTriggerReference = useRef<HTMLElement | null>(null);
+  const editorScheduleViewOrigin = useRef<{ rowKey: string; taskId: string } | null>(null);
   const editorWbsOriginReference = useRef<{navigation:ResourceNavigationState;revision:number} | null>(null);
   const wbsFocusControllerReference = useRef<AbortController | null>(null);
   useEffect(() => () => {wbsFocusControllerReference.current?.abort();}, [publicId]);
@@ -1414,6 +1415,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
     editorOpeningReference.current = true;
     taskFocusGeneration.current++;
     editorTriggerReference.current = trigger;
+    const scheduleRow = trigger?.closest<HTMLElement>("[data-schedule-view] [data-view-row-key]");
+    editorScheduleViewOrigin.current = scheduleRow?.dataset.viewRowKey ? { rowKey: scheduleRow.dataset.viewRowKey, taskId } : null;
     editorResourceDetailKey.current = trigger?.closest<HTMLElement>("[data-projection-detail-key]")?.dataset.projectionDetailKey ?? null;
     editorLaneOriginReference.current = Boolean(trigger?.closest(".project-milestone-lane"));
     setEditorSession({ task: { ...task }, calendar: snapshot.data.project.calendar, revision: snapshot.data.project.revision });
@@ -1592,6 +1595,33 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
     setActiveScreen(editorOriginScreenReference.current);
     editorOpeningReference.current = false;
     if (!restoreFocus) return;
+    const scheduleOrigin = editorScheduleViewOrigin.current;
+    editorScheduleViewOrigin.current = null;
+    if (scheduleOrigin) {
+      const controller = new AbortController();
+      let observer: MutationObserver | null = null;
+      let frame = 0;
+      const deadline = window.setTimeout(() => stop(), 6000);
+      const stop = () => { controller.abort(); observer?.disconnect(); cancelAnimationFrame(frame); clearTimeout(deadline); };
+      const restore = () => {
+        cancelAnimationFrame(frame);
+        frame = requestAnimationFrame(() => {
+          const panel = document.querySelector<HTMLElement>("[data-schedule-view]");
+          const root = panel?.querySelector<HTMLElement>('[data-schedule-view-scroll][data-ready="true"]');
+          if (!root || panel?.closest("[hidden], [inert]") || document.querySelector('dialog[open][aria-labelledby="task-editor-title"]')) return;
+          const row = root.querySelector<HTMLElement>(`[data-view-row-key="${CSS.escape(scheduleOrigin.rowKey)}"]`) ??
+            root.querySelector<HTMLElement>(`[data-canonical-task-id="${CSS.escape(scheduleOrigin.taskId)}"]`);
+          const target = row?.querySelector<HTMLButtonElement>("button:not(:disabled)") ?? root;
+          target.focus({ preventScroll: true });
+          stop();
+        });
+      };
+      observer = new MutationObserver(restore);
+      observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["open", "data-ready", "disabled", "hidden", "inert"] });
+      for (const event of ["pointerdown", "keydown", "wheel"] as const) window.addEventListener(event, stop, { capture: true, passive: true, signal: controller.signal });
+      restore();
+      return;
+    }
     if (wbsOrigin) {
       focusNavigation(wbsOrigin.navigation, true, wbsOrigin.revision !== confirmedSnapshotReference.current?.data.project.revision);
       return;

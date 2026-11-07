@@ -51,3 +51,11 @@
 - EXTEND `tests/e2e/project-settings-layout-490.spec.ts`: 초깃값 tab count4; `일반→캘린더→End=화면 표시→ArrowLeft=보안→Home=일반` 키보드/aria-selected/focus 경계, 일반 초안 보존, 비밀번호 회전 PUT pending 중 `End→화면 표시→ArrowLeft→보안`의 안전성. 기존 원본 5폭/비밀번호/Origin/If-Match/401/412/timeout/escape 검증은 유지한다.
 - EXTEND `tests/e2e/project-settings-dialog-layout.spec.ts`: #232 및 #881의 tab count4와 신규 `화면 표시` 활성화/포커스, End+ArrowLeft, 저장 후 기존 Issue·대시보드·기준정보 복구를 검사한다.
 - E2E suite 등록·샤드 배치·timeout·skip·최종 E2E8 Required gate 불변. Retry 결과가 아니라 신 Head Full CI에서 실제 8/8 성공 근거가 필요하다.
+
+## MAIN-001 — #880/881 two-source integration acceptance
+
+- Branch PR #884 `eaa64b38f049a8cd2b48806c9ce3ccbf0e95f15b` and main `8f83083e01a79933d516ac200912de63c3cc45f6` are diverged from `229604522...` and overlap in Project Workspace, i18n and docs. Preserve both project-top-level visibility and schedule-internal WBS/Resource/설비 readonly View. Gantt Task Editor must retain canonical Task ID and scope/scroll after view/tab transitions.
+- Updated i18n registry must include **both** `scheduleViewMessages` (#880) and `workspaceVisibilityMessages` (#881), with KO/EN/VI translations and no duplicate key overriding unrelated data.
+- Latest Main 8-shard planner and #880 schedule-view source API, source tests, resource/equipment E2E, 0037 DB tests, #881 keyboard tests remain active. New merge Head needs exact full Quality + E2E8 + Docker and Trusted/Owner checks; source-level three-way hunks are not PASS.
+- Prior #3546.1 shard7 #866 UI `Cancel disabled` timeout after 401 is unresolved. Keep original trace/run evidence, do not weaken timeout or disabled-state assertion merely to pass unrelated old failure. If it recurs, inspect isolated #866 flow separately.
+- Test Lifecycle: KEEP_UNIQUE #880/#866/#881 scenario coverage; EXTEND Work Packet documentation and failure origin; 0 deleted, 0 skipped or relaxed tests.

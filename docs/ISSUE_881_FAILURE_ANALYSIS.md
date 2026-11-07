@@ -57,3 +57,20 @@
 - **TEST_LIFECYCLE_REVIEW:** `EXTEND` 기존 #490/#232 Playwright 두 파일. 기존 인증/Origin/If-Match/5폭/Native focus/dirty/pending/실제 password rotation/정상·오류 케이스 삭제·skip·timeout 증가·assertion 약화 0. 새 탭 의미상 변경된 목적지에 더 구체적인 포커스/선택 assertion 추가.
 - **코드·정책 경계:** Project Settings source의 `End=TABS.length-1` 로직은 유지, 기존 Migration 0037/Project 권한, User read gate, AGENTS.md, Required Quality/E2E8/Docker 및 QA 보호 정책 수정 없음. 아래 새 HEAD의 실제 E2E8과 원격 전체 required 결과는 CI 재검증 전 **NOT TESTED**. 수동 screenreader/125%·운영 확인은 별도.
 - **후속:** 새 Head와 Run/Attempt로 Full PR CI를 시작하되 요청대로 모니터링하지 않는다. PR/Issue OPEN, Owner 수용·병합/Main/GHCR/Release/Finalizer/종료 미승인.
+
+## F881-005 — PR #884 Full #3546.1: #866 E2E 편집 취소 버튼 disabled / 원인 미확정 (2026-11-07 KST)
+
+- **원본:** [Full #3546.1 / Run42320142990](https://github.com/planner77/masterGantt/actions/runs/42320142990), attempt=1, `pull_request`, Head `eaa64b38f049a8cd2b48806c9ce3ccbf0e95f15b`, 당시 Base `229604522969133d1ccc6de0477e373252670c86`, conclusion `FAILURE`.
+- QA 경로·Preflight·TypeScript·ESLint·Vitest·Next build·Required Quality 및 Docker build/smoke·Required Docker는 실제 **SUCCESS**. 이는 당시 Head/Base의 증거일 뿐 새 Main 정렬 Head로 승계하지 않는다.
+- **단일 직접 FAIL:** [Chromium E2E shard7/8 Job128243495213](https://github.com/planner77/masterGantt/actions/runs/42320142990/job/128243495213), `tests/e2e/i18n-master-data.spec.ts:5` (#866 master 표시명, 실제 HTTP/5폭). 18건 PASS 후 19번째에서 **180초 test timeout**; line68 `row.getByRole("button",{name:"Cancel",exact:true}).click()` 시 버튼이 `disabled`로 남아 Playwright의 enabled 기다림 343회 후 timeout. 이전 401 경로에서 English 초안 `Preserved after 401` 보존/unsafe-upstream-marker 미노출은 테스트가 통과했으나, 그 이후 editor busy 해제/세션 상태·서버 pending 원인은 로그만으로 결정 불가.
+- **파생:** fail-fast 때문에 61 cases NOT RUN, 나머지 six shards cancelled, Required Chromium aggregate Job128245666308 FAIL, QA Automated Job128245697577 FAIL; 전체 E2E8 PASS 아님. 제품 결함인지 test/origin fixture 비결정성인지 알려면 #866의 실제 browser trace/HAR와 401 후 네트워크/상태 전이 분리가 필요하다.
+- **정책 판단:** #881의 화면 표시 설정과 직접 교차하는 코드/상태라는 근거는 없음. #866의 독립 보안·인증 경로를 근거 없이 변경하거나 E2E timeout/skip을 늘리지 않는다. 최신 Main #880과의 통합 후 Full8에서 재검증하고, 재현 시 #866 범위로 원인·trace를 심층 분석해야 한다.
+- **현 상태:** 해당 Run `FAILURE` 유지, #881 PR merge/Release 불승인. 이후 Main alignment 및 새 Head의 required CI는 별도 판정.
+
+## MAIN-001 — Issue #881 PR #884 최신 main 정렬/충돌 해결 (2026-11-07 KST)
+
+- 직전 PR Head `eaa64b38f049a8cd2b48806c9ce3ccbf0e95f15b`, 전 기준 Main `229604522969133d1ccc6de0477e373252670c86` (0.142.0). 현재 Main `8f83083e01a79933d516ac200912de63c3cc45f6` (0.143.0/#880 일정 View): GitHub PR 상태 `mergeable=false, mergeable_state=dirty`, 이전 Head는 Main보다 4 commits 뒤처짐. 원본 #880과 #881 branch의 공통 ancestor는 기존 base `229604522...`이다.
+- 충돌 범위 비교: 두 브랜치 모두 `CHANGELOG.md`, `docs/API.md`, `docs/PROJECT_UX.md`, `docs/REQUIREMENTS.md`, `docs/SECURITY.md`, `package.json`/`package-lock.json`, `src/features/projects/project-readonly-view.tsx`, `src/lib/i18n/index.ts`를 수정.
+- 해결 원칙: Git history를 강제로 rewrite하지 않는 **2-parent merge commit**(first parent Issue #881 Head, second parent 최신 Main) 사용. Base tree는 최신 main 기준, Issue-only files를 원본 SHA 그대로 overlay. 문서 다섯 개는 Main과 #881 각자 기존 문서 앞에 독립 prepend한 점을 원본 3-way 비교로 확인 후 **#881 section + 전체 최신 Main 원문**으로 병합. `package*.json`은 main 0.143.0보다 큰 #881 0.144.0으로 유지; deps graph 불변.
+- `project-readonly-view.tsx`는 ancestor 대비 #880의 3 non-overlapping hunk과 #881의 13 non-overlapping hunk을 3-way 위치 검증해 함께 재현. 일정 3-view readonly/source return, #881 가시성/설정 저장/URL 복원 및 기존 Task Editor 정상 경로 모두 보존. `src/lib/i18n/index.ts`는 #880 `scheduleViewMessages`와 #881 `workspaceVisibilityMessages`의 import/catalog/MessageKey를 동시에 포함. Latest Main의 #880 schedule views files, 8-shard plan/test/E2E, remote-validation docs와 Git binary evidence는 Main tree에서 그대로 승계.
+- **실제 테스트:** 코드 병합·문서 반영은 소스 비교의 정적 근거일 뿐 QA PASS 아님. 새로운 PR Full CI의 Head/Base/Test-Merge exact SHA와 Required Quality/E2E8/Docker, Trusted QA, Owner approval을 별도로 확인. 새 full CI를 시작한 뒤 모니터링하지 않음. Main CI/GHCR/Release/Issue 종료 범위 아님.

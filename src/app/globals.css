@@ -2776,3 +2776,36 @@ h2 {
     grid-row: 4;
   }
 }
+
+/* Advanced filters may shrink and scroll; the synchronized schedule must keep
+   space for its toolbar, scale header and at least three 44px rows. */
+@media (min-width: 48.0625rem) {
+  #project-scope-panel {
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  #project-scope-panel > .project-task-filter-panel {
+    flex: 0 1 auto;
+    min-height: 7rem;
+  }
+
+  #project-scope-panel > .project-gantt-scope-owner:not([hidden]) {
+    flex: 1 0 auto;
+    min-height: min-content;
+  }
+
+  #project-scope-panel .project-gantt-frame:not(:fullscreen) {
+    min-height: min-content;
+  }
+
+  #project-scope-panel .project-gantt-frame:not(:fullscreen) .project-gantt-scroll:not([hidden]) {
+    min-height: 14rem;
+  }
+
+  /* A zero flex base bounds the virtual canvas's intrinsic height. */
+  #project-scope-panel .project-gantt-frame:not(:fullscreen) .project-schedule-view {
+    height: 0;
+    min-height: 17rem;
+  }
+}

@@ -1,0 +1,266 @@
+{
+  "issue": 880,
+  "dateKst": "2026-11-07",
+  "baselineSha": "229604522969133d1ccc6de0477e373252670c86",
+  "validatedWorktreeHead": "229604522969133d1ccc6de0477e373252670c86",
+  "scope": "Local Fast Feedback only; no remote PASS or Owner acceptance",
+  "environment": {
+    "os": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "node": "v22.14.0",
+    "playwright": "1.63.0",
+    "chromium": "Playwright managed; actual browser launch is established by E2E execution, not this version metadata"
+  },
+  "source": {
+    "sha256": "a3a27d900b6ee2d6573293f2b017d301511fbae7170cc6a50a201720e03ad09f",
+    "fileCount": 1310,
+    "initialStartEqualsEnd": true,
+    "continuationStartEqualsEnd": true,
+    "bothEqual": true,
+    "scope": "src/, tests/, scripts/, db/, package.json, package-lock.json, next.config.ts; generated Next entrypoints restored to baseline before publish",
+    "changedInputSha256": {
+      "package-lock.json": "6cca360fbe47965887111e1f6fb25bad7bc545b200ab65a40ba554de1fdf01de",
+      "package.json": "b8ea5325483c0b62bea236b4406564f24983393a031a6dea37a62f32b11024fc",
+      "src/app/api/projects/[publicId]/schedule-view-source/route.ts": "3a35e989a90082eba750e5a28d14daf7defd5fba2dcd14c55b8d670bccb19d08",
+      "src/contracts/schedule-views.ts": "5a80e7d75b141c66cf3fd2bc1bdf018d4115f43dcb5b8e2426d3f0872194cad2",
+      "src/features/gantt/project-gantt.tsx": "37393a5f7a3004a6cdf14801bf3b206652925ec95923e29221dc6abbcbbd0168",
+      "src/features/gantt/schedule-view-panel.css": "1131c2492a7842397d1cebe93db5f68198a573b9070622d4d056cf9bb25fa076",
+      "src/features/gantt/schedule-view-panel.tsx": "2d2c7630ffc2e880a6cdc061d70b233b768b09ac91e1b12f8b6bb39da236b3b1",
+      "src/features/gantt/schedule-view-projection.ts": "bde7044632a2f5ffa2b28dc0069daa7614ef8221237542701f6550a745716fa2",
+      "src/features/projects/project-readonly-view.tsx": "cfa19a5d078428ffd69b9a5506cfd9c4d401a62210b99fa58b1f2ba002661d82",
+      "src/lib/i18n/catalogs/schedule-views.ts": "f650b2ca157fdf1426f9aaf4c39c140888123101c3f46dc80ba4ed2dbfc78486",
+      "src/lib/i18n/index.ts": "d60e9be53c42f4dc8eab7d7132108c729bd24dbae829dc8519572ab292ecd12d",
+      "src/server/projects/schedule-view-source-handler-core.ts": "e601ad87eb18ecc76acf14ef378cb83a4d8f8e100fed6db00469ccbfb91cb0ff",
+      "src/server/projects/schedule-view-source-service-core.ts": "adc0b0aa425ae57b81162e86ced5afbcb510c8cfdaba353631b191e654b24769",
+      "src/server/repositories/schedule-view-source-repository-core.ts": "656247ed22666ee5b6f062e34ff2a176a66ea454cce130e99178c0743386ae58",
+      "src/server/security/route-security-inventory.ts": "ef21e647d7f85b4713ff2342514f6b9c07771006bf4b2a1a8a7bead6cc74c828",
+      "tests/config/e2e-shard-plan.json": "ad14c9b181be6646d04360ec2e171594c9b5f638a230f8a659bc94af93fcd4f5",
+      "tests/e2e/fixtures/schedule-views.ts": "fedad8f0fbfb299577437bbc3ca4fd549c9708e28fa91e993a647b96a4819e3e",
+      "tests/e2e/schedule-views.spec.ts": "e10a6283ef2f0a1d223fd9967257f0026955c553dc502f245501c68a73a87e17",
+      "tests/features/gantt/schedule-view-projection.test.ts": "52341c5b61aaea360a9d3aa41586009ff7313d1c74a6eafbf9a4672841fcb198",
+      "tests/scripts/e2e-shard-planner.test.ts": "f2df4b3bd8a0bc236f899eab76695f9dbfe2b973dc073818f19b3aa091716522",
+      "tests/server/projects/edit-authorization-handlers.test.ts": "35465b8d99d19d331eb44caf06a3c58eeb60fc48d034cf90e610f38fbe091d92",
+      "tests/server/projects/schedule-view-source.test.ts": "4656650b656fedf3c869a3b8f06b8f192486a7b2579bacd37811f9c2a093993d"
+    },
+    "afterBrowserEqualsValidated": true
+  },
+  "checks": [
+    {
+      "name": "unit",
+      "command": [
+        "npm",
+        "test",
+        "--",
+        "--maxWorkers=2"
+      ],
+      "startedAt": "2026-11-06T21:32:10.104264+00:00",
+      "exitCode": 0,
+      "durationSeconds": 155.055,
+      "log": ".prepr-reports/issue880-manual/final/unit.log"
+    },
+    {
+      "name": "build",
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "startedAt": "2026-11-06T21:34:45.161470+00:00",
+      "exitCode": 0,
+      "durationSeconds": 113.598,
+      "log": ".prepr-reports/issue880-manual/final/build.log"
+    },
+    {
+      "name": "typecheck",
+      "command": [
+        "npm",
+        "run",
+        "typecheck"
+      ],
+      "startedAt": "2026-11-06T21:36:38.761489+00:00",
+      "exitCode": 0,
+      "durationSeconds": 45.808,
+      "log": ".prepr-reports/issue880-manual/final/typecheck.log"
+    },
+    {
+      "name": "lint",
+      "command": [
+        "npm",
+        "run",
+        "lint"
+      ],
+      "startedAt": "2026-11-06T21:40:45.815401+00:00",
+      "exitCode": 0,
+      "durationSeconds": 61.245,
+      "log": ".prepr-reports/issue880-manual/final-continuation/lint.log"
+    },
+    {
+      "name": "version",
+      "command": [
+        "node",
+        "scripts/verify-release-version.mjs"
+      ],
+      "startedAt": "2026-11-06T21:41:47.062247+00:00",
+      "exitCode": 0,
+      "durationSeconds": 0.045,
+      "log": ".prepr-reports/issue880-manual/final-continuation/version.log"
+    },
+    {
+      "name": "discovery",
+      "command": [
+        "node",
+        "scripts/verify-test-discovery.mjs"
+      ],
+      "startedAt": "2026-11-06T21:41:47.108762+00:00",
+      "exitCode": 0,
+      "durationSeconds": 13.387,
+      "log": ".prepr-reports/issue880-manual/final-continuation/discovery.log"
+    },
+    {
+      "name": "markdown",
+      "command": [
+        "node",
+        "scripts/check-markdown-links.mjs"
+      ],
+      "startedAt": "2026-11-06T21:42:00.497348+00:00",
+      "exitCode": 0,
+      "durationSeconds": 0.166,
+      "log": ".prepr-reports/issue880-manual/final-continuation/markdown.log"
+    },
+    {
+      "name": "cache",
+      "command": [
+        "node",
+        "scripts/verify-ci-cache-contract.mjs"
+      ],
+      "startedAt": "2026-11-06T21:42:00.664528+00:00",
+      "exitCode": 0,
+      "durationSeconds": 0.042,
+      "log": ".prepr-reports/issue880-manual/final-continuation/cache.log"
+    },
+    {
+      "name": "qa-preflight-fixture",
+      "command": [
+        "python3",
+        "scripts/test_qa_preflight.py"
+      ],
+      "startedAt": "2026-11-06T21:42:00.708141+00:00",
+      "exitCode": 0,
+      "durationSeconds": 0.12,
+      "log": ".prepr-reports/issue880-manual/final-continuation/qa-preflight-fixture.log"
+    }
+  ],
+  "unit": {
+    "status": "PASS",
+    "passedFiles": 302,
+    "existingSkippedFiles": 1,
+    "passedTests": 3738,
+    "existingSkippedTests": 3,
+    "localMaxWorkers": 2,
+    "officialCiWorkerPolicyChanged": false
+  },
+  "lint": {
+    "status": "PASS",
+    "errors": 0,
+    "existingWarnings": 18,
+    "historicalGeneratedOutputFailure": "L-010 in docs/ISSUE_880_FAILURE_ANALYSIS.md; preserved separately"
+  },
+  "browser": {
+    "status": "PASS",
+    "plannedUniqueCases": 45,
+    "specs": [
+      "tests/e2e/schedule-views.spec.ts",
+      "tests/e2e/project-gantt-scale.spec.ts",
+      "tests/e2e/project-gantt-fullscreen.spec.ts",
+      "tests/e2e/project-task-editor.spec.ts"
+    ],
+    "uniqueCases": 45,
+    "passed": 45,
+    "failed": 0,
+    "skipped": 0,
+    "duration": "6.8 minutes",
+    "workers": 1,
+    "retries": 0,
+    "maxFailures": 0,
+    "actualHttpAndSqlite": true,
+    "newViewCases": 4,
+    "existingAdjacentCases": 41,
+    "sourceStartEqualsEnd": true,
+    "sourceSha256": "a3a27d900b6ee2d6573293f2b017d301511fbae7170cc6a50a201720e03ad09f",
+    "rawPreservedOutsideWorktree": "/tmp/issue880-final-combined",
+    "newCaseSeconds": [
+      22.3,
+      17.6,
+      26.0,
+      21.3
+    ],
+    "receipts": [
+      "schedule-view-editor-catalog-receipt.json",
+      "schedule-view-read-errors.json",
+      "schedule-view-readonly-receipt.json",
+      "schedule-view-virtualization.json"
+    ],
+    "metrics": {
+      "canonicalTasks": 93,
+      "scopedLogicalRows": 86,
+      "renderedDomRows": 23,
+      "scrollHeight": 2816,
+      "clientHeight": 578,
+      "keyboardEndFocusMilliseconds": 371.6,
+      "wbsDensity": 32,
+      "wbsChartLeft": 120,
+      "wbsTop": 38,
+      "queryWrites": 0,
+      "originalEditorPatches": 1
+    }
+  },
+  "automaticPrepr": {
+    "status": "BLOCKED",
+    "unknown": 7,
+    "missing": 0,
+    "reason": "New producer-consumer mappings are not registered in the automatic selector. Explicit manual scope is recorded without changing policy.",
+    "fastReport": ".prepr-reports/issue880-publish-fast/report.json",
+    "targetedReport": ".prepr-reports/issue880-publish-targeted/report.json",
+    "sourceStable": true,
+    "initialUnknown": 6,
+    "finalAdditionalUnknown": "tests/config/e2e-shard-plan.json"
+  },
+  "remote": {
+    "quality": "NOT TESTED",
+    "e2e": "NOT TESTED",
+    "docker": "NOT TESTED",
+    "trustedQa": "NOT TESTED",
+    "managerDecision": "NOT TESTED",
+    "mergeReady": "BLOCKED"
+  },
+  "residualRisks": [
+    "Actual screen reader, touch hardware and native 125% zoom NOT TESTED",
+    "Long-duration production-scale performance NOT TESTED",
+    "Local worker budget and one Chromium process do not emulate eight GitHub runners",
+    "Formal release is not authorized"
+  ],
+  "screenshots": {
+    "equipment-1440.png": "6207ec6c966f8efb162788c3043abc077229a103d16fbc6fec34f503aff9d31a",
+    "equipment-390.png": "7de5159cb03ca6c12286ea23699fa430ba86721d2c063609dce2951a8c864c02",
+    "resource-1440.png": "a980c46b940c012c4d997899d2c19f99ccfb5d99ed8a0f56d21530c6c7017557"
+  },
+  "preQa": {
+    "reviewer": "/root/preqa",
+    "status": "PASS",
+    "scope": "Read-only technical review of frozen source, requirements/code/tests/docs/local evidence; not human QA_FINAL or Owner/Manager ACCEPT",
+    "directUnresolvedP1P2": 0,
+    "validatedSourceSha256": "a3a27d900b6ee2d6573293f2b017d301511fbae7170cc6a50a201720e03ad09f"
+  },
+  "publication": {
+    "originalLocalCommit": "f88e63461c5b48ef07269667f1be00d29c38bb75",
+    "shellGitPush": {
+      "status": "FAIL",
+      "exitCode": 128,
+      "reason": "Stored HTTPS/gh credential expired; no remote branch/PR/CI created by this failed attempt"
+    },
+    "recovery": "GitHub connector GitData API, same final Tree and parent main verified before Ready PR creation",
+    "remoteCommitMayDiffer": true,
+    "authorDateOverrideSupported": false,
+    "authority": "Use actual remote Head and Run/Attempt from Issue STATUS; local commit SHA is not substituted",
+    "credentialConfigurationChanged": false
+  }
+}

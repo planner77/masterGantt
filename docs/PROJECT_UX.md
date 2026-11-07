@@ -4,6 +4,26 @@
 
 ---
 
+## Issue #880 R2 — 고급 필터와 Gantt 작업면의 높이 배분
+
+데스크톱에서 고급 Task 필터는 잔여 높이에 맞춰 축소하고 자체 세로 스크롤을 사용한다. 첫 필드·44px control 접근을 위한 최소7rem을 확보하며 기존 최대높이와 모든 필드·조건을 유지한다. 일정 Gantt는 toolbar의 실제 높이 외에 native header72px·coarse3행132px·scrollbar/border 여유를 포함한 최소14rem 작업면을 가진다. Resource/설비의 가상화된 조회면은 최소17rem을 갖고 canvas 전체높이가 상위 작업면 크기를 늘리지 않도록 유지한다.
+
+두 최소영역도 들어가지 않는 낮은 창에서는 schedule scope-panel 내부의 안전 세로 스크롤로 필터와 작업 행에 접근한다. 문서 전체의 가로 overflow나 필터 필드 삭제로 해결하지 않는다. 모바일의 기존22rem, Fullscreen의 실제 viewport 배분, hidden/inert WBS의 공간0과 mounted instance를 유지한다. 표시영역 변경은 filter/open/선택·scroll 상태·날짜축/원본 권한·mutation의 변경 근거가 아니다. [원장 R2](ISSUE_880_FAILURE_ANALYSIS.md)와 [Packet](exec-plans/active/ISSUE_880.md)의 실제 geometry/keyboard·동결회귀 결과로 판정한다.
+
+## Issue #880 R1 — View 왕복의 선택과 재조회 위치
+
+WBS에서 선택한 여러 Task·Core primary·Shift anchor·기존 Copy는 Task를 새로 선택하지 않는 View 왕복에서 유지한다. 비-WBS에서 특정 원본 Task를 명시적으로 열면 그 새 선택이 우선한다. WBS 복귀 자체를 새 single-selection gesture로 취급하지 않는다.
+
+Resource/설비의 source 재조회·Editor/작업면 복귀 중에는 검증된 이전 표시의 공간 크기만 보존하고 현재로 확인되지 않은 Task 행·편집 동작을 활성화하지 않는다. 유효한 같은 문맥에서는 원본 row/path·날짜 앵커와 viewport를 복구하고, 새 query/scope/scale/선택·실제 wheel/key 입력을 과거 복원으로 덮지 않는다. 언어는 표시 변경이며 같은 View의 위치를 초기화하지 않는다. 같은 Project revision에서도 카탈로그 재조회 결과가 달라질 수 있으므로 새 검증 응답마다 행 앵커를 다시 해석한다. 오류·권한·stale/응답역전은 정상 최신 View와 구별한다. [누적 원장 R1](ISSUE_880_FAILURE_ANALYSIS.md)과 [Work Packet](exec-plans/active/ISSUE_880.md)의 실제 RED/GREEN·환경별 판정을 따른다.
+
+## Issue #880 — 일정 View 전환
+
+Gantt 상단의 표시 단위 앞에 `View` label과 `WBS / Resource / 설비` 선택을 둔다. 기본 WBS는 기존 기능을 유지한다. Resource·설비는 같은 원본 Task의 날짜/진척/상태를 다른 계층으로 조회하며 가상 분기는 접기/펼치기만 제공한다. 같은 업무가 여러 경로에 보일 수 있고 이는 원본 복제나 합계 증가가 아니다. Group-only 업무를 멤버에게 배분하지 않으며 Fleet는 등록 설비 한 건이다. Summary 직접 Assignment의 원본 확인은 기존 WBS Task Editor/담당자 경로에 남고 일반 Task의 개인 배정으로 전파하지 않는다.
+
+비-WBS 실제 Task의 작업 정보 열기는 기존 Editor를 사용한다. 가상 Group/개인/유형/모델/설비 행은 Task Editor나 WBS 문맥 메뉴를 열지 않는다. 직접 drag/resize/progress/link/inline/키보드·clipboard·구조 편집은 차단한다. Editor 실제 저장은 기존 Project session/권한/dirty·pending/revision 정책이 결정한다. 편집 중이나 복구 잠금에서는 View 선택을 잠그고 이유를 제공한다.
+
+조회 중/실패/자료 변경은 정상 최신 View와 구별하며 retry 또는 WBS로 복귀할 수 있다. 선택 복귀는 원본 Task를 기준으로 유효 경로와 fallback을 사용한다. View/표시 단위/검색·필터/범위/Fullscreen·밀도는 독립 상태이며 기존 WBS Core는 보존한다. 데이터 및 SVG/PNG Export는 기존 canonical WBS 계약이고 활성 Resource/설비 화면의 스크린샷 출력 기능은 추가하지 않는다. 실제 폭·keyboard·성능·미검증은 [Work Packet](exec-plans/active/ISSUE_880.md)과 [원장](ISSUE_880_FAILURE_ANALYSIS.md)을 따른다.
+
 ## Issue #866 Phase B — 프로젝트별 공정/WorkArea 표시명 (2026-11-05)
 
 - Project Process, Project WorkArea의 수동 표시명 번역값은 해당 Project 범위의 owner row에 부착한다. 다른 Project의 이름·번역을 복제 연결하거나 원본 name/ID를 변경하지 않는다. Global Process Type/표준/현장 공정 원본과 프로젝트 사본의 소유권·권한을 구별한다.

@@ -1,3 +1,9 @@
+## Issue #880 — 조회 전용 일정 계층
+
+`View` label/native select는 표시 단위 바로 앞에 묶고 WBS/Resource/설비 순서를 유지한다. 기존 Gantt toolbar34px·coarse44px와 semantic focus ring/내부 scroll을 재사용한다. 새 계층의 Grid/Chart는 동일 논리행·window·세로 scroll owner를 공유하며 긴 이름은 전체 접근 가능한 이름을 유지한다. 가상 Summary toggle은 `aria-expanded`, 실제 Task는 명시적인 작업 정보 열기 button을 제공한다. 선택과 focus는 원본 Task 의미를 따라 복귀하고 hidden WBS는 inert로 만든다.
+
+390/768/1024/1440/1920px, Day/Week/Fullscreen·locale, 선택·Editor 복귀, 가상행80+ window·Y 일치·scroll, 조회 실패/역전·dirty/pending 잠금을 측정한다. 화면 사진은 HTTP/SQLite 쓰기0·권한·native mutation 차단·instance 보존 증거를 대신하지 않는다. 실제 AT/native125%/터치 하드웨어는 자동 Chromium과 별도로 판정한다. [실행 계획](exec-plans/active/ISSUE_880.md).
+
 ## Issue #866 Phase B — 번역 관리 입력·검색 (2026-11-05)
 
 - 기준정보 표의 사용 건수는 현재 언어의 짧은 프로젝트 단위와 숫자를 가시 표시하고 전체 사용 관계 설명을 title로 유지한다. category header/tabs는 min-width:0과 기존 내부 가로 스크롤을 사용해 영어·베트남어390px에서 문서를 확장하지 않는다. 표 열/행의 기존 밀도 단언과 버튼 접근성은 보존한다.

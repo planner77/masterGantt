@@ -131,6 +131,7 @@ export const ROUTE_SECURITY_INVENTORY = Object.freeze([
   { template: "/api/logistics-catalog/admin/system-types/{code}", method: "PATCH", policy: "origin-logistics-admin-if-match", mutatesState: true },
   { template: "/api/projects/{publicId}/assignment-targets", method: "GET", policy: "project-edit-session-read", mutatesState: false },
   { template: "/api/projects/{publicId}/assigned-targets", method: "GET", policy: "public-read", mutatesState: false },
+  { template: "/api/projects/{publicId}/schedule-view-source", method: "GET", policy: "public-read", mutatesState: false },
   { template: "/api/projects/{publicId}/resource-dashboard/scope", method: "GET", policy: "public-read", mutatesState: false },
   { template: "/api/projects/{publicId}/resource-dashboard/query", method: "POST", policy: "origin-public-query-read", mutatesState: false },
   { template: "/api/projects/{publicId}/resource-dashboard/views", method: "POST", policy: "origin-public-query-read", mutatesState: false },

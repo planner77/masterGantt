@@ -4,6 +4,23 @@
 
 ---
 
+## Issue #880 — 일정 View source GET
+
+`GET /api/projects/{publicId}/schedule-view-source`는 일정 Resource/설비의 표시 전용 자료를 반환한다. Body/query 없음; canonical Project UUID와 기존 public/private Project read gate를 적용한다. private는 현재 same-project edit session이 필요하고 public anonymous read는 유지한다. 신규 관리자 catalog 접근 권한이나 Project edit session을 만들지 않는다.
+
+응답은 `{ data: { schema: "schedule-view-source/1", projectPublicId, projectRevision, catalogRevision, logisticsTypeCatalogRevision, assignments, resources, groups, equipment, equipmentTypes, taskEquipment } }`이다. 같은 deferred SQLite 읽기 transaction에서 Project 접근·revision 및 source를 읽는다.
+
+- `assignments`: 해당 Project의 원본 Assignment ID/Task ID/개인 또는 Group target. Summary 직접 참조는 원본에 남으며 자손 개인 배정으로 전파하지 않는다.
+- `resources`: 실제 Project Assignment에 참조된 개인의 id/name/active만 제공한다. 참여등록·설비 Owner·그룹 소속만으로 개인 Assignment나 공수를 만들지 않는다.
+- `groups`: 직접 배정 Group과 실제 배정 개인이 속한 Group의 id/name/active/translations·memberResourceIds. memberResourceIds는 반환 resources와의 교집합이며 관련 없는 전역 개인 이름/ID를 공개하지 않는다.
+- `equipment`: Project의 실제 등록 원본 id/name/active/equipmentType/model/managementUnit/quantity/translations, 작업0 설비 포함. Fleet 수량에 따라 원본을 분할하지 않는다.
+- `equipmentTypes`: 사용 설비 유형의 code/name/active/translations. 모델명은 표시 문자열이고 원본 ID가 아니다.
+- `taskEquipment`: 같은 Project Task별 기존 직접/self·조상 Summary/subtree·archive 호환 resolver의 equipment 유효 ID와 직접/상속/compatibility provenance. Owner/공정/구역/controls로 Task 연결을 역추정하지 않는다. System 관계는 이 source에서 비운다.
+
+응답은 `Cache-Control: private, no-store`, `X-Content-Type-Options: nosniff`를 적용한다. 잘못된/없는 Project404, private 미인증401 PROJECT_LOCKED, 불일치 source409 SCHEDULE_VIEW_SOURCE_INVALID 또는 LOGISTICS_SOURCE_INVALID, 조회 source 한도422 SCHEDULE_VIEW_SOURCE_LIMIT_EXCEEDED, 예상하지 못한 서버 오류500이다. GET은 If-Match mutation을 수행하지 않으며 Project revision/Task/Assignment/설비/DB 쓰기0이다. Assignment8,000개·catalogMembership16,000개·UTF-8 직렬화 응답2,097,152byte 및 기존 logistics loader 한도·오류를 유지하고 불완전 참조를 조용히 정상 자료로 누락하지 않는다.
+
+클라이언트는 projectPublicId/projectRevision을 현재 canonical snapshot과 비교하고 요청 generation·abort로 역전을 차단한다. 최신 catalog 이름/소속 변경은 재조회 시 반영한다. 표시 key는 저장 ID가 아니며 원본 Task Editor/Export는 기존 canonical 계약이다. [Work Packet](exec-plans/active/ISSUE_880.md)과 [실행·실패 원장](ISSUE_880_FAILURE_ANALYSIS.md)의 실제 검증 상태를 따른다.
+
 ## Issue #866 Phase B — 수동 번역 DTO/API 호환 (2026-11-05)
 
 - 기존 Project Master, Logistics Type, Process Catalog, Project Logistics, Project WorkArea, Resource Group API의 원래 `name`/ID/code/enum 필드는 하위호환 불변. 선택적 `translations: { ko?: string; en?: string; vi?: string }`만 DTO/요청에 추가.
