@@ -100,3 +100,10 @@
 - 영향 소비자3개 실제 Chromium PASS(총4.3분), canonical14건/1,581,745bytes 무결성 PASS. 중간 Resource flow NOT TESTED·의도적 CSS FAIL1건을 최종 test PASS와 분리해 유지한다. 기존 Python/비교기 결과는 불변 파일 근거로 재사용했다.
 - 원격 원본 실패·취소7샤드/출처artifact·전체 로그·추가실패미관측·수정설계·코드지문·명령은 같은 실패 원장에 추가했다. 버전/보호정책·Full8/Required3·release 판단 불변.
 - unresolved thread0, main ancestry/충돌 없음. 별도 infra 구현 + qa_docs read-only 기술 검토로 수행했으며 independent QA_FINAL=N/A(OWNER_MANAGED), Owner/Manager·신규 원격 결과 NOT TESTED다.
+
+## REWORK — PR #902 / Full #3595.1 (신규 F-002)
+
+- A–C: [Run42532136493 attempt1](https://github.com/planner77/masterGantt/actions/runs/42532136493) Head997841a7/base1826b479/test-merge d6d9e8ef. #3594 ENOBUFS(F-001)은 streaming 수정 뒤 shard3에서 재발 미관측. 신규 직접 F-002는 E2E8/8 **121 PASS/123 선택·2 미완료**에서 35m Job 한계 취소. 다른7샤드 PASS(기존 SKIP3), shard6 32m 근접; Quality/Docker PASS, E2E aggregate/QA Final FAIL은 파생. [누적 원장](../../ISSUE_896_FAILURE_ANALYSIS.md)에 전체 Run/Job·상태와 로그 연결.
+- **REUSE_REVIEW=EXTEND** 유지: #900 샤드 계획·현재 8그룹 선택기·기존 단위 테스트·#880/#889/#890 UI assertions·기존 프레임워크와 HISTORY를 재사용한다. #3595 실제 완료 whole-spec 기준 세 file만 이동: #621 Resource target 8→2, #490 settings layout 8→1, #491 transfer layout 6→4. 최초 #900 이동 자체는 되돌리지 않는다. UI 제품 코드·workflow·Runner/Timeout/Retry/Skip 변경 없음.
+- **TEST_LIFECYCLE_REVIEW:** EXTEND `tests/scripts/e2e-shard-planner.test.ts`에서 최신 counts[18,19,17,22,18,16,19,18]·147 unique/inventory·원본 #902→#900→#894→#885 역산/3개 전체 file 이동 확인. KEEP_UNIQUE 이전 provenance5, 실제 #880/#889/#890, UI/권한/Geometry, 기존 Full8/Required3. ADD 신규 manifest `manualRebalance902`와 그 source/job 증거. 기존 통과는 새 Head에 이월하지 않는다.
+- **DOCUMENTATION_SYNC:** 변경 `tests/config/e2e-shard-plan.json`, `tests/scripts/e2e-shard-planner.test.ts`, 이 Packet, 단일 `docs/ISSUE_896_FAILURE_ANALYSIS.md`. AGENTS/DESIGN/CI_CD/CI workflow/제품 계약은 동일해 N/A. 현재 동일 소스 static·unit 검증 및 인계는 누적 원장에 덧붙인다. 원격 새 exact Head Full/Owner/Manager NOT TESTED, MERGE_READY=BLOCKED. CI 시작 후 감시·병합/GHCR·이슈 종료는 수행하지 않는다.

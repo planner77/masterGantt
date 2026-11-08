@@ -135,3 +135,34 @@ quality/e2e/docker·Trusted/Owner UI 수용·Manager ACCEPT·Stage B 활성은 N
 - DOC_SYNC/AC01~06/reuse 구조와 Markdown426파일 링크·diff 검사 후 동일 PR fast-forward commit/push로 새 Full CI를 시작한다. 원본 #3594.1 FAILURE는 보존하며 새 Head required3/Trusted/Owner 수용/Manager ACCEPT는 NOT TESTED다. CI Run/Attempt 등록 정보만 확인하고 상태/결과를 모니터링하지 않는다.
 
 - 최종 주석 정리 뒤 신규 unit5 PASS(2.03초), 대상 ESLint와 typecheck PASS. 문서만 후속 갱신했으며 helper/test 두 파일 지문은 위 값과 동일하다.
+
+## PR #902 · Full #3595.1 — F-002: Chromium shard 8/8 취소·재균형 (2026-11-09)
+
+### A–C. 원격 원본, 전 이력 교차 진단
+
+- [Full #3595.1 / Run 42532136493 / attempt 1](https://github.com/planner77/masterGantt/actions/runs/42532136493), event `pull_request/synchronize`, Head `997841a779dcec97a21a17b4874a5e8bab1da3ac`, base `1826b479a80c64ef16efe768b31f75d62170639e`, test-merge `d6d9e8ef599df3cf9e9dbcf7469097c6c3c92e1a`. [원본 PR source artifact 13636754697](https://github.com/planner77/masterGantt/actions/runs/42532136493/artifacts/13636754697) 존재. 결론은 **CANCELLED**이며 과거 #3594.1 FAILURE를 덮어쓰지 않는다.
+- Policy·TypeScript·ESLint·Vitest·Preflight·Fast Gate·PR Build, Required Quality [job128889697564](https://github.com/planner77/masterGantt/actions/runs/42532136493/job/128889697564), Required Docker [job128890558663](https://github.com/planner77/masterGantt/actions/runs/42532136493/job/128890558663) **PASS**. E2E aggregate [job128898141151](https://github.com/planner77/masterGantt/actions/runs/42532136493/job/128898141151) **FAIL**은 `RESULT: cancelled`에 대한 의도된 fail-closed 판정, QA Final [job128898163790](https://github.com/planner77/masterGantt/actions/runs/42532136493/job/128898163790) **FAIL**은 E2E 증거 부재 파생. Main OCI/비활성 metadata·LOW 분기는 SKIPPED이며 승인 PASS가 아니다.
+- 직접 원본: [Chromium 8/8 job128889225298](https://github.com/planner77/masterGantt/actions/runs/42532136493/job/128889225298) `Running 123 tests using 1 worker` 후 **121 PASS / 나머지 2 NOT TESTED**. 2026-11-08T23:27:50Z `The operation was canceled.`; 기존 35분 Job 제한에 도달하여 중단됐으며 원본 로그에 assertion FAIL은 확인되지 않는다. 합성 [artifact13639530066](https://github.com/planner77/masterGantt/actions/runs/42532136493/artifacts/13639530066)은 일부 관측만 포함하고 최종 UI/UAT 승인 증거가 아니다.
+
+| Shard / Job ID | 선택 | PASS | 기존 SKIP | 미완료·미실행 | Playwright 시간 | 상태 |
+| --- | ---: | ---: | ---: | ---: | ---: | --- |
+| 1/8 · 128889225338 | 105 | 105 | 0 | 0 | 21.5m | SUCCESS |
+| 2/8 · 128889225113 | 105 | 105 | 0 | 0 | 17.8m | SUCCESS |
+| 3/8 · 128889225173 | 149 | 148 | 1 | 0 | 21.8m | SUCCESS |
+| 4/8 · 128889225152 | 118 | 117 | 1 | 0 | 22.1m | SUCCESS |
+| 5/8 · 128889225190 | 92 | 92 | 0 | 0 | 25.1m | SUCCESS |
+| 6/8 · 128889225166 | 94 | 93 | 1 | 0 | 32.0m | SUCCESS |
+| 7/8 · 128889225288 | 109 | 109 | 0 | 0 | 28.2m | SUCCESS |
+| 8/8 · 128889225298 | 123 | 121 | 0 | 2 | 35m 한계 | CANCELLED |
+| 합계 | 895 | 890 | 3 | 2 | — | 전체 PASS 아님 |
+
+- **누적 Cross-run F-001:** #3594.1 E2E3/8 `schedule-views.spec.ts` #880의 공유 `ui-evidence.ts` Git stdout `ENOBUFS`는 스트리밍 보완됨. #3595의 동일 E2E3/8 148 PASS/기존 SKIP1로 같은 오류 재발 미관측, 이전 원본 FAIL은 불변.
+- **신규 F-002:** #3595.1 E2E8/8 `CI_SHARD_JOB_TIMEOUT`/환경·스케줄 부하, F-001과 다른 원인. 직접 실패 assertion은 미관측이며 마지막 2case는 미완료다. 원본 실패 파일 합집합 `tests/e2e/schedule-views.spec.ts` → `tests/e2e/helpers/ui-evidence.ts`; 신규 위험 범위 shard8 미완료 2case 및 shard6 32m 근접과 해당 전체 file별 스케줄이다. `GitCommitInfo timeout of 3000ms`는 성공 샤드에도 존재한 비차단 정보 경고로 직접 원인과 구분한다.
+
+### D–F. 보완·재사용·검증
+
+- 기존 [이산 샤드 계획](../tests/config/e2e-shard-plan.json)과 `scripts/e2e-shard-planner.mjs select`, `tests/scripts/e2e-shard-planner.test.ts`, #885/#894/#900 역사 배치를 **EXTEND**한다. 실제 #3595 완료 전체 spec 기준으로 (1) `issue-621-resource-target.spec.ts` **8→2**, 6 case, test body156.3s/완료 구간4.88m, (2) `project-settings-layout-490.spec.ts` **8→1**, 6 case, body104.6s/구간4.06m, (3) `project-transfer-layout-491.spec.ts` **6→4**, 8 case, body183.1s/구간6.16m. 모두 spec 전체 단위 이동, 중단된 미완료 case 삭제·skip 불가.
+- 수정 전 파일 배치 [17,18,17,21,18,17,19,20], 수정 후 [18,19,17,22,18,16,19,18], **147개 중복·누락 없이 동일 8그룹**. `manualRebalance902`에 신규 source/run/job/선택/완료 및 이동 증거 기록, #885/#894/#900 원본 metadata 불변. 기존 단위 테스트에 최신 배치·#902→#900→#894→#885 역산·과거 source 검증을 추가한다.
+- 이전 Playwright 소요에 완료 구간을 단순 이전하면 샤드1/2/4/6 약25.6/22.7/28.3/25.8m 참고치. 이는 통제되지 않은 **shift-only** 계산일 뿐 setup/host/fixture 시간 및 8/8 미완료 2개·분산 변동이 미계측되어 새 Full PASS, 향상률, 비용 절감을 증명하지 않는다.
+- `.github/workflows/ci.yml`, 제품 UI/API/DB/버전 및 8-shard/workers1/35m/PR fail-fast/max-failures1/skip/retry/Required3/Trusted/Owner/OCI/Release/Finalizer는 변경하지 않는다. 이전 원격 PASS는 진단 참고일 뿐 새 Head의 공식 PASS가 아니다. 새 Head의 Quality/Chromium8/Docker/Trusted·Owner UI UAT·Manager ACCEPT는 **NOT TESTED**, MERGE_READY=BLOCKED.
+- 리뷰 스레드0 및 main ancestry/충돌(현 기준 head997841a7, base1826b479, mergeable=true) 확인. 작업 후 재확인하며 같은 PR branch 단일 commit으로 `synchronize` Full CI를 시작하고 모니터링하지 않는다. 병합/Main/GHCR·이슈 종료는 범위 밖이다.

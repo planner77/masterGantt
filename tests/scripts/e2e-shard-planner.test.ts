@@ -106,9 +106,9 @@ describe("historical E2E shard planner", () => {
     // 누락·중복은 계속 실패해야 하며 hash fallback으로 대체하지 않는다.
     // #866 Phase A adds language-shell to shard 5; Phase B adds master-data to shard 7.
     // #880 신규 일정 View spec은 기존 배치를 유지하며 shard 3에 명시 등록한다.
-    // #885/#894 layouts remain immutable historical evidence. #900 F-003 moves
-    // exactly two complete specs; all 147 current specs remain unique.
-    expect(plan.shards.map(group => group.files.length)).toEqual([17, 18, 17, 21, 18, 17, 19, 20]);
+    // #885/#894/#900 are immutable historical snapshots; #902 adds a newer placement.
+    // Every one of the 147 specs remains explicitly assigned exactly once.
+    expect(plan.shards.map(group => group.files.length)).toEqual([18, 19, 17, 22, 18, 16, 19, 18]);
     expect(new Set(entries).size).toBe(entries.length);
     expect([...entries].sort()).toEqual(discovered); // New specs require deliberate plan slots.
     const selected = [1, 2, 3, 4, 5, 6, 7, 8].flatMap(shard =>
@@ -162,6 +162,16 @@ describe("historical E2E shard planner", () => {
     expect(new Set(correction.movedFiles.map(item => item.file)).size).toBe(correction.movedFiles.length);
 
     const rebalance900 = evidence.manualRebalance900;
+    const rebalance902 = (plan as typeof plan & {
+      manualRebalance902: {
+        sourceRunId: number; sourceRunNumber: number; sourceHeadSha: string;
+        sourceBaseSha: string; originalConclusion: string; jobTimeoutMinutes: number;
+        cancelledShard: number; cancelledShardSelectedCases: number;
+        cancelledShardObservedPasses: number; cancelledShardUnfinishedCases: number;
+        successfulShards: number[]; beforeFileCounts: number[]; afterFileCounts: number[];
+        explicitSpecCount: number; movedFiles: Array<{ file: string; from: number; to: number }>;
+      };
+    }).manualRebalance902;
     expect(rebalance900.sourceRunId).toBe(42475849089);
     expect(rebalance900.sourceHeadSha).toBe("6bf821cf9c57941f2e1547b8cb1552b6f99ea277");
     expect(rebalance900.sourceBaseSha).toBe("90c5a1a951c749a9690b1c83e5a74b6d122dd6e3");
@@ -172,13 +182,42 @@ describe("historical E2E shard planner", () => {
     expect(rebalance900.successfulShards).toEqual([1, 3, 4, 5, 6, 7, 8]);
     expect(rebalance900.explicitSpecCount).toBe(discovered.length);
     expect(rebalance900.originalShardFileCounts).toEqual(correction.afterFileCounts);
-    expect(rebalance900.revisedShardFileCounts).toEqual(plan.shards.map(group => group.files.length));
+    // #900 counts are historical, not the post-#902 live placements.
+    expect(rebalance900.revisedShardFileCounts).toEqual(rebalance902.beforeFileCounts);
     expect(rebalance900.movedFiles).toHaveLength(2);
     expect(new Set(rebalance900.movedFiles.map(item => item.file)).size).toBe(2);
 
-    // Reverse current #900 assignments to reconstruct the *immutable* #894
-    // snapshot, then reverse #894 itself to reconstruct #885's snapshot.
-    const restoredCounts = plan.shards.map(group => group.files.length);
+    // #3595 was canceled at shard 8 after 121/123; do not turn it into a PASS.
+    expect(rebalance902.sourceRunId).toBe(42532136493);
+    expect(rebalance902.sourceRunNumber).toBe(3595);
+    expect(rebalance902.sourceHeadSha).toBe("997841a779dcec97a21a17b4874a5e8bab1da3ac");
+    expect(rebalance902.sourceBaseSha).toBe("1826b479a80c64ef16efe768b31f75d62170639e");
+    expect(rebalance902.originalConclusion).toBe("cancelled");
+    expect(rebalance902.jobTimeoutMinutes).toBe(35);
+    expect(rebalance902.cancelledShard).toBe(8);
+    expect([rebalance902.cancelledShardSelectedCases, rebalance902.cancelledShardObservedPasses,
+      rebalance902.cancelledShardUnfinishedCases]).toEqual([123, 121, 2]);
+    expect(rebalance902.successfulShards).toEqual([1, 2, 3, 4, 5, 6, 7]);
+    expect(rebalance902.explicitSpecCount).toBe(discovered.length);
+    expect(rebalance902.beforeFileCounts).toEqual(rebalance900.revisedShardFileCounts);
+    expect(rebalance902.afterFileCounts).toEqual(plan.shards.map(group => group.files.length));
+    expect(rebalance902.movedFiles).toHaveLength(3);
+    expect(new Set(rebalance902.movedFiles.map(item => item.file)).size).toBe(3);
+    const historicalCounts = [...rebalance902.afterFileCounts];
+    for (const movement of rebalance902.movedFiles) {
+      expect(movement.from).not.toBe(movement.to);
+      expect(movement.from).toBeGreaterThanOrEqual(1);
+      expect(movement.to).toBeLessThanOrEqual(8);
+      expect(plan.shards.filter(group => group.files.includes(movement.file)).map(group => group.shard))
+        .toEqual([movement.to]);
+      historicalCounts[movement.to - 1]--;
+      historicalCounts[movement.from - 1]++;
+    }
+    expect(historicalCounts).toEqual(rebalance902.beforeFileCounts);
+
+    // Undo #902, then reverse #900 to recover the immutable #894 snapshot,
+    // and finally reverse #894 to recover #885.
+    const restoredCounts = [...rebalance902.beforeFileCounts];
     for (const movement of rebalance900.movedFiles) {
       expect(movement.from).not.toBe(movement.to);
       expect(movement.from).toBeGreaterThanOrEqual(1);
@@ -221,18 +260,19 @@ describe("historical E2E shard planner", () => {
       ["issue-735-system-dashboard.spec.ts", 6],
       ["issue-734-equipment-dashboard.spec.ts", 8],
       ["issue-732-milestone-dashboard.spec.ts", 7],
-      ["issue-621-resource-target.spec.ts", 8],
+      ["issue-621-resource-target.spec.ts", 2],
       ["gantt-state-recovery-editor.spec.ts", 4],
       ["issue-736-resource-dashboard.spec.ts", 5],
       ["issue-866-language-shell.spec.ts", 5],
       ["i18n-master-data.spec.ts", 7],
       ["schedule-views.spec.ts", 3],
       ["i18n.spec.ts", 8],
-      ["project-transfer-layout-491.spec.ts", 6],
+      ["project-transfer-layout-491.spec.ts", 4],
       ["gantt-state-product-integration.spec.ts", 7],
       ["project-task-context-menu.spec.ts", 2],
       ["canonical-projection.spec.ts", 6],
       ["logistics-target-authoring.spec.ts", 7],
+      ["project-settings-layout-490.spec.ts", 1],
       ["project-task-delete-context.spec.ts", 5],
       ["issue-730-view-composer.spec.ts", 5],
       ["issue-733-process-workarea-dashboard.spec.ts", 4],

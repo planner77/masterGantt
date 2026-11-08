@@ -55,6 +55,7 @@
         "tests/e2e/project-gantt-inline-start-date.spec.ts",
         "tests/e2e/project-resource-memberships-persistence.spec.ts",
         "tests/e2e/project-resource-workload-status.spec.ts",
+        "tests/e2e/project-settings-layout-490.spec.ts",
         "tests/e2e/resource-admin-layout.spec.ts",
         "tests/e2e/resource-drill-ui.spec.ts",
         "tests/e2e/resource-kpi-integration-ui.spec.ts",
@@ -65,6 +66,7 @@
       "shard": 2,
       "projectedMs": 1265824,
       "files": [
+        "tests/e2e/issue-621-resource-target.spec.ts",
         "tests/e2e/issue-622-resource-plan-target.spec.ts",
         "tests/e2e/logistics-type-catalog-admin.spec.ts",
         "tests/e2e/milestone-management-persistence.spec.ts",
@@ -123,6 +125,7 @@
         "tests/e2e/project-empty-summary-persistence.spec.ts",
         "tests/e2e/project-grid-reorder-persistence.spec.ts",
         "tests/e2e/project-summary-bar-visual.spec.ts",
+        "tests/e2e/project-transfer-layout-491.spec.ts",
         "tests/e2e/project-workspace-layout.spec.ts",
         "tests/e2e/relation-dialog-ux.spec.ts",
         "tests/e2e/resource-catalog-delete.spec.ts",
@@ -175,7 +178,6 @@
         "tests/e2e/project-browser-title-favicon.spec.ts",
         "tests/e2e/project-resource-calendar-exceptions.spec.ts",
         "tests/e2e/project-task-hover-tooltip.spec.ts",
-        "tests/e2e/project-transfer-layout-491.spec.ts",
         "tests/e2e/project-workspace-ux.spec.ts",
         "tests/e2e/resource-dashboard-api.spec.ts",
         "tests/e2e/resource-global-roles.spec.ts",
@@ -213,7 +215,6 @@
       "files": [
         "tests/e2e/admin-legacy-button-spacing.spec.ts",
         "tests/e2e/i18n.spec.ts",
-        "tests/e2e/issue-621-resource-target.spec.ts",
         "tests/e2e/issue-734-equipment-dashboard.spec.ts",
         "tests/e2e/milestone-dashboard-state.spec.ts",
         "tests/e2e/milestone-stage-grid-mock.spec.ts",
@@ -226,7 +227,6 @@
         "tests/e2e/project-modal-feedback.spec.ts",
         "tests/e2e/project-multi-task-copy-paste.spec.ts",
         "tests/e2e/project-notifications.spec.ts",
-        "tests/e2e/project-settings-layout-490.spec.ts",
         "tests/e2e/project-status.spec.ts",
         "tests/e2e/project-visibility.spec.ts",
         "tests/e2e/resource-plan-api.spec.ts",
@@ -2073,5 +2073,106 @@
     "historicalEvidence": "#3577.1 Chromium shard 4 was CANCELLED after a different shard failed; #3578.1 shard 4 completed successfully in 31.3m. Prior evidence and historical fields unmodified.",
     "preservation": "All 147 specs appear exactly once across eight shards; unchanged 35m cap, workers=1, PR max-failures=1/fail-fast, Playwright assertions, Required Quality/E2E/Docker, trusted QA and Owner controls. No existing main/PR workflow change.",
     "validation": "STATIC_EXACT_147_UNIQUE_EIGHT_SHARDS_ONLY; NEW_EXACT_HEAD_FULL_PR_CI_NOT_TESTED"
+  },
+  "manualRebalance902": {
+    "issue": 896,
+    "incident": "PR902-F002-3595",
+    "pullRequest": 902,
+    "sourceRunId": 42532136493,
+    "sourceRunNumber": 3595,
+    "runAttempt": 1,
+    "sourceHeadSha": "997841a779dcec97a21a17b4874a5e8bab1da3ac",
+    "sourceBaseSha": "1826b479a80c64ef16efe768b31f75d62170639e",
+    "sourceTestMergeSha": "d6d9e8ef599df3cf9e9dbcf7469097c6c3c92e1a",
+    "originalConclusion": "cancelled",
+    "jobTimeoutMinutes": 35,
+    "cancelledShard": 8,
+    "cancelledShardJobId": 128889225298,
+    "requiredQualityJobId": 128889697564,
+    "requiredDockerJobId": 128890558663,
+    "e2eAggregateJobId": 128898141151,
+    "qaFinalJobId": 128898163790,
+    "cancelledShardSelectedCases": 123,
+    "cancelledShardObservedPasses": 121,
+    "cancelledShardUnfinishedCases": 2,
+    "successfulShards": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "originalObservedTestWallMinutes": [
+      21.5,
+      17.8,
+      21.8,
+      22.1,
+      25.1,
+      32,
+      28.2,
+      null
+    ],
+    "beforeFileCounts": [
+      17,
+      18,
+      17,
+      21,
+      18,
+      17,
+      19,
+      20
+    ],
+    "afterFileCounts": [
+      18,
+      19,
+      17,
+      22,
+      18,
+      16,
+      19,
+      18
+    ],
+    "explicitSpecCount": 147,
+    "movedFiles": [
+      {
+        "file": "tests/e2e/issue-621-resource-target.spec.ts",
+        "from": 8,
+        "to": 2,
+        "completedCases": 6,
+        "observedTestBodySeconds": 156.3,
+        "observedCompletionSpanMinutes": 4.88
+      },
+      {
+        "file": "tests/e2e/project-settings-layout-490.spec.ts",
+        "from": 8,
+        "to": 1,
+        "completedCases": 6,
+        "observedTestBodySeconds": 104.6,
+        "observedCompletionSpanMinutes": 4.06
+      },
+      {
+        "file": "tests/e2e/project-transfer-layout-491.spec.ts",
+        "from": 6,
+        "to": 4,
+        "completedCases": 8,
+        "observedTestBodySeconds": 183.1,
+        "observedCompletionSpanMinutes": 6.16
+      }
+    ],
+    "shiftOnlyApproximateMinutes": [
+      25.56,
+      22.68,
+      21.8,
+      28.26,
+      25.1,
+      25.84,
+      28.2,
+      null
+    ],
+    "estimateCaveat": "Single canceled run. 8/8 stopped after 121/123; two incomplete cases are unmeasured. Per-file completion spans include setup/runtime effects, so estimates are not guaranteed wall time; historical projectedMs, source runs and earlier manual rebalances are unchanged.",
+    "preservation": "All 147 current specs mapped once in eight shards. Same 35m cap, workers=1, PR max-failures=1/fail-fast, tests/assertions/skips/retries, Required3, Trusted QA/Owner, GHCR/Release/Finalizer; no workflow change.",
+    "validation": "STATIC_EXACT_147_AND_HISTORY_CHECKED; NEW_HEAD_PR_FULL_CI_NOT_TESTED"
   }
 }
