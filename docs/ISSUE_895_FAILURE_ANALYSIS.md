@@ -238,3 +238,30 @@
 - 소스 수정은 새 교정 PR에서만 진행한다. 보호된 CI workflow 변경이므로 `HIGH/OWNER_MANAGED`, 기존 Full PR CI Required Quality/E2E8/Docker + Trusted QA/Owner 명시 수용과 리뷰0·mergeability·DOC_SYNC가 필요하다. 과거 #3582.2의 E2E8/Quality/Docker PASS를 신규 Head 공식 PASS로 옮기지 않음.
 - Source 재사용 조건 명시: 기존 `ci_image_reuse.py`/생산자 OCI + `verified_oci.py`/기존 `ci_image_contract.py` 및 Full CI gate **EXTEND**, 별도 게시 파이프라인·무단 OCI 태그 생성 **N/A**. TEST_LIFECYCLE_REVIEW/AC_TEST_COVERAGE/기존 SHA·Run·Attempt 조합 보호 유지.
 - 이번 소스 교정 PR의 실제 Unit/Python/YAML 구문/PR Full/Trusted/Owner/신규 Main 및 GHCR+Generic Finalizer는 새로운 각 정확 SHA의 실행 증거가 확인되기 전 **NOT TESTED**. 원본 #3582의 재실행 추가만으로 수정 YAML이 기존 Run에서 실행되지 않음(실행 source 고정). #895·#896·#897의 이슈 종료는 보류.
+
+
+## 2026-11-09 — PR #901 Full #3587.1 DOCUMENTATION_SYNC 및 P1 한글 작성 보완
+
+### 원본 Run 및 이전 성과 재사용
+- [PR #901](https://github.com/planner77/masterGantt/pull/901), Primary #895, 관련 #896/#897, 교정 브랜치 `ci/issue-895-main-3582-oci-producer-attempt`. [PR Full #3587.1 / Run 42516438448 / attempt 1](https://github.com/planner77/masterGantt/actions/runs/42516438448) `completed/failure` (2026-11-08 UTC), source Head `5ca7ef14e482e91a1c10f27e6ab95c69e60aada8`, base `bafe71b2855561a10c797f495c81449d96f0a62d`, 당시 test merge `b634759e78195aa805ae1ec1a45f88b5a9301500`. 이 PR은 변경한 `ci.yml` 등 보호 경로 때문에 HIGH/OWNER_MANAGED, 필수 Full8/Trusted QA와 별도 Owner 수용이 필요하다.
+- 기존 **F-001~F-005**(PR #900 전체)와 **MAIN-3582-F001/F002**(최초 E2E transport 불명 및 Main OCI Artifact Attempt 불일치)는 위 불변 기록에 보존한다. [Main #3582.3 / 42487828570 attempt 3](https://github.com/planner77/masterGantt/actions/runs/42487828570)에서 Quality·E2E8·Docker 및 Main OCI 게시·검증은 실제 **SUCCESS**였고, [Generic Finalizer #1474.1 / 42517047238](https://github.com/planner77/masterGantt/actions/runs/42517047238)은 **SUCCESS**로 #895를 종료했다. 기존 SHA `bafe71b2855561a10c797f495c81449d96f0a62d`의 검증된 임시 GHCR 후보는 Finalizer에서 정리됐다. 이 Main 완료를 #901의 신규 Head PASS로 합산하지 않는다. #896/#897은 별도 OPEN이며 실제 Preview UAT는 기존대로 NOT TESTED.
+- 현재 목적은 새 제품 변경이나 본 이슈 재오픈이 아니라 **향후 부분 재실행 시도 번호 혼동 방지**. 기존 #836 `docker_smoke` 생산 Job·`publish-commit-image` 소비 Job, `verified_oci.py` 보안 검증과 `test_ci_image_reuse.py`를 재사용한다. 새로운 OCI 업로드·태그·승인 파이프라인은 추가하지 않는다.
+
+### 직접/파생 Job·검증 상태
+| 출처 | 결론 | 근거 |
+| --- | --- | --- |
+| 변경 경로 판정 128840371510, QA 신뢰 경계 128840371326 | PASS | Head/Base/보호 경로 판정 |
+| [QA Preflight 128840453870](https://github.com/planner77/masterGantt/actions/runs/42516438448/job/128840453870) | **FAIL — 최초 직접 실패 PR901-F001** | `DOCUMENTATION_SYNC`: `docs/exec-plans/active/ISSUE_895.md`의 `AGENTS.md: UPDATED` 선언과 이번 PR 변경 파일 불일치. 다른 PRIMARY/RISK/QA/RELEASE/PATH/ISSUE_AC/REUSE_REVIEW 판정은 PASS |
+| PR Fast Gate 128840529050 | FAIL (파생) | QA Preflight 실패로 구현 검사 시작 차단 |
+| TypeScript 128840530106, Vitest 128840530079, ESLint 128840529674, Production Build 128840605850, E2E 8-shard 실행 128840606284, Docker 구현 128840605468 | SKIPPED / NOT RUN | 실제 제품/테스트 Assertion 실패를 새로 관측하지 못함 |
+| Quality Required 128840604758, E2E Required 128840604754, Docker Required 128840604782, QA Final Automated 128840629909 | FAIL (파생) | Full8·Docker 실행이 없으며 사전 검증 실패를 별개 제품 실패로 중복 계산하지 않음 |
+| 변경 영향 Shadow 128840629796 | PASS (비권위) | Owner·Trusted QA·Required PASS 대체 불가 |
+| [Inline P1 리뷰](https://github.com/planner77/masterGantt/pull/901) `PRRT_kwDOUUB7Bc61Dyp_` | **미해결 1건 — PR901-R001** | 신규 `docs/TEST_PLAN_895_897.md`의 Main OCI 설명과 `ci.yml` 설명용 주석을 한글로 작성해야 한다는 지적. 기존 CI 식별자·명령·상태값은 보존 |
+
+### 종합 원인·최소 보완 및 확인 범위
+- **PR901-F001 = POLICY_CI / 문서 동기화 범위 착오.** 동일 Work Packet은 원래 PR #900을 위해 `AGENTS.md`, `docs/QA_REVIEW_POLICY.md`, `docs/GITHUB_OPERATIONS.md`, `docs/REMOTE_VALIDATION.md` 등을 `UPDATED`로 기록했다. PR #901은 그 파일들을 수정하지 않았으므로 과거 이력이 이번 diff의 문서 영향이라고 잘못 표현됐다. 기존 검증기 `qa_final_automated.py::docs_gate`는 보호된 CI 변경의 QA DOCS 전체에 변경 또는 `N/A(reason)`을 요구하며, 이 중 `AGENTS.md`에서 먼저 차단했다. **원인 해결은 QA 검증기 변경이 아닌 이슈별 Work Packet의 실제 영향 상태 정정**이다.
+- `ISSUE_895.md`의 `DOCUMENTATION_SYNC`를 #901 범위로 재정리하여 비변경 정책 문서를 각각 충분한 `N/A(근거)`로 작성하고, 기존 PR #900에서의 실제 문서 갱신은 원본 원장/PR 링크로 보존한다. 현재 변경한 `docs/CI_CD.md`는 `UPDATED`, 기존 큰 `docs/TEST_PLAN.md`은 기존 결정대로 `N/A(근거)`, 신규 Addendum `TEST_PLAN_895_897.md`는 `UPDATED`. 기존 `REUSE_REVIEW`, AC01~06, 발행/Owner 정책, QA 코드/Required Gate는 변경하지 않는다.
+- **PR901-R001 = CI 문서 한글 규정 위반.** 이번 PR에서 추가한 Test Plan의 OCI 생산 시도 설명, `ci.yml`의 신규 설명용 주석 및 `test_ci_image_reuse.py`의 테스트 설명을 한글로 갱신한다. `archive_attempt`, GitHub expression, OCI index/digest SHA, job 이름과 상태 코드는 **그대로** 유지한다. 관련 리뷰에는 수정 커밋을 안내하고 실제 해결되면 스레드를 resolved로 전환한다. 원래 프로젝트 파일의 오래된 영어 이력까지 무관하게 수정하지 않는다.
+- **재사용/영향:** main의 실제 `#3582.3` 검증과 기존 `#836` 생산·소비자 구조, `test_ci_image_reuse.py` 보호 양·음성, 전체 `#895` 이전 실패 매트릭스는 재사용한다. 수정은 문서·주석·테스트 설명에 한정하며 `docker_smoke.outputs.archive_attempt` 생산과 `needs.docker_smoke.outputs.archive_attempt` 소비, OCI archive SHA256·index/provenance/SBOM·GHCR exact digest·중복 Tag 금지 로직은 불변이다.
+- **동일 변경 source 사전 점검:** Work Packet QA DOCS 6종 (`AGENTS.md`, `docs/QA_REVIEW_POLICY.md`, `docs/CI_CD.md`, `docs/TEST_PLAN.md`, `docs/GITHUB_OPERATIONS.md`, `docs/REMOTE_VALIDATION.md`)의 변경/비변경 기록을 기존 `docs_gate` 정규식 규약에 맞게 재작성. 신규 Test Plan·workflow·Python 테스트 설명에서 지적된 신규 영문 문구를 교정. 제공 도구 내 원격 Blob read-back/문자열 구조 검증은 사전 정적 확인일 뿐 Python/Node/Chromium 실제 실행 PASS가 아니며, 신규 exact Head의 QA Preflight, 정책 Unit, Full Chromium8/Docker/Trusted QA는 **NOT TESTED**이다.
+- **출처·권한:** `main=bafe71b2855561a10c797f495c81449d96f0a62d`, PR #901 Head 고정 후 원장/Work Packet/Test Plan/`ci.yml` 주석·기존 Python 회귀 설명을 단일 Tree·Commit으로 게시할 예정. base/mergeability, 새로운 미해결 스레드, 충돌을 게시 직전에 재조회한다. 새 synchronize Full PR CI는 시작만 확인하고 모니터링하지 않는다. 이 단계에서는 #901 병합, 새 Main, GHCR 정식 태그 발행 및 #896/#897 완료를 하지 않는다.

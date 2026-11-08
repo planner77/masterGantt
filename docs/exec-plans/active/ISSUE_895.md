@@ -15,7 +15,7 @@
 - REUSE_OWNER_EVIDENCE: Current conversation 2026-11-08 18:59 KST Owner explicit reuse A and separate new PR; Github-authenticated Owner semantic confirmation required before merge
 - REUSE_SCOPE_DRIFT: unchanged at branch creation; if shared code or UAT/CI authority conflict emerges stop and ask Owner
 - REUSE_TEST_EVIDENCE: new unittest+existing Chromium fixture, remote CI NOT TESTED
-- MAIN_CORRECTIVE_REUSE_SCOPE: Original #900 PR kept Main/PR Required checks unchanged and remains immutable. The post-merge #3582 corrective PR is an Owner-authorized *narrow repair inside the same existing* `.github/workflows/ci.yml`: carry actual `docker_smoke` producer Attempt to `publish-commit-image`. It does NOT create a new CI/release pipeline, Required Check, tag authority, test runner, or permission. Existing #836 OCI index+archive SHA and same-run Main Smoke/Publisher security constraints are **REUSE_AS_IS**; source-selection wiring is **EXTEND**. Owner confirmed reuse-first and correction through the present Main failure request.
+- MAIN_CORRECTIVE_REUSE_SCOPE: 병합된 PR #900의 Main·PR 필수 검증과 과거 판정은 유지한다. 후속 PR #901은 기존 `.github/workflows/ci.yml` 안에서 `docker_smoke`가 OCI를 생산한 실제 Attempt 번호를 `publish-commit-image`에 전달하는 범위에 한정한다. 별도 CI·Release 파이프라인, 필수 Check, 태그 권한, 테스트 실행기 또는 권한을 추가하지 않는다. 기존 #836 OCI index·archive SHA256 및 Main Docker 검증·게시 보호 계약은 **REUSE_AS_IS**, 시도 번호 전달만 **EXTEND**하며 기존 Owner의 재사용 우선 및 이번 Main 실패 보완 지시를 따른다.
 
 ## Design / Implementation
 - #895: AGENTS/Lifecycle/Agent Prompt Work Packet contract and **existing** trusted QA Preflight/Final structural gate; questions/actual decision verified by Manager, not PR author's self assertion. No parallel governance tool.
@@ -54,24 +54,27 @@
 - AC07: AGENTS/Lifecycle/Prompt/QA/Preview/CI/TEST_PLAN/UI docs and standalone failure ledger
 
 ## DOCUMENTATION_SYNC
-- `AGENTS.md`: UPDATED
-- `docs/QA_REVIEW_POLICY.md`: UPDATED
+이번 표는 **후속 PR #901의 변경 파일**을 기준으로 한다. 원래 PR #900에서 실제 변경한 문서들은 과거의 UPDATED 이력으로 유지하며, 이 PR에서는 변경하지 않았다는 사실과 그 이유를 별도로 표시한다.
+- `AGENTS.md`: N/A(원본 PR 900에서 규정 반영 완료, 이번 변경은 기존 CI 내부 OCI 생산 Attempt 전달만 수정)
+- `docs/QA_REVIEW_POLICY.md`: N/A(기존 Owner 관리 QA와 인증된 Trusted 및 필수 검증 조건 변경 없음)
 - `docs/CI_CD.md`: UPDATED
-- `docs/TEST_PLAN.md`: N/A(기존 대용량 테스트 계획 원본을 보존하고 신규 사항은 docs/TEST_PLAN_895_897.md Addendum에 기록)
+- `docs/TEST_PLAN.md`: N/A(기존 대용량 테스트 이력 보존, 신규 검증은 TEST_PLAN_895_897.md에 추가)
 - `docs/TEST_PLAN_895_897.md`: UPDATED
-- `docs/GITHUB_OPERATIONS.md`: UPDATED
-- `docs/REMOTE_VALIDATION.md`: UPDATED
-- `docs/ISSUE_LIFECYCLE.md`: UPDATED
-- `docs/AGENT_PROMPTS.md`: UPDATED
-- `docs/PREVIEW_PUBLISH.md`: UPDATED
-- `docs/UI_UX_GUIDELINES.md`: UPDATED
-- `DESIGN.md`: N/A(제품 레이아웃·디자인 토큰·사용자 UI 직접 변경하지 않는 검증 프로세스 확장)
-- `docs/SCHEDULING_ENGINE.md`: N/A(재사용 심사·합성 증거·Preview UAT 검증만 변경하며 일정 알고리즘·의존성·계산 입출력·근무일 정책은 수정하지 않음)
-- `docs/API.md`: N/A(제품 HTTP API 및 인증 엔드포인트를 신규 생성하지 않는 GitHub read-only 연계)
-- `docs/DB_SCHEMA.md`: N/A(SQLite schema·운영 데이터 변경과 Migration 없음)
-- `docs/ARCHITECTURE.md`: N/A(기존 Preview·Playwright·QA/Lifecycle 모듈을 확장하며 제품 구조 불변)
+- `docs/GITHUB_OPERATIONS.md`: N/A(기존 GHCR 게시 운영과 권한 규정 유지, 생산 Attempt 변경은 CI_CD.md에 기록)
+- `docs/REMOTE_VALIDATION.md`: N/A(기존 Run과 Attempt 및 SHA 출처 검증 규칙을 그대로 사용)
+- `docs/ISSUE_LIFECYCLE.md`: N/A(기존 Issue 승인 및 Finalizer 종료 순서 변경 없음)
+- `docs/AGENT_PROMPTS.md`: N/A(기존 재사용 질의와 에이전트 책임 규칙 변경 없음)
+- `docs/PREVIEW_PUBLISH.md`: N/A(Preview와 UAT 단계가 아닌 Main OCI 게시 계약만 수정)
+- `docs/UI_UX_GUIDELINES.md`: N/A(화면 UI 및 시각 검증 동작 변경 없음)
+- `DESIGN.md`: N/A(제품 UI와 레이아웃 수정 없음)
+- `docs/SCHEDULING_ENGINE.md`: N/A(일정 계산 및 의존성 로직 변경 없음)
+- `docs/API.md`: N/A(제품 HTTP API 경로 및 인증 계약 변경 없음)
+- `docs/DB_SCHEMA.md`: N/A(SQLite 테이블 및 Migration 변경 없음)
+- `docs/ARCHITECTURE.md`: N/A(기존 OCI 게시 파이프라인만 수정하고 서비스 구조 변경 없음)
 
 ## Validation / Status
+- **PR #901 / Full #3587.1 사전 검사 실패:** [Run 42516438448.1](https://github.com/planner77/masterGantt/actions/runs/42516438448), Head `5ca7ef14e482e91a1c10f27e6ab95c69e60aada8`, Base `bafe71b2855561a10c797f495c81449d96f0a62d`. 원본 `QA Preflight`의 유일한 직접 실패는 `DOCUMENTATION_SYNC`에서 이전 PR #900의 `AGENTS.md: UPDATED`를 이번 PR #901의 변경으로 잘못 기록한 것. Quality·E2E·Docker 본 검증은 차단되어 NOT RUN; Required3 및 QA Final 실패는 파생 판정. 추가 P1 미해결 리뷰는 신규 CI 운영 설명과 workflow 주석의 한글 작성 문제. 이번 Work Packet은 #901 영향 표를 정확하게 N/A 사유로 교정하고 신규 설명을 한글로 정리했으며 원래 #900 기록은 이력으로 보존한다. 수정 HEAD의 필수 CI·Trusted QA는 **NOT TESTED**.
+- **기존 Main #3582.3와 #895 완료 실적 재사용:** 동일 Main `bafe71b2855561a10c797f495c81449d96f0a62d` [Main #3582.3](https://github.com/planner77/masterGantt/actions/runs/42487828570)와 [Generic Finalizer #1474.1](https://github.com/planner77/masterGantt/actions/runs/42517047238) 성공, #895 CLOSED. 당시 Docker Smoke와 Main OCI 임시 게시·SHA256 검증 및 임시 Candidate 삭제는 완료했으며 #896/#897은 OPEN. 이는 재발 방지 PR #901의 새 HEAD에 대한 PASS가 아니라 재사용 가능한 기존 운영 결과다.
 - **Main F-001/F-002 / PR #900 post-merge:** Original Main [#3582 Attempt1–2](https://github.com/planner77/masterGantt/actions/runs/42487828570), SHA `bafe71b2855561a10c797f495c81449d96f0a62d`: first attempt E2E5 PATCH ECONNRESET (Quality/Docker and 7 other shards PASS), attempt2 **8/8 E2E + Quality/Docker PASS** but GHCR publisher fails to download `ci-oci-main-42487828570-2`; exact original verified Main Docker artifact exists only as `ci-oci-main-42487828570-1`. New F002 is a producer/consumer attempt naming defect, not an application regression. Existing #836 OCI production and `needs.docker_smoke` output carry-forward are **EXTEND/REUSE**; publisher now consumes producer `archive_attempt` instead of current `github.run_attempt` while retaining byte/index digest, attestation, exact SHA, registry and Finalizer gates. Existing `test_ci_image_reuse.py` guards partial-rerun scenario and no re-build/overwrite bypass. See canonical failure ledger appended Main #3582 section. Corrective PR exact Head Full/Trusted/Owner, Main image GHCR and Issue closure **NOT TESTED** before actual CI. Original merged PR is immutable.
 - Rework #900 / Full #3580.1: [Run 42483080590](https://github.com/planner77/masterGantt/actions/runs/42483080590), Head `136f927ba4a639d5814e43e29c071629a5ce715f`, base `90c5a1a951c749a9690b1c83e5a74b6d122dd6e3`, test-merge `ff4a0c0d3b908989b67e255de9d4111410cd3e41`: Preflight/Policy/TypeScript/ESLint PASS; Vitest SC-03 참조 오류 1 FAIL(3799 PASS/3 SKIPPED), E2E/Docker NOT RUN, Required3/QA Final 파생 FAIL. 이전 W07 분리 설계를 재사용하고 live `gantt-state-conformance.json`에 현재 두 제목을 등록한다. 기존 실제 AST 검사로 RED(1 FAIL/13 PASS)→GREEN, 관련 Vitest 45 PASS/3 files 및 Python 정책/증거/UAT 73 PASS. 재사용 Node 설치는 브라우저 import의 `unified` 누락으로 Playwright 목록 조회 BLOCKED; 실제 두 W07 시나리오와 Full8/Docker/Trusted/Owner UAT/Manager ACCEPT는 새 exact-Head 검증 전 NOT TESTED. 전체 원장·교정·사전 검토 후 같은 PR의 CI 시작까지만 수행하고 모니터링하지 않는다. [누적 분석](../../ISSUE_895_FAILURE_ANALYSIS.md).
 - Rework #900 / Full #3579.1: [Run 42479544101](https://github.com/planner77/masterGantt/actions/runs/42479544101), head `e47edb631208704bc8595022b7eb6066ac709676`: QA Preflight/Policy/Quality/Build/Docker PASS, Chromium 1·2·4·5·6 PASS; 7/8 fails `tests/e2e/project-task-persistence.spec.ts:58` (101 PASS, 1 failed, 6 NOT RUN) at 30-second per-test timeout on last API GET, 3/8 and 8/8 cancelled by matrix. Identical W07 test ran 29.4s PASS (#3577) and 23.1s PASS (#3578); real Playwright trace shows preceding HTTP requests returned, cumulative test limit reached. Reuse existing isolated fixture and all assertions, split long pointer/error/deletion and race/401/native hierarchy scenarios into two independently initialized tests; no timeout, retry, skip, E2E8 or Required gate changes. Next exact-HEAD Full PR CI/Owner UAT NOT TESTED. See docs/ISSUE_895_FAILURE_ANALYSIS.md.

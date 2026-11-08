@@ -260,7 +260,7 @@ class MainDecisionContract(unittest.TestCase):
         self.assertIn('needs.docker.result == \'success\'', workflow)
 
     def test_partial_main_rerun_downloads_actual_docker_producer_attempt(self):
-        """#895 MAIN-3582-F002: success from attempt 1 is not attempt 2's artifact."""
+        """#895 MAIN-3582-F002: 성공한 생산 시도 1의 산출물은 게시 시도 2의 새 산출물이 아니다."""
         workflow = (ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
         docker = workflow.split("\n  docker_smoke:\n", 1)[1].split("\n  pr_docker_smoke:\n", 1)[0]
         publisher = workflow.split("\n  publish-commit-image:\n", 1)[1]
@@ -272,8 +272,8 @@ class MainDecisionContract(unittest.TestCase):
         self.assertIn(producer_context, docker)
         self.assertIn("name: " + consumer_name, publisher)
         self.assertNotIn("name: " + previous_wrong_name, publisher)
-        # GitHub preserves successful dependency outputs across partial re-runs.
-        # A prior verified source remains selected, not the current consumer attempt.
+        # GitHub는 부분 재실행에서 성공한 생산 Job 출력을 유지한다.
+        # 게시 Job의 현재 시도가 아닌 원본 검증 생산 시도를 선택한다.
         producer_attempt, consumer_attempt, run_id = 1, 2, 42487828570
         expression = consumer_name.replace("$" + "{{ github.run_id }}", str(run_id))
         expression = expression.replace(
@@ -281,7 +281,7 @@ class MainDecisionContract(unittest.TestCase):
             str(producer_attempt))
         self.assertEqual(expression, "ci-oci-main-42487828570-1")
         self.assertNotEqual(expression, f"ci-oci-main-{run_id}-{consumer_attempt}")
-        # The same Main-smoked OCI must still satisfy index/SHA, runtime and tag gates.
+        # 원본 Main 검증 OCI의 index/SHA, 런타임 및 태그 보호 조건을 유지한다.
         self.assertIn("OCI_EXPECTED_INDEX", publisher)
         self.assertIn("OCI_EXPECTED_ARCHIVE_SHA", publisher)
         self.assertIn("scripts/verified_oci.py", publisher)
