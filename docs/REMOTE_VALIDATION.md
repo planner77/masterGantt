@@ -1,3 +1,12 @@
+## Issues #895–#897 — 원격 검증 시각 자료와 Owner Preview UAT
+
+1. Owner가 승인한 기존 기능 재사용 결정과 현재 main/PR source SHA를 Work Packet의 REUSE_REVIEW에 기록한다. 질문 미확정·Owner evidence 출처 부재는 BLOCKED; trusted QA는 PR의 자기선언을 Owner 승인으로 사용하지 않는다.
+2. #896 원본 Playwright E2E의 합성 Fixture 화면만 GitHub 공개 artifact에 저장한다. Screenshot SHA256·Geometry·viewport·KO/EN/VI·Issue/AC·exact source SHA/manifest와 test-case PASS를 구분하고, 실제 사용 환경에서 숨은/깨진 UI를 Owner가 추가 검토한다. 실운영 프로젝트 데이터·사내 Preview URL·토큰/쿠키는 공개 이력에 저장하지 않는다.
+3. #897 UAT는 Preview가 실제 격리 서버에서 실행되었고 Owner가 대표 시나리오를 수행한 경우에만 수동 ACCEPT. GitHub Owner 댓글의 Issue/source SHA/image digest/evidence digest와 현재 PR을 scripts/preview_uat.py로 대조한다. 불일치/미실행은 UAT_STALE/NOT TESTED, 자동 PR CI나 릴리스 승인으로 표시하지 않는다.
+4. 본 정책/워크플로 변경은 HIGH/OWNER_MANAGED, 기존 Main trusted QA 및 Full Quality/Chromium8/Docker가 필수. 새로운 코드·문서의 CI와 실제 Preview UAT 성공 여부는 원격 Run/실접속 기록 확보 전 NOT TESTED이다.
+
+---
+
 ## Issue #880 — 일정 View E2E의 기존 Full8 등록 (2026-11-07)
 
 신규 `tests/e2e/schedule-views.spec.ts`를 기존 정적8shard plan의3번에 등록한다. 발견147spec=명시147spec이며 기존146개 위치·8shard·Required Quality/E2E/Docker·Trusted/Owner·실행 옵션은 유지한다. 과거 timing/generatedAt/sourceRunIds/projectedMs를 새 측정으로 바꾸지 않는다. 이 등록의 실제 원격 비용/실행 결과는 PR Full CI 전 NOT TESTED다. [Work Packet](exec-plans/active/ISSUE_880.md)과 [원장 L-006](ISSUE_880_FAILURE_ANALYSIS.md)을 따른다.
