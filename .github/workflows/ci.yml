@@ -874,7 +874,7 @@ jobs:
 
 
       # #896: do not re-run E2E; validate only synthetic evidence captured by existing shard.
-      - name: Synthetic UI evidence checksum/geometry (NOT a UAT verdict)
+      - name: 합성 UI 증거 체크섬·기하 검증 (UAT 판정 아님)
         if: always()
         shell: bash
         run: |
@@ -882,9 +882,9 @@ jobs:
           if [[ -d test-results ]] && find test-results -name 'ui-evidence-*.json' -print -quit | grep -q .; then
             python3 scripts/ui_evidence.py test-results
           else
-            echo 'Synthetic UI evidence: NOT TESTED (no captured case in this shard)' >> "$GITHUB_STEP_SUMMARY"
+            echo '합성 UI 증거: NOT TESTED (이 샤드에서 캡처된 사례 없음)' >> "$GITHUB_STEP_SUMMARY"
           fi
-      - name: Synthetic UI evidence screenshots·manifest
+      - name: 합성 UI 증거 스크린샷·매니페스트 업로드
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:

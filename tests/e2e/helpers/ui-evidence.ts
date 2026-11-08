@@ -14,7 +14,11 @@ type VisualCapture = {
 };
 
 function exactSourceSha(): string {
-  const sha = process.env.CI_E2E_SOURCE_HEAD_SHA
+  const declaredSha = process.env.E2E_SOURCE_HEAD_SHA;
+  // CI checkout may be test-merge: never silently relabel it as the PR source.
+  if (process.env.GITHUB_ACTIONS === "true" && !declaredSha)
+    throw new Error("CI UI evidence requires E2E_SOURCE_HEAD_SHA");
+  const sha = declaredSha
     || execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim();
   if (!/^[0-9a-f]{40}$/.test(sha)) throw new Error("UI evidence requires exact source SHA");
   return sha;

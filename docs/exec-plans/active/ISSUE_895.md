@@ -65,6 +65,7 @@
 - `docs/PREVIEW_PUBLISH.md`: UPDATED
 - `docs/UI_UX_GUIDELINES.md`: UPDATED
 - `DESIGN.md`: N/A(제품 레이아웃·디자인 토큰·사용자 UI 직접 변경하지 않는 검증 프로세스 확장)
+- `docs/SCHEDULING_ENGINE.md`: N/A(재사용 심사·합성 증거·Preview UAT 검증만 변경하며 일정 알고리즘·의존성·계산 입출력·근무일 정책은 수정하지 않음)
 - `docs/API.md`: N/A(제품 HTTP API 및 인증 엔드포인트를 신규 생성하지 않는 GitHub read-only 연계)
 - `docs/DB_SCHEMA.md`: N/A(SQLite schema·운영 데이터 변경과 Migration 없음)
 - `docs/ARCHITECTURE.md`: N/A(기존 Preview·Playwright·QA/Lifecycle 모듈을 확장하며 제품 구조 불변)

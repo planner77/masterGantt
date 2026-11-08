@@ -34,6 +34,13 @@ class PreviewUatTests(unittest.TestCase):
         self.assertEqual(result["state"], "UAT_ACCEPTED")
         self.assertEqual(result["owner_comment_id"], 11)
 
+    def test_numeric_evidence_field_name_is_accepted_but_unknown_key_is_not(self):
+        receipt = preview_uat.parse_receipt(comment(11)["body"])
+        self.assertIsNotNone(receipt)
+        self.assertEqual(receipt["evidence_sha256"], EVIDENCE)
+        self.assertIsNone(preview_uat.parse_receipt(
+            comment(11)["body"].replace("source_sha:", "source_sha2:")))
+
     def test_later_owner_rework_overrides_accept(self):
         with self.assertRaisesRegex(Blocked, "UAT_REWORK"):
             evaluate([comment(11), comment(20, decision="REWORK")])

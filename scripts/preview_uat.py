@@ -34,7 +34,7 @@ def parse_receipt(message: str) -> dict[str, str] | None:
     for line in lines[markers[0] + 1:]:
         if not line.strip():
             break
-        matched = re.fullmatch(r"([a-z_]+): ([A-Za-z0-9:-]+)", line)
+        matched = re.fullmatch(r"([a-z_][a-z0-9_]*): ([A-Za-z0-9:-]+)", line)
         if not matched or matched.group(1) not in FIELDS or matched.group(1) in fields:
             return None
         fields[matched.group(1)] = matched.group(2)
