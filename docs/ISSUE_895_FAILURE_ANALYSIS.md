@@ -127,3 +127,34 @@
 ### Evidence, review, remaining authority
 - Tests to revalidate on **one new exact Head**: current `tests/scripts/e2e-shard-planner.test.ts` unique coverage and historical invariant (targeted unit), plan selector, all 8 Playwright shards (including 11 incomplete cases), QA Preflight/Policy, Quality, Docker, and QA Final. Old successful runs supply diagnostic durations only. No local/browser Full8 PASS claimed. Direct TypeScript/Playwright source unchanged.
 - All 3 previous inline review threads were resolved/outdated, no new unresolved threads observed; base `main`, `mergeable=true` before preparing correction. New conflicts/reviews to recheck before push. Owner UAT/Trusted QA/Merge not authorized. Script/write and docs/Work Packet/Failure ledger bundled into one source commit and one fast-forward PR ref update, triggering Full PR synchronize CI; **no CI monitoring**.
+
+
+## 2026-11-08 — PR #900 / Full PR CI #3579.1 E2E 테스트 예산 초과
+
+### A–C. 원본 Run·전체 누적 이력
+- [Run #3579.1 / ID 42479544101, attempt 1](https://github.com/planner77/masterGantt/actions/runs/42479544101), pull_request/synchronize, overall FAILURE, 2026-11-08 12:17–12:48 UTC, Primary #895, related #896/#897. Head e47edb631208704bc8595022b7eb6066ac709676; base 90c5a1a951c749a9690b1c83e5a74b6d122dd6e3; test-merge 6d0d3c6aed297b563781b6bbefdee13a67f01d74. FAST_DEVELOPMENT #321.1 / ID 42479544090 was SKIPPED and is not Full CI PASS.
+- Immutable earlier incidents F-001 (#3576, Work Packet document impact), F-002 (#3577, Visual Evidence attachment copies), F-003 (#3578, 2/8 shard 35-minute job cap) are retained above. #3579 Preflight and #3 Visual Evidence and #2 shard completed successfully; do not repeat previously validated repairs.
+
+### Actual Job/Step and direct/derived status
+| Job ID | Conclusion | Observation |
+| --- | --- | --- |
+| QA trust 128728269876; change paths 128728270161; Preflight 128728345892 | PASS | Previous Work Packet correction reused |
+| Policy 128728442577; TS 128728442636; Vitest 128728442646; ESLint 128728442666; PR gate 128728835912 | PASS | No independent unit or static-contract failure |
+| PR Build 128728909728, Quality 128729266722, Docker impl 128728909765, Docker aggregate 128730380960 | PASS | Prior validation healthy on this head |
+| E2E 1/8 128728909729, 2/8 128728909878, 4/8 128728909780, 5/8 128728909763, 6/8 128728909819 | PASS | Five complete shards |
+| [E2E 7/8 Job 128728909802](https://github.com/planner77/masterGantt/actions/runs/42479544101/job/128728909802) | FAIL / F-004 DIRECT | 108 selected: 101 PASS, 1 FAIL, 6 NOT RUN (--max-failures=1). project-task-persistence.spec.ts:58 original W07 scenario fails after 30.9s, Playwright Test timeout of 30000ms exceeded at final GET around line 261; no assertion mismatch shown |
+| E2E 3/8 Job 128728909744; 8/8 Job 128728909767 | CANCELLED (derived) | Matrix fail-fast; 142 and 109 tests respectively had passed before cancellation, but whole shards INCOMPLETE |
+| Required E2E aggregate 128735426945, QA Final 128735445768 | FAIL (derived) | Required E2E incomplete; QA Final reason required e2e 미성공 |
+| Advisory Shadow 128735445759 | PASS/advisory | Not Trusted/Owner acceptance |
+| Main temporary OCI 128735447196 | SKIPPED | No GHCR/Release evidence |
+
+### D–F. Evidence-based cause, repair and crossed regressions
+- Exact same W07 test previously PASS at 29.4s (#3577.1) and 23.1s (#3578.1), then 30.9s FAIL at #3579.1. Playwright trace [shard7 report artifact 13618190833](https://github.com/planner77/masterGantt/actions/runs/42479544101/artifacts/13618190833) contains test.trace, 0-trace.trace, 1-trace.trace. Earlier GET/POST/DELETE returned normally. The final canonical GET starts near the per-test deadline, so no evidence supports a 30-second API hang or product data assertion failure.
+- Classification F-004: TEST_CONTRACT / FIXTURE_OBSERVABILITY. A monolithic ~260-line W07 test combines pointer moves and rejects (422/412/500), unknown-write recovery, delete/reload, simultaneous 201/412 race, forced 401 readonly/unlock, native root/child add and final reload. Per-test 30s budget exhaustion differs from F-003 35-minute shard cap.
+- Reuse existing test.use(isolatedApplicationOptions) with per-case isolated Next/SQLite, createProject, drag helpers, route guards and **all positive/negative assertions**. Divide W07 into two independent cases at canonical deletion/reload boundary: A=pointer/error/manual-recovery/delete; B=fresh empty project, exact If-Match race, 401/readonly/reunlock and native hierarchy add with persisted canonical snapshot. Add empty-list assertions after delete and before race. No removed tests, skip, retry, increased timeout, relaxed assertions or new fixture, pipeline, E2E8 or Required3 policy.
+- Accumulated failure union: F-001 docs_gate; F-002 ui_evidence.py canonical report; F-003 E2E2 35m; F-004 project-task-persistence.spec.ts W07 30s. Direct and indirect regression scope: both W07 scenarios and actual HTTP/SQLite, 8-shard full run (including #3 visual evidence and #2 rebalanced workload), existing Python UAT and UI guards, Preflight/Policy/TypeScript/Vitest/Docker/QA. Past PASS is diagnostic; updated exact Head NOT TESTED.
+- Local environment: original GitHub job and downloaded trace inspected. No local Next/Chromium environment available to claim executable browser PASS. Static source check: original one W07 scenario becomes two, all existing contract/assertion signatures preserved, no timeout/skip/retry changes.
+
+### G. Review/merge/publish boundary
+- Before editing: 3 earlier P1 review threads resolved/outdated, unresolved=0; PR base main and mergeable=true. Recheck before push.
+- Single Git Data batch: original W07 spec refactor, Issue #895 Work Packet, TEST_PLAN_895_897.md and this canonical ledger only; prior CI and Visual Evidence code remains unchanged. New synchronize Full PR CI must establish its own PASS. No CI monitoring, merge, Main, GHCR, Release, or Issue closure authorized.
