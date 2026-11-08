@@ -56,7 +56,7 @@ export function createSvarViewportPort(options: PortOptions): ViewportPort & { d
       frame.dispatchEvent(new CustomEvent("mastergantt:viewport-coordinator", { bubbles: true, detail: { phase, kind: command?.kind, outcome, writes, apiInstance: options.context().apiInstance, revision: options.context().revision, projectionEpoch: options.context().projectionEpoch, ...metadata } }));
     }
   };
-  const exec = async (action: "scroll-chart" | "resize-chart", parameters: object) => {
+  const exec = async (action: "scroll-chart" | "resize-chart", parameters: object, axisObserved = false) => {
     writes++;
     const returned: unknown = api.exec(action, parameters);
     const failure = Symbol("timeout");
@@ -64,7 +64,12 @@ export function createSvarViewportPort(options: PortOptions): ViewportPort & { d
     try {
       const value = await Promise.race([Promise.resolve(returned), new Promise(resolve => { timer = setTimeout(() => resolve(failure), 1500); })]);
       if (value === failure) throw new Error("TIMED_OUT");
-      if (value === false) throw new Error("COMMAND_REJECTED");
+      // In the existing synthetic Axis Transaction only, an installed Core may
+      // return false for an effective resize or a no-op preserved scroll. This
+      // is NOT success: U4 must still prove actual axis coverage, physical
+      // capacity and Core/native X/Y for three stable frames. Other commands
+      // continue to treat a false result as a rejection.
+      if (value === false && !axisObserved) throw new Error("COMMAND_REJECTED");
     } finally { clearTimeout(timer); }
   };
   const repair = (target: ViewportPosition, diagnostic = false) => {
@@ -140,15 +145,15 @@ export function createSvarViewportPort(options: PortOptions): ViewportPort & { d
       if (!width || !height) return false;
       // Preserve the pre-existing synchronous pair. No await or authority
       // reacquisition can leave a cancelled half-pair in the physical container.
-      const expansion = exec("resize-chart", { width: axisAuthority.minimumWidth, height, scrollSize: state._scrollSize ?? 0 });
-      const physical = exec("resize-chart", { width, height, scrollSize: state._scrollSize ?? 0 });
+      const expansion = exec("resize-chart", { width: axisAuthority.minimumWidth, height, scrollSize: state._scrollSize ?? 0 }, true);
+      const physical = exec("resize-chart", { width, height, scrollSize: state._scrollSize ?? 0 }, true);
       await Promise.all([expansion, physical]);
       return context.current();
     },
     applyPosition: async (target, context) => {
       if (!context.current()) return false;
       repairs = 0;
-      await exec("scroll-chart", { ...target, eventSource: tag });
+      await exec("scroll-chart", { ...target, eventSource: tag }, true);
       if (!context.current()) return false;
       const sample = read();
       if (sample.core.left === target.left && sample.core.top === target.top &&

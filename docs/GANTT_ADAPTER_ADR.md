@@ -294,3 +294,9 @@ Tooltip의 Escape 후 같은 focused 가상화 셀 재사용은 별도 fixture �
 ## Issue #667 / CI #2840 — port 수용 경계와 정상 fixture 준비의 구분
 
 기존 수용 규칙은 Core exact/native±1이다. target.left120에서 Core capacity119는 거부하고, Core capacity가120 이상이면 native capacity119는 최종 native119가 목표와1px 이내이므로 허용한다. native118은 거부한다. 정상 테스트 setup이 Core/native 양capacity120을 요구하는 것은 정확120 입력을 확보하는 더 강한 fixture 전제이며 제품 port의 허용식을 바꾸는 근거가 아니다. 공개 admitPosition은 기존 read-only 검사식을 노출하며 resize/scroll을 발행하지 않는다. ci2838의 native119 거부 기대는 신규 Unit의 경계 오류였고 ci2840에서 기존 정책에 맞는 거부·허용·명령0 반례로 정정한다. 원래 lease·유한 준비·3frame·취소·보존·writer 권한은 유지한다.
+
+## PR #894 CI #3570.1 — U4 synthetic exec 반환과 실측 승인 경계 (2026-11-08)
+
+[원본 Run 42443918977](https://github.com/planner77/masterGantt/actions/runs/42443918977)의 #574 V3 실제 Chromium Trace에서 `FILTER_RETURN` 취소 후 최신 `TASK_REVEAL`의 U4 synthetic `resize-chart` 페어가 실제 native scrollWidth를 2176→3060px로 늘렸으나, public `api.exec()===false`를 product port가 `COMMAND_REJECTED`로 즉시 변환했다. 어느 페어 구성원이 `false`였는지는 원본 기록만으로 불명이며 물리 폭 증가만으로 성공을 선언할 수 없다.
+
+기존 SVAR 2.7.3 버전 한정 제품 port의 `createAxisTransaction` 호출 **내부**에서만 synthetic resize 두 명령 및 original X/Y 복원 scroll의 `false`를 `미확정` 응답으로 취급한다. U4가 실제 public axis/date coverage, 10년·폭 예산, chart+DOM 물리 geometry, 유효한 원래 source/gesture lease, Core exact/native 1px, 연속 3프레임을 모두 검사한 `SETTLED`만 승인한다. 승인 실패·stale 입력·실측 없음은 기존 typed 실패/taint 그대로다. 일반 Coordinator `scroll-chart` 명령의 반환 `false` 및 U4 facade 자체의 명시 callback `false` 거부는 유지한다. 신규 writer/axis API/자동 retry/요청 허용오차 완화는 없으며 [#889 Work Packet](exec-plans/active/ISSUE_889.md)/[원장](ISSUE_889_890_FAILURE_ANALYSIS.md)을 따른다. 신규 원격 Full 검증 전 결과는 NOT TESTED다.

@@ -39,7 +39,7 @@ describe("SVAR observed Task reveal admission", () => {
 describe("SVAR visibility admission", () => {
   afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
   function portFor(mode: string) {
-    const horizontal = { clientWidth: mode === "zero" ? 0 : 100, clientHeight: 100, scrollWidth: mode === "commands" ? 125 : 200, scrollLeft: 0, getBoundingClientRect: () => ({ x: 100, y: 0 }) };
+    const horizontal = { clientWidth: mode === "zero" ? 0 : 100, clientHeight: 100, scrollWidth: mode.startsWith("commands") ? 125 : 200, scrollLeft: 0, getBoundingClientRect: () => ({ x: 100, y: 0 }) };
     const vertical = { clientHeight: 100, scrollHeight: 200, scrollTop: 0 };
     const root = { isConnected: mode !== "detached", clientWidth: 100, clientHeight: 100,
       closest: () => ["hidden", "inert"].includes(mode) ? {} : null,
@@ -50,7 +50,7 @@ describe("SVAR visibility admission", () => {
     vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => { queueMicrotask(() => callback(0)); return 1; });
     vi.stubGlobal("cancelAnimationFrame", vi.fn());
     vi.stubGlobal("getComputedStyle", (element: unknown) => ({ display: mode === "display-none" ? "none" : "block", visibility: mode === "chart-hidden" && element === horizontal ? "hidden" : "visible" }));
-    let requestedEnd = new Date(mode === "commands" ? "2026-12-01" : "2026-11-01");
+    let requestedEnd = new Date(mode.startsWith("commands") ? "2026-12-01" : "2026-11-01");
     let dataReady = true;
     const nativeForwardInput = vi.fn();
     const axisSettled = vi.fn();
@@ -61,8 +61,17 @@ describe("SVAR visibility admission", () => {
     const taskById = new Map<string, object>();
     const api = { getTask: (id: string) => taskById.get(id), getState: () => state, intercept: vi.fn((_action: string, listener: (event: { left?: number; top?: number; eventSource?: string }) => boolean | void) => { interceptors.push(listener); }), detach: vi.fn(), exec: (action: string, position: { left?: number; top?: number }) => {
       commands.push(action);
-      if (action === "resize-chart") { horizontal.scrollWidth = 200; state._scales.width = 200; state._end = new Date(Math.max(requestedEnd.getTime(), new Date("2026-12-01").getTime())); }
-      if (action === "scroll-chart") { state.scrollLeft = Math.min(position.left ?? 0, Math.max(0, state._scales.width - state._chartWidth)); state.scrollTop = position.top ?? 0; }
+      if (action === "resize-chart") {
+        if (mode === "commands-no-effect-false") return false;
+        horizontal.scrollWidth = 200; state._scales.width = 200;
+        state._end = new Date(Math.max(requestedEnd.getTime(), new Date("2026-12-01").getTime()));
+        if (mode === "commands-observed-false") return false;
+      }
+      if (action === "scroll-chart") {
+        state.scrollLeft = Math.min(position.left ?? 0, Math.max(0, state._scales.width - state._chartWidth));
+        state.scrollTop = position.top ?? 0;
+        if (mode === "commands-observed-false") return false;
+      }
     } } as unknown as IApi;
     const port = createSvarViewportPort({ api, root: root as unknown as HTMLElement, frame: { dataset: {} } as unknown as HTMLElement,
       context: () => ({ visible: true, projectionEpoch: 7, apiInstance: "api-test", scale: "day" } as ViewportContext), receipt: () => null, requestedEnd: () => requestedEnd, recordEnd: vi.fn(),
@@ -118,6 +127,27 @@ describe("SVAR visibility admission", () => {
     expect(port.axisIdle).toHaveBeenCalledExactlyOnceWith();
     expect(await port.apply(command, () => true)).toEqual({ left: 50, top: 0 });
     expect(port.commands).toEqual(["resize-chart", "resize-chart", "scroll-chart", "scroll-chart"]);
+  });
+  it("settles a synthetic axis transaction by measured Core/native evidence even when Core reports false after applying commands", async () => {
+    const port = portFor("commands-observed-false");
+    port.setCoreLeft(20); port.setNativeLeft(20);
+    const command = { kind: "PEER_RETURN" as const, position: { left: 50, top: 0 }, compatibility: true };
+    expect(await port.prepare!(command, () => true)).toEqual({ ready: true, projectionAfter: 7 });
+    expect(port.commands).toEqual(["resize-chart", "resize-chart", "scroll-chart"]);
+    expect(port.axisSettled).toHaveBeenCalledExactlyOnceWith();
+    expect(port.resizing()).toBe(false);
+    // Ordinary coordinate commands have no U4 measurement barrier; false stays rejected.
+    await expect(port.apply(command, () => true)).rejects.toThrow("COMMAND_REJECTED");
+    port.dispose();
+  });
+  it("does not approve a rejected synthetic resize if date coverage never changes", async () => {
+    const port = portFor("commands-no-effect-false");
+    const command = { kind: "PEER_RETURN" as const, position: { left: 50, top: 0 }, compatibility: true };
+    expect(await port.prepare!(command, () => true)).toEqual({ ready: false });
+    expect(port.commands).toEqual(["resize-chart", "resize-chart"]);
+    expect(port.axisSettled).not.toHaveBeenCalled();
+    expect(port.resizing()).toBe(false);
+    port.dispose();
   });
   it("requests read-only reobservation only for a settled actual axis change, not position-only writes", async () => {
     const port = portFor("ready");
