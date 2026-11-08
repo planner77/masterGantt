@@ -1,3 +1,11 @@
+## Issue #896 — 시각적 품질 증거와 DESIGN 적합 검토
+
+화면 레이아웃/언어/사용자 상호작용을 변경할 때 Issue AC별 DESIGN.md·본 가이드·PROJECT_UX 기준과 실제 Playwright 상태/viewport/locale/읽기·편집/오류·복귀를 연결한다. 기존 tests/e2e/schedule-views.spec.ts, i18n.spec.ts, Issue #118 Geometry 도구의 동일 fixture·좌표 비교를 우선 재사용하고, 불필요한 스냅샷/테스트 중복을 만들지 않는다.
+
+합성 Fixture PNG, DOM bounding boxes, screenshot SHA256·source commit·AC/viewport/locale manifest는 **시각적 관찰 증거**이지 자동 디자인 적합성 PASS가 아니다. 픽셀 골든은 실제 디자인 승인 없이는 자동 갱신·수용하지 않는다. 실제 UAT는 #897에서 Owner가 Preview에 접속하여 동작·조작감·접근성을 확인하며, 실운영 스크린샷·사용자 데이터는 public PR/Artifact에 업로드하지 않는다.
+
+---
+
 ## Issue #889 / #890 — 일정 표현과 언어 복원
 
 세 일정 View는 동일 toolbar 상태 슬롯·Grid 열 예산·native split/2단 날짜축 높이를 사용한다. loading/error/readonly가 공통 제어와 작업면 시작점을 바꾸지 않아야 한다. Grid/Chart 본문 Ctrl+휠만 공통 density 입력 owner가 처리하며 header/toolbar/input/menu/dialog·일반 스크롤은 보존한다. 숨긴 WBS는 mounted/inert이고 조회 View의 편집 affordance는 실행 불가다. locale 변경은 열 배치와 source label을 분리하고 최신 gesture/request 경계를 확인한다. 5폭/ko/en/vi·Day/Week·keyboard/Fullscreen과 ≤1px 공통 좌표, 원본쓰기0·같은instance의 실제 증거 및 native125%/실기기 미검증은 [통합 Packet](exec-plans/active/ISSUE_889.md)을 따른다.
