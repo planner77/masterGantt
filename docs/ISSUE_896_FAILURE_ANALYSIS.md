@@ -60,3 +60,78 @@ quality/e2e/docker·Trusted/Owner UI 수용·Manager ACCEPT·Stage B 활성은 N
 - L-001의 명시 geometry 타입 교정 후 최종 typecheck PASS. L-002는 Next 생성 파일 diff 확인 후 `git restore --source=HEAD -- next-env.d.ts tsconfig.json`으로 원복했고 게시 diff에서 제외했다. 로컬 캡처의 dirty 지문은 역사적으로 그대로 보존한다. 마지막 브라우저 이후 코드 차이는 한국어 주석 정리뿐이며 assertion/fixture/실행 코드는 같아 browser 결과를 재사용한다.
 - 별도 실제 ui_ux 분석과 qa_docs 읽기 전용 기술 사전 검토 PASS, 독립 QA_FINAL=N/A(OWNER_MANAGED). qa_docs가 직접 Python27/comparator21·문서구조·기존 보안 gate 보존을 확인했다. 원장 Run 오기(Full3577 ID42472111325.1), comparator 일본어 혼입·신규 설명 주석, font/fixture 검증 한계 문구를 교정했다. 미해결 기술 지적0이며 Owner UAT/Manager ACCEPT는 NOT TESTED다.
 - 직접·인접 최소 검증을 완료했으므로 로컬 전체 Vitest/Playwright/Docker/GHCR를 반복하지 않는다. 자동 prepr 선택 UNKNOWN5는 계속 BLOCKED이고 개별 명시 검사 PASS와 구분한다. 새 Head의 공식 전체 회귀는 PR CI가 수행한다.
+
+
+## PR #902 · Full #3594.1 — 최초 원격 실패와 누적 분석 (2026-11-09)
+
+### A–C. 원본 출처와 전체 이력
+
+[CI #3594.1 / Run42526579195 / attempt1](https://github.com/planner77/masterGantt/actions/runs/42526579195), event pull_request/opened, Head `1cc214f85ba2e1c16a65d10d51044829eef5dc98`, base `1826b479a80c64ef16efe768b31f75d62170639e`, test-merge `3dfd3f29732ec5cebe1982dd641c3cc00fabee8e`. 원본 `ci-pr-source-42526579195-1` artifact13635705906의 repository/PR902/run/attempt/head/base/merge를 실제 읽기 전용으로 확인했다. zip을 실행하거나 해당 자료를 코드로 사용하지 않았다. 현재 PR은 OPEN·mergeable=true이고 unresolved thread0이다.
+
+#896 전용 원격 Full은 현재1개 Run/1attempt이며 원본 conclusion FAILURE를 보존한다. 앞의 로컬 L-001~003와 기존 primary #895의 과거 실패는 별개다. 이번 오류는 #895의 attachments 사본 오인과 다른 신규 수집 경계 결함이다.
+
+| 원본 Job | 판정 | 직접/파생 근거 |
+| --- | --- | --- |
+| QA trust128871420954, 변경 경로128871421245, Preflight128871500341 | PASS | 이전 DOC_SYNC·재사용 구조 충족 |
+| Policy128871583168, TypeScript128871583169, ESLint128871583120, Vitest128871583192, Fast128872229075 | PASS | 실제 빠른검사 모두 성공 |
+| PR Build128872296578, quality aggregate128872641132 | PASS | required quality 성공 |
+| Docker 구현128872296642, docker aggregate128873853763 | PASS | 실제 build/runtime·OCI source 보호 유지 |
+| E2E3/8 [Job128872296678](https://github.com/planner77/masterGantt/actions/runs/42526579195/job/128872296678) | FAIL, F-001 직접 | #880 실제 원본 View/Editor/5폭 case에서 helper94의 git diff 수집 ENOBUFS |
+| E2E aggregate128876617479, QA Final128876641688 | FAIL, 파생 | 실제 E2E 미성공, 별도 제품 오류로 세지 않음 |
+| 나머지7 E2E shard | CANCELLED | fail-fast 취소; 취소 로그 모두 조회, 추가 실제 assertion FAIL 미관측 |
+| Main OCI128876643451, non-PR build/E2E/Docker·targeted 경로 | SKIPPED | PR 비대상/조건 미충족; 검증 PASS로 사용하지 않음 |
+
+### 취소를 포함한 전체 E2E 관측
+
+| Shard | Job ID | 선택 수 | 로그상 완료 PASS | FAIL | 기존 SKIP | 미완료·미실행 |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| 1/8 | 128872296664 | 105 | 95 | 0 | 0 | 10 |
+| 2/8 | 128872296783 | 105 | 42 | 0 | 0 | 63 |
+| 3/8 | 128872296678 | 149 | 130 | 1 | 1 | 17 |
+| 4/8 | 128872296722 | 118 | 45 | 0 | 0 | 73 |
+| 5/8 | 128872296647 | 92 | 66 | 0 | 0 | 26 |
+| 6/8 | 128872296653 | 94 | 66 | 0 | 1 | 27 |
+| 7/8 | 128872296648 | 109 | 64 | 0 | 0 | 45 |
+| 8/8 | 128872296723 | 123 | 73 | 0 | 0 | 50 |
+
+3/8의 수치는 실제 Playwright 최종 요약이고 나머지는 원본 로그의 완료 표시/선택 수로 계산한 관측이다. 취소된 실행의 미완료와 아직 시작하지 않은 case를 세분할 근거가 없어 함께 표시했다. shard6의 controlled E2E root error-boundary probe 로그는 예정된 음성 동작이며 실제 assertion 실패가 아니다.
+
+### F-001 — 정확 현상·원본 artifact
+
+- 2026-11-08T22:03:05.876Z, `tests/e2e/schedule-views.spec.ts:52:5`의 #880 실제 원본 다중 Resource·설비 View/Editor/5폭·일주·Fullscreen·WBS왕복 쓰기0, 실패 test body18.6초. `Error: spawnSync git ENOBUFS`, `tests/e2e/helpers/ui-evidence.ts:94`의 `sha256(execFileSync("git", ["diff", "--binary", "HEAD"]))`가 최초 실제 오류다. 화면 assertion/HTTP 저장 오류 또는 180초 timeout이 아니다.
+- 3/8 Playwright report [artifact13636043489](https://github.com/planner77/masterGantt/actions/runs/42526579195/artifacts/13636043489), 합성 UI [artifact13636163118](https://github.com/planner77/masterGantt/actions/runs/42526579195/artifacts/13636163118). PNG/geometry 일부 생성 뒤 manifest 작성 전에 실패하여 post-step은 canonical0/NOT TESTED를 기록했다. PNG가 있다고 화면 수용이나 manifest 무결성 PASS로 간주하지 않는다.
+- 원격 당시 diff 총bytes/변경파일 목록은 보존된 로그에서 확인 불가다. 특정 PNG나 제품 파일을 원인으로 단정하지 않는다. 대용량 Git stdout 처리 경계의 재현과 원인 분리는 아래 D–F 결과로 확정한다.
+- 누적 원격 직접 실패 파일 합집합: `tests/e2e/schedule-views.spec.ts`(실제 #880 호출) → `tests/e2e/helpers/ui-evidence.ts`(공유 provenance 수집). 동일 helper 소비자인 #889와 i18n #890도 재검증한다.
+
+### D–F. 재현·설계·최종 source 검증
+
+대용량 실제 임시 Git repo로 최초 호출 경로 RED를 확인하고, 같은 전체 diff bytes의 SHA256를 출력 크기 제한 없이 streaming 처리하는 기존 수집기 보완을 검토한다. raw diff를 로그/manifest에 노출하거나 buffer를 임의 확대하거나 지문 수집을 생략하는 우회는 사용하지 않는다. Git 실패는 빈 SHA256 성공으로 바꾸지 않는다. 구체 명령·RED/GREEN·교차·브라우저 결과는 후속 절에 추가한다.
+
+### G. 인계 경계
+
+사용자는 같은 PR CI 재시작까지 승인했다. Full8/Required3·timeout/retry·Trusted/Owner·권한·OCI/Release/Finalizer 변경 없음. 새 Head 원격 required/Trusted·Owner UI 수용·Manager ACCEPT는 NOT TESTED다. 기존 원본 PASS는 진단과 불변 소비자의 로컬 검증 재사용 근거이며 새 Head 원격 승인으로 승계하지 않는다.
+
+
+### F-001 D–F 확정 결과 — 버퍼 한도와 streaming 교정
+
+- 재현 명령: `npx vitest run --config tests/config/vitest.config.ts tests/scripts/ui-evidence-provenance.test.ts`. 원본 수집 함수를 동작 변경 없이 seam으로 추출한 RED에서1 FAIL/169ms, 같은 경로 재실행도 ENOBUFS/143ms였다. 실제 원격과 같은 `execFileSync("git", ["diff", "--binary", "HEAD"])` 호출이며 화면·네트워크 없는 임시 실제 Git 저장소다.
+- 가설 순위는 실행 전 사용자에게 공유했다. H1=Node sync child stdout 기본 buffer 한도, H2=Git diff driver 자체 오류, H3=특정 파일·권한 문제. 고정 합성 Git에서도 재현되어 H3 반증, 같은 Git의 파일 output은 성공·작은 diff buffered 수집도 성공하여 H2 반증, 1MiB 초과 출력에서 buffered만 실패하므로 H1 확정이다. 원격 당시 구체 변경 파일/총bytes는 미확인으로 유지한다.
+- 고정 seed 합성 fixture1,048,576bytes SHA256 `7b4444c4c18eeeb578946008280f3400e1dab51e480c434336d9c70cca5ac5b4`; 실제 Git binary diff1,351,672bytes SHA256 `0658d24a07d9a2a6cdc91eab4eb59799f6e30184617ebe02ccbdbb064d0e05e0`. 파일 출력 oracle과 streaming digest가 일치했고 진단 probe53.72ms였다. 이는 합성 사례1회의 로컬 관측이며 Actions 비용 개선률이 아니다.
+- 수정은 기존 `ui-evidence.ts` 안의 `captureWorkingTreeProvenance`를 실제 캡처와 unit이 함께 사용하도록 했다. `spawn`의 stdout chunk를 생성 순서대로 hash하고 close exit0에서만 결과를 반환한다. `git status --porcelain`은 전체 stdout을 보관하지 않고 any-byte dirty를 관측한다. stderr는 원문을 출력하지 않으며 spawn/stream/nonzero 실패를 reject한다. 기존 `git diff --binary HEAD` 범위·v2 schema·Head/base/merge/run 검증은 유지한다.
+- 신규 regression5 PASS(구현 Agent1.28초, 별도 qa_docs1.71초): clean·ignored/untracked, staged/unstaged byte oracle, >1MiB binary 전체hash, >1MiB status(4600합성파일), 외부 Git driver nonzero·spawn 실패·비저장소/원문 stderr 비노출. helper+test ESLint/typecheck/diff PASS. 임시 metrics probe의 CJS named import SyntaxError1회는 default import로 교정했고 제품 수정/원격 실패와 구분한다.
+- 별도 qa_docs가 원본 Job 로그와 새 unit5 PASS·DOC_SYNC·AC/reuse·Git 실패 경계를 직접 검토해 기술 사전 검토 PASS, 신규 P1/P2 없음. 주석의 tracked diff 범위 명확화 권고를 최종 통합한다. 독립 QA_FINAL=N/A(OWNER_MANAGED), Owner ACCEPT는 NOT TESTED다.
+- 기존 Python27/118 comparator21·UI assertions·CI workflow는 변경이 없어 이전 PASS를 로컬 진단 근거로 재사용한다. 새 원격 Head의 quality/e2e/docker·Trusted PASS로 승계하지 않는다. 실제 영향을 받는 helper3소비자(#880/#889/#890) 결과는 아래 최종 인계에 추가한다.
+
+
+### F-001 최종 인계 — 실제 소비자·증거·재사용
+
+- 실행 명령: `npm run test:e2e -- tests/e2e/schedule-views.spec.ts tests/e2e/i18n.spec.ts --grep '#880 실제 원본 다중|#889 세 View|#890 rapid locale' --max-failures=0 --retries=0 --output output/playwright/issue-896-rework-3594`.
+- 실제 Chromium3 PASS/총4.3분: #89017.5초, 원격 실패 #88048.7초, #8892.1분(Playwright 반올림 표기). 각 기존180초 제한·기존 geometry/canonical/readonly/locale assertions 유지. #889는 이전43.7초보다 이번에 길었으며 원인·통제 비용 비교는 미확정이다. streaming 수정의 Actions 속도 개선을 주장하지 않는다.
+- 실제 원본 #880의 Editor/5폭·Day/Week·Fullscreen·WBS쓰기0까지 최종 testcase PASS를 확인했다. 기존 Resource capture는 중간 단계이므로 그 manifest의 flow=NOT TESTED를 임의 PASS로 수정하지 않는다.
+- v2 검증 명령은 `python3 scripts/ui_evidence.py output/playwright/issue-896-rework-3594 --require-v2 --source-sha 1cc214f85ba2e1c16a65d10d51044829eef5dc98 --baseline-sha 1826b479a80c64ef16efe768b31f75d62170639e --test-merge-sha 1cc214f85ba2e1c16a65d10d51044829eef5dc98 --summary output/playwright/issue-896-rework-3594-summary.md`. 로컬 checkout SHA는 원격 test-merge3dfd3f...와 구분한다.
+- canonical14건/1,581,745bytes, 합계capture10,166ms. 구조/bytes·정확 출처 검증 exit0/EVIDENCE_VERIFIED_NOT_UAT, observationStatus FAIL/observedFailures1은 의도적 CSS4px 음성 화면이다. 수집13개 flow PASS·기존 Resource1개 NOT TESTED와 실제3 testcase 최종 PASS를 분리한다. 기록은 HEAD1cc214f8+dirty이며 신규 원격 exact Head PASS가 아니다.
+- 이번 helper/New unit 코드 동결 뒤 브라우저를 실행했고 이후 코드 변경은 qa_docs 권고의 tracked 범위 한국어 주석뿐이다. Next 생성 next-env.d.ts/tsconfig.json은 실행 뒤 원본 복원했다. 최종 helper SHA256 `77c4a92b1fb7700fda2fff07458cbbc4e37fb1e2224b1e541fc0b946e4596673`, 신규 unit SHA256 `584e98a128767b694c32e3ac8f8d2c506548d99f4efad5df627ef32f5feb692a`.
+- 게시 직전 조회: 원격 PR Head1cc214f8 유지·main1826b479 유지, ancestry/mergeable=true, unresolved threads0. 해결할 새 리뷰 스레드·병합 충돌은 없었다. source 지문/단언이 불변인 기존 Python/비교기 결과는 재사용하고 신규 helper5 unit·3 실제 browser·type/lint를 이번 변경 근거로 한다.
+- DOC_SYNC/AC01~06/reuse 구조와 Markdown426파일 링크·diff 검사 후 동일 PR fast-forward commit/push로 새 Full CI를 시작한다. 원본 #3594.1 FAILURE는 보존하며 새 Head required3/Trusted/Owner 수용/Manager ACCEPT는 NOT TESTED다. CI Run/Attempt 등록 정보만 확인하고 상태/결과를 모니터링하지 않는다.
+
+- 최종 주석 정리 뒤 신규 unit5 PASS(2.03초), 대상 ESLint와 typecheck PASS. 문서만 후속 갱신했으며 helper/test 두 파일 지문은 위 값과 동일하다.

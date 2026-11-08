@@ -1,3 +1,7 @@
+## Issue #896 · PR #902 Full #3594.1 REWORK (2026-11-09)
+
+E2E3/8의 #880 증거 수집이 `git diff --binary HEAD` 동기 출력 ENOBUFS로 실패했다. 원본 quality/docker PASS·7샤드 취소를 보존하고 실제 합성 Git RED→전체 bytes streaming hash 보완→Git 양·음성/공유 helper3소비자→문서·독립 기술검토·리뷰/충돌→같은 PR 새 CI 시작 순서다. 기존 Stage A 설계/버전0.145.1/Required3·Full8·Trusted·권한을 유지한다. [Work Packet](ISSUE_896.md), [누적 원장](../../ISSUE_896_FAILURE_ANALYSIS.md). 이후 모니터링·병합·게시·종료 없음.
+
 ## Issue #896 — 기존 Visual Evidence 확장 / PR CI 시작 (2026-11-09)
 
 main `1826b479a80c64ef16efe768b31f75d62170639e`·version0.145.1에서 PR #900/#901 구현과 #118/기존 #889/#890 E2E를 재사용한다. v2 출처·환경·파일 digest·flow, 명시적 geometry 비교 음성검사와 실제 대표 Chromium을 추가한다. [Work Packet](ISSUE_896.md)과 [실패 원장](../../ISSUE_896_FAILURE_ANALYSIS.md)을 따른다. HIGH/OWNER_MANAGED/qa_required=true/release_required=false. Stage B·Owner UI 수용·새 Head 원격 전체 PASS는 미검증이며 PR CI 시작 후 모니터링·병합·게시·Issue 종료는 수행하지 않는다.

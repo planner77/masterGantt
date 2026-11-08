@@ -1,3 +1,7 @@
+## Issue #896 · Full #3594.1 Git 지문 수집 보완 (2026-11-09)
+
+Quality/Docker 성공 뒤 E2E3/8의 #880 캡처가 동기 Git diff 출력 한도로 ENOBUFS 실패했다. 기존 helper의 전체 diff SHA256를 streaming 처리하고 Git 실패는 차단한다. 기존 8shard·Required3·timeout/retry·workflow·권한·OCI/Trusted/Owner는 이 보완에서 변경하지 않는다. 취소7샤드/원본 실패·새 Head 미검증을 [단일 원장](ISSUE_896_FAILURE_ANALYSIS.md)에 보존한다.
+
 ## Issue #896 — 기존 E2E의 v2 시각 증거 (2026-11-09)
 
 기존 Chromium8 안에서 대표 합성 화면만 수집한다. source Head와 baseline/test-merge·PR/run/attempt를 분리하고 환경·fixture·PNG·geometry SHA256, 실제 test/flow 범위와 제외 사유를 기록한다. 기존 artifact 7일 보존과 Job Summary 링크를 재사용하며 전체 E2E·Required3·Trusted·OCI/Release/Finalizer·권한은 유지한다. 무결성 검사 성공은 UI 수용이 아니다. 새 Head의 실제 원격 비용/크기·CI 결과는 실행 전 NOT TESTED다. [운영 계약](UI_EVIDENCE.md), [실행 계획](exec-plans/active/ISSUE_896.md).

@@ -1,3 +1,7 @@
+## #3594.1 보완 — 대용량 Git 지문의 메모리 경계
+
+PR #902 최초 Full에서 기존 #880 흐름의 작업 diff를 동기 버퍼에 담다가 `spawnSync git ENOBUFS`가 발생했다. 화면 단언 실패가 아니라 증거 수집 경계 오류다. 전체 `git diff --binary HEAD` stdout bytes를 순서대로 SHA256에 streaming 반영하며 변경 내용은 공개하지 않는다. `git status --porcelain`도 전체 출력을 쌓지 않고 dirty 여부만 관측한다. Git spawn/종료 실패는 지문 수집 실패로 중단하며 빈 diff 성공으로 대체하지 않는다. 지문 형식과 v2 provenance/원래 dirty 의미는 유지한다. 임시 합성 Git의 대용량 바이너리·작은 diff·staged/unstaged·실패 음성과 기존 #880/#889/#890 브라우저 소비자를 검증한다. 원본 실패·RED/GREEN은 [원장](ISSUE_896_FAILURE_ANALYSIS.md)을 따른다.
+
 # UI 시각 증거 운영 계약 — Issue #896
 
 이 계약은 기존 Playwright 결과의 Stage A advisory 증거를 연결한다. 파일 무결성·수치 비교와 실제 사용자 UI 수용은 별도 판정이다. 제품 화면·버전·권한·API·DB·Required3·Chromium8·Trusted QA·OCI·Release·Finalizer 정책은 바꾸지 않는다.

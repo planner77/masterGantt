@@ -1,6 +1,6 @@
 /** Issue #896 — 합성 브라우저 증거 수집. DESIGN/UAT 승인을 부여하지 않는다. */
 import { createHash } from "node:crypto";
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawn } from "node:child_process";
 import { readFile, writeFile } from "node:fs/promises";
 import { platform, release } from "node:os";
 import type { Locator, Page, TestInfo } from "@playwright/test";
@@ -22,6 +22,33 @@ type VisualCapture = {
 
 const sha256 = (bytes: string | Buffer) => createHash("sha256").update(bytes).digest("hex");
 const git = (...args: string[]) => execFileSync("git", args, { encoding: "utf8" }).trim();
+/** 원문 diff와 stderr를 보관하거나 공개하지 않고 Git 출력을 소비한다. */
+function consumeGitOutput(cwd: string, args: readonly string[], consume: (chunk: Buffer) => void): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const child = spawn("git", [...args], { cwd, stdio: ["ignore", "pipe", "ignore"] });
+    child.stdout.on("data", consume);
+    child.stdout.on("error", () => {
+      child.kill();
+      reject(new Error("UI 증거 Git 출력 수집 실패"));
+    });
+    child.on("error", () => reject(new Error("UI 증거 Git 명령 실행 실패")));
+    child.on("close", code => {
+      if (code === 0) resolve();
+      else reject(new Error("UI 증거 Git 명령 실패"));
+    });
+  });
+}
+
+/** 출력 크기와 무관하게 추적 파일의 전체 diff fingerprint와 dirty 상태를 수집한다. */
+export async function captureWorkingTreeProvenance(cwd = process.cwd()): Promise<{ workingTreeDirty: boolean; workingDiffSha256: string }> {
+  let workingTreeDirty = false;
+  await consumeGitOutput(cwd, ["status", "--porcelain"], chunk => { workingTreeDirty ||= chunk.length > 0; });
+  const diff = createHash("sha256");
+  await consumeGitOutput(cwd, ["diff", "--binary", "HEAD"], chunk => { diff.update(chunk); });
+  // Git 실패 시 일부 출력이나 빈 문자열의 hash를 증거로 반환하지 않는다.
+  return { workingTreeDirty, workingDiffSha256: diff.digest("hex") };
+}
+
 function exactSha(value: string | undefined, fallback: () => string, label: string): string {
   if (process.env.GITHUB_ACTIONS === "true" && !value)
     throw new Error("CI UI 증거 출처 누락: " + label);
@@ -89,9 +116,7 @@ export async function captureSyntheticUiEvidence(page: Page, info: TestInfo, inp
       repository: process.env.GITHUB_REPOSITORY || "local",
       runId: ci ? Number(process.env.GITHUB_RUN_ID) : null,
       runAttempt: ci ? Number(process.env.GITHUB_RUN_ATTEMPT) : null,
-      workingTreeDirty: git("status", "--porcelain").length > 0,
-      // 원본 diff/비밀값을 공개하지 않고 로컬 수정 여부를 결부한다.
-      workingDiffSha256: sha256(execFileSync("git", ["diff", "--binary", "HEAD"])),
+      ...await captureWorkingTreeProvenance(),
       testSourceSha256: sha256(await readFile(info.file)),
       helperSourceSha256: sha256(await readFile(__filename)),
     },

@@ -83,3 +83,20 @@
 - Vitest bounded80 PASS(5파일), Python91 PASS, typecheck/대상lint/Markdown426/YAML/diff PASS. 원장에 명령·이전 오류·환경·재사용 범위를 구분했다.
 - qa_docs의 실제 별도 읽기 전용 기술 사전 검토 PASS, QA_FINAL=N/A(Owner-managed). Owner 디자인 수용·native125%·운영 Preview·원격CI는 NOT TESTED.
 - 자동 prepr targeted dry-run은 UNKNOWN5/selection BLOCKED다. 수동 영향 매핑과 위 개별 검사 근거를 사용하며 자동 READY라고 보고하지 않는다.
+
+## REWORK — PR #902 / Full #3594.1
+- 현재 원본: Run42526579195.1, Head1cc214f85ba2e1c16a65d10d51044829eef5dc98/base1826b479a80c64ef16efe768b31f75d62170639e/test-merge3dfd3f29732ec5cebe1982dd641c3cc00fabee8e. quality/docker PASS, E2E3/8 직접 helper ENOBUFS FAIL,7샤드 CANCELLED. 원본 ci-pr-source artifact·전체8로그 대조 완료.
+- REUSE_DECISION 범위 유지: 기존 capture/manifest/validator/fixture/CI를 재사용하고 대용량 stdout 처리만 보완한다. Owner의 이번 실패분석·구현·문서·같은 PR CI 재시작 지시가 승인 근거다. 신규 승인 요청이나 별도 PR/runner는 필요하지 않다.
+- infra 소유: ui-evidence.ts와 전용 ui-evidence-provenance.test.ts. Manager 소유: 문서·원장·실제 browser·통합·리뷰/충돌·push. qa_docs는 별도 read-only 기술검토.
+- TEST_LIFECYCLE_REVIEW: EXTEND 기존 helper/실제 #880/#889/#890; ADD 정확 Git 출력 seam의 대용량·실패 양음성 unit; KEEP_UNIQUE 기존 v2 integrity/118 비교/8shard. 신규 테스트 파일은 기존 Vitest discovery를 사용한다.
+- 설계: 전체 git diff --binary HEAD stdout을 bytes 순서대로 SHA256에 streaming 반영해 기존 digest 의미를 유지한다. status도 output buffering 없이 dirty boolean을 관측하고 Git 실패는 차단한다. diff 생략/임의 maxBuffer 확대·테스트 assertion/timeout/retry 완화 없음.
+- AC01~06/UI_EVIDENCE_CONTRACT·기존 수치/범위 유지. 추가 AC03/04 커버리지는 실제 Git 대용량 RED/GREEN와 full-byte 동등성·오류 실패 검증이며 실제 #880/#889/#890 소비자로 교차 확인한다.
+- DOCUMENTATION_SYNC는 PR 전체 base 대비 실제 변경을 기준으로 기존 UPDATED/N/A를 유지한다. 후속 커밋은 CI_CD/REMOTE_VALIDATION/TEST_PLAN/UI_EVIDENCE/PLAN/이 Packet/단일 원장만 추가 갱신하고 그 외 원래 문서 변경도 PR diff에 남아 있다.
+- 새 exact Head의 required quality/e2e/docker/Trusted·Owner/Manager는 NOT TESTED이며 MERGE_READY=BLOCKED. CI 등록 후 모니터링하지 않는다.
+
+
+## REWORK 로컬 결과·최종 인계
+- 실제 helper 대용량 binary1,351,672bytes RED ENOBUFS2회→streaming GREEN, 동일 full-byte SHA256. 신규 provenance5 unit PASS와 별도 qa_docs 기술 검토 PASS.
+- 영향 소비자3개 실제 Chromium PASS(총4.3분), canonical14건/1,581,745bytes 무결성 PASS. 중간 Resource flow NOT TESTED·의도적 CSS FAIL1건을 최종 test PASS와 분리해 유지한다. 기존 Python/비교기 결과는 불변 파일 근거로 재사용했다.
+- 원격 원본 실패·취소7샤드/출처artifact·전체 로그·추가실패미관측·수정설계·코드지문·명령은 같은 실패 원장에 추가했다. 버전/보호정책·Full8/Required3·release 판단 불변.
+- unresolved thread0, main ancestry/충돌 없음. 별도 infra 구현 + qa_docs read-only 기술 검토로 수행했으며 independent QA_FINAL=N/A(OWNER_MANAGED), Owner/Manager·신규 원격 결과 NOT TESTED다.
