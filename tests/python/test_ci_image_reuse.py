@@ -259,6 +259,37 @@ class MainDecisionContract(unittest.TestCase):
         self.assertIn('needs.e2e.result == \'success\'', workflow)
         self.assertIn('needs.docker.result == \'success\'', workflow)
 
+    def test_partial_main_rerun_downloads_actual_docker_producer_attempt(self):
+        """#895 MAIN-3582-F002: success from attempt 1 is not attempt 2's artifact."""
+        workflow = (ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
+        docker = workflow.split("\n  docker_smoke:\n", 1)[1].split("\n  pr_docker_smoke:\n", 1)[0]
+        publisher = workflow.split("\n  publish-commit-image:\n", 1)[1]
+        producer_context = "archive_attempt: " + "$" + "{{ github.run_attempt }}"
+        consumer_name = ("ci-oci-main-" + "$" + "{{ github.run_id }}-"
+                         + "$" + "{{ needs.docker_smoke.outputs.archive_attempt }}")
+        previous_wrong_name = ("ci-oci-main-" + "$" + "{{ github.run_id }}-"
+                               + "$" + "{{ github.run_attempt }}")
+        self.assertIn(producer_context, docker)
+        self.assertIn("name: " + consumer_name, publisher)
+        self.assertNotIn("name: " + previous_wrong_name, publisher)
+        # GitHub preserves successful dependency outputs across partial re-runs.
+        # A prior verified source remains selected, not the current consumer attempt.
+        producer_attempt, consumer_attempt, run_id = 1, 2, 42487828570
+        expression = consumer_name.replace("$" + "{{ github.run_id }}", str(run_id))
+        expression = expression.replace(
+            "$" + "{{ needs.docker_smoke.outputs.archive_attempt }}",
+            str(producer_attempt))
+        self.assertEqual(expression, "ci-oci-main-42487828570-1")
+        self.assertNotEqual(expression, f"ci-oci-main-{run_id}-{consumer_attempt}")
+        # The same Main-smoked OCI must still satisfy index/SHA, runtime and tag gates.
+        self.assertIn("OCI_EXPECTED_INDEX", publisher)
+        self.assertIn("OCI_EXPECTED_ARCHIVE_SHA", publisher)
+        self.assertIn("scripts/verified_oci.py", publisher)
+        self.assertIn("published OCI digest differs", publisher)
+        self.assertIn("Refusing to overwrite temporary commit image", publisher)
+        self.assertIn("name: ci-oci-", docker)
+        self.assertIn("if: always() && steps.main-image-start.outputs.started_ms != ''", publisher)
+
     def test_explicit_false_shadow_never_uses_pr_even_when_proven(self):
         source = {"source_run_id": 1}
         self.assertEqual(selection.decide(active=False, recover=False, source=source),

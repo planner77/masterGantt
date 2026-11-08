@@ -1,3 +1,9 @@
+## #895 Main #3582 부분 재실행 OCI Archive 생산 Attempt 전파 (2026-11-08)
+
+- [Main #3582 attempt1–2](https://github.com/planner77/masterGantt/actions/runs/42487828570): 2번째 실행에서 Required Quality/E2E8/Docker 전부 성공했지만, `publish-commit-image`가 소비자 최신 `github.run_attempt=2`에 고정되어 생산자 `docker_smoke`의 실제 `ci-oci-main-...-1` Artifact를 찾지 못한 F-002. 첫 attempt E2E5 `ECONNRESET` 실패와 별도 사고이며 GHCR 게시는 시도되지 않았다.
+- 기존 #836 OCI 검증을 재사용하고 `docker_smoke.outputs.archive_attempt`에 생산자 `github.run_attempt`를 기록한다. 소비자는 `needs.docker_smoke.outputs.archive_attempt`를 사용해 **실제로 검증한 OCI 생산자의 Attempt**를 선택한다. GitHub 공식 부분 재실행은 재실행하지 않은 성공 Job의 outputs를 보존한다. `download-artifact`가 누락/불일치이면 차단, 기존 `verified_oci.py`의 archive SHA/index/digest/attestation, GitHub source/PR/Main/Owner 및 GHCR exact digest pull, SBOM/Finalizer 정책은 불변.
+- `tests/python/test_ci_image_reuse.py` 기존 테스트에 Producer Attempt 1/Publisher Attempt 2 양성·이전 이름 음성/보호 불변 검증 추가. Main image build/push telemetry는 시작 시간 확보 시에만 기록하고 누락은 게시 성공으로 취급하지 않는다. 새 PR Full8·Trusted QA 및 Main 결과 전에는 **NOT TESTED**, 기존 #895 누적 원장과 연결한다.
+
 ## Issues #895–#897 — 기존 검증 재사용 / UI artifact / Preview UAT
 
 - #895는 기존 trusted QA preflight/final 검증기에 ## REUSE_REVIEW 필수 구조를 확장한다. QA 정책 변경 PR은 그 PR을 자기 검증하지 않으며 기본 브랜치 trusted 소스로 검사한다. Owner가 결정하지 않은 후보/충돌은 구현 전에 질문하고, PR 텍스트의 자체 주장으로 인증하지 않는다.

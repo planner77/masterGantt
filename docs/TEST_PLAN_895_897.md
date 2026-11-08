@@ -37,6 +37,12 @@ The existing large docs/TEST_PLAN.md is preserved byte-for-byte to retain histor
 - 이번 로컬 환경은 기존 Node 설치를 pure AST/unit 용도로 재사용했다. Playwright 목록 조회는 `unified` 미설치로 BLOCKED이며 뒤의 전체 discovery는 NOT RUN. 실제 W07 두 case/SQLite/브라우저/신규 Head Full E2E8·Docker·Trusted·Owner UAT는 NOT TESTED다. 과거 “로컬 환경 없음” 문구는 최초 작성 시점 이력이며 위 범위만 이번에 갱신한다. 구체적 source SHA·manifest SHA256·Run/Job 및 원본/파생 상태는 [누적 원장](ISSUE_895_FAILURE_ANALYSIS.md)을 따른다.
 
 ## Current validation boundary
+## #895 Main #3582.2 — producer attempt OCI Artifact reuse regression
+
+- [Main Run #3582 / 42487828570](https://github.com/planner77/masterGantt/actions/runs/42487828570) attempt 1: E2E 5/8 native progress PATCH ECONNRESET, Required E2E FAIL; successful Docker producer stored immutable `ci-oci-main-42487828570-1`. Attempt 2 re-ran failures: **8/8 E2E, Quality, Docker all SUCCESS**, but Main OCI publisher requested non-existent `ci-oci-main-42487828570-2` and stopped; second timer error was derived from skipped start step. No GHCR candidate/digest/Finalizer proven.
+- Existing `ci.yml` and `tests/python/test_ci_image_reuse.py` are reused. Producer `docker_smoke.outputs.archive_attempt` is the source attempt and is preserved by GitHub partial re-runs; the publisher consumes that value rather than `github.run_attempt`. Validation still requires successful producer + expected OCI archive hash/index/revision, GHCR exact digest, same-run image policy/readiness/SQLite and protected Owner/QA. A missing/invalid producer artifact is BLOCKED, not a fallback to another source. Keep `ci-oci-main-<run>-<producer attempt>` immutable; do not rename or copy an old ZIP to the new attempt.
+- Unit source contract: assert producer output context, output-driven publisher name, reject prior wrong consumer-attempt string, exact Producer1/Consumer2 example, unchanged OCI and overwrite guards; empty metric start skips secondary telemetry error. New PR CI/Trusted QA/Owner acceptance and new Main/GHCR/Finalizer **NOT TESTED** until actual results. No test skip, timeout/retry, new workflow, Required3/E2E8 or release authority changes.
+
 - Source authored on branch ci/issue-895-896-897-reuse-visual-uat from exact main SHA 90c5a1a951c749a9690b1c83e5a74b6d122dd6e3 (PR #894 already merged).
 - No full local Node/Python/Chromium/Docker environment in this session; exact updated PR Head's required CI and default-main Trusted QA are necessary evidence.
 - Test coverage is additive; original E2E8, workers=1, Quality, Docker, owner merge authorization, Release evidence reuse and finalizer remain unchanged.

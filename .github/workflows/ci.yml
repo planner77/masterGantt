@@ -1142,6 +1142,9 @@ jobs:
       contents: read
       pull-requests: read
     outputs:
+      # Partial workflow re-runs carry the successful Docker producer outputs
+      # from its original attempt, even when the publisher is re-run later.
+      archive_attempt: ${{ github.run_attempt }}
       archive_sha256: ${{ steps.oci_verified.outputs.archive_sha256 }}
       index_digest: ${{ steps.oci_verified.outputs.index_digest }}
       revision: ${{ steps.reuse_decision.outputs.source_revision || needs.changes.outputs.checkout_sha }}
@@ -1831,7 +1834,7 @@ jobs:
         if: (vars.PR_IMAGE_REUSE_ENABLED == '' || vars.PR_IMAGE_REUSE_ENABLED == 'true') && needs.docker_smoke.result == 'success'
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
-          name: ci-oci-main-${{ github.run_id }}-${{ github.run_attempt }}
+          name: ci-oci-main-${{ github.run_id }}-${{ needs.docker_smoke.outputs.archive_attempt }}
           path: ${{ runner.temp }}/mastergantt-verified-main
       - name: Main OCI source job outputs/byte-level digest 교차 검사
         if: (vars.PR_IMAGE_REUSE_ENABLED == '' || vars.PR_IMAGE_REUSE_ENABLED == 'true') && needs.docker_smoke.result == 'success'
@@ -1919,7 +1922,9 @@ jobs:
           [[ "$digest" =~ ^sha256:[a-f0-9]{64}$ ]] || exit 1
           echo "digest=$digest" >> "$GITHUB_OUTPUT"
       - name: Main image build/push 시간 기록
-        if: always()
+        # An upstream artifact failure skips main-image-start; avoid a misleading
+        # second error from an empty metric start time in the cleanup path.
+        if: always() && steps.main-image-start.outputs.started_ms != ''
         shell: bash
         run: node scripts/record-ci-setup-metric.mjs --metric main-image-build-push --started-ms "${{ steps.main-image-start.outputs.started_ms }}" --cache "gha-summary"
       - name: exact published digest pull
