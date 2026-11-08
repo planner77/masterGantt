@@ -1,3 +1,7 @@
+## Issue #895 / #896 / #897 — PR #900 Full #3580.1 등록표 REWORK (2026-11-08)
+
+기존 A안과 W07 분리 설계를 재사용한다. Full #3580.1의 직접 실패는 SC-03 live manifest의 분리 전 제목 참조이며 E2E/Docker는 NOT RUN이다. 현재 두 W07 제목 등록·기존 AST/음성/샤드/정책 회귀·읽기 전용 사전 검토·리뷰/충돌 확인·[누적 원장](../../ISSUE_895_FAILURE_ANALYSIS.md) 후 같은 PR의 새 Full CI 시작까지만 수행한다. [Work Packet](ISSUE_895.md), HIGH/OWNER_MANAGED/qa_required=true, version0.145.1 유지·release_required=false. 새 Required3/Trusted/Owner UAT/Manager ACCEPT는 NOT TESTED, 모니터링·병합·Main/GHCR·Issue 종료는 비범위다.
+
 ## Issue #889 / #890 — 일정 View·locale 통합 수정 (2026-11-08)
 
 최신main ecc15d17/0.145.0에서 단일 fix/issue-889-890-gantt-presentation, PATCH후보0.145.1로 진행한다. [통합Packet](ISSUE_889.md)에 공통 toolbar/status·열/날짜축/density와 현재 locale source header·최신 gesture 복원 설계 및 AC를 기록한다. HIGH/OWNER_MANAGED/qa_required=true/release_required=true/release_authorized=false. 별도 UI설계/구현/테스트/사전기술검토·문서/리뷰/충돌 처리 뒤 Ready PR Full CI 시작까지만 수행한다. 이후모니터링·병합/Main/GHCR/Release·Issue종료없음. 새Head Required3/Trusted·Owner/Manager NOT TESTED, MERGE_READY BLOCKED. [원장](../../ISSUE_889_890_FAILURE_ANALYSIS.md).

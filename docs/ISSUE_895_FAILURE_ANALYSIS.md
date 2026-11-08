@@ -158,3 +158,51 @@
 ### G. Review/merge/publish boundary
 - Before editing: 3 earlier P1 review threads resolved/outdated, unresolved=0; PR base main and mergeable=true. Recheck before push.
 - Single Git Data batch: original W07 spec refactor, Issue #895 Work Packet, TEST_PLAN_895_897.md and this canonical ledger only; prior CI and Visual Evidence code remains unchanged. New synchronize Full PR CI must establish its own PASS. No CI monitoring, merge, Main, GHCR, Release, or Issue closure authorized.
+
+
+## 2026-11-08 — PR #900 / Full #3580.1 SC-03 등록표 참조 누락
+
+### A–C. 원본·전체 이력 대조와 재사용 결정
+- [Full #3580.1 / Run 42483080590 / attempt 1](https://github.com/planner77/masterGantt/actions/runs/42483080590), `pull_request/synchronize`, 2026-11-08 13:03:05–13:06:50 UTC, `FAIL`. Head `136f927ba4a639d5814e43e29c071629a5ce715f`, base `90c5a1a951c749a9690b1c83e5a74b6d122dd6e3`, checkout test-merge `ff4a0c0d3b908989b67e255de9d4111410cd3e41`. 원본 출처는 [source artifact 13618252718](https://github.com/planner77/masterGantt/actions/runs/42483080590/artifacts/13618252718) 및 Vitest checkout 로그다.
+- 원격 `ci.yml/runs?branch=ci/issue-895-896-897-reuse-visual-uat` 전체 페이지와 원장 전체를 대조: #3576.1 `42471148020` FAIL, #3577.1 `42472111325` FAIL, #3578.1 `42475849089` CANCELLED, #3579.1 `42479544101` FAIL, #3580.1 `42483080590` FAIL, 모두 attempt 1. 이전 네 Run의 정확한 SHA·Job·취소·미실행 상세는 위 불변 절을 재사용하며 같은 로그·artifact를 다시 내려받거나 진단을 반복하지 않았다. FAST_DEVELOPMENT #322.1 / `42483080611` SKIPPED는 비권위다.
+- `REUSE_DECISION: EXTEND`: Owner의 기존 A안 및 이번 “단계 결과 재활용” 요청에 따라 W07 독립 시나리오·실제 AST 검사기·기존 음성 회귀·샤드 플래너를 재사용한다. 재사용 범위·조건은 기존 Work Packet과 동일하며 추가 기능/승인 경로를 생성하지 않는다. 이전 성공은 원인 진단 근거이고 신규 Head의 Required PASS가 아니다.
+
+### 실제 Job/Step과 직접·파생 실패
+| Job ID·항목 | 실제 결론 | 관측 |
+| --- | --- | --- |
+| 경로 128739033563, 신뢰 경계 128739033889, Preflight 128739114241 | PASS | F-001 교정 재사용 |
+| Policy 128739200778, TypeScript 128739200837, ESLint 128739200848 | PASS | 기존 Python/정책·타입·lint 교정 유지 |
+| [Vitest 128739200785](https://github.com/planner77/masterGantt/actions/runs/42483080590/job/128739200785) | **FAIL / F-005 직접** | 13:06:07 UTC, `tests/features/gantt/state-consistency-manifest.test.ts:15`, SC-03가 분리 전 영어 제목을 찾지 못함. 1 FAIL / 3799 PASS / 3 SKIPPED, 310 files, 104.49s |
+| Fast Gate 128739776684 | FAIL (파생) | Unit 실패로 차단 |
+| PR Build 128739839919, E2E matrix 128739840017, Docker 구현 128739840075 | SKIPPED / NOT RUN | 새로운 W07 두 시나리오/브라우저/SQLite/Docker 실행 증거 없음 |
+| Required Quality 128739838904, E2E 128739838896, Docker 128739838948 | FAIL (파생) | 실제 E2E/Docker 오류로 중복 산정하지 않음 |
+| QA Final 128739860876 | FAIL (파생) | Required3 미성공; Trusted/Owner 승인 아님 |
+| Shadow 128739860848; Main 게시 128739861821 | PASS(advisory); SKIPPED | Main/GHCR 검증 없음 |
+
+### 종합 원인·누적 실패 매트릭스
+| 실패 ID | 기존 교정·이번 재발/회귀 판정 | 후보 source 검증·남은 범위 |
+| --- | --- | --- |
+| F-001 #3576 DOC_SYNC | #3577~#3580 Preflight PASS, 수정 재진행 불필요 | 기존 Preflight/Final 양·음성 unit 재사용 |
+| R-001~003 파서/source SHA/한글 리뷰 | 기존 3개 스레드 resolved/outdated, 현재 미해결 0 | 기존 UAT/증거 Python 회귀 재사용, 과거 리뷰/로그 불변 |
+| F-002 #3577 attachment-copy 검증 | #3578 shard3의 canonical manifest 1개 검증 PASS 재사용; #3579 shard3는 CANCELLED이며 전체 PASS 아님 | 기존 canonical/attachment/checksum/unsafe 음성 unit 재검증 |
+| F-003 #3578 35m shard2 | #3579 shard2 PASS, 재배치 교정 유지 | 기존 플래너 exact coverage/unique/history 회귀 재검증; 실제 신규 8-shard wall time NOT TESTED |
+| F-004 #3579 W07 30s | 기존 두 독립 시나리오 설계 유지; #3580에서는 미실행 | W07 실제 Chromium/HTTP/SQLite·timeout 해소 **NOT TESTED**, 새 Full에 인계 |
+| **F-005 #3580 AST 등록표** | `TEST_CONTRACT`: F-004 분리의 간접 소비자 동기화 누락. 삭제된 영어 제목을 live JSON이 계속 참조 | SC-03를 현재 A·B 두 제목으로 등록; 실제 기존 AST 검사 RED→GREEN. 검사기·assertion 완화 없음 |
+
+- 누적 직접 실패 파일/계약 합집합: `scripts/qa_preflight.py` docs gate → `docs/exec-plans/active/ISSUE_895.md`; `scripts/ui_evidence.py`; `tests/config/e2e-shard-plan.json`이 배치한 `issue-734-equipment-dashboard.spec.ts` 등 shard2 workload(개별 assertion FAIL 아님); `tests/e2e/project-task-persistence.spec.ts`; `tests/features/gantt/state-consistency-manifest.test.ts` → `tests/config/gantt-state-conformance.json`.
+- 원격 로그와 같은 오류를 기존 `npm test -- tests/features/gantt/state-consistency-manifest.test.ts`로 최소 재현: **1 FAIL / 13 PASS, 1.97s**. 별도 infra 읽기 전용 실제 AST 검산에서도 원본 오류 1개, 두 현재 제목을 넣은 메모리 후보 오류 0개였다. 원격 test-merge SHA와 로컬 Head의 동일 증상은 checkout drift 원인에 반하며, 실제 현재 한글 제목을 인식하므로 AST의 한글 처리 결함도 기각한다.
+- 수정은 `tests/config/gantt-state-conformance.json` SC-03의 제목 교정 및 종전 결합 시나리오 양쪽 등록뿐이다. `HTTP_SQLITE`/`REGRESSION_REFERENCE`/`NOT TESTED`, owners/rules/requiredEvidence 보존. 역사적 evidence/옛 제목·기존 제품 코드·W07 spec·검증기·샤드·workflow·version은 수정하지 않는다.
+
+### D–F. 동결 후보의 제한적 교차 검증
+- source 기준: parent `136f927ba4a639d5814e43e29c071629a5ce715f` + 수정 manifest SHA256 `6f3aaa81aab220fed888d04eb731907c527f2a21cbda721263572403b0ac56ab`. 아래 검사 이후 executable source/fixture 변경 없음; 원장/Work Packet/Addendum/PLAN만 문서 갱신.
+- 환경: Linux 독립 worktree, Node `22.14.0`, Vitest `5.0.0`, TypeScript `5.8.3`, Python 3. 기존 작업 폴더의 `node_modules`를 링크하여 순수 AST/unit에만 재사용했으며 PR lockfile의 frozen install 동등성을 주장하지 않는다. 원래 작업 폴더의 사용자 변경은 보존한다.
+- **PASS — 45 tests / 3 files / 2.13s**: `npm test -- tests/features/gantt/state-consistency-manifest.test.ts tests/scripts/e2e-shard-planner.test.ts tests/scripts/prepr-verifier.test.ts`. 실제 SC-01~14 source-reference 검증, missing/duplicate/parameter/path/evidence-exaggeration 음성, 이전 shard 교정·일대일 coverage/history 및 W07 관련 prepr 소비자 매핑을 재사용했다. `fatal: Needed a single revision`은 prepr 음성 fixture의 stderr이며 최종 exit 0이다.
+- **PASS — 73 tests / 0.032s**: `PYTHONPATH=scripts python3 -m unittest scripts/test_qa_preflight.py scripts/test_qa_final_automated.py tests/python/test_ui_evidence.py tests/python/test_preview_uat.py`. 누적 정책/문서·attachment·checksum·unsafe·Owner/REWORK/stale receipt 양·음성 재검증. fixture가 출력하는 API 부재 `QA Final BLOCKED`는 음성 테스트 결과이며 실제 Trusted QA 실행이 아니다.
+- **BLOCKED — 로컬 Playwright 목록 조회**: `npm run test:e2e -- tests/e2e/project-task-persistence.spec.ts --list`가 재사용 설치의 `Cannot find module 'unified'`로 import 단계 실패, `No tests found`는 파생 메시지다. 실제 테스트 assertion 실패와 구별한다. 뒤의 `node scripts/verify-test-discovery.mjs`는 명령 중단으로 **NOT RUN**. 브라우저용 설치 확대나 전체 로컬 회귀를 추가하지 않고 기존 AST 검증·과거 원격 근거를 재사용; 실제 W07 두 시나리오/최신 Full E2E8·Docker는 **NOT TESTED**다.
+- full typecheck/lint/build/Docker는 이번 JSON 참조만의 보완과 무관한 추가 로컬 반복이므로 기존 #3580 타입/lint 및 #3579 Build/Docker를 진단 근거로 재사용한다. 신규 Head의 공식 성공은 새 Full PR CI로만 판정한다. 새 regression test는 기존 red-capable 실제 AST/음성 검사로 충분하여 중복 생성하지 않았다.
+
+### G. 문서·리뷰·충돌·게시 경계
+- 문서 영향: 이 원장, `ISSUE_895.md`, `TEST_PLAN_895_897.md`, active `PLAN.md` 갱신. 기존 `TEST_PLAN.md` 원본 보존. 제품 API/DB/보안/일정 알고리즘/UI 및 CI workflow 계약은 변경이 없어 관련 규범 문서 추가 수정 N/A. 신규 manifest 등록은 실행 PASS를 뜻하지 않는다.
+- 기존 원격 리뷰 3건 resolved/outdated, 미해결 0. base `90c5a1a951c749a9690b1c83e5a74b6d122dd6e3`가 HEAD ancestor, API `mergeable=true`; `mergeable_state=blocked`는 실패 checks이며 충돌 아님. 게시 직전 head/base/main과 리뷰를 재확인한다.
+- 실제 역할: Manager=최소 JSON 보완/원장/통합, infra `/root/ci_diagnosis`=분리된 읽기 전용 원인 검산, qa_docs `/root/preqa`=동일 manifest SHA256에 대한 별도 읽기 전용 PRE_QA PASS. 두 제목의 실제 literal 유일성·등록 의미·보호 계약·문서 정합을 검토했고 #3579 shard3 CANCELLED를 PASS로 읽힐 수 있던 신규 요약 문구를 정밀화했다. 이전 #3579 절의 shard3 무결성 확인 문구로 전체 shard PASS를 추론하지 않는다. 이 검토는 원격 exact-Head QA_FINAL/Owner 제품 UAT/최종 승인 대체가 아니다. Markdown 링크 424 files 및 `git diff --check` PASS.
+- HIGH/OWNER_MANAGED/qa_required=true/release_required=false/release_authorized=false 유지. 단일 push의 synchronize Full CI 시작 확인까지만 수행; 이후 모니터링·병합·Main/GHCR/Release·Issue 종료 없음. 새 Required3/Trusted·Owner UAT·Manager ACCEPT **NOT TESTED**, `MERGE_READY=BLOCKED`.

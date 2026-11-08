@@ -30,6 +30,12 @@ The existing large docs/TEST_PLAN.md is preserved byte-for-byte to retain histor
 - Reuse `tests/e2e/project-task-persistence.spec.ts`, `createProject`, `test.use(isolatedApplicationOptions)`, real Next/SQLite/HTTP fixture and existing W07 assertions. Split into: (A) pointer drag/422/412/500 recovery and delete/reload, (B) fresh empty project, same-revision 201/412 concurrency, unauthorized 401/readonly/unlock and native root/child creation/reload. Both verify empty canonical state at their respective boundary. Preserve test timeout 30s, workers=1, E2E8 plan, no retries, no skips, no assertion removal or new infrastructure.
 - New source must pass both W07 tests and all 8 CI shards, previous #895 policy/QA and #896 visual artifact guards, Quality/Build/Docker and Owner gate. Earlier run PASS is diagnostic only; local full browser validation is NOT TESTED.
 
+## PR #900 · Full #3580.1 — W07 분리의 live 등록표 소비자 동기화
+
+- 기존 두 W07 시나리오·실제 AST 검증기를 재사용한다. `tests/config/gantt-state-conformance.json` SC-03가 분리 전 제목을 참조하여 Vitest가 실패했으므로 현재 A/B 제목을 모두 등록한다. 기존 owners/rules/evidence/NOT TESTED 계약·검증기·W07 assertions는 유지한다.
+- 재사용 범위는 현재 source의 실제 등록 검사와 기존 negative cases, 이전 shard rebalance의 일대일 coverage/history, prepr 선택 소비자, Preflight/Final/UI/UAT 양·음성이다. 기존 3-file Vitest 45 PASS(2.13s), Python 73 PASS(0.032s); original manifest 검사 1 FAIL/13 PASS 재현 후 GREEN. 신규 중복 검사·별도 runner는 추가하지 않는다.
+- 이번 로컬 환경은 기존 Node 설치를 pure AST/unit 용도로 재사용했다. Playwright 목록 조회는 `unified` 미설치로 BLOCKED이며 뒤의 전체 discovery는 NOT RUN. 실제 W07 두 case/SQLite/브라우저/신규 Head Full E2E8·Docker·Trusted·Owner UAT는 NOT TESTED다. 과거 “로컬 환경 없음” 문구는 최초 작성 시점 이력이며 위 범위만 이번에 갱신한다. 구체적 source SHA·manifest SHA256·Run/Job 및 원본/파생 상태는 [누적 원장](ISSUE_895_FAILURE_ANALYSIS.md)을 따른다.
+
 ## Current validation boundary
 - Source authored on branch ci/issue-895-896-897-reuse-visual-uat from exact main SHA 90c5a1a951c749a9690b1c83e5a74b6d122dd6e3 (PR #894 already merged).
 - No full local Node/Python/Chromium/Docker environment in this session; exact updated PR Head's required CI and default-main Trusted QA are necessary evidence.
