@@ -405,6 +405,37 @@ def docs_gate(plan, paths, ac):
             "ac_test_coverage": "MAPPING_PASS_SEMANTIC_REVIEW_PENDING"}
 
 
+
+def reuse_review_gate(plan):
+    """Issue #895: structural evidence for mandatory Owner reuse clarification.
+
+    This verifies a Work Packet's declared decision, not whether the Owner
+    actually authored that decision. Manager/Owner must check source identity.
+    """
+    text = section(plan, "REUSE_REVIEW")
+    expected = ("REUSE_DECISION", "REUSE_CANDIDATES", "REUSE_CONDITIONS",
+                "REUSE_OWNER_EVIDENCE")
+    fields = {}
+    for key in expected:
+        matches = re.findall(rf"(?im)^\s*-\s*{key}:\s*(\S[^\r\n]*)$", text)
+        require(len(matches) == 1 and 1 <= len(matches[0].strip()) <= 2048,
+                f"REUSE_REVIEW: {key} 선언 하나 필요")
+        fields[key] = matches[0].strip()
+    require(fields["REUSE_DECISION"] in
+            {"REUSE_AS_IS", "EXTEND", "NEW_APPROVED", "N_A_APPROVED"},
+            "REUSE_REVIEW: 재사용 결정 미확정/누락 — Owner 질의 후 구현")
+    require(fields["REUSE_OWNER_EVIDENCE"].lower() not in
+            {"unknown", "not tested", "none", "pending", "n/a"},
+            "REUSE_REVIEW: Owner 결정 출처 미확정")
+    require(fields["REUSE_CONDITIONS"].lower() not in
+            {"unknown", "none", "pending", "n/a"},
+            "REUSE_REVIEW: 재사용 호환·권한·증거 조건 미확정")
+    require(fields["REUSE_CANDIDATES"].lower() not in {"unknown", "pending"},
+            "REUSE_REVIEW: 후보 조사 미확정")
+    return {"reuse_decision": fields["REUSE_DECISION"],
+            "reuse_review": "STRUCTURAL_PASS_OWNER_CONFIRMATION_REQUIRED"}
+
+
 def verify_same_base_full_run(gh, number, head, base, current_run_id, merge=None):
     """Same PR/head/base/test merge and latest attempt, never title-derived."""
     route = f"{gh.prefix}/actions/workflows/ci.yml/runs?event=pull_request&head_sha={head}"
@@ -664,6 +695,7 @@ def check(env, event, gh):
     require(bool(ac), "Issue 인수 기준이 없음")
     plan = gh.head_text(f"docs/exec-plans/active/ISSUE_{issue}.md", env["EVENT_HEAD_SHA"])
     result = docs_gate(plan, paths, ac)
+    reuse_result = reuse_review_gate(plan)
     protected_receipt = {}
     if protected and method == "AGENT":
         protected_receipt = verify_protected_agent_approval(
@@ -684,7 +716,7 @@ def check(env, event, gh):
             "unresolved_review": 0,
             "protected_paths": sorted(protected),
             "residual_risks": "실제 의미/UX/HIGH 수동 검토 및 Manager ACCEPT 대기",
-            **job_evidence, **result, **protected_receipt,
+            **job_evidence, **result, **reuse_result, **protected_receipt,
             **({"targeted_ci_receipt": low_source} if low_source is not None else {})}
 
 
