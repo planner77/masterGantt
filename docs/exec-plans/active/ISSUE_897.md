@@ -19,7 +19,8 @@
 EXTEND existing GitHub read-only QA API and Preview model; ADD pure UAT receipt verifier/negative tests. No Owner password/token/approval service.
 
 ## DOCUMENTATION_SYNC
-- `docs/TEST_PLAN.md`: UPDATED
+- `docs/TEST_PLAN.md`: N/A(기존 대용량 테스트 계획 원본을 보존하고 신규 사항은 docs/TEST_PLAN_895_897.md Addendum에 기록)
+- `docs/TEST_PLAN_895_897.md`: UPDATED
 - `docs/PREVIEW_PUBLISH.md`: UPDATED
 - `docs/QA_REVIEW_POLICY.md`: UPDATED
 - `docs/GITHUB_OPERATIONS.md`: UPDATED
