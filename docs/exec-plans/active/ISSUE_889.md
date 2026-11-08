@@ -127,3 +127,9 @@ EXTEND: `tests/e2e/i18n.spec.ts`의 native locale/layout·초안 보존, `tests/
 - **TEST_LIFECYCLE_REVIEW:** EXTEND 기존 `svar-viewport-port.test.ts`에서 effective-but-false와 no-effect-but-false·일반 scroll 실패의 독립 양성/음성 검증. KEEP_UNIQUE 기존 `grid-task-start-reveal.spec.ts` #574 V3 실브라우저 strict contract. 신규 중복 E2E·기존 test skip/retry/timeout 완화 없음.
 - **DOCUMENTATION_SYNC:** `docs/ISSUE_889_890_FAILURE_ANALYSIS.md` append, `docs/GANTT_ADAPTER_ADR.md` U4 observed-response exception, 본 Work Packet 갱신. `AGENTS.md`/DESIGN.md/API/DB/CI 워크플로는 기존 계약 변경 없으므로 수정 없음.
 - **인계/범위:** 원본 CI 직접 실패는 확인, 동일 수정 source의 Unit/Chromium/typecheck/새 Full/Trusted/Owner 판정은 새 실행 전 **NOT TESTED**. `MERGE_READY=BLOCKED`, `release_authorized=false`; 사용자 요청에 따라 branch push로 신규 PR CI만 트리거하고 모니터링/병합/게시/종료하지 않는다.
+
+## PR #894 CI #3571.1 추가 교정 — 승인 시점과 지속 권한 분리 (2026-11-08)
+
+[원본 #3571.1](https://github.com/planner77/masterGantt/actions/runs/42445304959)의 #574 V3는 기존 #3570 교정 HEAD `14a76cef`에서도 같은 `NO_SCROLL_CAPACITY`/U4 `COMMAND_REJECTED`가 재발했다. 세부 Trace/원인/회귀 소비자 및 실패를 [누적 원장](../../ISSUE_889_890_FAILURE_ANALYSIS.md#ci-3571-001--ci-3570-후속-교정의-한계와-synthetic-readiness-self-invalidation-2026-11-08)에 원본과 분리해 기록한다.
+
+U4 axis 요청 최초 admission에서 `canChangeAxis`는 유지하되, 자기 자신의 synthetic resize와 scroll로 인해 일시적으로 변할 수 있는 projection read-ready/scale 관측을 동일 작업의 지속권한에 중복 사용하지 않는다. 지속권한은 원래 Coordinator intent/gesture/context 및 Project revision에 귀속한다. 트랜잭션 완성은 여전히 기존 Axis Transaction의 실제 축/물리용량/원본 위치 3frame과 post-prepare fresh projection receipt를 통해서만 승인한다. 기존 테스트/CI 게이트/축 허용·취소 조건을 완화하지 않는다. 신규 Unit은 임시 준비미흡 시 정상 정착과 최신 user source 취소를 쌍으로 검사한다. 자체 E2E 전체 결과와 최종 Owner/Trusted 검증은 다음 Full 전 **NOT TESTED**, 이번 작업 범위는 새로운 PR CI 시작까지다.

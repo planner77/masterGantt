@@ -56,6 +56,7 @@ describe("SVAR visibility admission", () => {
     const axisSettled = vi.fn();
     const axisIdle = vi.fn();
     const commands: string[] = [];
+    let onPreservedScroll: (() => void) | undefined;
     const interceptors: Array<(event: { left?: number; top?: number; eventSource?: string }) => boolean | void> = [];
     const state = { _tasks: [] as Array<{ id: string }>, scrollLeft: 0, scrollTop: 0, _scales: { width: horizontal.scrollWidth }, _chartWidth: 100, _chartHeight: 100, _start: new Date("2026-10-01"), _end: new Date("2026-11-01") };
     const taskById = new Map<string, object>();
@@ -70,6 +71,8 @@ describe("SVAR visibility admission", () => {
       if (action === "scroll-chart") {
         state.scrollLeft = Math.min(position.left ?? 0, Math.max(0, state._scales.width - state._chartWidth));
         state.scrollTop = position.top ?? 0;
+        if (mode === "commands-observation-refresh") dataReady = false;
+        onPreservedScroll?.();
         if (mode === "commands-observed-false") return false;
       }
     } } as unknown as IApi;
@@ -79,7 +82,7 @@ describe("SVAR visibility admission", () => {
       nativeForwardInput, axisSettled, axisIdle,
       lease: () => ({ stamp: { context: "test", contextEpoch: 0, gesture: 0, intent: 0 }, priority: 1 }) });
     if (mode === "disposed") port.dispose();
-    return Object.assign(port, { setTask: (task: { id: string; type?: string; start?: Date | null; $x: number }) => { taskById.set(task.id, task); state._tasks.push({ id: task.id }); }, commands, nativeForwardInput, axisSettled, axisIdle, setCoreGeometry: (width: number, chartWidth: number) => { state._scales.width = width; state._chartWidth = chartWidth; }, setAxisEnd: (end: Date) => { state._end = end; requestedEnd = end; }, setNativeClientWidth: (width: number) => { horizontal.clientWidth = width; }, setNativeWidth: (width: number) => { horizontal.scrollWidth = width; }, setCoreLeft: (left: number) => { state.scrollLeft = left; }, setNativeLeft: (left: number) => { horizontal.scrollLeft = left; }, setDataReady: (value: boolean) => { dataReady = value; }, setRequestedEnd: (value: Date) => { requestedEnd = value; }, intercept: (event: { left?: number; top?: number; eventSource?: string }) => interceptors[0]?.(event) });
+    return Object.assign(port, { setTask: (task: { id: string; type?: string; start?: Date | null; $x: number }) => { taskById.set(task.id, task); state._tasks.push({ id: task.id }); }, commands, nativeForwardInput, axisSettled, axisIdle, setCoreGeometry: (width: number, chartWidth: number) => { state._scales.width = width; state._chartWidth = chartWidth; }, setAxisEnd: (end: Date) => { state._end = end; requestedEnd = end; }, setNativeClientWidth: (width: number) => { horizontal.clientWidth = width; }, setNativeWidth: (width: number) => { horizontal.scrollWidth = width; }, setCoreLeft: (left: number) => { state.scrollLeft = left; }, setNativeLeft: (left: number) => { horizontal.scrollLeft = left; }, setDataReady: (value: boolean) => { dataReady = value; }, onPreservedScroll: (callback: () => void) => { onPreservedScroll = callback; }, setRequestedEnd: (value: Date) => { requestedEnd = value; }, intercept: (event: { left?: number; top?: number; eventSource?: string }) => interceptors[0]?.(event) });
   }
   it("rejects a stale or invisible Grid reveal preparation without Core commands", async () => {
     const command = { kind: "TASK_REVEAL" as const, taskId: "task", align: "start" as const };
@@ -145,6 +148,29 @@ describe("SVAR visibility admission", () => {
     const command = { kind: "PEER_RETURN" as const, position: { left: 50, top: 0 }, compatibility: true };
     expect(await port.prepare!(command, () => true)).toEqual({ ready: false });
     expect(port.commands).toEqual(["resize-chart", "resize-chart"]);
+    expect(port.axisSettled).not.toHaveBeenCalled();
+    expect(port.resizing()).toBe(false);
+    port.dispose();
+  });
+  it("keeps an admitted synthetic axis lease while its own Core/row reobservation temporarily drops readiness", async () => {
+    const port = portFor("commands-observation-refresh");
+    const restore = { kind: "PEER_RETURN" as const, position: { left: 50, top: 0 }, compatibility: true };
+    expect(await port.prepare!(restore, () => true)).toEqual({ ready: true, projectionAfter: 7 });
+    expect(port.commands).toEqual(["resize-chart", "resize-chart", "scroll-chart"]);
+    expect(port.axisSettled).toHaveBeenCalledExactlyOnceWith();
+    // After this transaction, a distinct request must still pass its own
+    // readiness admission; the former lease never authorizes later writes.
+    expect(await port.prepare!({ ...restore, position: { left: 60, top: 0 } }, () => true)).toEqual({ ready: false });
+    expect(port.commands).toEqual(["resize-chart", "resize-chart", "scroll-chart"]);
+    port.dispose();
+  });
+  it("revokes the synthetic transaction when a new user intent invalidates its original source during preserved scroll", async () => {
+    const port = portFor("commands-revoked");
+    let sourceCurrent = true;
+    port.onPreservedScroll(() => { sourceCurrent = false; });
+    const restore = { kind: "PEER_RETURN" as const, position: { left: 50, top: 0 }, compatibility: true };
+    expect(await port.prepare!(restore, () => sourceCurrent)).toEqual({ ready: false });
+    expect(port.commands).toEqual(["resize-chart", "resize-chart", "scroll-chart"]);
     expect(port.axisSettled).not.toHaveBeenCalled();
     expect(port.resizing()).toBe(false);
     port.dispose();

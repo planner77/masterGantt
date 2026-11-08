@@ -175,7 +175,13 @@ export function createSvarViewportPort(options: PortOptions): ViewportPort & { d
     if (!(start instanceof Date) || !(end instanceof Date) || !current() || axisTransaction?.state().busy || options.canChangeAxis?.() === false) return null;
     const lease = source ? { stamp: source, priority: 1 } : options.lease(), controller = new AbortController();
     const revision = options.context().revision;
-    const authorized = () => current() && options.context().revision === revision && options.canChangeAxis?.() !== false;
+    // dataReady/scale is an admission gate, checked above before any write.
+    // Synthetic resize and the preserved scroll can transiently invalidate
+    // its own projection/readiness while public Core layout catches up.
+    // Do not let that self-induced transition revoke the registered U4 lease.
+    // The Coordinator's original source/gesture/intent and project revision
+    // remain live guards; U4 still requires observed axis and X/Y settlement.
+    const authorized = () => current() && options.context().revision === revision;
     const scale = options.context().scale as "day" | "week";
     const desiredWidth = minimumWidth ?? minimumTimelineScaleWidthForEnd({ start, end: options.requestedEnd(), scaleMode: scale });
     if (!Number.isFinite(desiredWidth) || desiredWidth <= 0 || desiredWidth > 1_000_000) return null;
