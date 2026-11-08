@@ -1,3 +1,12 @@
+## Issues #895–#897 — 기존 검증 재사용 / UI artifact / Preview UAT
+
+- #895는 기존 trusted QA preflight/final 검증기에 ## REUSE_REVIEW 필수 구조를 확장한다. QA 정책 변경 PR은 그 PR을 자기 검증하지 않으며 기본 브랜치 trusted 소스로 검사한다. Owner가 결정하지 않은 후보/충돌은 구현 전에 질문하고, PR 텍스트의 자체 주장으로 인증하지 않는다.
+- #896의 기존 Playwright E2E 샤드에 합성 Fixture에서 캡처한 PNG·geometry manifest를 포함한다. manifest는 source full SHA/Issue/AC/locale/viewport/screenshot checksum을 기록하고 scripts/ui_evidence.py는 정적 무결성만 검증한다. 실제 E2E 실행/성공과 사용자 디자인 수용은 분리한다. E2E 실행이 없는 Shard의 UI evidence 결과는 NOT TESTED이며 기존 aggregate 성공을 의미변경하지 않는다.
+- #897은 기존 #703 수동 GHCR Preview의 exact digest와 #896 manifest를 사용한다. Owner의 Issue 댓글 수용을 scripts/preview_uat.py로 독립 읽기 확인하며 정식 CI/Trusted QA/Owner Manager 승인·Release를 자동 대체하지 않는다. Stage A는 수동 병합 전 확인이며 새 Ruleset Required 추가 없이 운영한다.
+- 신규 테스트는 기존 CI Policy의 Python unittest/기존 Chromium E2E/Artifact 업로드 경로에 추가한다. original PR/Main Chromium8/8·Quality·Docker/CI source·OCI attestation·#836 PR 이미지/ #773 Release Full 증거 검증·Finalizer 정책은 불변. 신규 CI 자체의 성공/속도 효과는 실제 Run 전 NOT TESTED.
+
+---
+
 ## Issue #889/#890 — PR #894 CI #3572.1 Shard7 timeout-neutral four-spec rebalance (2026-11-08)
 
 [Full #3572.1](https://github.com/planner77/masterGantt/actions/runs/42446255333), Head `415631ce`, base `ecc15d17`: Chromium Shard1/2/3/4/5/6/8 SUCCESS; Shard7 119예정/116PASS 뒤 공통 35분 Job 상한과 일치하는 CANCELLED. Required Quality/Docker PASS, E2E aggregate/QA Final downstream FAIL. 기존 #3571의 #574 Task reveal 오류는 새 Head의 Shard3 SUCCESS로 재발 미관측. Shard7의 끝 3case는 NOT TESTED.
