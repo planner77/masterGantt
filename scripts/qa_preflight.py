@@ -131,6 +131,8 @@ def check(event, env, gh):
         # Read the Work Packet from the PR head as DATA through the API,
         # not via checkout/import/shell. The base QA helper enforces doc impact.
         plan = gh.head_text(f"docs/exec-plans/active/ISSUE_{issue}.md", head)
+        _check(checks, "REUSE_REVIEW", lambda: qa.reuse_review_gate(plan),
+               where=f"docs/exec-plans/active/ISSUE_{issue}.md: REUSE_REVIEW/Owner decision")
         if ac:
             _check(checks, "DOCUMENTATION_SYNC",
                    lambda: qa.docs_gate(plan, paths, ac),

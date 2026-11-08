@@ -88,7 +88,14 @@
       "cases": [
         {
           "file": "tests/e2e/project-task-persistence.spec.ts",
-          "title": "persists pointer edits, restores rejected writes, and serializes a same-revision race",
+          "title": "W07 포인터 일정 변경·거부된 저장 복구·삭제 후 canonical 보존",
+          "evidenceLevel": "HTTP_SQLITE",
+          "status": "NOT TESTED",
+          "role": "REGRESSION_REFERENCE"
+        },
+        {
+          "file": "tests/e2e/project-task-persistence.spec.ts",
+          "title": "W07 동일 revision 경합·401 권한 복구·native 계층 추가 무결성",
           "evidenceLevel": "HTTP_SQLITE",
           "status": "NOT TESTED",
           "role": "REGRESSION_REFERENCE"

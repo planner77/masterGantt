@@ -190,6 +190,21 @@ class Cases(unittest.TestCase):
         self.blocked(lambda:qa.docs_gate(plan,changed,{"AC1","AC3"}))
         self.blocked(lambda:qa.docs_gate(plan,{"src/ui.ts"},{"AC1"}))
 
+    def test_reuse_review_requires_owner_decision(self):
+        plan = ("## REUSE_REVIEW\n"
+                "- REUSE_DECISION: EXTEND\n"
+                "- REUSE_CANDIDATES: existing Playwright and Preview\n"
+                "- REUSE_CONDITIONS: same source and read-only authorization\n"
+                "- REUSE_OWNER_EVIDENCE: Issue #895 Owner A decision\n")
+        self.assertEqual(qa.reuse_review_gate(plan)["reuse_decision"], "EXTEND")
+        self.assertEqual(qa.reuse_review_gate(plan)["reuse_review"],
+                         "STRUCTURAL_PASS_OWNER_CONFIRMATION_REQUIRED")
+        self.blocked(lambda: qa.reuse_review_gate(plan.replace("EXTEND", "PENDING")))
+        self.blocked(lambda: qa.reuse_review_gate(plan.replace(
+            "REUSE_OWNER_EVIDENCE: Issue #895 Owner A decision",
+            "REUSE_OWNER_EVIDENCE: PENDING")))
+        self.blocked(lambda: qa.reuse_review_gate("## REUSE_REVIEW\n"))
+
     def test_request_changes(self):
         reviews=[{"id":1,"submitted_at":"1","user":{"login":"alice"},
                   "state":"CHANGES_REQUESTED"},
@@ -660,7 +675,8 @@ class Cases(unittest.TestCase):
         stub=Stub()
         with (patch.object(qa,"snapshot"),
               patch.object(qa,"evidence",return_value={}),
-              patch.object(qa,"docs_gate",return_value={})):
+              patch.object(qa,"docs_gate",return_value={}), \
+              patch.object(qa,"reuse_review_gate",return_value={"reuse_review":"STRUCTURAL_PASS_OWNER_CONFIRMATION_REQUIRED"})):
             result=qa.check(env,{},stub)
             self.assertEqual(result["automated_qa"],"PASS")
             self.assertEqual(result["risk_level"],"HIGH")
@@ -897,7 +913,8 @@ class Cases(unittest.TestCase):
              "TEST_MERGE_SHA":"c"*40,"METADATA_ONLY":"false"}
         stub=Stub()
         with patch.object(qa,"snapshot"), patch.object(qa,"evidence",return_value={}), \
-             patch.object(qa,"docs_gate",return_value={}):
+             patch.object(qa,"docs_gate",return_value={}), \
+              patch.object(qa,"reuse_review_gate",return_value={"reuse_review":"STRUCTURAL_PASS_OWNER_CONFIRMATION_REQUIRED"}):
             for method in ("OWNER_MANAGED","AUTOMATED_MANAGER"):
                 stub.method=method
                 result=qa.check(env,{},stub)

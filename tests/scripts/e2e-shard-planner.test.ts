@@ -106,9 +106,9 @@ describe("historical E2E shard planner", () => {
     // 누락·중복은 계속 실패해야 하며 hash fallback으로 대체하지 않는다.
     // #866 Phase A adds language-shell to shard 5; Phase B adds master-data to shard 7.
     // #880 신규 일정 View spec은 기존 배치를 유지하며 shard 3에 명시 등록한다.
-    // #885 F885-008 remains historical; #894 CI-3572-001 redistributes four
-    // whole spec files, still covering all 147 current specs exactly once.
-    expect(plan.shards.map(group => group.files.length)).toEqual([17, 19, 17, 22, 18, 16, 19, 19]);
+    // #885/#894 layouts remain immutable historical evidence. #900 F-003 moves
+    // exactly two complete specs; all 147 current specs remain unique.
+    expect(plan.shards.map(group => group.files.length)).toEqual([17, 18, 17, 21, 18, 17, 19, 20]);
     expect(new Set(entries).size).toBe(entries.length);
     expect([...entries].sort()).toEqual(discovered); // New specs require deliberate plan slots.
     const selected = [1, 2, 3, 4, 5, 6, 7, 8].flatMap(shard =>
@@ -127,6 +127,14 @@ describe("historical E2E shard planner", () => {
         sourceBaseSha: string; originalConclusion: string; jobTimeoutMinutes: number;
         shard7ObservedPassCount: number; shard7PlannedTestCount: number;
         beforeFileCounts: number[]; afterFileCounts: number[];
+        explicitSpecCount: number; movedFiles: Array<{ file: string; from: number; to: number }>;
+      };
+      manualRebalance900: {
+        sourceRunId: number; sourceHeadSha: string; sourceBaseSha: string;
+        originalConclusion: string; jobTimeoutMinutes: number;
+        cancelledShardSelectedCases: number; cancelledShardObservedPasses: number;
+        cancelledShardUnfinishedCases: number; successfulShards: number[];
+        originalShardFileCounts: number[]; revisedShardFileCounts: number[];
         explicitSpecCount: number; movedFiles: Array<{ file: string; from: number; to: number }>;
       };
     };
@@ -149,11 +157,29 @@ describe("historical E2E shard planner", () => {
     expect([correction.shard7ObservedPassCount, correction.shard7PlannedTestCount]).toEqual([116, 119]);
     expect(correction.explicitSpecCount).toBe(discovered.length);
     expect(correction.beforeFileCounts).toEqual(incident.afterFileCounts);
-    expect(correction.afterFileCounts).toEqual(plan.shards.map(group => group.files.length));
+    expect(correction.afterFileCounts).toEqual([17, 19, 17, 22, 18, 16, 19, 19]);
     expect(correction.movedFiles).toHaveLength(4);
     expect(new Set(correction.movedFiles.map(item => item.file)).size).toBe(correction.movedFiles.length);
+
+    const rebalance900 = evidence.manualRebalance900;
+    expect(rebalance900.sourceRunId).toBe(42475849089);
+    expect(rebalance900.sourceHeadSha).toBe("6bf821cf9c57941f2e1547b8cb1552b6f99ea277");
+    expect(rebalance900.sourceBaseSha).toBe("90c5a1a951c749a9690b1c83e5a74b6d122dd6e3");
+    expect(rebalance900.originalConclusion).toBe("cancelled");
+    expect(rebalance900.jobTimeoutMinutes).toBe(35);
+    expect([rebalance900.cancelledShardSelectedCases, rebalance900.cancelledShardObservedPasses,
+      rebalance900.cancelledShardUnfinishedCases]).toEqual([113, 102, 11]);
+    expect(rebalance900.successfulShards).toEqual([1, 3, 4, 5, 6, 7, 8]);
+    expect(rebalance900.explicitSpecCount).toBe(discovered.length);
+    expect(rebalance900.originalShardFileCounts).toEqual(correction.afterFileCounts);
+    expect(rebalance900.revisedShardFileCounts).toEqual(plan.shards.map(group => group.files.length));
+    expect(rebalance900.movedFiles).toHaveLength(2);
+    expect(new Set(rebalance900.movedFiles.map(item => item.file)).size).toBe(2);
+
+    // Reverse current #900 assignments to reconstruct the *immutable* #894
+    // snapshot, then reverse #894 itself to reconstruct #885's snapshot.
     const restoredCounts = plan.shards.map(group => group.files.length);
-    for (const movement of correction.movedFiles) {
+    for (const movement of rebalance900.movedFiles) {
       expect(movement.from).not.toBe(movement.to);
       expect(movement.from).toBeGreaterThanOrEqual(1);
       expect(movement.to).toBeLessThanOrEqual(8);
@@ -161,14 +187,26 @@ describe("historical E2E shard planner", () => {
       restoredCounts[movement.to - 1]--;
       restoredCounts[movement.from - 1]++;
     }
+    expect(restoredCounts).toEqual(correction.afterFileCounts);
+    for (const movement of correction.movedFiles) {
+      expect(movement.from).not.toBe(movement.to);
+      expect(movement.from).toBeGreaterThanOrEqual(1);
+      expect(movement.to).toBeLessThanOrEqual(8);
+      const newest = rebalance900.movedFiles.find(item => item.file === movement.file);
+      expect(plan.shards.filter(group => group.files.includes(movement.file)).map(group => group.shard))
+        .toEqual([newest?.to ?? movement.to]);
+      restoredCounts[movement.to - 1]--;
+      restoredCounts[movement.from - 1]++;
+    }
     expect(restoredCounts).toEqual(correction.beforeFileCounts);
     for (const movement of incident.movedFiles) {
-      // A current move may supersede the historical destination, but its
-      // provenance must join exactly to the previous shard.
+      // A later decision can override a former destination, never its history.
       const newer = correction.movedFiles.find(item => item.file === movement.file);
+      const newest = rebalance900.movedFiles.find(item => item.file === movement.file);
       if (newer) expect(newer.from).toBe(movement.to);
+      if (newest) expect(newest.from).toBe(newer?.to ?? movement.to);
       expect(plan.shards.filter(group => group.files.includes(movement.file)).map(group => group.shard))
-        .toEqual([newer?.to ?? movement.to]);
+        .toEqual([newest?.to ?? newer?.to ?? movement.to]);
     }
     for (const [file, assignedShard] of [
       // Current eight-shard placement supersedes historical six-shard corrections;
@@ -180,8 +218,8 @@ describe("historical E2E shard planner", () => {
       ["issue-751-performance-telemetry.spec.ts", 1],
       ["issue-762-process-workareas.spec.ts", 3],
       ["issue-737-target0-acceptance.spec.ts", 6],
-      ["issue-735-system-dashboard.spec.ts", 4],
-      ["issue-734-equipment-dashboard.spec.ts", 2],
+      ["issue-735-system-dashboard.spec.ts", 6],
+      ["issue-734-equipment-dashboard.spec.ts", 8],
       ["issue-732-milestone-dashboard.spec.ts", 7],
       ["issue-621-resource-target.spec.ts", 8],
       ["gantt-state-recovery-editor.spec.ts", 4],

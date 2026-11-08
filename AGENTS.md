@@ -1,3 +1,13 @@
+## Issues #895–#897 — 모든 Issue의 재사용 결정, UI 증거, Preview UAT (2026-11-08)
+
+- **#895 필수 시작 조건:** 분석/PLAN/REWORK/복수 Issue 통합 PR에서 현재 main·Issue/PR·기존 코드/API/컴포넌트/SVAR 공식 문서·테스트·CI/Preview/OCI 증거를 먼저 조사하고 REUSE_REVIEW를 Work Packet에 기록한다. 재사용 대상·조건이 Owner 요청/기존 명시 결정에서 확인되지 않으면 구현·신규 병렬 기능·테스트 제거·PR 준비 **전에 질문**하고, 응답까지 REUSE_DECISION_REQUIRED/IMPLEMENTATION_BLOCKED. 확정된 동일 범위는 재질문하지 않는다. 기존 Issue는 재개/REWORK 착수 시 적용하며 이미 병합된 PR을 소급 차단하지 않는다.
+- Work Packet ## REUSE_REVIEW의 REUSE_DECISION(REUSE_AS_IS/EXTEND/NEW_APPROVED/N_A_APPROVED), REUSE_CANDIDATES, REUSE_CONDITIONS, REUSE_OWNER_EVIDENCE를 기록한다. 기존 trusted qa_preflight/qa_final_automated는 구조만 검증한다. 기록 내용이 실제 Owner 승인·호환성 충족인지 Manager가 독립 확인한다. 작성자 또는 임의 PR 문구의 자기 주장은 승인 증거가 아니다. [#895](https://github.com/planner77/masterGantt/issues/895), [Lifecycle](docs/ISSUE_LIFECYCLE.md).
+- **#896 UI 증거:** 기존 Playwright·Geometry 비교를 확장한다. 실제 합성 Fixture 스크린샷, bounding box, 정확 source SHA, viewport·locale·AC, PNG SHA256 Manifest를 남긴다. scripts/ui_evidence.py는 파일/출처·구조 무결성만 검증하며 DESIGN.md 준수나 사람의 UAT PASS는 선언하지 않는다. 공개 GitHub Artifact에 실운영 화면·업무 데이터·Secret 노출 금지.
+- **#897 UAT:** 기존 #703 수동 Preview/격리 DB·digest와 #896 증거를 재사용한다. 실제 Owner의 Issue 댓글 mastergantt-preview-uat:v1는 정확 source SHA·이미지 Digest·Manifest Digest에 결속하고 scripts/preview_uat.py로 읽기 전용 검증한다. Head/승인 대상 drift·REWORK·미승인은 UAT_STALE/REWORK/NOT TESTED. UAT는 별도 인간 제품 수용이고 CI/Trusted/Manager merge ACCEPT/정식 Release 승인으로 대체하지 않는다. 초기 운영은 Manager 수동 Gate; 새 Required Check/Ruleset 변경은 별도 Owner 승인 전 금지.
+- **본 보호 정책 변경 PR 부트스트랩:** 기존 main의 신뢰 QA/Required Quality·Chromium8·Docker와 Owner 승인으로 검사한다. 새 정책은 이 PR을 자기 승인하지 않으며 main 병합 후 새 Issue/REWORK부터 효력이 생긴다. 본 3 Issue는 문서·검증·workflow 보완이며 release_required=false/release_authorized=false; Preview나 정식 GHCR 배포를 자동 시작하지 않는다.
+
+---
+
 ## Issue #885 — 공통 MDXEditor Markdown Description (2026-11-07)
 
 - Issue 본문과 Task/Summary/Milestone Description은 단일 `DescriptionField`를 사용한다. 신규 Issue는 Markdown, 기존 일반 텍스트는 `plain` 그대로 출력하며 명시적 `Markdown 편집으로 전환`에서만 변환한다. MDXEditor(4.3.3) WYSIWYG/Source(Next 클라이언트 전용), Source는 파서 오류 복구 경로이다.

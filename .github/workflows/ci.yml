@@ -500,6 +500,10 @@ jobs:
         run: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/python -p 'test_ci_image_*.py' -v
       - name: Issue #703 Preview 배포 권한·워크플로 단위 회귀
         run: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/python -p 'test_preview_publish.py' -v
+      - name: Issue #896 synthetic UI evidence integrity/geometry 회귀
+        run: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/python -p 'test_ui_evidence.py' -v
+      - name: Issue #897 Preview Owner UAT 출처·거부 시나리오 회귀
+        run: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/python -p 'test_preview_uat.py' -v
       - name: Issue #751 source-matched P50/P95 comparison and missing-artifact regression
         run: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/python -p 'test_issue_751_*.py' -v
       - name: Issue #752 CI provenance, recurring failure and bounded diagnostic regression
@@ -868,6 +872,28 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
+
+      # #896: do not re-run E2E; validate only synthetic evidence captured by existing shard.
+      - name: 합성 UI 증거 체크섬·기하 검증 (UAT 판정 아님)
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -d test-results ]] && find test-results -name 'ui-evidence-*.json' -print -quit | grep -q .; then
+            python3 scripts/ui_evidence.py test-results
+          else
+            echo '합성 UI 증거: NOT TESTED (이 샤드에서 캡처된 사례 없음)' >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: 합성 UI 증거 스크린샷·매니페스트 업로드
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: ui-evidence-ci-${{ github.run_id }}-${{ github.run_attempt }}-shard-${{ matrix.shard }}
+          path: |
+            test-results/**/ui-evidence-*.png
+            test-results/**/ui-evidence-*.json
+          if-no-files-found: ignore
+          retention-days: 7
 
   # #772: Owner opt-in only. A missing flag or policy job ALWAYS means Full8.
   # This introducing HIGH policy PR cannot approve itself (base has no policy).

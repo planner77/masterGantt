@@ -55,7 +55,7 @@ async function expectTaskGridStart(page: Page, taskName: string, dateOnly: strin
   await expect(taskRow).toContainText(expected);
 }
 
-test("persists pointer edits, restores rejected writes, and serializes a same-revision race", async ({ page }) => {
+test("W07 포인터 일정 변경·거부된 저장 복구·삭제 후 canonical 보존", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   const suffix = uniqueSuffix(); const password = "W07Pass123!";
   const projectId = await createProject(page, `W07 Project ${suffix}`, password);
@@ -179,8 +179,19 @@ test("persists pointer edits, restores rejected writes, and serializes a same-re
   expect(deleteResponse.status()).toBe(200);
   const afterDelete = await deleteResponse.json();
   expect(afterDelete.data.tasks.some((entry: { taskId: string }) => entry.taskId === task.taskId)).toBe(false);
+  expect(afterDelete.data.tasks).toHaveLength(0);
   await page.reload(); await expect(page.getByText(`W07 Build ${suffix}`, { exact: true })).toHaveCount(0);
-  snapshot = await (await page.request.get(apiPath)).json();
+});
+
+// Both W07 scenarios reuse the existing isolated server/SQLite fixture; the
+// previous monolithic test exhausted the unchanged 30-second Playwright budget.
+test("W07 동일 revision 경합·401 권한 복구·native 계층 추가 무결성", async ({ page }) => {
+  const suffix = uniqueSuffix();
+  const password = "W07Pass123!";
+  const projectId = await createProject(page, `W07 Race ${suffix}`, password);
+  const apiPath = `/api/projects/${projectId}`;
+  let snapshot = await (await page.request.get(apiPath)).json();
+  expect(snapshot.data.tasks).toHaveLength(0);
   const revisionBeforeRace = snapshot.data.project.revision as number;
   const raceExternalIds = [`W07-RACE-A-${suffix}`, `W07-RACE-B-${suffix}`];
   const headers = { "Content-Type": "application/json", "If-Match": `"${revisionBeforeRace}"`, Origin: new URL(page.url()).origin };

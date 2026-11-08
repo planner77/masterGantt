@@ -1,3 +1,12 @@
+## Issues #895–#897 — Owner 재사용 결정과 Preview UAT의 GitHub 원장
+
+- 모든 Issue의 Work Packet에는 REUSE_REVIEW와 기존 구현·테스트·CI 증거의 실제 후보/조건·Owner 결정 출처를 넣는다. 필요한 결정이 사용자 입력에 없다면 새 구현/PR 전에 질문한다(#895). PR 본문 자기신고는 Owner 허가 증명이 아니다.
+- UI 검증은 기존 CI Chromium E2E의 합성 UI evidence manifest/PNG artifact와 별도의 Owner 실사용 Preview UAT로 분리한다(#896/#897). 민감 화면·사내 URL/쿠키/Secrets를 공개 GitHub에 기록하지 않는다.
+- Preview Owner 댓글은 기존 Issue의 mastergantt-preview-uat:v1 형식을 사용하며 scripts/preview_uat.py --issue N --pr P --source-sha FULL40 --image-digest sha256:... --evidence-sha256 sha256:... 로 읽기 전용 확인한다. GITHUB_REPOSITORY와 GH_TOKEN의 기존 GitHub 접근 권한을 사용하며 별도 토큰/서비스를 만들지 않는다. 댓글이 없거나 이후 REWORK·SHA/digest 변화가 있으면 UAT 승인으로 간주하지 않는다.
+- Owner UAT는 Manager의 CI/merge ACCEPT, Release 승인을 대신하지 않는다. #703 수동 Preview/기존 #836 PR OCI 재사용·#773 Main→Release evidence 재사용과 정책·권한이 독립이다. 현재 UAT는 Manager 수동 병합 Gate이며 Required Check·Ruleset은 신규 변경하지 않는다.
+
+---
+
 ## Issue #790 / 상위 #444 — PR 출처 검증과 종료 기준 (2026-10-31)
 
 1. 신규 Ready PR은 **Primary #790**, canonical `Refs #790` 한 건을 사용한다. 상위 #444는 실측 성능·캐시 안전성을 별도 승인하기 전까지 `OPEN`이고 #790 Generic Finalizer로 조기 종료하지 않는다. [PR #791](https://github.com/planner77/masterGantt/pull/791)은 앱 `0.130.2`의 대체된 이력으로 병합하지 않는다.

@@ -1,3 +1,14 @@
+## Issues #895–#897 — 재사용 구조 Gate / 사용자 UI 인수의 독립성
+
+- 기존 trusted qa_preflight.py 및 qa_final_automated.py는 Issue Work Packet ## REUSE_REVIEW의 결정·후보·조건·Owner 출처 기록 구조만 검사. PENDING/누락/UNKNOWN은 FAIL/BLOCKED이며 Owner에게 질문하여 확정한 뒤 재개한다. 작성자 입력값 자체를 Owner의 실제 인증된 결정으로 승격하지 않는다.
+- 사용자 화면 변경의 #896 synthetic screenshot·DOM Geometry·Manifest는 기술적 증거이며 DESIGN.md 전체 적합성, 실제 사용자 UAT, 별도 AGENT 독립 QA, Trusted QA의 PASS를 의미하지 않는다. PNG/Manifest 무결성 또는 실제 브라우저 미실행 시 NOT TESTED/FAIL을 분리한다.
+- #897 기존 #703 Preview에서 실제 Owner UAT를 별도로 수용. GitHub Issue의 Owner author+정확 Issue/SHA/OCI digest/manifest digest를 scripts/preview_uat.py에서 검증; 자동 QA/수용자 자기승인과 구별. Stage A는 수동 병합 Gate, trusted QA/Ruleset이 자동으로 UAT 상태를 확인한다고 주장하지 않는다. 이후 자동 blocking은 별도 Owner 승인·보호 PR 필요.
+- 기본 OWNER_MANAGED, AGENT 선택, HIGH·보호 파일, DOC_SYNC, Required Quality/Chromium E2E8/Docker, Trusted, 최신 Head/base, 미해결 review 0, Manager/Owner ACCEPT, 명시적 Release 승인 정책은 모두 그대로 유지. 정책 부트스트랩 PR에 자기 검증기 자격 부여 금지.
+
+참조: [#895](https://github.com/planner77/masterGantt/issues/895) [#896](https://github.com/planner77/masterGantt/issues/896) [#897](https://github.com/planner77/masterGantt/issues/897).
+
+---
+
 ## Issue #772 — Targeted는 Full QA 영수증이 아니다 (2026-10-22)
 
 신규 검증 모드 `FULL_REQUIRED` / `TARGETED_POLICY_VERIFIED` / `DOCS_ONLY_VERIFIED` / `NOT_RUN` / `UNKNOWN` / `BLOCKED`를 구분한다. LOW 후보는 PR body/Work Packet의 자가 주장으로 결정되지 않고 인증된 base 정책·diff·소비자·실제 직접+인접+음성 Playwright 보고서·Run/Attempt/Head/Base/Test-Merge·정책 Blob/원본 artifact 검증 뒤에만 승인할 수 있다. 선택 E2E가 실행되지 않거나 skipped/cancelled/changed/old failure/unknown이면 허위 Green 불가. 기존 Required3 이름과 Strict, QA Automated/Trusted, exact HEAD Owner HIGH 위험 수용은 유지한다. #772 정책 보호 변경 자체는 기존 Full8+Trusted/Owner 승인 필요. 기본 flag OFF, 10 distinct LOW Full Shadow 성공+전용 PR 실증 전 활성화 금지. [Work Packet](exec-plans/active/ISSUE_772.md).

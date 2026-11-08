@@ -18,7 +18,12 @@ def packet(doc_entries=None):
             "".join(f"- \x60{doc}\x60: UPDATED\n" for doc in docs) +
             "\n## AC_TEST_COVERAGE\n" +
             "".join(f"- AC{i}: scripts/test_qa_preflight.py 시나리오와 원격 검증 PENDING\n"
-                    for i in range(1, 9)))
+                    for i in range(1, 9)) +
+            "\n## REUSE_REVIEW\n"
+            "- REUSE_DECISION: EXTEND\n"
+            "- REUSE_CANDIDATES: existing trusted QA and test fixtures\n"
+            "- REUSE_CONDITIONS: keep exact CI provenance and all assertions\n"
+            "- REUSE_OWNER_EVIDENCE: #895 documented policy decision\n")
 
 
 class GH:
@@ -90,6 +95,18 @@ class Contract(unittest.TestCase):
                                     for c in result["checks"]), 4)
         self.assertNotIn("MERGE_READY=PASS", result["decision"])
         self.assertTrue(all("/actions/runs/" not in call for call in gh.calls))
+
+    def test_reuse_review_missing_or_unapproved_is_blocked(self):
+        gh = GH()
+        gh.plan = gh.plan.split("## REUSE_REVIEW")[0]
+        result = preflight.check(event(), env(), gh)
+        self.assertTrue(failure(result, "REUSE_REVIEW"))
+        gh.plan = packet().replace("REUSE_DECISION: EXTEND",
+                                   "REUSE_DECISION: PENDING")
+        self.assertTrue(failure(preflight.check(event(), env(), gh),
+                                "REUSE_REVIEW"))
+        gh.plan = packet()
+        self.assertEqual(preflight.check(event(), env(), gh)["status"], "PASS")
 
     def test_replay_550_2373_primary_title_refs_before_heavy(self):
         # Failure category from #2373.1, not a claim of original full payload.
