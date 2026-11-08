@@ -133,3 +133,11 @@ EXTEND: `tests/e2e/i18n.spec.ts`의 native locale/layout·초안 보존, `tests/
 [원본 #3571.1](https://github.com/planner77/masterGantt/actions/runs/42445304959)의 #574 V3는 기존 #3570 교정 HEAD `14a76cef`에서도 같은 `NO_SCROLL_CAPACITY`/U4 `COMMAND_REJECTED`가 재발했다. 세부 Trace/원인/회귀 소비자 및 실패를 [누적 원장](../../ISSUE_889_890_FAILURE_ANALYSIS.md#ci-3571-001--ci-3570-후속-교정의-한계와-synthetic-readiness-self-invalidation-2026-11-08)에 원본과 분리해 기록한다.
 
 U4 axis 요청 최초 admission에서 `canChangeAxis`는 유지하되, 자기 자신의 synthetic resize와 scroll로 인해 일시적으로 변할 수 있는 projection read-ready/scale 관측을 동일 작업의 지속권한에 중복 사용하지 않는다. 지속권한은 원래 Coordinator intent/gesture/context 및 Project revision에 귀속한다. 트랜잭션 완성은 여전히 기존 Axis Transaction의 실제 축/물리용량/원본 위치 3frame과 post-prepare fresh projection receipt를 통해서만 승인한다. 기존 테스트/CI 게이트/축 허용·취소 조건을 완화하지 않는다. 신규 Unit은 임시 준비미흡 시 정상 정착과 최신 user source 취소를 쌍으로 검사한다. 자체 E2E 전체 결과와 최종 Owner/Trusted 검증은 다음 Full 전 **NOT TESTED**, 이번 작업 범위는 새로운 PR CI 시작까지다.
+
+## PR #894 Full CI #3572.1 — 35분 Shard7 용량 조정 (2026-11-08)
+
+[원본 #3572.1](https://github.com/planner77/masterGantt/actions/runs/42446255333)에서 이전 #574 V3 재발은 **관측되지 않았고** Chromium Shard3 포함 7/8이 성공했다. Shard7의 119 planned 중 116 case PASS 후 35분 Job timeout과 일치하는 취소, E2E/QA Final 파생 실패를 [원장 CI-3572-001](../../ISSUE_889_890_FAILURE_ANALYSIS.md)에 고정한다. 남은 3 case NOT TESTED. 원래 #3570/3571 실패는 역사적으로 보존하며 #3572 전체는 SUCCESS가 아니다.
+
+기존 [#885 F885-008 CI/CD 계약](../../CI_CD.md)을 재사용해 147개 실제 spec exactly once / 8 matrix / workers1 / 35m / 전체 Full Required3를 유지하고 장시간 파일 네 개의 Shard 배치만 교정한다. 원본 `manualRebalance885` metadata, 역사적 projectedMs/14-run baseline은 불변. 새로운 `manualRebalance894`에 정확 Run/Head/Base/test-merge/Job, 단일 Run 완료 파일 span·미측정/취소, before/after counts 및 네 이동을 별도로 남긴다. 새 source 직접 Unit과 Full8/Trusted는 아직 NOT TESTED; previous source QA/제품 PASS를 무조건 이월하지 않는다. 사용자가 승인한 범위는 PR CI 새 실행 시작까지, 이후 모니터링/merge/Main/GHCR/종료 금지.
+
+TEST_LIFECYCLE_REVIEW: EXTEND 기존 shard planner unit의 exact147·역사적 #885와 신규 #894 이동·할당 회계 및 고정 파일 배치. KEEP_UNIQUE 147 E2E spec과 #574 V3(조건/시간/skip 불변). DOCUMENTATION_SYNC: `docs/CI_CD.md`, 본 Work Packet, `docs/ISSUE_889_890_FAILURE_ANALYSIS.md` UPDATED; `AGENTS.md`, `DESIGN.md`, `docs/API.md`, `docs/DB_SCHEMA.md`, CI workflow/NPM 설정 N/A(불변).
