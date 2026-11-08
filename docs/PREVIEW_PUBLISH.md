@@ -1,3 +1,22 @@
+## Issues #896–#897 — 기존 GHCR Preview의 Visual Evidence·Owner UAT 연결 (2026-11-08)
+
+현재 워크플로는 시험용 이미지의 정확 SHA·GHCR digest와 Docker/API/SQLite Smoke만 보장한다. **접속 가능한 사내 Preview 웹서버와 실제 사용자 UAT는 별도**다. 기존 #703 workflow_dispatch/Owner authorize/Build-once/격리 Compose를 재사용하고 운영 DB·Secrets를 사용하거나 새 정식 GHCR 태그를 만들지 않는다.
+
+UI 변경은 기존 Playwright 합성 Fixture screenshot·geometry 및 정확 sourceSha/Issue·AC의 manifest와 연결한다. scripts/ui_evidence.py가 파일과 PNG SHA256 무결성을 확인하더라도 사람의 디자인 적합성은 검증되지 않는다. 공개 GitHub에 사내 URL·업무 데이터가 든 UAT screenshot을 올리지 않는다.
+
+Owner가 실제 Preview 접속·흐름 검토 후 아래 6행 형식의 **GitHub Issue 댓글**에 단일 결정을 기록한다. 승인자가 repo Owner인지, Issue·이미지 digest·manifest digest·PR 최신 SHA인지 scripts/preview_uat.py가 읽기 전용으로 재검증한다. ACCEPT 이후 REWORK 또는 소스 변경은 승인 재사용 불가. 아직 UAT되지 않은 경우 미승인 상태를 BLOCKED/NOT TESTED로 남긴다.
+
+    mastergantt-preview-uat:v1
+    issue: 889
+    source_sha: <정확한 40자리 소문자 Git SHA>
+    image_digest: sha256:<64자리 소문자 hex>
+    evidence_sha256: sha256:<64자리 소문자 hex>
+    decision: ACCEPT
+
+위 꺾쇠 부분은 안내용 placeholder이며 실제 댓글은 검증된 값으로 교체한다. 이 Owner UAT는 기존 Manager merge ACCEPT/Trusted QA·Full PR CI·Main/Release 검증과 **서로 다른 단계**다. 새로운 Ruleset required check 자동 등록 없음; 최초 수용은 Manager가 병합 전 실제 확인한다. 아래 #703 원문에 남은 6-shard 언급은 구현 당시 이력이며 **현행 Full PR은 8-shard**다.
+
+---
+
 # Preview-first, Release-after-CI — GHCR 시험용 이미지 (#703)
 
 > 상태: 구현 후보. **Preview는 정식 릴리스, CI/QA PASS, 병합 승인 또는 운영 이미지가 아니다.** [Issue #703](https://github.com/planner77/masterGantt/issues/703)의 명시적 분리 기능이다.
