@@ -83,6 +83,20 @@ VERSION_RELEASE
 - release_authorized: true | false
 - authorization_evidence:
 
+REUSE_REVIEW (Issue #895; actual Work Packet heading: ## REUSE_REVIEW)
+- REUSE_DECISION: REUSE_AS_IS | EXTEND | NEW_APPROVED | N_A_APPROVED | PENDING
+- REUSE_CANDIDATES: current code/tests/components/Preview/OCI/CI evidence + links
+- REUSE_CONDITIONS: compatibility, permissions, UI/UX, source SHA, validation limits
+- REUSE_OWNER_EVIDENCE: explicit Owner decision (link or traceable conversation), not agent assertion
+- REUSE_SCOPE_DRIFT: unchanged | question_required | owner_reconfirmed
+- REUSE_TEST_EVIDENCE: actual run/test IDs or NOT TESTED
+
+UI_UAT (for UI/UX changes; N/A with rationale for unrelated scope)
+- ui_evidence_contract: DESIGN clause/AC, fixture, viewport, locale, flow
+- ui_evidence_artifacts: synthetic screenshot + geometry + manifest SHA or NOT TESTED
+- preview_sha_and_digest: source full SHA + exact preview GHCR digest, or NOT TESTED
+- uat_decision: UAT_PENDING | UAT_ACCEPTED | UAT_REWORK | UAT_STALE | UAT_NOT_TESTED | UAT_NOT_REQUIRED
+- uat_owner_evidence: verified GitHub Issue comment (not CI PASS) or NOT TESTED
 OWNERSHIP
 - primary_agent:
 - collaborators:
@@ -189,6 +203,7 @@ Head SHA가 변경되면 이전 PASS/N/A는 그 SHA에만 유효하다. 모든 �
 AGENTS.md와 docs/ISSUE_LIFECYCLE.md를 Source of Truth로 적용한다. UI/UX 범위가 있으면 DESIGN.md와 docs/UI_UX_GUIDELINES.md를 함께 읽고 Work Packet의 required_docs/read_only_files에 반영한다.
 
 1. GitHub에서 Issue, 댓글, 현재 main SHA, 기존 branch/PR/CI/version 상태를 먼저 조회한다.
+1a. #895 REUSE_REVIEW: 기존 기능/코드/테스트/Preview/OCI 증거와 조건을 검색한다. Owner의 동일 범위 명시 결정이 없거나 후보 간 충돌·재사용 불가면 구현/PR 준비 전에 사용자에게 질문한다. 응답 전 IMPLEMENTATION_BLOCKED이며 반복 질문은 금지한다. UI 영향은 #896 Visual Evidence 및 #897 Preview UAT 별도 수용 경계를 추가한다.
 2. Issue 목표/AC/scope/non-scope/dependency/risk를 정리하고 QA_REVIEW_POLICY의 HIGH 우선 트리거로 risk_level, qa_required, 실제 독립 Reviewer 가용성, 증거를 PLAN에 확정한다.
 3. version_decision, release_required, release_authorized를 각각 판단하고 근거를 기록한다.
 4. 필요한 Agent만 선택한다. 동일 파일을 두 Write Agent에게 동시에 배정하지 않는다.
