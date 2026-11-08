@@ -1,3 +1,15 @@
+## Issues #895–#897 — REUSE_REVIEW, UI evidence, Preview UAT 공통 단계
+
+1. 모든 Issue의 최신 main/기존 구현·테스트·문서·Preview/OCI/CI 증거와 관련 Issue·PR을 탐색한다. 사용자 명시 재사용 조건이 없거나 충돌/부적합하면 구현 전에 Owner에게 재사용/확장/신규 중 어느 방향인지 질문한다. 답변 전 REUSE_DECISION_REQUIRED로 조사만 허용하며 신규 구현·PR 진행은 차단. 이미 동일 범위를 명시 승인했다면 재질문하지 않는다.
+2. Work Packet에 정확히 ## REUSE_REVIEW와 REUSE_DECISION, REUSE_CANDIDATES, REUSE_CONDITIONS, REUSE_OWNER_EVIDENCE를 기록. QA Preflight/Final은 구조 계약만 검증하고 의사결정의 실제 Owner 출처·적합성은 Manager가 별도로 검토한다. 변경 scope가 재사용 결정을 벗어나면 재확인. 기존 Issue는 다음 PLAN/REWORK부터 적용한다.
+3. UI/UX 변경은 요구 AC↔DESIGN.md↔실제 화면 상태/사용자 흐름을 연결한다. 기존 Playwright 실제 브라우저에서 합성 Fixture screenshot+geometry+manifest를 확보하고, 스크린샷만으로 기능/디자인 전체 준수 PASS를 주장하지 않는다. 파일 무결성은 scripts/ui_evidence.py에서 검증하고 사람 수용을 별도 기록한다.
+4. UI가 실제 사용자 경험에 영향을 주는 경우 기존 #703 격리 Preview에서 Owner UAT ACCEPT/REWORK를 확인. Preview source SHA, 검증된 GHCR digest, UI Evidence manifest SHA256, Issue/AC·사용자·일시가 맞아야 한다. 기존 #598 Owner Manager ACCEPT와 독립된 전 단계다. 현재는 **Manager 수동 병합 Gate**이며 자동 Required Check/Ruleset으로 등록되지 않았다.
+5. 새 QA/CI 정책 도입 PR 자체는 기존 main 신뢰 정책으로 Full8/Required3/Trusted/Owner 판단을 받아야 한다. 재사용 계약 자동검증이 main에 반영된 이후 신규 Issue/REWORK에 적용. Preview/UAT 수용으로 PR CI, Main CI, GHCR·Finalizer를 생략하지 않는다.
+
+참조: [#895](https://github.com/planner77/masterGantt/issues/895), [#896](https://github.com/planner77/masterGantt/issues/896), [#897](https://github.com/planner77/masterGantt/issues/897), [Preview 가이드](PREVIEW_PUBLISH.md), [QA 정책](QA_REVIEW_POLICY.md).
+
+---
+
 ## Issue #711 — Test Suite Lifecycle 사전 검토 및 폐기 승인 (2026-10-23)
 
 Manager/구현 Agent는 Issue PLAN·REWORK와 PR 준비 시 AC와 #697 변경 영향·positive/negative/보안·DB/경합·실제 브라우저 경계를 확인한 후, **기존 테스트의 파일·시나리오·assertion을 탐색하여** `TEST_LIFECYCLE_REVIEW`(ADD/EXTEND/KEEP_UNIQUE/PARTIAL_OVERLAP/CONSOLIDATE_CANDIDATE/RETIRE_CANDIDATE, 이전 테스트 검색, 실행 근거, 잔여 위험)을 Work Packet/PR에 기록한다. 이 필드는 기존 `AC_TEST_COVERAGE`를 가리키며 별도 중복 AC 표를 강제하지 않는다. 상세 판정/의미 중복·폐기 안전성의 **단일 원본**은 [TEST_PLAN Test Lifecycle](TEST_PLAN.md), 실제 첫 인벤토리는 [Issue #711 Inventory](TEST_LIFECYCLE_INVENTORY_711.md)와 [Work Packet](exec-plans/active/ISSUE_711.md)를 따른다.
