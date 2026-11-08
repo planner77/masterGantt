@@ -675,7 +675,7 @@ class Cases(unittest.TestCase):
         stub=Stub()
         with (patch.object(qa,"snapshot"),
               patch.object(qa,"evidence",return_value={}),
-              patch.object(qa,"docs_gate",return_value={}),
+              patch.object(qa,"docs_gate",return_value={}), \
               patch.object(qa,"reuse_review_gate",return_value={"reuse_review":"STRUCTURAL_PASS_OWNER_CONFIRMATION_REQUIRED"})):
             result=qa.check(env,{},stub)
             self.assertEqual(result["automated_qa"],"PASS")
@@ -913,7 +913,7 @@ class Cases(unittest.TestCase):
              "TEST_MERGE_SHA":"c"*40,"METADATA_ONLY":"false"}
         stub=Stub()
         with patch.object(qa,"snapshot"), patch.object(qa,"evidence",return_value={}), \
-             patch.object(qa,"docs_gate",return_value={}),
+             patch.object(qa,"docs_gate",return_value={}), \
               patch.object(qa,"reuse_review_gate",return_value={"reuse_review":"STRUCTURAL_PASS_OWNER_CONFIRMATION_REQUIRED"}):
             for method in ("OWNER_MANAGED","AUTOMATED_MANAGER"):
                 stub.method=method
