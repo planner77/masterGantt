@@ -1142,6 +1142,9 @@ jobs:
       contents: read
       pull-requests: read
     outputs:
+      # 부분 재실행에서 Docker 생산 Job을 다시 실행하지 않으면 기존 생산 Attempt의
+      # 출력이 유지되므로 게시 Job의 현재 Attempt가 아닌 실제 생산 번호를 전달한다.
+      archive_attempt: ${{ github.run_attempt }}
       archive_sha256: ${{ steps.oci_verified.outputs.archive_sha256 }}
       index_digest: ${{ steps.oci_verified.outputs.index_digest }}
       revision: ${{ steps.reuse_decision.outputs.source_revision || needs.changes.outputs.checkout_sha }}
@@ -1831,7 +1834,7 @@ jobs:
         if: (vars.PR_IMAGE_REUSE_ENABLED == '' || vars.PR_IMAGE_REUSE_ENABLED == 'true') && needs.docker_smoke.result == 'success'
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
-          name: ci-oci-main-${{ github.run_id }}-${{ github.run_attempt }}
+          name: ci-oci-main-${{ github.run_id }}-${{ needs.docker_smoke.outputs.archive_attempt }}
           path: ${{ runner.temp }}/mastergantt-verified-main
       - name: Main OCI source job outputs/byte-level digest 교차 검사
         if: (vars.PR_IMAGE_REUSE_ENABLED == '' || vars.PR_IMAGE_REUSE_ENABLED == 'true') && needs.docker_smoke.result == 'success'
@@ -1919,7 +1922,9 @@ jobs:
           [[ "$digest" =~ ^sha256:[a-f0-9]{64}$ ]] || exit 1
           echo "digest=$digest" >> "$GITHUB_OUTPUT"
       - name: Main image build/push 시간 기록
-        if: always()
+        # OCI 다운로드 실패 등으로 게시 시간 계측이 시작되지 않은 경우에는
+        # 빈 시작 시각으로 인한 부수적 오류를 남기지 않는다.
+        if: always() && steps.main-image-start.outputs.started_ms != ''
         shell: bash
         run: node scripts/record-ci-setup-metric.mjs --metric main-image-build-push --started-ms "${{ steps.main-image-start.outputs.started_ms }}" --cache "gha-summary"
       - name: exact published digest pull

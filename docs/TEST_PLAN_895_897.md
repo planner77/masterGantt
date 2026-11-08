@@ -36,6 +36,14 @@ The existing large docs/TEST_PLAN.md is preserved byte-for-byte to retain histor
 - 재사용 범위는 현재 source의 실제 등록 검사와 기존 negative cases, 이전 shard rebalance의 일대일 coverage/history, prepr 선택 소비자, Preflight/Final/UI/UAT 양·음성이다. 기존 3-file Vitest 45 PASS(2.13s), Python 73 PASS(0.032s); original manifest 검사 1 FAIL/13 PASS 재현 후 GREEN. 신규 중복 검사·별도 runner는 추가하지 않는다.
 - 이번 로컬 환경은 기존 Node 설치를 pure AST/unit 용도로 재사용했다. Playwright 목록 조회는 `unified` 미설치로 BLOCKED이며 뒤의 전체 discovery는 NOT RUN. 실제 W07 두 case/SQLite/브라우저/신규 Head Full E2E8·Docker·Trusted·Owner UAT는 NOT TESTED다. 과거 “로컬 환경 없음” 문구는 최초 작성 시점 이력이며 위 범위만 이번에 갱신한다. 구체적 source SHA·manifest SHA256·Run/Job 및 원본/파생 상태는 [누적 원장](ISSUE_895_FAILURE_ANALYSIS.md)을 따른다.
 
+## #895 Main #3582.2 — OCI 생산 시도 번호 재사용 회귀 검증
+
+- [Main CI #3582 / Run 42487828570](https://github.com/planner77/masterGantt/actions/runs/42487828570) Attempt 1에서 5/8 샤드의 PATCH가 `ECONNRESET`으로 실패했다. 당시 성공한 Docker 생산 Job은 불변 OCI Artifact `ci-oci-main-42487828570-1`을 업로드했다. Attempt 2에서는 E2E 8/8·Quality·Docker가 모두 성공했지만, 게시 Job이 존재하지 않는 `ci-oci-main-42487828570-2`를 요청하여 실패했다. 타이머 시작 단계가 생략되었는데 기록 단계가 실행되어 발생한 두 번째 오류는 파생 현상이다.
+- 기존 `ci.yml`과 `tests/python/test_ci_image_reuse.py`의 검증 계약을 재사용한다. `docker_smoke.outputs.archive_attempt`는 OCI 생산 Job의 실제 시도 번호로, GitHub의 부분 재실행에서 성공한 생산 Job의 출력과 함께 유지된다. 게시 Job은 자신의 `github.run_attempt`가 아니라 해당 출력을 이용하여 Artifact를 선택한다. 생산 Job 성공·OCI Archive SHA256/index/revision·GHCR exact digest·게시 후 정책/준비 상태·SQLite 및 Owner/QA 검증을 모두 유지한다. 누락되거나 검증에 실패한 Artifact는 `BLOCKED`로 처리하며 이전 ZIP의 이름을 바꾸거나 다른 시도로 위장하여 우회하지 않는다.
+- 기존 회귀 테스트 확장 범위: 생산 Job 출력, 출력 기반 Artifact 조회, 과거 잘못된 조회 방식의 음성 검사, 생산 Attempt 1·게시 Attempt 2 조합, OCI 무결성·태그 덮어쓰기 금지. 타이머 시작 시각이 없으면 이차 오류를 피하되 이미지 검증·게시 성공으로 취급하지 않는다. Playwright 테스트 삭제·스킵, Timeout·재시도 증가, 신규 workflow·Required3/E2E8 또는 릴리스 권한 변경은 없다.
+- **기존 Main 복구 실적:** 동일 SHA의 [Main #3582.3](https://github.com/planner77/masterGantt/actions/runs/42487828570)에서 8개 E2E·Quality·Docker·OCI 게시/검증이 성공했고, [Generic Finalizer #1474.1](https://github.com/planner77/masterGantt/actions/runs/42517047238)이 성공하여 #895가 종료됐다. 이 결과는 이번 PR #901의 새 HEAD 검증을 대신하지 않는다.
+- **PR #901 / Full #3587.1 직접 실패:** [Run 42516438448.1](https://github.com/planner77/masterGantt/actions/runs/42516438448)은 Work Packet의 `AGENTS.md: UPDATED`가 이번 PR에서 실제 변경되지 않았다는 `DOCUMENTATION_SYNC` 오류로 QA Preflight가 차단됐다. 원래 PR #900에서는 해당 문서를 변경했으므로 #901에서는 범위별 이력을 구분하고 `N/A(reason)`을 기록해야 한다. 미해결 P1 리뷰는 새 CI 문서·주석을 한글로 작성하라는 지적이다. 이 교정의 실제 CI Required3·Trusted QA는 새로운 HEAD에서 **NOT TESTED**다.
+
 ## Current validation boundary
 - Source authored on branch ci/issue-895-896-897-reuse-visual-uat from exact main SHA 90c5a1a951c749a9690b1c83e5a74b6d122dd6e3 (PR #894 already merged).
 - No full local Node/Python/Chromium/Docker environment in this session; exact updated PR Head's required CI and default-main Trusted QA are necessary evidence.

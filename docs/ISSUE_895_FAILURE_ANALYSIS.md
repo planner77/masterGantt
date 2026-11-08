@@ -206,3 +206,62 @@
 - 기존 원격 리뷰 3건 resolved/outdated, 미해결 0. base `90c5a1a951c749a9690b1c83e5a74b6d122dd6e3`가 HEAD ancestor, API `mergeable=true`; `mergeable_state=blocked`는 실패 checks이며 충돌 아님. 게시 직전 head/base/main과 리뷰를 재확인한다.
 - 실제 역할: Manager=최소 JSON 보완/원장/통합, infra `/root/ci_diagnosis`=분리된 읽기 전용 원인 검산, qa_docs `/root/preqa`=동일 manifest SHA256에 대한 별도 읽기 전용 PRE_QA PASS. 두 제목의 실제 literal 유일성·등록 의미·보호 계약·문서 정합을 검토했고 #3579 shard3 CANCELLED를 PASS로 읽힐 수 있던 신규 요약 문구를 정밀화했다. 이전 #3579 절의 shard3 무결성 확인 문구로 전체 shard PASS를 추론하지 않는다. 이 검토는 원격 exact-Head QA_FINAL/Owner 제품 UAT/최종 승인 대체가 아니다. Markdown 링크 424 files 및 `git diff --check` PASS.
 - HIGH/OWNER_MANAGED/qa_required=true/release_required=false/release_authorized=false 유지. 단일 push의 synchronize Full CI 시작 확인까지만 수행; 이후 모니터링·병합·Main/GHCR/Release·Issue 종료 없음. 새 Required3/Trusted·Owner UAT·Manager ACCEPT **NOT TESTED**, `MERGE_READY=BLOCKED`.
+
+
+## 2026-11-08 — PR #900 Main CI #3582.1–2 GHCR 게시 Artifact Attempt 불일치
+
+### 사건 출처·기존 결과 재사용
+- [PR #900](https://github.com/planner77/masterGantt/pull/900) 병합 Main SHA `bafe71b2855561a10c797f495c81449d96f0a62d`, first parent `90c5a1a951c749a9690b1c83e5a74b6d122dd6e3`, second parent(PR Head) `9ab296fc3e967df57e411a1a599b905a9d960e39`; 병합 및 PR Head Tree 모두 `af2c2cb13b2e80c4acbc6744fdeef5b71a2b28d1`. Version 0.145.1, release_required=false, release_authorized=false.
+- [Main CI #3582 / Run 42487828570](https://github.com/planner77/masterGantt/actions/runs/42487828570), attempt 1 `failure` (2026-11-08 14:02–14:37 UTC), attempt 2 `failure` (재실행 19:08–19:33 UTC). GitHub 공식 규칙에 따라 재실행하지 않은 성공 Job 출력은 이전 Attempt에서 유지된다: https://docs.github.com/en/actions/how-tos/manage-workflow-runs/re-run-workflows-and-jobs
+- 위 원장의 F-001~F-005 및 [Full PR #3581.1 / 42484246431](https://github.com/planner77/masterGantt/actions/runs/42484246431) SUCCESS, [default-main Trusted QA #1232.1 / 42487210344](https://github.com/planner77/masterGantt/actions/runs/42487210344) SUCCESS는 각각 원본 상태 그대로 보존한다. PR/기능 회귀는 Main 성공을 대체하지 않으며 이번 원인은 새로운 Main 게시 소비자 경계다.
+
+### Main Attempt 1 직접 실패 — MAIN-3582-F001 (재분석 이력)
+- `Chromium E2E 5/8` Job `128753531417`에서 `tests/e2e/project-task-delete-context.spec.ts:239` 28px 행 사례가 HTTP PATCH `read ECONNRESET`(spec 276)으로 실패. 92 selected, 91 PASS, 1 FAIL; 다른 7개 Chromium/Quality/Docker PASS. 패킷 원인/제품 defect는 UNKNOWN, 단언/상태 불일치 증거 없음. [Main shard5 원본 로그](https://github.com/planner77/masterGantt/actions/runs/42487828570/job/128753531417), [Playwright artifact 13621466756](https://github.com/planner77/masterGantt/actions/runs/42487828570/artifacts/13621466756).
+- E2E Required `128762225886` FAIL (파생); Main OCI 게시 `128762243886` SKIPPED, GHCR candidate NOT PUBLISHED. 기존 성공 원본 Job을 재사용하여 GitHub `rerun-failed-jobs`를 요청했고 Run attempt 2가 생성됨. E2E의 원본 FAIL은 소급 PASS 처리하지 않음.
+
+### Main Attempt 2 직접 실패 — MAIN-3582-F002 (확정 원인)
+| 단계/Job | 이번 attempt·실제 결론 | 근거 |
+| --- | --- | --- |
+| E2E 5/8 128831572832 및 다른 7개 E2E | **SUCCESS 8/8** | 재실행된 shard5 포함 Required 완료 |
+| E2E Required aggregate 128837746460 | SUCCESS | `RESULT=success` |
+| Quality Required 128831574974, Docker Required 128831574725, Docker Smoke 128831573493 | SUCCESS (이전 성공 Job 보존 포함) | 새 source 재작성/보호 우회 없음 |
+| [GHCR Main publisher Job 128837770156](https://github.com/planner77/masterGantt/actions/runs/42487828570/job/128837770156) | **FAIL / 직접 F002** | `actions/download-artifact`에서 `ci-oci-main-42487828570-2` 찾기 실패. 현재 attempt 번호를 Producer 재실행 번호로 잘못 가정 |
+| `Main image build/push 시간 기록` step | FAIL (파생) | archive download 실패로 `main-image-start`가 실행되지 않은 상태에서 `if: always()`가 빈 start time으로 실행 |
+| GHCR `ci-bafe71...` 게시·exact digest smoke·SBOM·Finalizer | NOT RUN / NOT TESTED | 게시 성공 증거 없으므로 임시·정식 태그 및 Issue CLOSED 금지 |
+
+- 원본 [`ci-oci-main-42487828570-1` Artifact 13620520702](https://github.com/planner77/masterGantt/actions/runs/42487828570/artifacts/13620520702) (118418731 bytes) 및 [`ci-main-build-contract-42487828570-1` Artifact 13620445987](https://github.com/planner77/masterGantt/actions/runs/42487828570/artifacts/13620445987)은 정상 생산됐으며 Attempt 1의 Docker smoke 성공 Job에서 업로드되었다. Attempt 2에는 Docker 생산 Job을 재실행할 필요가 없어 `-2` ZIP이 생성되지 않음. 누락된 Artifact를 조작하거나 이전 Attempt 데이터를 새 Attempt로 재표기해서는 안 된다.
+- 원인 `POLICY_CI / FIXTURE_OBSERVABILITY` 경계 버그: `.github/workflows/ci.yml`의 OCI 소비자가 `github.run_attempt`(소비자 최신 Attempt)를 사용하면서 생산자의 실제 Attempt를 잃음. 종전 `needs.docker_smoke.outputs.index_digest/archive_sha256/revision/decision`은 성공한 생산자 Job에서 승계되었는데 Artifact 이름만 현재 Attempt를 사용하여 불일치. 제품 버그·GHCR 서비스 오류 증거 없음.
+
+### 최소 보완·재사용·교차 검증 범위
+- 기존 `docker_smoke` Job의 output에 `archive_attempt: github.run_attempt`를 추가하여 **생산자 실제 실행 Attempt**를 전달한다. `publish-commit-image`의 artifact 이름에서 소비자 `github.run_attempt` 대신 `needs.docker_smoke.outputs.archive_attempt`를 참조한다. Producer가 성공하지 못하면 기존 `needs.docker_smoke.result == success`로 차단; 이름이 유효하지 않거나 Artifact가 없으면 download-action은 fail-closed. `verified_oci.py`에서 archive SHA256/index digest/manifest/attestation/labels 검사, 기존 Main Source/PR SHA/Tree/Owner, GHCR exact-digest pull/policy/readiness/SQLite/API/Finalizer 정책은 그대로 적용.
+- 기존 성공 Producer outputs를 재사용하되 **증거 승계가 아닌 실제 새 job 실행**을 요구하지 않는다. `tests/python/test_ci_image_reuse.py`의 기존 OCI 및 정책 보안 테스트를 확장하여 (attempt1 producer, attempt2 publisher) source-to-consumer 이름과 이전 잘못된 이름 음성, index/byte 검증·태그 overwrite 거부 불변을 확인한다. `Main image build/push 시간 기록`은 upstream skip에서 빈 값 오류가 나지 않도록 시작 timestamp가 존재할 때만 실행한다(게시 Gate 완화 아님).
+- 소스 수정은 새 교정 PR에서만 진행한다. 보호된 CI workflow 변경이므로 `HIGH/OWNER_MANAGED`, 기존 Full PR CI Required Quality/E2E8/Docker + Trusted QA/Owner 명시 수용과 리뷰0·mergeability·DOC_SYNC가 필요하다. 과거 #3582.2의 E2E8/Quality/Docker PASS를 신규 Head 공식 PASS로 옮기지 않음.
+- Source 재사용 조건 명시: 기존 `ci_image_reuse.py`/생산자 OCI + `verified_oci.py`/기존 `ci_image_contract.py` 및 Full CI gate **EXTEND**, 별도 게시 파이프라인·무단 OCI 태그 생성 **N/A**. TEST_LIFECYCLE_REVIEW/AC_TEST_COVERAGE/기존 SHA·Run·Attempt 조합 보호 유지.
+- 이번 소스 교정 PR의 실제 Unit/Python/YAML 구문/PR Full/Trusted/Owner/신규 Main 및 GHCR+Generic Finalizer는 새로운 각 정확 SHA의 실행 증거가 확인되기 전 **NOT TESTED**. 원본 #3582의 재실행 추가만으로 수정 YAML이 기존 Run에서 실행되지 않음(실행 source 고정). #895·#896·#897의 이슈 종료는 보류.
+
+
+## 2026-11-09 — PR #901 Full #3587.1 DOCUMENTATION_SYNC 및 P1 한글 작성 보완
+
+### 원본 Run 및 이전 성과 재사용
+- [PR #901](https://github.com/planner77/masterGantt/pull/901), Primary #895, 관련 #896/#897, 교정 브랜치 `ci/issue-895-main-3582-oci-producer-attempt`. [PR Full #3587.1 / Run 42516438448 / attempt 1](https://github.com/planner77/masterGantt/actions/runs/42516438448) `completed/failure` (2026-11-08 UTC), source Head `5ca7ef14e482e91a1c10f27e6ab95c69e60aada8`, base `bafe71b2855561a10c797f495c81449d96f0a62d`, 당시 test merge `b634759e78195aa805ae1ec1a45f88b5a9301500`. 이 PR은 변경한 `ci.yml` 등 보호 경로 때문에 HIGH/OWNER_MANAGED, 필수 Full8/Trusted QA와 별도 Owner 수용이 필요하다.
+- 기존 **F-001~F-005**(PR #900 전체)와 **MAIN-3582-F001/F002**(최초 E2E transport 불명 및 Main OCI Artifact Attempt 불일치)는 위 불변 기록에 보존한다. [Main #3582.3 / 42487828570 attempt 3](https://github.com/planner77/masterGantt/actions/runs/42487828570)에서 Quality·E2E8·Docker 및 Main OCI 게시·검증은 실제 **SUCCESS**였고, [Generic Finalizer #1474.1 / 42517047238](https://github.com/planner77/masterGantt/actions/runs/42517047238)은 **SUCCESS**로 #895를 종료했다. 기존 SHA `bafe71b2855561a10c797f495c81449d96f0a62d`의 검증된 임시 GHCR 후보는 Finalizer에서 정리됐다. 이 Main 완료를 #901의 신규 Head PASS로 합산하지 않는다. #896/#897은 별도 OPEN이며 실제 Preview UAT는 기존대로 NOT TESTED.
+- 현재 목적은 새 제품 변경이나 본 이슈 재오픈이 아니라 **향후 부분 재실행 시도 번호 혼동 방지**. 기존 #836 `docker_smoke` 생산 Job·`publish-commit-image` 소비 Job, `verified_oci.py` 보안 검증과 `test_ci_image_reuse.py`를 재사용한다. 새로운 OCI 업로드·태그·승인 파이프라인은 추가하지 않는다.
+
+### 직접/파생 Job·검증 상태
+| 출처 | 결론 | 근거 |
+| --- | --- | --- |
+| 변경 경로 판정 128840371510, QA 신뢰 경계 128840371326 | PASS | Head/Base/보호 경로 판정 |
+| [QA Preflight 128840453870](https://github.com/planner77/masterGantt/actions/runs/42516438448/job/128840453870) | **FAIL — 최초 직접 실패 PR901-F001** | `DOCUMENTATION_SYNC`: `docs/exec-plans/active/ISSUE_895.md`의 `AGENTS.md: UPDATED` 선언과 이번 PR 변경 파일 불일치. 다른 PRIMARY/RISK/QA/RELEASE/PATH/ISSUE_AC/REUSE_REVIEW 판정은 PASS |
+| PR Fast Gate 128840529050 | FAIL (파생) | QA Preflight 실패로 구현 검사 시작 차단 |
+| TypeScript 128840530106, Vitest 128840530079, ESLint 128840529674, Production Build 128840605850, E2E 8-shard 실행 128840606284, Docker 구현 128840605468 | SKIPPED / NOT RUN | 실제 제품/테스트 Assertion 실패를 새로 관측하지 못함 |
+| Quality Required 128840604758, E2E Required 128840604754, Docker Required 128840604782, QA Final Automated 128840629909 | FAIL (파생) | Full8·Docker 실행이 없으며 사전 검증 실패를 별개 제품 실패로 중복 계산하지 않음 |
+| 변경 영향 Shadow 128840629796 | PASS (비권위) | Owner·Trusted QA·Required PASS 대체 불가 |
+| [Inline P1 리뷰](https://github.com/planner77/masterGantt/pull/901) `PRRT_kwDOUUB7Bc61Dyp_` | **미해결 1건 — PR901-R001** | 신규 `docs/TEST_PLAN_895_897.md`의 Main OCI 설명과 `ci.yml` 설명용 주석을 한글로 작성해야 한다는 지적. 기존 CI 식별자·명령·상태값은 보존 |
+
+### 종합 원인·최소 보완 및 확인 범위
+- **PR901-F001 = POLICY_CI / 문서 동기화 범위 착오.** 동일 Work Packet은 원래 PR #900을 위해 `AGENTS.md`, `docs/QA_REVIEW_POLICY.md`, `docs/GITHUB_OPERATIONS.md`, `docs/REMOTE_VALIDATION.md` 등을 `UPDATED`로 기록했다. PR #901은 그 파일들을 수정하지 않았으므로 과거 이력이 이번 diff의 문서 영향이라고 잘못 표현됐다. 기존 검증기 `qa_final_automated.py::docs_gate`는 보호된 CI 변경의 QA DOCS 전체에 변경 또는 `N/A(reason)`을 요구하며, 이 중 `AGENTS.md`에서 먼저 차단했다. **원인 해결은 QA 검증기 변경이 아닌 이슈별 Work Packet의 실제 영향 상태 정정**이다.
+- `ISSUE_895.md`의 `DOCUMENTATION_SYNC`를 #901 범위로 재정리하여 비변경 정책 문서를 각각 충분한 `N/A(근거)`로 작성하고, 기존 PR #900에서의 실제 문서 갱신은 원본 원장/PR 링크로 보존한다. 현재 변경한 `docs/CI_CD.md`는 `UPDATED`, 기존 큰 `docs/TEST_PLAN.md`은 기존 결정대로 `N/A(근거)`, 신규 Addendum `TEST_PLAN_895_897.md`는 `UPDATED`. 기존 `REUSE_REVIEW`, AC01~06, 발행/Owner 정책, QA 코드/Required Gate는 변경하지 않는다.
+- **PR901-R001 = CI 문서 한글 규정 위반.** 이번 PR에서 추가한 Test Plan의 OCI 생산 시도 설명, `ci.yml`의 신규 설명용 주석 및 `test_ci_image_reuse.py`의 테스트 설명을 한글로 갱신한다. `archive_attempt`, GitHub expression, OCI index/digest SHA, job 이름과 상태 코드는 **그대로** 유지한다. 관련 리뷰에는 수정 커밋을 안내하고 실제 해결되면 스레드를 resolved로 전환한다. 원래 프로젝트 파일의 오래된 영어 이력까지 무관하게 수정하지 않는다.
+- **재사용/영향:** main의 실제 `#3582.3` 검증과 기존 `#836` 생산·소비자 구조, `test_ci_image_reuse.py` 보호 양·음성, 전체 `#895` 이전 실패 매트릭스는 재사용한다. 수정은 문서·주석·테스트 설명에 한정하며 `docker_smoke.outputs.archive_attempt` 생산과 `needs.docker_smoke.outputs.archive_attempt` 소비, OCI archive SHA256·index/provenance/SBOM·GHCR exact digest·중복 Tag 금지 로직은 불변이다.
+- **동일 변경 source 사전 점검:** Work Packet QA DOCS 6종 (`AGENTS.md`, `docs/QA_REVIEW_POLICY.md`, `docs/CI_CD.md`, `docs/TEST_PLAN.md`, `docs/GITHUB_OPERATIONS.md`, `docs/REMOTE_VALIDATION.md`)의 변경/비변경 기록을 기존 `docs_gate` 정규식 규약에 맞게 재작성. 신규 Test Plan·workflow·Python 테스트 설명에서 지적된 신규 영문 문구를 교정. 제공 도구 내 원격 Blob read-back/문자열 구조 검증은 사전 정적 확인일 뿐 Python/Node/Chromium 실제 실행 PASS가 아니며, 신규 exact Head의 QA Preflight, 정책 Unit, Full Chromium8/Docker/Trusted QA는 **NOT TESTED**이다.
+- **출처·권한:** `main=bafe71b2855561a10c797f495c81449d96f0a62d`, PR #901 Head 고정 후 원장/Work Packet/Test Plan/`ci.yml` 주석·기존 Python 회귀 설명을 단일 Tree·Commit으로 게시할 예정. base/mergeability, 새로운 미해결 스레드, 충돌을 게시 직전에 재조회한다. 새 synchronize Full PR CI는 시작만 확인하고 모니터링하지 않는다. 이 단계에서는 #901 병합, 새 Main, GHCR 정식 태그 발행 및 #896/#897 완료를 하지 않는다.
