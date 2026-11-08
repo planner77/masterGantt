@@ -1,3 +1,7 @@
+## Issue #896 — Stage A 관찰과 수용 분리 (2026-11-09)
+
+v2 manifest와 geometry 비교는 명시된 source/baseline·환경·fixture·상태와 측정 계약에 한해 기술적 증거를 만든다. `EVIDENCE_VERIFIED_NOT_UAT`/`GEOMETRY_MATCH_NOT_UAT`는 `UI_EVIDENCE_VERIFIED`, DESIGN 승인, 독립 QA_FINAL 또는 Manager ACCEPT가 아니다. v1은 역사적 봉투 검사로만 인정한다. Stage B·golden 채택은 실제 화면/기능 검토 후 Owner 별도 결정이 필요하다. HIGH/OWNER_MANAGED와 기존 Trusted/Required3·최신 Head 수용을 유지한다. [운영 계약](UI_EVIDENCE.md).
+
 ## Issues #895–#897 — 재사용 구조 Gate / 사용자 UI 인수의 독립성
 
 - 기존 trusted qa_preflight.py 및 qa_final_automated.py는 Issue Work Packet ## REUSE_REVIEW의 결정·후보·조건·Owner 출처 기록 구조만 검사. PENDING/누락/UNKNOWN은 FAIL/BLOCKED이며 Owner에게 질문하여 확정한 뒤 재개한다. 작성자 입력값 자체를 Owner의 실제 인증된 결정으로 승격하지 않는다.

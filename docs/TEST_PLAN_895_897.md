@@ -1,3 +1,7 @@
+## #896 후속 구현 — v2 계약과 실제 pilot (2026-11-09)
+
+원본 PR #900의 v1 기록·#895 실패 이력은 아래에 보존한다. 후속 #896은 기존 helper/검증기·#118 비교기·schedule/i18n 테스트를 확장한다. v2 geometry/fixture 파일 digest와 환경·baseline·test/flow를 추가하고, v1은 역사적 무결성 호환으로만 유지한다. 현재 source 검증과 남은 수용 범위는 [#896 실행 계획](exec-plans/active/ISSUE_896.md) 및 [단일 원장](ISSUE_896_FAILURE_ANALYSIS.md)을 따른다. 이전 PASS를 새 Head Full CI로 승격하지 않는다.
+
 # Test Plan Addendum — Issues #895 / #896 / #897 (2026-11-08)
 
 The existing large docs/TEST_PLAN.md is preserved byte-for-byte to retain historical test/CI evidence; this addendum owns the new narrow contract. The Work Packet records that preservation and links this file.

@@ -1,3 +1,7 @@
+## Issue #896 — 시각 증거의 정확 출처와 판정 경계 (2026-11-09)
+
+기존 E2E shard의 `ui-evidence-ci-<run>-<attempt>-shard-<n>`와 Job Summary를 함께 확인한다. v2 source/baseline/test-merge·PR/run/attempt는 원본 CI 이벤트와 대조하고 PNG·geometry·fixture SHA256를 검사한다. 누락 NOT TESTED, 출처/환경 drift BLOCKED, 실제 무결성/수치 위반 FAIL을 구분한다. 새 Required Check나 자동 DESIGN/UAT 승인은 없다. 대표 화면과 테스트 단계만 검증하며 native125%·실제 OS/font/AT·Owner Preview와 Runner-minutes 개선은 미실행 시 NOT TESTED다. [계약·명령](UI_EVIDENCE.md), [원장](ISSUE_896_FAILURE_ANALYSIS.md).
+
 ## Issues #895–#897 — 원격 검증 시각 자료와 Owner Preview UAT
 
 1. Owner가 승인한 기존 기능 재사용 결정과 현재 main/PR source SHA를 Work Packet의 REUSE_REVIEW에 기록한다. 질문 미확정·Owner evidence 출처 부재는 BLOCKED; trusted QA는 PR의 자기선언을 Owner 승인으로 사용하지 않는다.

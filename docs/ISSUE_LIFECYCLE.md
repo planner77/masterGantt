@@ -1,3 +1,7 @@
+## Issue #896 — Stage A 증거 인계 (2026-11-09)
+
+UI Issue의 기존 E2E 결과를 재사용할 때 UI_EVIDENCE_CONTRACT·실제 source/working 지문·baseline·test/flow/PNG/geometry·환경·제외 범위를 Work Packet에 남긴다. 누락/실패를 수용 PASS로 바꾸지 않는다. 신규 #896 PR 자체는 기존 protected main 정책·Full8/Required3/Trusted/Owner를 통과해야 하며 수정 검증기로 자기 승인하지 않는다. 요청이 PR CI 시작까지라면 실행 등록 후 모니터링하지 않고 결과를 NOT TESTED로 인계한다. [상세](UI_EVIDENCE.md).
+
 ## Issues #895–#897 — REUSE_REVIEW, UI evidence, Preview UAT 공통 단계
 
 1. 모든 Issue의 최신 main/기존 구현·테스트·문서·Preview/OCI/CI 증거와 관련 Issue·PR을 탐색한다. 사용자 명시 재사용 조건이 없거나 충돌/부적합하면 구현 전에 Owner에게 재사용/확장/신규 중 어느 방향인지 질문한다. 답변 전 REUSE_DECISION_REQUIRED로 조사만 허용하며 신규 구현·PR 진행은 차단. 이미 동일 범위를 명시 승인했다면 재질문하지 않는다.

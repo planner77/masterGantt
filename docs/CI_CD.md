@@ -1,3 +1,7 @@
+## Issue #896 — 기존 E2E의 v2 시각 증거 (2026-11-09)
+
+기존 Chromium8 안에서 대표 합성 화면만 수집한다. source Head와 baseline/test-merge·PR/run/attempt를 분리하고 환경·fixture·PNG·geometry SHA256, 실제 test/flow 범위와 제외 사유를 기록한다. 기존 artifact 7일 보존과 Job Summary 링크를 재사용하며 전체 E2E·Required3·Trusted·OCI/Release/Finalizer·권한은 유지한다. 무결성 검사 성공은 UI 수용이 아니다. 새 Head의 실제 원격 비용/크기·CI 결과는 실행 전 NOT TESTED다. [운영 계약](UI_EVIDENCE.md), [실행 계획](exec-plans/active/ISSUE_896.md).
+
 ## #895 Main #3582 부분 재실행 OCI Archive 생산 Attempt 전파 (2026-11-08)
 
 - [Main #3582 attempt1–2](https://github.com/planner77/masterGantt/actions/runs/42487828570): 2번째 실행에서 Required Quality/E2E8/Docker 전부 성공했지만, `publish-commit-image`가 소비자 최신 `github.run_attempt=2`에 고정되어 생산자 `docker_smoke`의 실제 `ci-oci-main-...-1` Artifact를 찾지 못한 F-002. 첫 attempt E2E5 `ECONNRESET` 실패와 별도 사고이며 GHCR 게시는 시도되지 않았다.

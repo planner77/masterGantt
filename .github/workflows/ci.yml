@@ -816,7 +816,10 @@ jobs:
           E2E_TIMING_OUTPUT: test-results/e2e-timing-shard-${{ matrix.shard }}.json
           E2E_TIMING_SHARD: ${{ matrix.shard }}
           E2E_TIMING_SHARD_COUNT: "8"
-          E2E_SOURCE_HEAD_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+          E2E_SOURCE_HEAD_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || needs.changes.outputs.checkout_sha }}
+          E2E_SOURCE_BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || needs.changes.outputs.checkout_sha }}
+          E2E_SOURCE_TEST_MERGE_SHA: ${{ needs.changes.outputs.checkout_sha }}
+          E2E_SOURCE_PR_NUMBER: ${{ github.event_name == 'pull_request' && github.event.pull_request.number || '' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -873,18 +876,30 @@ jobs:
           retention-days: 7
 
 
-      # #896: do not re-run E2E; validate only synthetic evidence captured by existing shard.
-      - name: 합성 UI 증거 체크섬·기하 검증 (UAT 판정 아님)
+      # #896: 기존 E2E 결과만 검증하며 별도 브라우저 실행이나 UAT 승인을 추가하지 않는다.
+      - name: 합성 UI 증거 체크섬·출처·기하 검증 (UAT 판정 아님)
         if: always()
+        env:
+          UI_SOURCE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || needs.changes.outputs.checkout_sha }}
+          UI_BASELINE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || needs.changes.outputs.checkout_sha }}
+          UI_TEST_MERGE_SHA: ${{ needs.changes.outputs.checkout_sha }}
+          UI_PR_NUMBER: ${{ github.event_name == 'pull_request' && github.event.pull_request.number || '' }}
         shell: bash
         run: |
           set -euo pipefail
-          if [[ -d test-results ]] && find test-results -name 'ui-evidence-*.json' -print -quit | grep -q .; then
-            python3 scripts/ui_evidence.py test-results
+          if [[ -d test-results ]]; then
+            expected_pr=()
+            if [[ -n "$UI_PR_NUMBER" ]]; then expected_pr=(--pr "$UI_PR_NUMBER"); fi
+            python3 scripts/ui_evidence.py test-results --allow-empty --require-v2 \
+              --source-sha "$UI_SOURCE_SHA" --baseline-sha "$UI_BASELINE_SHA" \
+              --test-merge-sha "$UI_TEST_MERGE_SHA" "${expected_pr[@]}" \
+              --repository "$GITHUB_REPOSITORY" --run-id "$GITHUB_RUN_ID" \
+              --run-attempt "$GITHUB_RUN_ATTEMPT" --summary test-results/UI_EVIDENCE_SUMMARY.md
           else
-            echo '합성 UI 증거: NOT TESTED (이 샤드에서 캡처된 사례 없음)' >> "$GITHUB_STEP_SUMMARY"
+            echo '합성 UI 증거: NOT TESTED (E2E 산출물 없음)' >> "$GITHUB_STEP_SUMMARY"
           fi
       - name: 합성 UI 증거 스크린샷·매니페스트 업로드
+        id: ui-evidence-artifact
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
@@ -892,8 +907,23 @@ jobs:
           path: |
             test-results/**/ui-evidence-*.png
             test-results/**/ui-evidence-*.json
+            test-results/**/geometry-*.json
+            test-results/**/fixture-*.json
+            test-results/UI_EVIDENCE_SUMMARY.md
           if-no-files-found: ignore
           retention-days: 7
+      - name: 합성 UI 증거 요약·다운로드 링크 표시
+        if: always()
+        env:
+          UI_ARTIFACT_URL: ${{ steps.ui-evidence-artifact.outputs.artifact-url }}
+        shell: bash
+        run: |
+          if [[ -f test-results/UI_EVIDENCE_SUMMARY.md ]]; then
+            cat test-results/UI_EVIDENCE_SUMMARY.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if [[ -n "$UI_ARTIFACT_URL" ]]; then
+            printf '\n[합성 화면·Geometry·Manifest 다운로드](%s)\n' "$UI_ARTIFACT_URL" >> "$GITHUB_STEP_SUMMARY"
+          fi
 
   # #772: Owner opt-in only. A missing flag or policy job ALWAYS means Full8.
   # This introducing HIGH policy PR cannot approve itself (base has no policy).

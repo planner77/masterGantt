@@ -2,6 +2,7 @@ import { expect, test, type Locator, type Page } from "@playwright/test";
 import { expectSameGanttRoot, ganttRoot, installStatefulProjectFixture, publicId, rememberGanttRoot } from "../fixtures/stateful-project";
 import { openRow, setup as setupTaskEditor } from "./fixtures/task-editor-density";
 import { waitForGanttReadiness } from "./helpers/gantt-readiness";
+import { captureSyntheticUiEvidence } from "./helpers/ui-evidence";
 
 const localeSelector = (page: Page) => page.getByRole("combobox", { name: /^(표시 언어|Display language|Ngôn ngữ hiển thị)$/ }).first();
 const storageKey = "mastergantt.ui.locale";
@@ -326,7 +327,9 @@ test("Issue #866 native Gantt keeps resized layout and latest canonical rows thr
   expect(writes).toEqual([]);
 });
 
-test("#890 rapid locale round trips rebuild hidden baseline and Milestone headers with current add-task accessibility", async ({ page }) => {
+test("#890 rapid locale round trips rebuild hidden baseline and Milestone headers with current add-task accessibility", async ({ page }, info) => {
+  await page.clock.setFixedTime(new Date("2026-10-14T12:00:00Z"));
+  await page.emulateMedia({ colorScheme: "light", reducedMotion: "reduce" });
   await page.addInitScript(key => localStorage.setItem(key, "ko"), storageKey);
   await page.setViewportSize({ width: 1440, height: 1000 });
   const fixture = await installStatefulProjectFixture(page);
@@ -369,6 +372,23 @@ test("#890 rapid locale round trips rebuild hidden baseline and Milestone header
     await menu.getByRole("checkbox", { name: fixedGridHeaders[locale].baselineStart, exact: true }).check();
     await page.keyboard.press("Escape");
     await expectFixedGridHeaders(root, locale);
+    await expect.poll(layout).toEqual(before);
+    expect(JSON.stringify(fixture.tasks)).toBe(original); expect(fixture.project.revision).toBe(revision);
+    expect(fixture.patchRequests).toEqual([]); expect(fixture.posts).toEqual([]); expect(writes).toEqual([]);
+    await captureSyntheticUiEvidence(page, info, {
+      issue: 890, acceptanceCriteria: ["AC01", "AC02", "AC03"], state: `locale-hidden-restored-1440-${locale}`,
+      fixture: "stateful-project", locale,
+      fixtureData: { tasks: fixture.tasks.map(({ name, type, start, end, duration, progress }) => ({ name, type, start, end, duration, progress })) },
+      elements: [{ name: "localeSelector", locator: localeSelector(page) }, { name: "gridHeader", locator: header },
+        { name: "scaleHeader", locator: root.locator(".wx-scale").first() }, { name: "addTask", locator: add }],
+      flow: { id: `locale-hidden-restore-${locale}`, steps: [sequence.join("→"), "현재 언어 native header/ARIA 확인", "기준 시작 열 숨김", "KO→VI→현재 언어", "기준 시작 열 복원", "원본/Revision 동일·쓰기0"], outcome: "PASS" },
+      checks: [{ ac: "AC01", designRef: "DESIGN.md:1-5", measurement: "header-layout-drift-count", expected: 0, actual: (await layout()).filter((column, index) => column.id !== before[index]?.id || column.width !== before[index]?.width).length, tolerance: 0, outcome: "PASS" },
+        { ac: "AC03", designRef: "DESIGN.md:1-5", measurement: "canonical-revision", expected: revision, actual: fixture.project.revision, tolerance: 0, outcome: "PASS" },
+        { ac: "AC03", designRef: "DESIGN.md:1-5", measurement: "project-write-count", expected: 0, actual: writes.length, tolerance: 0, outcome: "PASS" }],
+      exclusions: [{ scope: "locale-5-width-cartesian", reason: "언어 순환은 1440px 대표 상태; 5폭 shell은 기존 schedule-views case 재사용" },
+        { scope: "real-api-business-flow", reason: "native locale/header는 합성 route fixture; 실제 HTTP/SQLite 권한·원본 계약은 schedule-views E2E 재사용" },
+        { scope: "owner-design-acceptance", reason: "자동 header/flow 검사는 Owner의 언어별 화면 수용과 별도" }],
+    });
   }
   expect(JSON.stringify(fixture.tasks)).toBe(original); expect(fixture.project.revision).toBe(revision);
   expect(fixture.patchRequests).toEqual([]); expect(fixture.posts).toEqual([]); expect(writes).toEqual([]);

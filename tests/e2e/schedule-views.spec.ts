@@ -653,6 +653,8 @@ test("#880 P2 비WBS nonzero viewport는 재조회·Editor 취소와 저장·wor
 
 test("#889 세 View 공통 작업면·날짜 헤더·Grid/Chart Ctrl 휠 밀도와 canonical 쓰기0", async ({ page, isolatedApplication, observeIsolatedApi }, info) => {
   test.setTimeout(180_000);
+  await page.clock.setFixedTime(new Date("2026-10-14T12:00:00Z"));
+  await page.emulateMedia({ colorScheme: "light", reducedMotion: "reduce" });
   const f = await seedScheduleViews(page, isolatedApplication, observeIsolatedApi);
   await openWorkspaceView(page, "schedule");
   const baseline = await f.snapshot();
@@ -700,7 +702,35 @@ test("#889 세 View 공통 작업면·날짜 헤더·Grid/Chart Ctrl 휠 밀도�
     await frame.getByRole("button", { name: scale === "day" ? "일" : "주", exact: true }).click();
     await expect(frame).toHaveAttribute("data-gantt-scale-mode", scale);
     const wbs = await geometry();
-    for (const mode of ["resource", "equipment", "wbs"] as const) { await waitView(mode); await compareShell(wbs); }
+    for (const mode of ["resource", "equipment", "wbs"] as const) {
+      await waitView(mode); await compareShell(wbs);
+      // 기존 조합 단언을 재사용하고 대표 상태만 PNG로 수집한다.
+      if ((scale === "day" && (mode === "equipment" || width === 1440))
+          || (scale === "week" && width === 1440 && mode === "wbs")) {
+        const actual = await geometry();
+        const shellError = Math.max(...(["view", "scale", "fullscreen", "surface"] as const)
+          .flatMap(key => (["x", "y", "width", "height"] as const).map(axis => Math.abs(actual[key][axis] - wbs[key][axis]))));
+        await captureSyntheticUiEvidence(page, info, {
+          issue: 889, acceptanceCriteria: ["AC01", "AC02", "AC03"],
+          state: `shell-${mode}-${scale}-${width}-ko`, fixture: "schedule-views", locale: "ko",
+          fixtureData: { tasks: baseline.data.tasks.map(({ name, type, start, end, duration, progress }) => ({ name, type, start, end, duration, progress })), resources: [f.alice.name, f.bob.name, f.charlie.name], equipment: [f.unit, f.fleet, f.idle].map(({ code, name }) => ({ code, name })) },
+          elements: [
+            { name: "viewSelector", locator: selector(page) },
+            { name: "scaleControls", locator: frame.locator(".project-gantt-scale-controls") },
+            { name: "surface", locator: frame.locator(mode === "wbs" ? ".project-gantt-scroll" : ".project-schedule-view") },
+            { name: "dateHeader", locator: frame.locator(mode === "wbs" ? ".wx-scale" : ".project-schedule-view-header").first() },
+          ],
+          flow: { id: `view-roundtrip-${mode}-${scale}-${width}`, steps: ["WBS 기준 측정", `View ${mode} 선택`, "현재 View 준비와 공통 shell 비교"], outcome: "PASS" },
+          checks: [
+            { ac: "AC01", designRef: "DESIGN.md:1-5", measurement: "shell-max-coordinate-error", expected: 0, actual: shellError, tolerance: 1, outcome: "PASS" },
+            { ac: "AC02", designRef: "DESIGN.md:1-5", measurement: "date-header-height-error", expected: wbs.header.height, actual: actual.header.height, tolerance: 1, outcome: "PASS" },
+            { ac: "AC02", designRef: "DESIGN.md:1-5", measurement: "grid-split-width", expected: wbs.grid.width, actual: actual.grid.width, tolerance: 1, outcome: "PASS" },
+          ],
+          exclusions: [{ scope: "native-browser-125-percent-zoom", reason: "현재 자동 시나리오는 100% CSS viewport; native browser 125% 확대는 별도 수동 검증" },
+            { scope: "full-business-journey", reason: "이 증거는 현재 View 전환 단계까지; 최종 원본/쓰기0 검증은 별도 완료 상태 증거" }],
+        });
+      }
+    }
     if (scale === "week") {
       await waitView("equipment");
       await expect(view(page, "equipment").locator(".project-schedule-view-axis")).toContainText(/W\d{2}/);
@@ -780,5 +810,36 @@ test("#889 세 View 공통 작업면·날짜 헤더·Grid/Chart Ctrl 휠 밀도�
   expect(await native!.evaluate(element => element.isConnected)).toBe(true);
   await page.screenshot({ path: "output/playwright/issue-889-890/wbs-1440.png" });
   expect(writes).toEqual([]); expect((await f.snapshot()).data).toEqual(baseline.data);
+  // 실제 CSS 회귀를 통제 주입해 검출하고 캡처 실패 시에도 원래 화면을 복원한다.
+  const controlBefore = (await selector(page).boundingBox())!;
+  const originalControlStyle = await selector(page).getAttribute("style");
+  try {
+    await selector(page).evaluate(element => (element as HTMLElement).style.setProperty("transform", "translateY(4px)", "important"));
+    const displaced = (await selector(page).boundingBox())!;
+    const yError = Math.abs(displaced.y - controlBefore.y);
+    expect(yError, "의도적 CSS 회귀는 기존 1px shell 허용오차를 초과해야 함").toBeGreaterThan(1);
+    await captureSyntheticUiEvidence(page, info, {
+      issue: 889, acceptanceCriteria: ["AC01"], state: "controlled-negative-selector-offset-1440-ko", fixture: "schedule-views", locale: "ko",
+      fixtureData: { tasks: baseline.data.tasks.map(({ name, type, start, end, duration, progress }) => ({ name, type, start, end, duration, progress })), resources: [f.alice.name, f.bob.name, f.charlie.name], equipment: [f.unit, f.fleet, f.idle].map(({ code, name }) => ({ code, name })) },
+      elements: [{ name: "viewSelector", locator: selector(page) }, { name: "wbsSurface", locator: frame.locator(".project-gantt-scroll") }],
+      flow: { id: "controlled-css-regression-detected", steps: ["정상 WBS selector 좌표 측정", "테스트 전용 CSS translateY(4px) 주입", "기존 1px 허용오차 초과 검출"], outcome: "PASS" },
+      checks: [{ ac: "AC01", designRef: "DESIGN.md:1-5", measurement: "controlled-selector-y-error", expected: 0, actual: yError, tolerance: 1, outcome: "FAIL" }],
+      exclusions: [{ scope: "intentional-negative", reason: "CSS 회귀가 검출된 실패 대표 화면; 화면 적합성 PASS 또는 Owner 수용이 아님" }],
+    });
+  } finally {
+    await selector(page).evaluate((element, original) => {
+      if (original === null) element.removeAttribute("style"); else element.setAttribute("style", original);
+    }, originalControlStyle);
+  }
+  await expect.poll(async () => Math.abs((await selector(page).boundingBox())!.y - controlBefore.y)).toBeLessThanOrEqual(1);
+  await captureSyntheticUiEvidence(page, info, {
+    issue: 889, acceptanceCriteria: ["AC01", "AC03"], state: "journey-wbs-density-34-1440-ko", fixture: "schedule-views", locale: "ko",
+    fixtureData: { tasks: baseline.data.tasks.map(({ name, type, start, end, duration, progress }) => ({ name, type, start, end, duration, progress })), resources: [f.alice.name, f.bob.name, f.charlie.name], equipment: [f.unit, f.fleet, f.idle].map(({ code, name }) => ({ code, name })) },
+    elements: [{ name: "viewSelector", locator: selector(page) }, { name: "wbsSurface", locator: frame.locator(".project-gantt-scroll") }],
+    flow: { id: "views-density-canonical-readonly", steps: ["5폭 Day/Week WBS→Resource→설비→WBS", "각 View Grid/Chart 본문 Ctrl+휠 28~34px", "헤더/일반 휠 제외", "WBS 인스턴스 복원", "HTTP 원본 snapshot 동일·쓰기0"], outcome: "PASS" },
+    checks: [{ ac: "AC03", designRef: "DESIGN.md:1-5", measurement: "restored-row-height", expected: 34, actual: Number(await frame.getAttribute("data-gantt-cell-height")), tolerance: 0, outcome: "PASS" },
+      { ac: "AC03", designRef: "DESIGN.md:1-5", measurement: "project-write-count", expected: 0, actual: writes.length, tolerance: 0, outcome: "PASS" }],
+    exclusions: [{ scope: "owner-design-acceptance", reason: "자동 측정/흐름은 Owner의 화면 의도 및 사용성 수용을 대신하지 않음" }],
+  });
   await info.attach("issue-889-shared-shell-density", { contentType: "application/json", body: JSON.stringify({ receipts, writes, api, instance }, null, 2) });
 });

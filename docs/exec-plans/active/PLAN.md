@@ -1,3 +1,7 @@
+## Issue #896 — 기존 Visual Evidence 확장 / PR CI 시작 (2026-11-09)
+
+main `1826b479a80c64ef16efe768b31f75d62170639e`·version0.145.1에서 PR #900/#901 구현과 #118/기존 #889/#890 E2E를 재사용한다. v2 출처·환경·파일 digest·flow, 명시적 geometry 비교 음성검사와 실제 대표 Chromium을 추가한다. [Work Packet](ISSUE_896.md)과 [실패 원장](../../ISSUE_896_FAILURE_ANALYSIS.md)을 따른다. HIGH/OWNER_MANAGED/qa_required=true/release_required=false. Stage B·Owner UI 수용·새 Head 원격 전체 PASS는 미검증이며 PR CI 시작 후 모니터링·병합·게시·Issue 종료는 수행하지 않는다.
+
 ## Issue #895 / #896 / #897 — PR #900 Full #3580.1 등록표 REWORK (2026-11-08)
 
 기존 A안과 W07 분리 설계를 재사용한다. Full #3580.1의 직접 실패는 SC-03 live manifest의 분리 전 제목 참조이며 E2E/Docker는 NOT RUN이다. 현재 두 W07 제목 등록·기존 AST/음성/샤드/정책 회귀·읽기 전용 사전 검토·리뷰/충돌 확인·[누적 원장](../../ISSUE_895_FAILURE_ANALYSIS.md) 후 같은 PR의 새 Full CI 시작까지만 수행한다. [Work Packet](ISSUE_895.md), HIGH/OWNER_MANAGED/qa_required=true, version0.145.1 유지·release_required=false. 새 Required3/Trusted/Owner UAT/Manager ACCEPT는 NOT TESTED, 모니터링·병합·Main/GHCR·Issue 종료는 비범위다.

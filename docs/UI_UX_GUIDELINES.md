@@ -1,3 +1,7 @@
+## Issue #896 — 측정 가능한 UI 증거 계약 (2026-11-09)
+
+Work Packet의 UI_EVIDENCE_CONTRACT에 AC→DESIGN 조항→기존 test/화면/viewport→자동 수치/수동 수용/미검증을 연결한다. #889의 ≤1px 공통 좌표와 #822 행 밀도 수치를 재사용하며 새 허용오차를 임의 완화하지 않는다. 대표 합성 PNG·geometry·실제 사용자 흐름은 기존 E2E에서 수집한다. baseline/OS/font/locale/fixture가 다르면 비교를 BLOCKED하고 원본 golden을 자동 교체하지 않는다. [증거 형식·제외 조합](UI_EVIDENCE.md), [#896 추적표](exec-plans/active/ISSUE_896.md).
+
 ## Issue #896 — 시각적 품질 증거와 DESIGN 적합 검토
 
 화면 레이아웃/언어/사용자 상호작용을 변경할 때 Issue AC별 DESIGN.md·본 가이드·PROJECT_UX 기준과 실제 Playwright 상태/viewport/locale/읽기·편집/오류·복귀를 연결한다. 기존 tests/e2e/schedule-views.spec.ts, i18n.spec.ts, Issue #118 Geometry 도구의 동일 fixture·좌표 비교를 우선 재사용하고, 불필요한 스냅샷/테스트 중복을 만들지 않는다.
