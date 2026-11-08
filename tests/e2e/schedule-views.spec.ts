@@ -3,6 +3,7 @@ import { test, expect, isolatedApplicationOptions } from "./fixtures/isolated-ap
 import { targetMasterPassword } from "./fixtures/target-project";
 import { seedScheduleViews, scheduleViewResourcePassword, addScheduleViewPopulation } from "./fixtures/schedule-views";
 import { openWorkspaceView } from "./helpers/workspace-navigation";
+import { captureSyntheticUiEvidence } from "./helpers/ui-evidence";
 import { waitForGanttReadiness } from "./helpers/gantt-readiness";
 import { seedReorderProject, taskRow } from "./helpers/grid-task-reorder";
 import type { ProjectSnapshotResponse } from "../../src/contracts/projects";
@@ -89,6 +90,14 @@ test("#880 실제 원본 다중 Resource·설비 View, Editor 동일 ID, 5폭·�
   await expect(page.getByRole("dialog", { name: "작업 정보", exact: true })).toHaveCount(0);
   await group2.getByRole("button").click();
   await expect(taskRows(resource, f.task.taskId)).toHaveCount(3);
+  await captureSyntheticUiEvidence(page, info, {
+    issue: 889, acceptanceCriteria: ["AC01", "AC03"], state: "resource-1440-ko",
+    fixture: "schedule-views", locale: "ko",
+    elements: [
+      { name: "viewSelector", locator: selector(page) },
+      { name: "resourceView", locator: resource },
+    ],
+  });
   await info.attach("schedule-view-resource-1440.png", { body: await page.screenshot({ path: "output/playwright/issue-889-890/resource-1440.png" }), contentType: "image/png" });
   const open = taskRows(resource, f.task.taskId).first().getByRole("button", { name: `작업 정보 열기: ${f.task.name}`, exact: true });
   await open.focus(); await open.press("Enter");
