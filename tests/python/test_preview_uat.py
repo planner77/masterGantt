@@ -63,12 +63,12 @@ class PreviewUatTests(unittest.TestCase):
         for suffix in ("decision: ACCEPT\n", "evidence_sha256: \n",
                        "decision: UNKNOWN\n"):
             bad = dict(original, body=original["body"] + suffix)
-            # Extra content after an empty line cannot rewrite the owner receipt.
-            if suffix.startswith("decision: ACCEPT"):
-                self.assertEqual(evaluate([bad])["state"], "UAT_ACCEPTED")
-            else:
-                self.assertIsNone(preview_uat.parse_receipt(
-                    original["body"].rstrip("\n") + "\n" + suffix))
+            self.assertIsNone(preview_uat.parse_receipt(bad["body"]))
+            with self.assertRaisesRegex(Blocked, "UAT_NOT_TESTED"):
+                evaluate([bad])
+        # Ordinary prose is allowed only after a real blank line.
+        self.assertIsNotNone(preview_uat.parse_receipt(
+            original["body"] + "\nOwner reviewed the isolated Preview."))
 
     def test_validation_of_identities(self):
         for sha in ("X" * 40, "a" * 39):
