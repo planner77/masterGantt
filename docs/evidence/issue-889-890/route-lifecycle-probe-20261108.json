@@ -1,0 +1,89 @@
+{
+  "schema": "pr894-route-lifecycle-probe/v1",
+  "capturedAt": "2026-11-08",
+  "environment": {
+    "node": "v22.14.0",
+    "playwright": "1.63.0",
+    "chromium": "153.0.8010.12",
+    "server": "Node.js local loopback HTTP; application/Next.js/database absent"
+  },
+  "purpose": "Bounded controlled reproduction of report-to-details POST chain stalled during page.unroute interception teardown, independent of app data/SSR/API latency. This local result is not original remote CI PASS.",
+  "highFrequencyComparison": [
+    {
+      "mode": "immediate-unroute",
+      "iterations": 400,
+      "completed": 360,
+      "failed": 40,
+      "handlerDetailsDuringTeardown": 0,
+      "detailsContinued": 0,
+      "elapsedMs": 46705
+    },
+    {
+      "mode": "after-details-unroute",
+      "iterations": 400,
+      "completed": 400,
+      "failed": 0,
+      "handlerDetailsDuringTeardown": 0,
+      "detailsContinued": 400,
+      "elapsedMs": 7292
+    }
+  ],
+  "longObservation": {
+    "zeroBasedIteration": 53,
+    "responseWaitMilliseconds": 31000,
+    "result": "FAIL",
+    "error": "page.waitForResponse: Timeout 31000ms exceeded while waiting for event \"response\"",
+    "events": [
+      {
+        "event": "request",
+        "elapsedMs": 0,
+        "kind": "report"
+      },
+      {
+        "event": "route-enter",
+        "elapsedMs": 0,
+        "kind": "report"
+      },
+      {
+        "event": "response",
+        "elapsedMs": 6,
+        "kind": "report",
+        "status": 200
+      },
+      {
+        "event": "unroute-start",
+        "elapsedMs": 6
+      },
+      {
+        "event": "request",
+        "elapsedMs": 7,
+        "kind": "details"
+      },
+      {
+        "event": "unroute-end",
+        "elapsedMs": 7
+      }
+    ],
+    "serverReceived": [
+      {
+        "kind": "report",
+        "elapsedMs": 2
+      }
+    ],
+    "detailsHandlerEntered": false,
+    "detailsResponseReceived": false,
+    "requestFailedEventBeforeTimeout": false
+  },
+  "scripts": [
+    {
+      "file": "pr894-route-probe.cjs",
+      "sha256": "9375b6ab1b8d0e5c316021d494d733031cfc73efceb99e449e4a1fea5dc772f1"
+    },
+    {
+      "file": "pr894-route-long-probe.cjs",
+      "sha256": "e3b1a148f541784e47e0889925da71467b1dc57a5e4241ef7c8804ee01817a15"
+    }
+  ],
+  "scope": "Scratch harness only; no tracked files/CI configuration/test assertions changed. Existing original Task save E2E remains the regression seam.",
+  "inference": "Early interception teardown can strand the next chained browser request before server delivery. Holding route through details receipt removes this cause in 400 observed control iterations; it does not guarantee absence of every unrelated API/transport fault."
+}

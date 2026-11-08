@@ -1234,3 +1234,9 @@ C003 최종 동일동결source의31spec/192계획=190PASS/기존2SKIP/FAIL0, 별
 보완 후 로컬 회귀·문서·기술검토는 새 Head Required3를 대체하지 않는다. 새 Full CI Run/Attempt·Head/base/testmerge의 시작만 확인하고 이후 모니터링하지 않는다. HIGH/OWNER_MANAGED/qa_required=true/release_authorized=false, 새 quality/e2e/docker·Trusted·Owner/Manager NOT TESTED/MERGE_READY BLOCKED, main/GHCR/운영환경 별도다.
 
 C005 최종동결source1cdd6edefdd0160dbcd56a290a02fb4c4953bd26c36a596654f1b6499b94d046/1322입력의31고유spec/194계획=192PASS/기존2SKIP/FAIL0,전체Unit3714PASS/기존3SKIP·build/runtime-tools·원본설정typecheck/13파일lint·탐색301/884·문서구조PASS다. 자동Pre-PR UNKNOWN94/missing0/BLOCKED와원격새Head/Trusted·Owner NOT TESTED를구별한다. [정제최종증거](evidence/issue-866/ci3526-local-validation.json)·단일원장C005 D를따르며이전원격/중간/중단관측은보존하고중복가산하지않는다.
+
+## Issue #889 / PR #894 — 누적 재실패와 새 Full CI 경계 (2026-11-08)
+
+[전체 실패 원장](ISSUE_889_890_FAILURE_ANALYSIS.md#ci-3573-001--전-이력-재수집과-reportdetails-라우팅-수명-경합-2026-11-08)의 #3569 Draft BLOCKED, #3570/#3571 실제 #574 FAIL, #3572 Shard7 CANCELLED, #3573 실제 detail 응답 FAIL을 구별한다. source artifact JSON의 역사적 Head/base/test merge와 정확 Run/Attempt를 사용하고 변경 가능한 Run API nested PR head를 과거 출처로 사용하지 않는다. 취소 Shard의 부분 PASS·SKIPPED 및 파생 QA FAIL은 Full 성공이 아니다.
+
+이전 port 교정/8샤드147spec 재배치와 최신 #730 fixture route 수명 보완을 동결 source로 함께 점검한다. 재배치의35분 이내 Full8 성공은 이번 로컬 검사나 조기 종료 #3573로 입증되지 않았다. 새 exact Head `pull_request.synchronize` Full Required quality/e2e/docker 및 protected-main Trusted·Owner 승인 전 NOT TESTED/MERGE_READY BLOCKED. 요청 종료점은 Full CI 시작 확인이며 이후 모니터링·병합/Main/GHCR/Release/Issue 종료는 수행하지 않는다.

@@ -141,3 +141,13 @@ U4 axis 요청 최초 admission에서 `canChangeAxis`는 유지하되, 자기 �
 기존 [#885 F885-008 CI/CD 계약](../../CI_CD.md)을 재사용해 147개 실제 spec exactly once / 8 matrix / workers1 / 35m / 전체 Full Required3를 유지하고 장시간 파일 네 개의 Shard 배치만 교정한다. 원본 `manualRebalance885` metadata, 역사적 projectedMs/14-run baseline은 불변. 새로운 `manualRebalance894`에 정확 Run/Head/Base/test-merge/Job, 단일 Run 완료 파일 span·미측정/취소, before/after counts 및 네 이동을 별도로 남긴다. 새 source 직접 Unit과 Full8/Trusted는 아직 NOT TESTED; previous source QA/제품 PASS를 무조건 이월하지 않는다. 사용자가 승인한 범위는 PR CI 새 실행 시작까지, 이후 모니터링/merge/Main/GHCR/종료 금지.
 
 TEST_LIFECYCLE_REVIEW: EXTEND 기존 shard planner unit의 exact147·역사적 #885와 신규 #894 이동·할당 회계 및 고정 파일 배치. KEEP_UNIQUE 147 E2E spec과 #574 V3(조건/시간/skip 불변). DOCUMENTATION_SYNC: `docs/CI_CD.md`, 본 Work Packet, `docs/ISSUE_889_890_FAILURE_ANALYSIS.md` UPDATED; `AGENTS.md`, `DESIGN.md`, `docs/API.md`, `docs/DB_SCHEMA.md`, CI workflow/NPM 설정 N/A(불변).
+
+## PR #894 누적 CI 재실패 보완 (2026-11-08)
+
+#3569 Draft 차단부터 #3570/#3571 Task reveal·#3572 Shard7 용량 취소·#3573 상세 POST 미완료까지 전체 Run/Attempt·취소 로그/source artifact를 다시 대조했다. 이전 port 교정 뒤 #3572의 #574 PASS를 보존하고, 최신 실패를 shard 용량 실패로 잘못 분류하지 않는다. [누적 원장 CI-3573-001](../../ISSUE_889_890_FAILURE_ANALYSIS.md#ci-3573-001--전-이력-재수집과-reportdetails-라우팅-수명-경합-2026-11-08)이 단일 분석 원본이다.
+
+TEST_LIFECYCLE_REVIEW: EXTEND 기존 #730 저장 case의 report→details 라우팅 수명, KEEP_UNIQUE 원본 canonical/snapshot/focus/DB·160RAF/30초 단언과 두 실패 spec 전체 및 i18n 인접 회귀. 최소 실제 Chromium transport 재현에서 즉시 unroute 40/400 FAIL, detail 뒤 unroute 400/400 PASS; 원격 transport 내부 근인 일부 UNKNOWN을 유지한다. AC07/기존 #890 상태 복원 영향은 두 실패 spec+i18n 및 port/axis/coordinator/report correlation/planner Unit으로 동결 검증하며 나머지 최초66case를 이번에 모두 재실행했다고 주장하지 않는다.
+
+DOCUMENTATION_SYNC: 실패 원장·정제 원격 이력/현재 검증 영수증·TEST_PLAN·REMOTE_VALIDATION·CI_CD 갱신. 기존 b5c4523d의 147 exact spec/8샤드·35분/4파일 재배치는 유지하며 이번 변경은 그 성능 성공 실증이 아니다. 제품/API/DB/schema/security/domain/DESIGN 계약 변경은 N/A(테스트 lifecycle만 보완). 새 Head Required3/Trusted/Owner·Manager ACCEPT NOT TESTED, MERGE_READY BLOCKED. 로컬 검증 후 PR Full CI 시작까지 진행하고 모니터링하지 않는다.
+
+최종 보완 source의 실제 로컬 결과: Chromium3spec39/39(10.3분)·Unit5파일227/227·typecheck·변경 lint오류/경고0·Markdown419·version·root/외부 cwd test discovery PASS. 두 과거 실패 spec 전체와 i18n의 locale/sort를 포함했다. 전체 입력 지문은 검증 중 최초 채집 시점(E2E12case 이후)을 명시하고 중간/종료/생성 설정 복구 뒤 일치한다. 원본 비재현1PASS·transport 통제RED40/400/통제GREEN400/400·현재 제품회귀39PASS를 합산하지 않는다. [정확한 명령·case·지문 영수증](../../evidence/issue-889-890/pr894-rework-validation-20261108.json) 참조.

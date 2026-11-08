@@ -1,0 +1,1013 @@
+{
+  "scope": "Existing completed CI runs only; PR-side source artifact claims cross-checked against run metadata; not Trusted QA authentication. Historical nested pull_requests.head is mutable and not used.",
+  "runs": [
+    {
+      "run_number": 3569,
+      "run_id": 42443820350,
+      "run_attempt": 1,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/42443820350",
+      "event": "pull_request",
+      "conclusion": "failure",
+      "source_artifact_claim": {
+        "schema": "mastergantt-ci-pr-source-v1",
+        "repository": "planner77/masterGantt",
+        "run_id": 42443820350,
+        "run_attempt": 1,
+        "pr_number": 894,
+        "head_sha": "25782be168ad6dd664d540f649dd3fcc68c2a194",
+        "head_ref": "fix/issue-889-890-gantt-presentation",
+        "head_repository": "planner77/masterGantt",
+        "base_sha": "ecc15d171f08dbb249ff52b13ca616592d1c9ac7",
+        "base_ref": "main",
+        "base_repository": "planner77/masterGantt",
+        "test_merge_sha": "318c8ac2c5dbe9b5915a14cdc8632a74d332c3cb"
+      },
+      "jobs": [
+        {
+          "id": 128618523880,
+          "name": "Docker build and runtime smoke test",
+          "conclusion": "failure",
+          "started_at": "2026-11-08T03:42:39Z",
+          "completed_at": "2026-11-08T03:42:41Z",
+          "html_url": "https://github.com/planner77/masterGantt/actions/runs/42443820350/job/128618523880",
+          "failed_steps": [
+            {
+              "name": "Docker smoke 결과 집계",
+              "conclusion": "failure"
+            }
+          ],
+          "observed_cases": {
+            "✓": 0,
+            "✘": 0
+          },
+          "planned_tests": []
+        },
+        {
+          "id": 128618523938,
+          "name": "Build, static checks, and unit tests",
+          "conclusion": "failure",
+          "started_at": "2026-11-08T03:42:39Z",
+          "completed_at": "2026-11-08T03:42:43Z",
+          "html_url": "https://github.com/planner77/masterGantt/actions/runs/42443820350/job/128618523938",
+          "failed_steps": [
+            {
+              "name": "병렬 quality 결과 집계",
+              "conclusion": "failure"
+            }
+          ],
+          "observed_cases": {
+            "✓": 0,
+            "✘": 0
+          },
+          "planned_tests": []
+        },
+        {
+          "id": 128618523968,
+          "name": "Chromium end-to-end tests",
+          "conclusion": "failure",
+          "started_at": "2026-11-08T03:42:39Z",
+          "completed_at": "2026-11-08T03:42:42Z",
+          "html_url": "https://github.com/planner77/masterGantt/actions/runs/42443820350/job/128618523968",
+          "failed_steps": [
+            {
+              "name": "E2E shard 결과 집계",
+              "conclusion": "failure"
+            }
+          ],
+          "observed_cases": {
+            "✓": 0,
+            "✘": 0
+          },
+          "planned_tests": []
+        },
+        {
+          "id": 128618528045,
+          "name": "Chromium E2E shard ${{ matrix.shard }}/8 · PR",
+          "conclusion": "skipped",
+          "started_at": "2026-11-08T03:42:38Z",
+          "completed_at": "2026-11-08T03:42:37Z",
+          "html_url": "https://github.com/planner77/masterGantt/actions/runs/42443820350/job/128618528045",
+          "failed_steps": []
+        },
+        {
+          "id": 128618545049,
+          "name": "QA Final — Automated",
+          "conclusion": "skipped",
+          "started_at": "2026-11-08T03:42:43Z",
+          "completed_at": "2026-11-08T03:42:43Z",
+          "html_url": "https://github.com/planner77/masterGantt/actions/runs/42443820350/job/128618545049",
+          "failed_steps": []
+        }
+      ]
+    },
+    {
+      "run_number": 3570,
+      "run_id": 42443918977,
+      "run_attempt": 1,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/42443918977",
+      "event": "pull_request",
+      "conclusion": "failure",
+      "source_artifact_claim": {
+        "schema": "mastergantt-ci-pr-source-v1",
+        "repository": "planner77/masterGantt",
+        "run_id": 42443918977,
+        "run_attempt": 1,
+        "pr_number": 894,
+        "head_sha": "25782be168ad6dd664d540f649dd3fcc68c2a194",
+        "head_ref": "fix/issue-889-890-gantt-presentation",
+        "head_repository": "planner77/masterGantt",
+        "base_sha": "ecc15d171f08dbb249ff52b13ca616592d1c9ac7",
+        "base_ref": "main",
+        "base_repository": "planner77/masterGantt",
+        "test_merge_sha": "318c8ac2c5dbe9b5915a14cdc8632a74d332c3cb"
+      },
+      "jobs": [
+        {
+          "id": 128619360797,
+          "name": "Chromium E2E shard 1/8 · PR",
+          "conclusion": "cancelled",
+          "started_at": "2026-11-08T03:46:51Z",
+          "completed_at": "2026-11-08T03:49:35Z",
+          "html_url": "https://github.com/planner77/masterGantt/actions/runs/42443918977/job/128619360797",
+          "failed_steps": [
+            {
+              "name": "E2E shard 실행",
+              "conclusion": "cancelled"
+            }
+          ],
+          "observed_cases": {
+            "✓": 6,
+            "✘": 0
+          },
+          "planned_tests": [
+            "105"
+          ]
+        },
+        {
+          "id": 128619360802,
+          "name": "Chromium E2E shard 6/8 · PR",
+          "conclusion": "cancelled",
+          "started_at": "2026-11-08T03:46:52Z",
+          "completed_at": "2026-11-08T03:49:37Z",
+          "html_url": "https://github.com/planner77/masterGantt/actions/runs/42443918977/job/128619360802",
+          "failed_steps": [
+            {
+              "name": "E2E shard 실행",
+              "conclusion": "cancelled"
+            }
+          ],
+          "observed_cases": {
+            "✓": 23,
+            "✘": 0
+          },
+          "planned_tests": [
+            "97"
+          ]
+        },
+        {
+          "id": 128619360805,
+          "name": "Chromium E2E shard 7/8 · PR",
+          "conclusion": "cancelled",
+          "started_at": "2026-11-08T03:46:51Z",
+          "completed_at": "2026-11-08T03:49:35Z",
+          "html_url": "https://github.com/planner77/masterGantt/actions/runs/42443918977/job/128619360805",
+          "failed_steps": [
+            {
+              "name": "E2E shard 실행",
+              "conclusion": "cancelled"
+            }
+          ],
+          "observed_cases": {
+            "✓": 12,
+            "✘": 0
+          },
+          "planned_tests": [
+            "119"
+          ]
+        },
+        {
+          "id": 128619360808,
+          "name": "Chromium E2E shard 5/8 · PR",
+          "conclusion": "cancelled",
+          "started_at": "2026-11-08T03:46:51Z",
+          "completed_at": "2026-11-08T03:49:36Z",
+          "html_url": "https://github.com/planner77/masterGantt/actions/runs/42443918977/job/128619360808",
+          "failed_steps": [
+            {
+              "name": "E2E shard 실행",
+              "conclusion": "cancelled"
+            }
+          ],
+          "observed_cases": {
+            "✓": 20,
+            "✘": 0
+          },
+          "planned_tests": [
+            "83"
+          ]
+        },
+        {
+          "id": 128619360826,
+          "name": "Chromium E2E shard 3/8 · PR",
+          "conclusion": "failure",
+          "started_at": "2026-11-08T03:46:52Z",
+          "completed_at": "2026-11-08T03:49:19Z",
+          "html_url": "https://github.com/planner77/masterGantt/actions/runs/42443918977/job/128619360826",
+          "failed_steps": [
+            {
+              "name": "E2E shard 실행",
+              "conclusion": "failure"
+            }
+          ],
+          "observed_cases": {
+            "✓": 11,
+            "✘": 1
+          },
+          "planned_tests": [
+            "149"
+          ]
+        },
+        {
+          "id": 128619360853,
+          "name": "Chromium E2E shard 4/8 · PR",
+          "conclusion": "cancelled",
+          "started_at": "2026-11-08T03:46:51Z",
+          "completed_at": "2026-11-08T03:49:36Z",
+          "html_url": "https://github.com/planner77/masterGantt/actions/runs/42443918977/job/128619360853",
+          "failed_steps": [
+            {
+              "name": "E2E shard 실행",
+              "conclusion": "cancelled"
+            }
+          ],
+          "observed_cases": {
+            "✓": 2,
+            "✘": 0
+          },
+          "planned_tests": [
+            "122"
+          ]
+        },
+        {
+          "id": 128619360858,
+          "name": "Chromium E2E shard 8/8 · PR",
+          "conclusion": "cancelled",
+          "started_at": "2026-11-08T03:46:51Z",
+          "completed_at": "2026-11-08T03:49:37Z",
+          "html_url": "https://github.com/planner77/masterGantt/actions/runs/42443918977/job/128619360858",
+          "failed_steps": [
+            {
+              "name": "E2E shard 실행",
+              "conclusion": "cancelled"
+            }
+          ],
+          "observed_cases": {
+            "✓": 9,
+            "✘": 0
+          },
+          "planned_tests": [
+            "115"
+          ]
+        },
+        {
+          "id": 128619361009,
+          "name": "Chromium E2E shard 2/8 · PR",
+          "conclusion": "cancelled",
+          "started_at": "2026-11-08T03:46:51Z",
+          "completed_at": "2026-11-08T03:49:36Z",
+          "html_url": "https://github.com/planner77/masterGantt/actions/runs/42443918977/job/128619361009",
+          "failed_steps": [
+            {
+              "name": "E2E shard 실행",
+              "conclusion": "cancelled"
+            }
+          ],
+          "observed_cases": {
+            "✓": 2,
+            "✘": 0
+          },
+          "planned_tests": [
+            "104"
+          ]
+        },
+        {
+          "id": 128619782344,
+          "name": "Build, static checks, and unit tests",
+          "conclusion": "success",
+          "started_at": "2026-11-08T03:48:59Z",
+          "completed_at": "2026-11-08T03:49:02Z",
+          "html_url": "https://github.com/planner77/masterGantt/actions/runs/42443918977/job/128619782344",
+          "failed_steps": []
+        },
+        {
+          "id": 128619912958,
+          "name": "Chromium end-to-end tests",
+          "conclusion": "failure",
+          "started_at": "2026-11-08T03:49:39Z",
+          "completed_at": "2026-11-08T03:49:41Z",
+          "html_url": "https://github.com/planner77/masterGantt/actions/runs/42443918977/job/128619912958",
+          "failed_steps": [
+            {
+              "name": "E2E shard 결과 집계",
+              "conclusion": "failure"
+            }
+          ],
+          "observed_cases": {
+            "✓": 0,
+            "✘": 0
+          },
+          "planned_tests": []
+        },
+        {
+          "id": 128620066735,
+          "name": "Docker build and runtime smoke test",
+          "conclusion": "success",
+          "started_at": "2026-11-08T03:50:25Z",
+          "completed_at": "2026-11-08T03:50:28Z",
+          "html_url": "https://github.com/planner77/masterGantt/actions/runs/42443918977/job/128620066735",
+          "failed_steps": []
+        },
+        {
+          "id": 128620081705,
+          "name": "QA Final — Automated",
+          "conclusion": "failure",
+          "started_at": "2026-11-08T03:50:30Z",
+          "completed_at": "2026-11-08T03:50:52Z",
+          "html_url": "https://github.com/planner77/masterGantt/actions/runs/42443918977/job/128620081705",
+          "failed_steps": [
+            {
+              "name": "최신 PR 증거·문서·리뷰 확인 (read-only)",
+              "conclusion": "failure"
+            }
+          ],
+          "observed_cases": {
+            "✓": 0,
+            "✘": 0
+          },
+          "planned_tests": []
+        }
+      ]
+    },
+    {
+      "run_number": 3571,
+      "run_id": 42445304959,
+      "run_attempt": 1,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/42445304959",
+      "event": "pull_request",
+      "conclusion": "failure",
+      "source_artifact_claim": {
+        "schema": "mastergantt-ci-pr-source-v1",
+        "repository": "planner77/masterGantt",
+        "run_id": 42445304959,
+        "run_attempt": 1,
+        "pr_number": 894,
+        "head_sha": "14a76cefe8c4d44c76af885ce4d7124995ed648d",
+        "head_ref": "fix/issue-889-890-gantt-presentation",
+        "head_repository": "planner77/masterGantt",
+        "base_sha": "ecc15d171f08dbb249ff52b13ca616592d1c9ac7",
+        "base_ref": "main",
+        "base_repository": "planner77/masterGantt",
+        "test_merge_sha": "8b60ee7fd3a58636081b0ecc14ff8f2626046e7e"
+      },
+      "jobs": [
+        {
+          "id": 128623488255,
+          "name": "Chromium E2E shard 6/8 · PR",
+          "conclusion": "cancelled",
+          "started_at": "2026-11-08T04:07:31Z",
+          "completed_at": "2026-11-08T04:09:49Z",
+          "html_url": "https://github.com/planner77/masterGantt/actions/runs/42445304959/job/128623488255",
+          "failed_steps": [
+            {
+              "name": "E2E shard 실행",
+              "conclusion": "cancelled"
+            }
+          ],
+          "observed_cases": {
+            "✓": 24,
+            "✘": 0
+          },
+          "planned_tests": [
+            "97"
+          ]
+        },
+        {
+          "id": 128623488271,
+          "name": "Chromium E2E shard 5/8 · PR",
+          "conclusion": "cancelled",
+          "started_at": "2026-11-08T04:07:36Z",
+          "completed_at": "2026-11-08T04:09:51Z",
+          "html_url": "https://github.com/planner77/masterGantt/actions/runs/42445304959/job/128623488271",
+          "failed_steps": [
+            {
+              "name": "E2E shard 실행",
+              "conclusion": "cancelled"
+            }
+          ],
+          "observed_cases": {
+            "✓": 4,
+            "✘": 0
+          },
+          "planned_tests": [
+            "83"
+          ]
+        },
+        {
+          "id": 128623488285,
+          "name": "Chromium E2E shard 1/8 · PR",
+          "conclusion": "cancelled",
+          "started_at": "2026-11-08T04:07:31Z",
+          "completed_at": "2026-11-08T04:09:50Z",
+          "html_url": "https://github.com/planner77/masterGantt/actions/runs/42445304959/job/128623488285",
+          "failed_steps": [
+            {
+              "name": "E2E shard 실행",
+              "conclusion": "cancelled"
+            }
+          ],
+          "observed_cases": {
+            "✓": 5,
+            "✘": 0
+          },
+          "planned_tests": [
+            "105"
+          ]
+        },
+        {
+          "id": 128623488287,
+          "name": "Chromium E2E shard 4/8 · PR",
+          "conclusion": "cancelled",
+          "started_at": "2026-11-08T04:07:31Z",
+          "completed_at": "2026-11-08T04:09:49Z",
+          "html_url": "https://github.com/planner77/masterGantt/actions/runs/42445304959/job/128623488287",
+          "failed_steps": [
+            {
+              "name": "E2E shard 실행",
+              "conclusion": "cancelled"
+            }
+          ],
+          "observed_cases": {
+            "✓": 3,
+            "✘": 0
+          },
+          "planned_tests": [
+            "122"
+          ]
+        },
+        {
+          "id": 128623488295,
+          "name": "Chromium E2E shard 3/8 · PR",
+          "conclusion": "failure",
+          "started_at": "2026-11-08T04:07:31Z",
+          "completed_at": "2026-11-08T04:09:33Z",
+          "html_url": "https://github.com/planner77/masterGantt/actions/runs/42445304959/job/128623488295",
+          "failed_steps": [
+            {
+              "name": "E2E shard 실행",
+              "conclusion": "failure"
+            }
+          ],
+          "observed_cases": {
+            "✓": 11,
+            "✘": 1
+          },
+          "planned_tests": [
+            "149"
+          ]
+        },
+        {
+          "id": 128623488307,
+          "name": "Chromium E2E shard 2/8 · PR",
+          "conclusion": "cancelled",
+          "started_at": "2026-11-08T04:07:31Z",
+          "completed_at": "2026-11-08T04:09:49Z",
+          "html_url": "https://github.com/planner77/masterGantt/actions/runs/42445304959/job/128623488307",
+          "failed_steps": [
+            {
+              "name": "E2E shard 실행",
+              "conclusion": "cancelled"
+            }
+          ],
+          "observed_cases": {
+            "✓": 1,
+            "✘": 0
+          },
+          "planned_tests": [
+            "104"
+          ]
+        },
+        {
+          "id": 128623488365,
+          "name": "Chromium E2E shard 7/8 · PR",
+          "conclusion": "cancelled",
+          "started_at": "2026-11-08T04:07:31Z",
+          "completed_at": "2026-11-08T04:09:50Z",
+          "html_url": "https://github.com/planner77/masterGantt/actions/runs/42445304959/job/128623488365",
+          "failed_steps": [
+            {
+              "name": "E2E shard 실행",
+              "conclusion": "cancelled"
+            }
+          ],
+          "observed_cases": {
+            "✓": 9,
+            "✘": 0
+          },
+          "planned_tests": [
+            "119"
+          ]
+        },
+        {
+          "id": 128623488377,
+          "name": "Chromium E2E shard 8/8 · PR",
+          "conclusion": "cancelled",
+          "started_at": "2026-11-08T04:07:31Z",
+          "completed_at": "2026-11-08T04:09:48Z",
+          "html_url": "https://github.com/planner77/masterGantt/actions/runs/42445304959/job/128623488377",
+          "failed_steps": [
+            {
+              "name": "E2E shard 실행",
+              "conclusion": "cancelled"
+            }
+          ],
+          "observed_cases": {
+            "✓": 6,
+            "✘": 0
+          },
+          "planned_tests": [
+            "115"
+          ]
+        },
+        {
+          "id": 128623798651,
+          "name": "Build, static checks, and unit tests",
+          "conclusion": "success",
+          "started_at": "2026-11-08T04:09:02Z",
+          "completed_at": "2026-11-08T04:09:06Z",
+          "html_url": "https://github.com/planner77/masterGantt/actions/runs/42445304959/job/128623798651",
+          "failed_steps": []
+        },
+        {
+          "id": 128623972030,
+          "name": "Chromium end-to-end tests",
+          "conclusion": "failure",
+          "started_at": "2026-11-08T04:09:53Z",
+          "completed_at": "2026-11-08T04:09:56Z",
+          "html_url": "https://github.com/planner77/masterGantt/actions/runs/42445304959/job/128623972030",
+          "failed_steps": [
+            {
+              "name": "E2E shard 결과 집계",
+              "conclusion": "failure"
+            }
+          ],
+          "observed_cases": {
+            "✓": 0,
+            "✘": 0
+          },
+          "planned_tests": []
+        },
+        {
+          "id": 128624190250,
+          "name": "Docker build and runtime smoke test",
+          "conclusion": "success",
+          "started_at": "2026-11-08T04:10:55Z",
+          "completed_at": "2026-11-08T04:10:57Z",
+          "html_url": "https://github.com/planner77/masterGantt/actions/runs/42445304959/job/128624190250",
+          "failed_steps": []
+        },
+        {
+          "id": 128624206019,
+          "name": "QA Final — Automated",
+          "conclusion": "failure",
+          "started_at": "2026-11-08T04:10:59Z",
+          "completed_at": "2026-11-08T04:11:14Z",
+          "html_url": "https://github.com/planner77/masterGantt/actions/runs/42445304959/job/128624206019",
+          "failed_steps": [
+            {
+              "name": "최신 PR 증거·문서·리뷰 확인 (read-only)",
+              "conclusion": "failure"
+            }
+          ],
+          "observed_cases": {
+            "✓": 0,
+            "✘": 0
+          },
+          "planned_tests": []
+        }
+      ]
+    },
+    {
+      "run_number": 3572,
+      "run_id": 42446255333,
+      "run_attempt": 1,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/42446255333",
+      "event": "pull_request",
+      "conclusion": "cancelled",
+      "source_artifact_claim": {
+        "schema": "mastergantt-ci-pr-source-v1",
+        "repository": "planner77/masterGantt",
+        "run_id": 42446255333,
+        "run_attempt": 1,
+        "pr_number": 894,
+        "head_sha": "415631ce7c1fc279e9cddb37e0070495de209565",
+        "head_ref": "fix/issue-889-890-gantt-presentation",
+        "head_repository": "planner77/masterGantt",
+        "base_sha": "ecc15d171f08dbb249ff52b13ca616592d1c9ac7",
+        "base_ref": "main",
+        "base_repository": "planner77/masterGantt",
+        "test_merge_sha": "ba70bdd997984a7f0b5aa9fa083980f6813ec0f3"
+      },
+      "jobs": [
+        {
+          "id": 128626381076,
+          "name": "Chromium E2E shard 4/8 · PR",
+          "conclusion": "success",
+          "started_at": "2026-11-08T04:21:32Z",
+          "completed_at": "2026-11-08T04:46:45Z",
+          "html_url": "https://github.com/planner77/masterGantt/actions/runs/42446255333/job/128626381076",
+          "failed_steps": []
+        },
+        {
+          "id": 128626381083,
+          "name": "Chromium E2E shard 3/8 · PR",
+          "conclusion": "success",
+          "started_at": "2026-11-08T04:21:32Z",
+          "completed_at": "2026-11-08T04:48:45Z",
+          "html_url": "https://github.com/planner77/masterGantt/actions/runs/42446255333/job/128626381083",
+          "failed_steps": []
+        },
+        {
+          "id": 128626381090,
+          "name": "Chromium E2E shard 6/8 · PR",
+          "conclusion": "success",
+          "started_at": "2026-11-08T04:21:32Z",
+          "completed_at": "2026-11-08T04:52:51Z",
+          "html_url": "https://github.com/planner77/masterGantt/actions/runs/42446255333/job/128626381090",
+          "failed_steps": []
+        },
+        {
+          "id": 128626381093,
+          "name": "Chromium E2E shard 5/8 · PR",
+          "conclusion": "success",
+          "started_at": "2026-11-08T04:21:32Z",
+          "completed_at": "2026-11-08T04:43:14Z",
+          "html_url": "https://github.com/planner77/masterGantt/actions/runs/42446255333/job/128626381093",
+          "failed_steps": []
+        },
+        {
+          "id": 128626381147,
+          "name": "Chromium E2E shard 1/8 · PR",
+          "conclusion": "success",
+          "started_at": "2026-11-08T04:21:32Z",
+          "completed_at": "2026-11-08T04:48:07Z",
+          "html_url": "https://github.com/planner77/masterGantt/actions/runs/42446255333/job/128626381147",
+          "failed_steps": []
+        },
+        {
+          "id": 128626381154,
+          "name": "Chromium E2E shard 8/8 · PR",
+          "conclusion": "success",
+          "started_at": "2026-11-08T04:21:32Z",
+          "completed_at": "2026-11-08T04:50:15Z",
+          "html_url": "https://github.com/planner77/masterGantt/actions/runs/42446255333/job/128626381154",
+          "failed_steps": []
+        },
+        {
+          "id": 128626381167,
+          "name": "Chromium E2E shard 2/8 · PR",
+          "conclusion": "success",
+          "started_at": "2026-11-08T04:21:32Z",
+          "completed_at": "2026-11-08T04:42:11Z",
+          "html_url": "https://github.com/planner77/masterGantt/actions/runs/42446255333/job/128626381167",
+          "failed_steps": []
+        },
+        {
+          "id": 128626381225,
+          "name": "Chromium E2E shard 7/8 · PR",
+          "conclusion": "cancelled",
+          "started_at": "2026-11-08T04:21:32Z",
+          "completed_at": "2026-11-08T04:56:49Z",
+          "html_url": "https://github.com/planner77/masterGantt/actions/runs/42446255333/job/128626381225",
+          "failed_steps": [
+            {
+              "name": "E2E shard 실행",
+              "conclusion": "cancelled"
+            }
+          ],
+          "observed_cases": {
+            "✓": 116,
+            "✘": 0
+          },
+          "planned_tests": [
+            "119"
+          ]
+        },
+        {
+          "id": 128626676440,
+          "name": "Build, static checks, and unit tests",
+          "conclusion": "success",
+          "started_at": "2026-11-08T04:22:59Z",
+          "completed_at": "2026-11-08T04:23:02Z",
+          "html_url": "https://github.com/planner77/masterGantt/actions/runs/42446255333/job/128626676440",
+          "failed_steps": []
+        },
+        {
+          "id": 128626962333,
+          "name": "Docker build and runtime smoke test",
+          "conclusion": "success",
+          "started_at": "2026-11-08T04:24:21Z",
+          "completed_at": "2026-11-08T04:24:25Z",
+          "html_url": "https://github.com/planner77/masterGantt/actions/runs/42446255333/job/128626962333",
+          "failed_steps": []
+        },
+        {
+          "id": 128633393986,
+          "name": "Chromium end-to-end tests",
+          "conclusion": "failure",
+          "started_at": "2026-11-08T04:56:52Z",
+          "completed_at": "2026-11-08T04:56:56Z",
+          "html_url": "https://github.com/planner77/masterGantt/actions/runs/42446255333/job/128633393986",
+          "failed_steps": [
+            {
+              "name": "E2E shard 결과 집계",
+              "conclusion": "failure"
+            }
+          ],
+          "observed_cases": {
+            "✓": 0,
+            "✘": 0
+          },
+          "planned_tests": []
+        },
+        {
+          "id": 128633414194,
+          "name": "QA Final — Automated",
+          "conclusion": "failure",
+          "started_at": "2026-11-08T04:56:58Z",
+          "completed_at": "2026-11-08T04:57:18Z",
+          "html_url": "https://github.com/planner77/masterGantt/actions/runs/42446255333/job/128633414194",
+          "failed_steps": [
+            {
+              "name": "최신 PR 증거·문서·리뷰 확인 (read-only)",
+              "conclusion": "failure"
+            }
+          ],
+          "observed_cases": {
+            "✓": 0,
+            "✘": 0
+          },
+          "planned_tests": []
+        }
+      ]
+    },
+    {
+      "run_number": 3573,
+      "run_id": 42450347063,
+      "run_attempt": 1,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/42450347063",
+      "event": "pull_request",
+      "conclusion": "failure",
+      "source_artifact_claim": {
+        "schema": "mastergantt-ci-pr-source-v1",
+        "repository": "planner77/masterGantt",
+        "run_id": 42450347063,
+        "run_attempt": 1,
+        "pr_number": 894,
+        "head_sha": "b5c4523d1882b43a3422a7d886827176a42aae93",
+        "head_ref": "fix/issue-889-890-gantt-presentation",
+        "head_repository": "planner77/masterGantt",
+        "base_sha": "ecc15d171f08dbb249ff52b13ca616592d1c9ac7",
+        "base_ref": "main",
+        "base_repository": "planner77/masterGantt",
+        "test_merge_sha": "80e6d9f1984ce794504a2632034f62a7ee1e0835"
+      },
+      "jobs": [
+        {
+          "id": 128638709959,
+          "name": "Chromium E2E shard 5/8 · PR",
+          "conclusion": "failure",
+          "started_at": "2026-11-08T05:23:20Z",
+          "completed_at": "2026-11-08T05:33:35Z",
+          "html_url": "https://github.com/planner77/masterGantt/actions/runs/42450347063/job/128638709959",
+          "failed_steps": [
+            {
+              "name": "E2E shard 실행",
+              "conclusion": "failure"
+            }
+          ],
+          "observed_cases": {
+            "✓": 25,
+            "✘": 1
+          },
+          "planned_tests": [
+            "92"
+          ]
+        },
+        {
+          "id": 128638709980,
+          "name": "Chromium E2E shard 6/8 · PR",
+          "conclusion": "cancelled",
+          "started_at": "2026-11-08T05:23:20Z",
+          "completed_at": "2026-11-08T05:33:54Z",
+          "html_url": "https://github.com/planner77/masterGantt/actions/runs/42450347063/job/128638709980",
+          "failed_steps": [
+            {
+              "name": "E2E shard 실행",
+              "conclusion": "cancelled"
+            }
+          ],
+          "observed_cases": {
+            "✓": 33,
+            "✘": 0
+          },
+          "planned_tests": [
+            "88"
+          ]
+        },
+        {
+          "id": 128638709990,
+          "name": "Chromium E2E shard 3/8 · PR",
+          "conclusion": "cancelled",
+          "started_at": "2026-11-08T05:23:20Z",
+          "completed_at": "2026-11-08T05:33:51Z",
+          "html_url": "https://github.com/planner77/masterGantt/actions/runs/42450347063/job/128638709990",
+          "failed_steps": [
+            {
+              "name": "E2E shard 실행",
+              "conclusion": "cancelled"
+            }
+          ],
+          "observed_cases": {
+            "✓": 65,
+            "✘": 0
+          },
+          "planned_tests": [
+            "149"
+          ]
+        },
+        {
+          "id": 128638710003,
+          "name": "Chromium E2E shard 8/8 · PR",
+          "conclusion": "cancelled",
+          "started_at": "2026-11-08T05:23:19Z",
+          "completed_at": "2026-11-08T05:33:52Z",
+          "html_url": "https://github.com/planner77/masterGantt/actions/runs/42450347063/job/128638710003",
+          "failed_steps": [
+            {
+              "name": "E2E shard 실행",
+              "conclusion": "cancelled"
+            }
+          ],
+          "observed_cases": {
+            "✓": 75,
+            "✘": 0
+          },
+          "planned_tests": [
+            "115"
+          ]
+        },
+        {
+          "id": 128638710018,
+          "name": "Chromium E2E shard 1/8 · PR",
+          "conclusion": "cancelled",
+          "started_at": "2026-11-08T05:23:20Z",
+          "completed_at": "2026-11-08T05:33:52Z",
+          "html_url": "https://github.com/planner77/masterGantt/actions/runs/42450347063/job/128638710018",
+          "failed_steps": [
+            {
+              "name": "E2E shard 실행",
+              "conclusion": "cancelled"
+            }
+          ],
+          "observed_cases": {
+            "✓": 50,
+            "✘": 0
+          },
+          "planned_tests": [
+            "105"
+          ]
+        },
+        {
+          "id": 128638710022,
+          "name": "Chromium E2E shard 4/8 · PR",
+          "conclusion": "cancelled",
+          "started_at": "2026-11-08T05:23:20Z",
+          "completed_at": "2026-11-08T05:33:53Z",
+          "html_url": "https://github.com/planner77/masterGantt/actions/runs/42450347063/job/128638710022",
+          "failed_steps": [
+            {
+              "name": "E2E shard 실행",
+              "conclusion": "cancelled"
+            }
+          ],
+          "observed_cases": {
+            "✓": 11,
+            "✘": 0
+          },
+          "planned_tests": [
+            "124"
+          ]
+        },
+        {
+          "id": 128638710070,
+          "name": "Chromium E2E shard 7/8 · PR",
+          "conclusion": "cancelled",
+          "started_at": "2026-11-08T05:23:20Z",
+          "completed_at": "2026-11-08T05:33:52Z",
+          "html_url": "https://github.com/planner77/masterGantt/actions/runs/42450347063/job/128638710070",
+          "failed_steps": [
+            {
+              "name": "E2E shard 실행",
+              "conclusion": "cancelled"
+            }
+          ],
+          "observed_cases": {
+            "✓": 30,
+            "✘": 0
+          },
+          "planned_tests": [
+            "108"
+          ]
+        },
+        {
+          "id": 128638710219,
+          "name": "Chromium E2E shard 2/8 · PR",
+          "conclusion": "cancelled",
+          "started_at": "2026-11-08T05:23:19Z",
+          "completed_at": "2026-11-08T05:33:51Z",
+          "html_url": "https://github.com/planner77/masterGantt/actions/runs/42450347063/job/128638710219",
+          "failed_steps": [
+            {
+              "name": "E2E shard 실행",
+              "conclusion": "cancelled"
+            }
+          ],
+          "observed_cases": {
+            "✓": 15,
+            "✘": 0
+          },
+          "planned_tests": [
+            "113"
+          ]
+        },
+        {
+          "id": 128638988356,
+          "name": "Build, static checks, and unit tests",
+          "conclusion": "success",
+          "started_at": "2026-11-08T05:24:41Z",
+          "completed_at": "2026-11-08T05:24:44Z",
+          "html_url": "https://github.com/planner77/masterGantt/actions/runs/42450347063/job/128638988356",
+          "failed_steps": []
+        },
+        {
+          "id": 128639395186,
+          "name": "Docker build and runtime smoke test",
+          "conclusion": "success",
+          "started_at": "2026-11-08T05:26:44Z",
+          "completed_at": "2026-11-08T05:26:48Z",
+          "html_url": "https://github.com/planner77/masterGantt/actions/runs/42450347063/job/128639395186",
+          "failed_steps": []
+        },
+        {
+          "id": 128640797573,
+          "name": "Chromium end-to-end tests",
+          "conclusion": "failure",
+          "started_at": "2026-11-08T05:33:56Z",
+          "completed_at": "2026-11-08T05:34:00Z",
+          "html_url": "https://github.com/planner77/masterGantt/actions/runs/42450347063/job/128640797573",
+          "failed_steps": [
+            {
+              "name": "E2E shard 결과 집계",
+              "conclusion": "failure"
+            }
+          ],
+          "observed_cases": {
+            "✓": 0,
+            "✘": 0
+          },
+          "planned_tests": []
+        },
+        {
+          "id": 128640818330,
+          "name": "QA Final — Automated",
+          "conclusion": "failure",
+          "started_at": "2026-11-08T05:34:02Z",
+          "completed_at": "2026-11-08T05:34:21Z",
+          "html_url": "https://github.com/planner77/masterGantt/actions/runs/42450347063/job/128640818330",
+          "failed_steps": [
+            {
+              "name": "최신 PR 증거·문서·리뷰 확인 (read-only)",
+              "conclusion": "failure"
+            }
+          ],
+          "observed_cases": {
+            "✓": 0,
+            "✘": 0
+          },
+          "planned_tests": []
+        }
+      ]
+    }
+  ],
+  "countingNotes": "observed_cases records literal reporter checkmark/cross tokens from retrieved logs, not completed suite totals. Dash tokens were removed because diagnostic/NOT RUN lines can match them; explicit Markdown classification distinguishes SKIP/CANCELLED/NOT RUN."
+}

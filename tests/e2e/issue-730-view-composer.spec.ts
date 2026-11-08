@@ -593,16 +593,6 @@ test("#730 실제 원본 Task 저장 후 revision·snapshot 갱신과 선택 관
   });
   const mutation = page.waitForResponse(response => response.request().method() === "PATCH" && new URL(response.url()).pathname === `/api/projects/${f.publicId}/tasks/${f.task.taskId}`);
   const refreshed = nextReport(page, { spec: beforeReport.spec, filters: beforeReport.filters, scope: beforeReport.sourceContext.scope });
-  // #854 F-005 / #730: after the refreshed *report* receipt, the WBS
-  // original-detail projection fetches separately. Subscribe before release
-  // so a rapid response cannot be missed, and verify the new snapshot identity.
-  const refreshedDetails = page.waitForResponse(response => {
-    if (response.request().method() !== "POST" ||
-        new URL(response.url()).pathname !== `/api/projects/${f.publicId}/resource-dashboard/views`) return false;
-    const projection = (response.request().postDataJSON() as WbsViewQueryInput).projection;
-    return projection?.kind === "details" && projection.snapshotId !== beforeReport.snapshotId &&
-      projection.path.some(item => item.dimension === "equipment" && item.id === f.equipment.id);
-  }, { timeout: 30_000 });
   await editor.getByRole("button", { name: "저장", exact: true }).click();
   const write = await mutation;
   expect(write.status(), await write.text()).toBe(200);
@@ -612,9 +602,19 @@ test("#730 실제 원본 Task 저장 후 revision·snapshot 갱신과 선택 관
   await expect(detail.getByRole("button", { name: `${f.task.name} Task 원본`, exact: true })).not.toBeVisible();
   // Successful receipt waiting must survive both former 24/120-frame windows.
   await page.evaluate(async () => { for (let frame = 0; frame < 160; frame++) await new Promise<void>(resolveFrame => requestAnimationFrame(() => resolveFrame())); });
+  // #854 F-005 / #730: after the refreshed *report* receipt, the WBS
+  // original-detail projection fetches separately. Subscribe before release
+  // so a rapid response cannot be missed. Its 30s budget starts after the
+  // deliberate report hold, independently of mutation/canonical refresh.
+  const refreshedDetails = page.waitForResponse(response => {
+    if (response.request().method() !== "POST" ||
+        new URL(response.url()).pathname !== `/api/projects/${f.publicId}/resource-dashboard/views`) return false;
+    const projection = (response.request().postDataJSON() as WbsViewQueryInput).projection;
+    return projection?.kind === "details" && projection.snapshotId !== beforeReport.snapshotId &&
+      projection.path.some(item => item.dimension === "equipment" && item.id === f.equipment.id);
+  }, { timeout: 30_000 });
   releaseReport();
   const afterReport = (await (await refreshed).json()).data as WbsViewReportDto;
-  await page.unroute(pattern);
   await expect(root).toHaveAttribute("data-ready", "true");
   expect(afterReport.projectRevision).toBe(baseline.data.project.revision + 1);
   expect(afterReport.snapshotId).not.toBe(beforeReport.snapshotId);
@@ -646,6 +646,9 @@ test("#730 실제 원본 Task 저장 후 revision·snapshot 갱신과 선택 관
   const current = saved.data.tasks.find(task => task.taskId === f.task.taskId)!;
   expect(current).toMatchObject({ ...original, name: renamed });
   expect(saved.data.tasks.map(task => task.taskId)).toEqual(baseline.data.tasks.map(task => task.taskId));
+  // #894: the new details POST can start while report delivery completes.
+  // Keep interception stable through its receipt, DOM and focus assertions.
+  await page.unroute(pattern);
   await info.attach("actual-source-save-snapshot", { body: JSON.stringify({ publicId: f.publicId, taskId: f.task.taskId, beforeRevision: beforeReport.projectRevision, afterRevision: afterReport.projectRevision, beforeSnapshotId: beforeReport.snapshotId, afterSnapshotId: afterReport.snapshotId }), contentType: "application/json" });
 });
 

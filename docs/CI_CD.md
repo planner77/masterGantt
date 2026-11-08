@@ -1266,3 +1266,7 @@ Full #3524.1의 실제 inline 이름 저장 재시작case가 본문30초를 초�
 C003 성능 해석: 분리된 fixture 예산 때문에 Playwright reporter duration은 준비를 제외한 본문 시간이다. 실제 전체 비용은 inline-name-restart-preparation과 isolated-application performance의 준비/restart/전체elapsed를 함께 읽는다. 짧아진 본문 duration을 dev compile 개선·전체여정단축·10개성공run baseline으로 해석하지 않는다. 기존 shard 성능원장/projectedMs/sourceRunIds와 정책은 변경하지 않는다.
 
 C003 최종 동일동결source의31spec/192계획=190PASS/기존2SKIP/FAIL0, 별도2CPU3반복PASS(고유합계미가산), 최종type/lint/탐색/정책/문서구조PASS다. 자동Pre-PR UNKNOWN94는BLOCKED로유지하고원격/Owner/Manager NOT TESTED와구별한다. [최종정제증거](evidence/issue-866/ci3524-local-validation.json), 단일원장C003 E를따른다.
+
+## Issue #889 / PR #894 — 재실패 원인과 검증 인계 (2026-11-08)
+
+[#3569~#3573 누적 원장](ISSUE_889_890_FAILURE_ANALYSIS.md#ci-3573-001--전-이력-재수집과-reportdetails-라우팅-수명-경합-2026-11-08)에서 Draft 차단, #574 제품 실패, Shard7 35분 취소, 최신 #730 details transport 실패를 분리한다. 기존 `manualRebalance894`의147exact/unique8·4개 whole-spec 이동·35분/worker1/Required3는 유지하고 planner Unit과 두 실패 spec 전체를 검증한다. 최신 교정은 저장 후 report→details 사이의 테스트 route teardown을 상세 검증 이후로 옮기며 workflow/권한/Ruleset·skip/retry/timeout을 변경하지 않는다. 새 Head Full8의 성공/비용 절감 및 Trusted/Owner 승인은 새 원격 증거 전 NOT TESTED이며 CI 시작 후 모니터링하지 않는다.

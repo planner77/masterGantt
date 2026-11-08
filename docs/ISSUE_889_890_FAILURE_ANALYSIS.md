@@ -125,3 +125,56 @@ core-reader 변경으로 기존 U2 historical provenance source hash guard가 FA
 - **설계/구현:** 전체 147 distinct spec 집합을 유지하면서 새 `manualRebalance894`로 7→2 `project-task-context-menu`, 7→5 `project-list-search-filter`, 7→4 `milestone-stage-exchange`, 6→7 `gantt-state-product-integration` 이동. 각 샤드 파일 수 `[17,18,17,21,17,17,21,19] → [17,19,17,22,18,16,19,19]`. 동일 Run의 완료된 구간에 이동만 산술 적용한 임시 값 `[25.8,25.58,26.4,26.76,24.69,25.37,26.63+미완료3case,27.8]`분은 **비보증**이며 신규 Runner 부하/파일 전환 fixture·컴파일/미완료 케이스 시간은 미측정. `manualRebalance885`/기존 생성일·중앙값 이력·projectedMs는 수정하지 않는다.
 - **Test Lifecycle / 보안:** EXTEND `tests/scripts/e2e-shard-planner.test.ts`의 147/147·unique8/역사적 #885 metadata 불변·신 #894 이동/원위치 회계/출처·case수·목적지 단언. KEEP_UNIQUE 각 E2E spec과 #574 V3. 제품 src/API/DB, `ci.yml`/release workflow, 8 runners/worker1/35m/fail-fast/skip/retries/Required3/Trusted/Owner/Release 정책 및 기존 test assertion 절대 변경하지 않는다. metadata-only 실행/기존 성공 샤드 재사용은 새 Head Full8 인증을 대체할 수 없다.
 - **검증 및 경계:** 연결 GitHub에서 HEAD Git Tree `17f855d8f8cb52d553740639ed977048c888493f`의 실제 discovered147과 JSON assignment 147(unique) 정적 일치 확인. 로컬 Vitest/Playwright는 checkout/dependencies 부재로 NOT TESTED. 새 Head Full PR CI와 Trusted QA·Owner final UX는 **NOT TESTED**, `MERGE_READY=BLOCKED`, `release_authorized=false`. 현재 작업 범위는 새로운 Full PR CI 시작 후 **모니터링 없음**, 병합/Main/GHCR/Issue 종료 안 함.
+
+## CI-3573-001 — 전 이력 재수집과 report→details 라우팅 수명 경합 (2026-11-08)
+
+### 전체 Run/Attempt·출처 대조
+
+Primary Issue #889 / 관련 #890 / PR #894를 유지한다. branch `fix/issue-889-890-gantt-presentation`의 paginated Actions 조회에서 CI 5개와 Fast advisory 5개를 회수했고 모두 attempt 1이었다. 추가 metadata-only Run은 없었다. #889/#890·PR 댓글, 본 원장의 최초 개발 실패부터 CI-3572까지, 관련 [#730 원장](ISSUE_730_FAILURE_ANALYSIS.md)과 [#854 F-005](ISSUE_854_FAILURE_ANALYSIS.md#f-005--pr-855-full-34251-58-chromium-e2e-real-source-detail-race-2026-10-29)를 대조했다. 타 Issue의 과거 실패를 #894의 추가 Run으로 합산하지 않는다.
+
+모든 Run의 base는 `ecc15d171f08dbb249ff52b13ca616592d1c9ac7`, event/workflow는 `pull_request` / `CI`다. 원본 `ci-pr-source-<run>-1` artifact는 각각 단일·미만료였으며 ZIP은 실행하지 않고 JSON을 읽어 repository/run/attempt/head를 Run API와 비교했다. 과거 Run API의 `pull_requests[].head.sha`가 현재 Head로 바뀌어 보이므로 역사적 Head에는 사용하지 않았다. 이 수집은 protected-main Trusted validator의 commit→PR 교차 인증 또는 Trusted PASS가 아니다. 원본 source claim과 Required/Shard Job ID·결론은 [정제 원격 이력](evidence/issue-889-890/pr894-ci-history-20261108.json)에 보존한다.
+
+| Run·Attempt / 생성 UTC | 정확 Head / test merge | 원본 결과와 구분 |
+| --- | --- | --- |
+| [#3569.1 / 42443820350](https://github.com/planner77/masterGantt/actions/runs/42443820350) / 03:42:13 | `25782be168ad6dd664d540f649dd3fcc68c2a194` / `318c8ac2c5dbe9b5915a14cdc8632a74d332c3cb` | Draft 정책 `DRAFT_BLOCKED`. Required Quality/E2E/Docker FAILURE, 실제 제품 검사 SKIPPED/NOT RUN, QA Final SKIPPED. 제품 회귀가 아니다. |
+| [#3570.1 / 42443918977](https://github.com/planner77/masterGantt/actions/runs/42443918977) / 03:43:45 | `25782be168ad6dd664d540f649dd3fcc68c2a194` / `318c8ac2c5dbe9b5915a14cdc8632a74d332c3cb` | Quality/Docker SUCCESS, Shard3 #574 V3 FAIL(11 PASS/1 FAIL/137 NOT RUN), 나머지 7개 Shard CANCELLED. E2E/QA Final 파생 FAILURE. |
+| [#3571.1 / 42445304959](https://github.com/planner77/masterGantt/actions/runs/42445304959) / 04:04:35 | `14a76cefe8c4d44c76af885ce4d7124995ed648d` / `8b60ee7fd3a58636081b0ecc14ff8f2626046e7e` | Quality/Docker SUCCESS, 같은 #574 V3 FAIL(11 PASS/1 FAIL/137 NOT RUN), 나머지 7개 Shard CANCELLED. E2E/QA Final 파생 FAILURE. |
+| [#3572.1 / 42446255333](https://github.com/planner77/masterGantt/actions/runs/42446255333) / 04:18:11 | `415631ce7c1fc279e9cddb37e0070495de209565` / `ba70bdd997984a7f0b5aa9fa083980f6813ec0f3` | Quality/Docker 및 Shards1~6,8 SUCCESS. Shard7 116 PASS/119 plan 후 35분 CANCELLED(3 미완료), 실제 assertion FAIL0. E2E/QA Final FAILURE, Run CANCELLED. #574 V3와 #730 저장 case(23.8초)는 PASS. |
+| [#3573.1 / 42450347063](https://github.com/planner77/masterGantt/actions/runs/42450347063) / 05:19:55 | `b5c4523d1882b43a3422a7d886827176a42aae93` / `80e6d9f1984ce794504a2632034f62a7ee1e0835` | Quality `128638988356`/Docker `128639395186` SUCCESS. Shard5 `128638709959` 25 PASS/1 FAIL/66 NOT RUN. E2E `128640797573` 및 QA Final `128640818330` 파생 FAILURE, 나머지 7개 Shard CANCELLED. |
+
+Fast #312 CANCELLED, #313~316 SKIPPED는 전체 Required 검증이 아니다. 취소 Shard 로그도 전부 확인했고 #3570/#3571/#3573의 직접 오류 외 추가 실제 `✘`는 없었다. #3573 취소 Shard의 관측 PASS 수는 1=50,2=15,3=65(기존 SKIP1 별도),4=11,6=33,7=30,8=75다. 부분 실행을 전체 PASS로 표시하지 않는다. Main/GHCR/Release는 PR 대상이 아니며 SKIPPED를 성공으로 사용하지 않는다.
+
+### Cross-run 실패 매트릭스와 누적 실패 합집합
+
+| 사건 / 분류 | 불변 원본·당시 교정 | 교차 분석·현재 보완 |
+| --- | --- | --- |
+| #3569 / POLICY_CI | Draft Required3 차단 | 정상 정책 동작. 우회·자동 PASS 변경 없음. |
+| #3570·#3571 / PRODUCT | `grid-task-start-reveal.spec.ts:188`, #574 V3의 SETTLED/visible/aligned 기대가 NO_SCROLL_CAPACITY/false/false. `14a76cef`의 false-but-effective 대응 뒤에도 재발하여 `415631ce`에서 최초 승인과 진행 중 lease의 dataReady 자기 취소를 분리. | #3572 Shard3 SUCCESS로 이전 수정 효과를 확인. port의 엄격한 일반 false/무효 source 거부·actual axis/native 증명과 해당 spec 전체를 새 source에서 재검증. |
+| #3572 / POLICY_CI·실행 용량 | Shard7 35분 취소, 3case 미완료. `b5c4523d`에서 whole spec 4개 재배치. | #3573은 9.4분 reporter에서 별도 assertion/응답 실패로 종료했으므로 용량 해결 실증이 아니다. 147개 exact/unique8·4이동 Unit 재검증. 35분 이내 Full 성공은 새 원격 CI 전 NOT TESTED. |
+| #3573 / FIXTURE_OBSERVABILITY·INIT_TRANSPORT | `issue-730-view-composer.spec.ts:569`, line599의 details 응답 30초 timeout. #854 F-005가 추가한 독립 detail receipt 소비자. | report ready와 detail ready 분리는 옳다. 그 사이 테스트가 page.unroute로 interception을 해제하는 수명 경계를 통제 재현하고, 모든 detail/DOM/focus/DB 단언 뒤로 teardown 이동. 제품 수정 근거는 없음. |
+| E2E aggregate·QA Final | 원본 Required E2E 미성공에 따른 파생 FAIL | 별도 제품 오류로 중복 계산하지 않음. 이전 Quality/Docker PASS는 새 Head PASS가 아님. |
+
+**#894의 실제 실패 E2E 파일 합집합:** `tests/e2e/grid-task-start-reveal.spec.ts`, `tests/e2e/issue-730-view-composer.spec.ts`. 용량 검증은 `tests/scripts/e2e-shard-planner.test.ts` 및 원격 Full8로 구분한다. #730의 모든 과거 타 PR 실패 파일을 이 PR의 직접 실패라고 확대하지 않는다. 최초 #889/#890 제품 경로의 인접 locale/sort는 `i18n.spec.ts` 전체로 추가한다. port/axis/coordinator와 WBS report correlation Unit은 직접·간접·음성 소비자로 포함한다. `schedule-views` 등 제품 변경 없는 나머지 최초66case는 이전 source 증거로 남기며 이번 제한적 재검증에 포함됐다고 주장하지 않는다.
+
+### 원본 #3573 현상·가설·통제 재현
+
+- [실패 Job](https://github.com/planner77/masterGantt/actions/runs/42450347063/job/128638709959)의 2026-11-08T05:33:30Z 오류는 `page.waitForResponse: Timeout 30000ms exceeded while waiting for event "response"`. 실제 정규 Task PATCH200 → report200/new snapshot → 올바른 equipment path의 새 snapshot `details` POST까지 관측된다. predicate 오귀속이나 요청 자체 누락은 아니다. 상세는 `data-detail-state=loading`이고 response status/time=-1로 미완료다. [원본 report artifact 13605871899](https://github.com/planner77/masterGantt/actions/runs/42450347063/artifacts/13605871899)의 API digest는 `sha256:048a3b3170e18136fd912303a8cd4e515958f8e2ded5ab76c19da818e6132df9`다. 원본 ZIP/trace는 `/tmp/pr894-history/`에만 보존하며 Cookie·원시 URL·DB는 Git에 넣지 않는다.
+- 가설1(30초 예산에 저장/report 보류 포함), 가설2(실제 details 누락/잘못된 snapshot), 가설3(route teardown과 후속 요청 경합), 가설4(상세 API/서버 지연)를 구분했다. 원본 wait 시작532232.726ms, 160RAF535308.070→538279.745ms(2.972초), interception 해제538373.160→538432.997ms, details POST538430.007ms, timeout562252.962ms다. 남은23.8초에도 응답 미완료이므로 가설1만으로 원인을 설명할 수 없고 가설2는 기각한다. 가설3의 overlap은 직접 관측, 가설4의 정확 서버 내부 상태는 원격 trace만으로 UNKNOWN이다.
+- 원본 b5c4523d에서 `npm run test:e2e -- tests/e2e/issue-730-view-composer.spec.ts --project=chromium --workers=1 --retries=0 --max-failures=0 --grep '실제 원본 Task 저장 후'`는 **1 PASS(29.5초 case/1.1분 전체)**. 비재현 PASS이며 원격 FAIL을 덮지 않는다.
+- 별도 실제 Chromium+loopback HTTP 최소 harness는 같은 report `route.fetch/fulfill`→브라우저 details chained POST와 즉시 `unroute`를 재현했다. 400회 중 **360 PASS/40 timeout**; details 응답 후 unroute 통제는 **400/400 PASS**. 서버는 정상 JSON200을 반환하며 실패 시 브라우저 request event가 있어도 details는 서버와 route handler 양쪽에 도달하지 않았다. 장기 대조도 interception 해제 시작+1ms에 details event 후 **31초 timeout**으로 끝났다. 단순 1초 deadline 부족이 아니다. [정제 비교·환경·SHA](evidence/issue-889-890/route-lifecycle-probe-20261108.json), [실행 snapshot](evidence/issue-889-890/route-lifecycle-probe.snapshot.cjs.txt), [장기 snapshot](evidence/issue-889-890/route-lifecycle-long-probe.snapshot.cjs.txt)을 보존한다. 원본 명령은 `node /tmp/pr894-route-probe.cjs`와 `node /tmp/pr894-route-long-probe.cjs`이며 snapshot은 실행한 bytes 그대로다. harness는 제품 테스트가 아니라 원본 trace에 상응하는 전송 경합의 통제 증거이며, 원격 서버 내부 근인을 100% 증명했다고 주장하지 않는다.
+
+### 설계·구현 및 Test Lifecycle
+
+`issue-730-view-composer.spec.ts` 저장 case에서만 `page.unroute(pattern)`을 새 detail의 HTTP200/정확 snapshot·Task ID+이름·DOM ready/confirmation·원본 버튼 focus·SQLite canonical 검증 이후로 옮긴다. handler는 details에 기존 `route.continue()`를 사용해 실제 서버 응답을 그대로 관측한다. details 구독은 160RAF 보류 뒤 report release 직전에 등록해 빠른 응답을 놓치지 않고 원래 의도한 detail 전용30초를 측정한다. 160RAF/전체180초/detail30초/DOM10초·기존 assertion은 전부 유지한다. retry/mock/skip·프로덕션 코드·전역fixture·새 scroll writer 변경은 없다.
+
+EXTEND: 기존 실제 HTTP/SQLite #730 저장 case의 route lifecycle. KEEP_UNIQUE: #574 전체 reveal·#730 다른 source/stale/readonly/race·#890 i18n/sort. ADD: 영구 테스트 중복 없이 최소 transport probe의 실행 snapshot/결과를 정제 증거로 보존. 다른 `unroute` 소비자를 검색했고 동일 report→details pending 중 teardown 패턴은 이 case뿐이므로 일괄 변경하지 않는다. 기존 `manualRebalance894`의147 exact spec·8샤드/worker1/35분/fail-fast, Required3/Trusted/Ruleset/권한·release 정책은 유지한다.
+
+### 동결 검증·인계
+
+동결 입력1,360개 정규 SHA256 `e06c4e641dc0772d0bb9420af74afb0d090efa50d6754b2cc9a3d49e4cef8e48`, 수정 spec SHA256 `571e06726fd62d74eb08d0f2c39d449c775ebebce87f9030ba4667b577e87a62`. Next가 생성한 isolated UUID type include만 제거해 정규화하고 나머지 tsconfig 필드는 HEAD와 동일함을 단언한다. 생성 next-env는 제외하고 종료 후 생성 파일을 원복한다. 전체/부분 PASS와 NOT TESTED 및 최종 동결 결과는 [현재 검증 영수증](evidence/issue-889-890/pr894-rework-validation-20261108.json)에 기록한다.
+
+새 Head의 Quality/E2E8/Docker 및 protected-main Trusted/Owner·Manager ACCEPT는 **NOT TESTED**, `MERGE_READY=BLOCKED`다. 실제 실행 역할은 Manager 통합·원장/구현, infra 원격 이력 read-only, frontend 독립 transport probe, qa_docs 별도 read-only 사전 기술검토다. 위험 HIGH/OWNER_MANAGED/qa_required=true; 사전 기술검토는 인간 Reviewer·최종 QA/Owner 승인과 별개다. 후보0.145.1 release_required=true/release_authorized=false. unresolved review/최신 main·충돌을 제출 전 확인하고, 새 synchronize Full CI 시작만 확인한 뒤 모니터링하지 않는다. 병합/Main/GHCR/Release/Issue 종료/브랜치 삭제는 수행하지 않는다.
+
+최종 로컬 빠른 검증은 **Chromium3파일39/39 PASS(10.3분, FAIL/SKIP/INTERRUPT/retry0, worker1, max-failures0)** 및 Unit5파일227/227 PASS다. 두 원본 실패 spec 전체와 인접 i18n/sort를 실행했고, 최신 저장 case는32.7초 PASS였다. typecheck·변경 spec lint(경고/오류0)·version0.145.1·Markdown419·test discovery(310 Unit 파일/894 browser cases, root와 외부 cwd)·diff check PASS. 최초 전체 지문은 E2E12case 뒤에 채집했으며 실행 직전 지문이라고 주장하지 않는다. 실행 전 적용한 테스트 보완 이후 제품/테스트 입력을 바꾸지 않았고, 이후 중간/종료/생성 설정 복구 뒤 정규 지문이 모두 같다. 과거 #730 PNG/geometry10개와 Next 생성 파일을 원복하고 이번 실행이 만든 coarse capture2개만 제거해 역사적 증거를 보존했다. 위 원격 NOT TESTED/승인 경계는 그대로다.
+
+별도 `/root/qa_review` qa_docs가 실제 diff/원본 trace/전체 원장·정제 receipt·원본 로컬 로그와 수정 spec/probe SHA를 대조하여 사전 기술검토 PASS, P1/P2 차단 지적0을 반환했다. 검토 완료 시점의 main은 여전히 `ecc15d171f08dbb249ff52b13ca616592d1c9ac7`, PR non-draft/open·mergeable=true·미해결 리뷰 스레드0이었다. 이 사전 검토는 인간 독립 QA·Owner/Manager ACCEPT 또는 새 Head 원격 PASS가 아니다.

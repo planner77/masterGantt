@@ -1,0 +1,282 @@
+{
+  "schema": "pr894-cumulative-rework-validation/v1",
+  "capturedAt": "2026-11-08T05:54:14.419544+00:00",
+  "priorHead": "b5c4523d1882b43a3422a7d886827176a42aae93",
+  "frozenSource": {
+    "inputCount": 1360,
+    "sha256": "e06c4e641dc0772d0bb9420af74afb0d090efa50d6754b2cc9a3d49e4cef8e48",
+    "normalization": "Only generated .next-e2e-isolated-UUID/(dev/)types includes removed; remaining tsconfig equals HEAD. next-env.d.ts excluded as generated.",
+    "changedTestSha256": "571e06726fd62d74eb08d0f2c39d449c775ebebce87f9030ba4667b577e87a62",
+    "firstSampleAt": "2026-11-08T05:44:23.271533+00:00",
+    "firstSampleBoundary": "First full input digest sampled during E2E after 12 cases, not before launch. Only final test patch was applied before launch; no product/test/config policy edits occurred during execution. Subsequent mid/end/restored samples agree.",
+    "endEqualsFirst": true,
+    "afterGeneratedRestoreEqualsFirst": true
+  },
+  "environment": {
+    "node": "22.14.0",
+    "next": "16.4.2",
+    "svarCore": "2.7.3",
+    "playwright": "1.63.0",
+    "chromium": "153.0.8010.12",
+    "workers": 1,
+    "retries": 0,
+    "maxFailures": 0
+  },
+  "originalSingleCase": {
+    "command": "npm run test:e2e -- tests/e2e/issue-730-view-composer.spec.ts --project=chromium --workers=1 --retries=0 --max-failures=0 --grep '실제 원본 Task 저장 후'",
+    "result": "PASS",
+    "caseSeconds": 29.5,
+    "totalMinutes": 1.1,
+    "scope": "Non-reproduction on prior Head, not a reversal of remote #3573 FAIL."
+  },
+  "frozenChromium": {
+    "command": "npm run test:e2e -- tests/e2e/grid-task-start-reveal.spec.ts tests/e2e/issue-730-view-composer.spec.ts tests/e2e/i18n.spec.ts --project=chromium --workers=1 --retries=0 --max-failures=0",
+    "result": "PASS",
+    "pass": 39,
+    "fail": 0,
+    "skip": 0,
+    "interrupted": 0,
+    "totalMinutes": 10.3,
+    "files": {
+      "tests/e2e/grid-task-start-reveal.spec.ts": 24,
+      "tests/e2e/i18n.spec.ts": 8,
+      "tests/e2e/issue-730-view-composer.spec.ts": 7
+    },
+    "cases": [
+      {
+        "file": "tests/e2e/grid-task-start-reveal.spec.ts",
+        "name": "#514 matrix readonly/day/normal root+nested",
+        "duration": "7.2s"
+      },
+      {
+        "file": "tests/e2e/grid-task-start-reveal.spec.ts",
+        "name": "#514 matrix readonly/day/fullscreen root+nested",
+        "duration": "4.8s"
+      },
+      {
+        "file": "tests/e2e/grid-task-start-reveal.spec.ts",
+        "name": "#514 matrix readonly/week/normal root+nested",
+        "duration": "5.9s"
+      },
+      {
+        "file": "tests/e2e/grid-task-start-reveal.spec.ts",
+        "name": "#514 matrix readonly/week/fullscreen root+nested",
+        "duration": "6.2s"
+      },
+      {
+        "file": "tests/e2e/grid-task-start-reveal.spec.ts",
+        "name": "#514 matrix editable/day/normal root+nested",
+        "duration": "4.7s"
+      },
+      {
+        "file": "tests/e2e/grid-task-start-reveal.spec.ts",
+        "name": "#514 matrix editable/day/fullscreen root+nested",
+        "duration": "4.5s"
+      },
+      {
+        "file": "tests/e2e/grid-task-start-reveal.spec.ts",
+        "name": "#514 matrix editable/week/normal root+nested",
+        "duration": "4.2s"
+      },
+      {
+        "file": "tests/e2e/grid-task-start-reveal.spec.ts",
+        "name": "#514 matrix editable/week/fullscreen root+nested",
+        "duration": "5.5s"
+      },
+      {
+        "file": "tests/e2e/grid-task-start-reveal.spec.ts",
+        "name": "#514 pending peer wheel and rapid selections preserve latest actual user intent",
+        "duration": "4.3s"
+      },
+      {
+        "file": "tests/e2e/grid-task-start-reveal.spec.ts",
+        "name": "#574 V3 zero-result bookmark yields to the latest explicit Task selection",
+        "duration": "7.5s"
+      },
+      {
+        "file": "tests/e2e/grid-task-start-reveal.spec.ts",
+        "name": "#514 pending peer restore expires when the Task filter source changes",
+        "duration": "3.1s"
+      },
+      {
+        "file": "tests/e2e/grid-task-start-reveal.spec.ts",
+        "name": "#514 reveal retains context-menu, modifier and keyboard selection semantics",
+        "duration": "4.5s"
+      },
+      {
+        "file": "tests/e2e/grid-task-start-reveal.spec.ts",
+        "name": "#514 narrow logical viewport smoke and three-wide page start reveal geometry",
+        "duration": "8.3s"
+      },
+      {
+        "file": "tests/e2e/grid-task-start-reveal.spec.ts",
+        "name": "#514 native Grid pointer reveals canonical Task start in both horizontal directions",
+        "duration": "3.0s"
+      },
+      {
+        "file": "tests/e2e/grid-task-start-reveal.spec.ts",
+        "name": "#514 before editable name pointer observes native selection and inline editor reveal",
+        "duration": "2.1s"
+      },
+      {
+        "file": "tests/e2e/grid-task-start-reveal.spec.ts",
+        "name": "#514 before Week fullscreen nested reveal and null Summary selection",
+        "duration": "3.0s"
+      },
+      {
+        "file": "tests/e2e/grid-task-start-reveal.spec.ts",
+        "name": "#514 before pending peer restore must not overwrite native Grid Task start reveal",
+        "duration": "3.4s"
+      },
+      {
+        "file": "tests/e2e/grid-task-start-reveal.spec.ts",
+        "name": "#852 day repeats future extent three times with no future Task",
+        "duration": "3.4s"
+      },
+      {
+        "file": "tests/e2e/grid-task-start-reveal.spec.ts",
+        "name": "#852 day ordinary Grid click aligns a visible right-side start near Chart left",
+        "duration": "3.2s"
+      },
+      {
+        "file": "tests/e2e/grid-task-start-reveal.spec.ts",
+        "name": "#852 week repeats future extent three times with no future Task",
+        "duration": "3.3s"
+      },
+      {
+        "file": "tests/e2e/grid-task-start-reveal.spec.ts",
+        "name": "#852 week ordinary Grid click aligns a visible right-side start near Chart left",
+        "duration": "3.2s"
+      },
+      {
+        "file": "tests/e2e/grid-task-start-reveal.spec.ts",
+        "name": "#852 day continuous native wheel cancels an in-flight extent and resumes at the edge",
+        "duration": "3.3s"
+      },
+      {
+        "file": "tests/e2e/grid-task-start-reveal.spec.ts",
+        "name": "#852 week continuous native wheel cancels an in-flight extent and resumes at the edge",
+        "duration": "3.4s"
+      },
+      {
+        "file": "tests/e2e/grid-task-start-reveal.spec.ts",
+        "name": "#852 day continuous native wheel yields to a newer Grid click",
+        "duration": "2.9s"
+      },
+      {
+        "file": "tests/e2e/i18n.spec.ts",
+        "name": "Issue #866 browser language preference › first visit follows browser English, explicit Vietnamese survives reload and leaves canonical data unchanged",
+        "duration": "5.7s"
+      },
+      {
+        "file": "tests/e2e/i18n.spec.ts",
+        "name": "Issue #866 browser language preference › invalid saved language uses the first supported browser preference",
+        "duration": "1.5s"
+      },
+      {
+        "file": "tests/e2e/i18n.spec.ts",
+        "name": "Issue #866 browser language preference › blocked localStorage still allows an explicit in-tab choice without throwing",
+        "duration": "2.2s"
+      },
+      {
+        "file": "tests/e2e/i18n.spec.ts",
+        "name": "Issue #866 language change in another tab preserves the open task draft, schedule instance and canonical writes",
+        "duration": "5.0s"
+      },
+      {
+        "file": "tests/e2e/i18n.spec.ts",
+        "name": "Issue #866 Server Component admin headings and help follow English and Vietnamese",
+        "duration": "4.2s"
+      },
+      {
+        "file": "tests/e2e/i18n.spec.ts",
+        "name": "Issue #866 native Gantt keeps resized layout and latest canonical rows through each live locale in Day and Week",
+        "duration": "13.6s"
+      },
+      {
+        "file": "tests/e2e/i18n.spec.ts",
+        "name": "#890 rapid locale round trips rebuild hidden baseline and Milestone headers with current add-task accessibility",
+        "duration": "7.9s"
+      },
+      {
+        "file": "tests/e2e/i18n.spec.ts",
+        "name": "#890 active single/multi sort survives locale round trips and newer user sorting with a fresh settled receipt",
+        "duration": "11.5s"
+      },
+      {
+        "file": "tests/e2e/issue-730-view-composer.spec.ts",
+        "name": "#730 지연 원본은 새 상세·상세 Task 명령·이름 검색에 양보한다",
+        "duration": "28.8s"
+      },
+      {
+        "file": "tests/e2e/issue-730-view-composer.spec.ts",
+        "name": "#730 실제 HTTP 다섯 고정 관점·수정 계층 두 구성·저장 복원·Gantt 보존",
+        "duration": "37.1s"
+      },
+      {
+        "file": "tests/e2e/issue-730-view-composer.spec.ts",
+        "name": "#730 실제 HTTP 원본 Task·Assignment 복귀, 응답 역전·오류 차단·구버전 설정 복구",
+        "duration": "35.8s"
+      },
+      {
+        "file": "tests/e2e/issue-730-view-composer.spec.ts",
+        "name": "#730 실제 HTTP 긴 이름·동일 열 budget·5폭 내부 스크롤·키보드·읽기 전용 가상 그룹",
+        "duration": "34.5s"
+      },
+      {
+        "file": "tests/e2e/issue-730-view-composer.spec.ts",
+        "name": "#730 실제 HTTP Milestone·리소스·WorkArea 원본 ID와 취소 후 정확한 조회 복귀",
+        "duration": "36.1s"
+      },
+      {
+        "file": "tests/e2e/issue-730-view-composer.spec.ts",
+        "name": "#730 실제 원본 Task 저장 후 revision·snapshot 갱신과 선택 관점 보존",
+        "duration": "32.7s"
+      },
+      {
+        "file": "tests/e2e/issue-730-view-composer.spec.ts",
+        "name": "#798 다섯 관점 고급 조건의 5폭 keyboard·focus·활성값과 조회 불변",
+        "duration": "1.3m"
+      }
+    ]
+  },
+  "frozenUnit": {
+    "command": "npm test -- tests/features/gantt/svar-viewport-port.test.ts tests/features/gantt/axis-transaction.test.ts tests/features/gantt/viewport-coordinator.test.ts tests/scripts/e2e-shard-planner.test.ts tests/scripts/wbs-report-correlation.test.ts",
+    "result": "PASS",
+    "files": 5,
+    "pass": 227,
+    "fail": 0
+  },
+  "checks": {
+    "changedFileLint": "PASS (0 warnings/errors)",
+    "version": "PASS v0.145.1",
+    "testDiscovery": "PASS (310 unit files, 894 browser tests; root and external cwd)",
+    "typecheck": "PASS",
+    "markdownLinks": "PASS (419 files)",
+    "diffCheck": "PASS",
+    "assertionPreservation": "PASS: all original 23 expect statements/order,160RAF,180s test/30s details/10s DOM budgets retained."
+  },
+  "restoration": "Only test-generated next-env.d.ts/tsconfig UUID includes and regenerated historical issue-730 PNG/geometry files restored; two newly generated coarse-pointer captures removed. Historical captures are not overwritten with this run.",
+  "technicalReview": {
+    "reviewer": "separate /root/qa_review qa_docs agent",
+    "scope": "Independent pre-submission technical review, not human QA or Owner/Manager ACCEPT",
+    "result": "PASS",
+    "blockingFindings": 0
+  },
+  "remote": {
+    "quality": "NOT TESTED",
+    "e2e": "NOT TESTED",
+    "docker": "NOT TESTED",
+    "trustedQa": "NOT TESTED",
+    "managerDecision": "NOT TESTED",
+    "mergeReady": "BLOCKED",
+    "mainGhcrRelease": "N/A (not in requested scope)"
+  },
+  "limits": [
+    "Existing shard7 rebalancing remains exact147/8 with 35m cap; full8 success/runtime cost remains remotely NOT TESTED.",
+    "Other original schedule-views/scale/density specs not reexecuted this round; prior66-case evidence remains historical.",
+    "Minimal route probe confirms a matching transport race; exact remote server internals remain partly UNKNOWN.",
+    "No new automatic Pre-PR mapping PASS claimed; prior UNKNOWN6/BLOCKED remains historical.",
+    "No merge, release authorization, main/GHCR, branch deletion or Issue close."
+  ]
+}

@@ -5838,3 +5838,9 @@ C003 최종 동일동결source의31spec/192계획=190PASS/기존2SKIP/FAIL0, 별
 TEST_LIFECYCLE_REVIEW는 기존 Unit/국가 캘린더·Project 생성·WBS 오류 spec EXTEND, Import renderer Unit ADD, 누적31spec·SQLite/HTTP/언어/Gantt·Required3/Chromium8 KEEP_UNIQUE다. 동결 source의 수동31spec(F2/E4/A13/B4/C7/D1, 각20분·workers1/retries0/max-failures0)과 전체Unit/type/문서 gate를 사용한다. 두 part를 병행할 때 로컬 서버/DB/dist/report를 분리하며 #752 자동24spec/4parts나 원격정책을 바꾸지 않는다. [Work Packet C005](exec-plans/active/ISSUE_866.md), [단일 원장](ISSUE_866_FAILURE_ANALYSIS.md)과 정제 실행 증거를 따른다. 실행 전/미실행은 NOT TESTED, 자동Pre-PR UNKNOWN은 BLOCKED로 유지한다. 기존 문서/실패 이력은 보존한다.
 
 C005 최종동결source1cdd6edefdd0160dbcd56a290a02fb4c4953bd26c36a596654f1b6499b94d046/1322입력의31고유spec/194계획=192PASS/기존2SKIP/FAIL0,전체Unit3714PASS/기존3SKIP·build/runtime-tools·원본설정typecheck/13파일lint·탐색301/884·문서구조PASS다. 자동Pre-PR UNKNOWN94/missing0/BLOCKED와원격새Head/Trusted·Owner NOT TESTED를구별한다. [정제최종증거](evidence/issue-866/ci3526-local-validation.json)·단일원장C005 D를따르며이전원격/중간/중단관측은보존하고중복가산하지않는다.
+
+## Issue #889 / PR #894 — 전체 실패 합집합과 라우팅 수명 검증 (2026-11-08)
+
+[단일 누적 원장](ISSUE_889_890_FAILURE_ANALYSIS.md#ci-3573-001--전-이력-재수집과-reportdetails-라우팅-수명-경합-2026-11-08)의 #3569~#3573를 정책 차단/제품 reveal/35분 용량/fixture transport로 구분한다. 실제 실패 합집합 `grid-task-start-reveal.spec.ts`+`issue-730-view-composer.spec.ts` 전체와 인접 `i18n.spec.ts`, port/axis/coordinator·report correlation/planner Unit을 동일 동결 source에서 fail-fast 없이 검증한다. 기존 #730 저장 case만 상세 응답/DOM/focus/DB 검증 후 route 해제로 옮기며160RAF·30초·canonical/snapshot/readonly/원본 ID 단언은 보존한다. 최소 transport probe와 실제 HTTP/SQLite 제품 회귀는 서로 대체하지 않는다.
+
+`manualRebalance894`의 147개 정확 spec/유일8배치·4이동은 Unit으로 검증하되 새 Full8의35분 이내 성공은 원격 실측 전 NOT TESTED다. 기존 Required3/worker1/timeout/retry/skip/fail-fast/Trusted·Owner gate를 변경하지 않는다. 로컬/원격/환경별 상태와 동결 지문은 원장·[검증 영수증](evidence/issue-889-890/pr894-rework-validation-20261108.json)에 분리한다.
