@@ -18,7 +18,8 @@
 EXTEND existing schedule-views.spec.ts, KEEP_UNIQUE original visual/sort/readonly/SQLite tests, ADD thin visual evidence helper and file guard. No new golden without Owner approval.
 
 ## DOCUMENTATION_SYNC
-- `docs/TEST_PLAN.md`: UPDATED
+- `docs/TEST_PLAN.md`: N/A(기존 대용량 테스트 계획 원본을 보존하고 신규 사항은 docs/TEST_PLAN_895_897.md Addendum에 기록)
+- `docs/TEST_PLAN_895_897.md`: UPDATED
 - `docs/UI_UX_GUIDELINES.md`: UPDATED
 - `docs/CI_CD.md`: UPDATED
 - `docs/REMOTE_VALIDATION.md`: UPDATED
