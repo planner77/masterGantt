@@ -1,0 +1,86 @@
+{
+  "issues": [
+    889,
+    890
+  ],
+  "baseline": "ecc15d171f08dbb249ff52b13ca616592d1c9ac7",
+  "version": "0.145.1",
+  "date": "2026-11-08",
+  "source": {
+    "inputs": 1336,
+    "normalized_sha256": "0b2533867b12834e06988e4ea141a1c564ff119c9b180b72475de293af195317",
+    "raw_before_generated_cleanup": "da91593766bf4a3439e62d55ce2f10fb89777284dd699511e9cc41fd6c317c77",
+    "generated_tsconfig_includes": 14,
+    "raw_after_cleanup": "0b2533867b12834e06988e4ea141a1c564ff119c9b180b72475de293af195317",
+    "normalization": "Only Next isolated UUID type include additions; all other tsconfig fields checked against HEAD. next-env.d.ts excluded as generated."
+  },
+  "unit": {
+    "status": "PASS",
+    "files": 13,
+    "passed": 273,
+    "commands": [
+      "npm test -- tests/features/gantt/gantt-density.test.ts tests/features/gantt/schedule-view-scale.test.ts tests/features/gantt/schedule-view-projection.test.ts tests/features/gantt/week-calendar-interval.test.ts tests/features/day-header-tooltip.test.ts tests/features/gantt/viewport-coordinator.test.ts tests/lib/i18n-phase-a.test.ts tests/features/gantt/axis-transaction.test.ts tests/features/gantt/state-consistency-harness.test.ts",
+      "npm test -- tests/features/gantt/axis-transaction-runtime-fixture.test.ts tests/features/gantt/state-consistency-runtime-fixture.test.ts tests/features/gantt/canonical-recovery-runtime.test.ts tests/scripts/prepr-verifier.test.ts"
+    ]
+  },
+  "chromium": {
+    "status": "PASS",
+    "specs": 8,
+    "passed": 65,
+    "failed": 0,
+    "skipped": 0,
+    "interrupted": 0,
+    "retries": 0,
+    "workers": 1,
+    "duration_minutes": 9.7,
+    "command": "npx playwright test --config tests/config/playwright.config.ts tests/e2e/i18n.spec.ts tests/e2e/schedule-views.spec.ts tests/e2e/project-workspace-layout.spec.ts tests/e2e/project-summary-bar-visual.spec.ts tests/e2e/project-gantt-scale.spec.ts tests/e2e/project-gantt-fullscreen.spec.ts tests/e2e/projection-row-alignment.spec.ts tests/e2e/viewport-coordinator.spec.ts --workers=1 --retries=0"
+  },
+  "lint": {
+    "status": "PASS",
+    "errors": 0,
+    "existing_warnings": 2
+  },
+  "typecheck": "PENDING_FINAL_CLEANUP_RECHECK",
+  "independent_technical_review": {
+    "agent": "/root/qa_review",
+    "open_findings": 0,
+    "final_exact_head": "PENDING"
+  },
+  "automatic_prepr": {
+    "status": "BLOCKED",
+    "unknown_paths": [
+      "src/features/gantt/schedule-view-panel.tsx",
+      "src/features/gantt/schedule-view-panel.css",
+      "src/features/gantt/schedule-view-scale.ts"
+    ],
+    "manual_selection": "See Work Packet LOCAL_VALIDATION_SELECTION; not an automatic mapping PASS"
+  },
+  "ruleset": {
+    "id": 24043042,
+    "enforcement": "active",
+    "strict": true,
+    "review_threads_must_resolve": true,
+    "required": [
+      "Build, static checks, and unit tests",
+      "Chromium end-to-end tests",
+      "Docker build and runtime smoke test"
+    ],
+    "changed": false
+  },
+  "not_tested": [
+    "new PR quality/e2e/docker",
+    "Trusted QA",
+    "Owner/Manager ACCEPT",
+    "native 125% browser zoom",
+    "all projected coarse/touch combinations",
+    "all locale/viewport/View/scale/state combinations",
+    "real assistive technology",
+    "main/GHCR/Release"
+  ],
+  "risk_level": "HIGH",
+  "qa_method": "OWNER_MANAGED",
+  "qa_required": true,
+  "manager_decision": "NOT TESTED",
+  "MERGE_READY": "BLOCKED",
+  "release_authorized": false
+}

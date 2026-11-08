@@ -78,6 +78,7 @@
         "tests/e2e/project-master-relations.spec.ts",
         "tests/e2e/project-resource-calendar-persistence.spec.ts",
         "tests/e2e/project-search-filter.spec.ts",
+        "tests/e2e/project-task-context-menu.spec.ts",
         "tests/e2e/project-task-editor-persistence.spec.ts",
         "tests/e2e/project-task-editor.spec.ts",
         "tests/e2e/resource-drill-api.spec.ts",
@@ -117,6 +118,7 @@
         "tests/e2e/issue-733-process-workarea-dashboard.spec.ts",
         "tests/e2e/issue-735-system-dashboard.spec.ts",
         "tests/e2e/milestone-exchange-state.spec.ts",
+        "tests/e2e/milestone-stage-exchange.spec.ts",
         "tests/e2e/milestone-timeline-interchange-http.spec.ts",
         "tests/e2e/milestone-visibility-persistence.spec.ts",
         "tests/e2e/project-edit-authorization.spec.ts",
@@ -150,6 +152,7 @@
         "tests/e2e/milestone-wbs-mode.spec.ts",
         "tests/e2e/project-chart-vertical-dnd.spec.ts",
         "tests/e2e/project-edit-permission-recheck.spec.ts",
+        "tests/e2e/project-list-search-filter.spec.ts",
         "tests/e2e/project-task-delete-context.spec.ts",
         "tests/e2e/resource-dashboard-ui.spec.ts",
         "tests/e2e/resource-drill-dashboard.spec.ts",
@@ -165,7 +168,6 @@
         "tests/e2e/browser-task-logistics-links.spec.ts",
         "tests/e2e/canonical-projection.spec.ts",
         "tests/e2e/error-boundary-regression.spec.ts",
-        "tests/e2e/gantt-state-product-integration.spec.ts",
         "tests/e2e/issue-726-logistics-master.spec.ts",
         "tests/e2e/issue-726-task-logistics.spec.ts",
         "tests/e2e/issue-737-target0-acceptance.spec.ts",
@@ -188,20 +190,18 @@
         "tests/e2e/cross-screen-regression.spec.ts",
         "tests/e2e/gantt-adapter-poc.spec.ts",
         "tests/e2e/gantt-demo.spec.ts",
+        "tests/e2e/gantt-state-product-integration.spec.ts",
         "tests/e2e/i18n-master-data.spec.ts",
         "tests/e2e/inline-name-persistence.spec.ts",
         "tests/e2e/issue-732-milestone-dashboard.spec.ts",
         "tests/e2e/logistics-dashboard-request-state.spec.ts",
         "tests/e2e/logistics-target-authoring.spec.ts",
-        "tests/e2e/milestone-stage-exchange.spec.ts",
         "tests/e2e/project-context-toolbar-responsive.spec.ts",
         "tests/e2e/project-create-and-read.spec.ts",
         "tests/e2e/project-gantt-density.spec.ts",
-        "tests/e2e/project-list-search-filter.spec.ts",
         "tests/e2e/project-logistics-management.spec.ts",
         "tests/e2e/project-resource-memberships-ui.spec.ts",
         "tests/e2e/project-settings-dialog-layout.spec.ts",
-        "tests/e2e/project-task-context-menu.spec.ts",
         "tests/e2e/project-task-persistence.spec.ts",
         "tests/e2e/resource-developer-grade.spec.ts",
         "tests/e2e/resource-excel-export-ui.spec.ts",
@@ -1883,5 +1883,103 @@
     "estimatorCaveat": "Shift-only approximation of the source run's observed whole-file completion intervals; canceled work, fixture/setup contention, host load and downstream cases are unmeasured. Historical projectedMs/metrics/sourceRunIds remain an unchanged dated baseline, not new forecasts.",
     "constraints": "All 147 E2E files in exactly one of 8 groups; no assertion, test body, test skip, retry, fail-fast, worker, 35m timeout, required Quality/E2E/Docker, Trusted QA or Owner policy changed.",
     "validation": "STATIC_EXACT_147_FILE_COVERAGE_ONLY; NEW_HEAD_FULL_PR_CI_NOT_TESTED"
+  },
+  "manualRebalance894": {
+    "issue": 889,
+    "relatedIssue": 890,
+    "incident": "CI-3572-001",
+    "pullRequest": 894,
+    "sourceRunId": 42446255333,
+    "sourceRunNumber": 3572,
+    "runAttempt": 1,
+    "sourceHeadSha": "415631ce7c1fc279e9cddb37e0070495de209565",
+    "sourceBaseSha": "ecc15d171f08dbb249ff52b13ca616592d1c9ac7",
+    "sourceTestMergeSha": "ba70bdd997984a7f0b5aa9fa083980f6813ec0f3",
+    "originalConclusion": "cancelled",
+    "shard7JobId": 128626381225,
+    "jobTimeoutMinutes": 35,
+    "shard7ObservedPassCount": 116,
+    "shard7PlannedTestCount": 119,
+    "shard7UnfinishedTests": 3,
+    "fullSuccessShards": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      8
+    ],
+    "originalObservedReporterWallMinutes": [
+      25.8,
+      19.8,
+      26.4,
+      24.5,
+      20.9,
+      30.2,
+      null,
+      27.8
+    ],
+    "shard7CensoredObserved116TestWallMinutes": 33.63,
+    "beforeFileCounts": [
+      17,
+      18,
+      17,
+      21,
+      17,
+      17,
+      21,
+      19
+    ],
+    "afterFileCounts": [
+      17,
+      19,
+      17,
+      22,
+      18,
+      16,
+      19,
+      19
+    ],
+    "explicitSpecCount": 147,
+    "movedFiles": [
+      {
+        "file": "tests/e2e/project-task-context-menu.spec.ts",
+        "from": 7,
+        "to": 2,
+        "observedCompletedFileSpanMinutes": 5.78
+      },
+      {
+        "file": "tests/e2e/project-list-search-filter.spec.ts",
+        "from": 7,
+        "to": 5,
+        "observedCompletedFileSpanMinutes": 3.79
+      },
+      {
+        "file": "tests/e2e/milestone-stage-exchange.spec.ts",
+        "from": 7,
+        "to": 4,
+        "observedCompletedFileSpanMinutes": 2.26
+      },
+      {
+        "file": "tests/e2e/gantt-state-product-integration.spec.ts",
+        "from": 6,
+        "to": 7,
+        "observedCompletedFileSpanMinutes": 4.83
+      }
+    ],
+    "approximateShiftOnlyWallMinutes": [
+      25.8,
+      25.58,
+      26.4,
+      26.76,
+      24.69,
+      25.37,
+      26.63,
+      27.8
+    ],
+    "estimateCaveat": "Single Run #3572; Shard7 3 unexecuted cases, Next/runner cold starts and between-test gaps are not measured after relocation. The 26.63 minute value for Shard7 is only 116 executed cases adjusted by completed-file wall intervals, not a full-shard prediction. No 35-minute success guarantee. Historical generatedAt/metrics/projectedMs/sourceRunIds/manualRebalance885 are unchanged.",
+    "validation": "STATIC_GIT_TREE_EXACT_147_AND_UNIQUE_8_GROUPS; UNIT_AND_NEW_FULL_PR_CI_NOT_TESTED",
+    "scope": "Only file-to-shard assignments, test assertions and docs; preserve E2E8, 35-minute cap, workers1, PR fail-fast, no retry/skip/assertion modifications, Required3 and trusted QA."
   }
 }

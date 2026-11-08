@@ -1,0 +1,46 @@
+const http = require('node:http');
+const { chromium } = require('/home/planner/Dev/masterGantt-889-890/node_modules/playwright');
+const { performance } = require('node:perf_hooks');
+(async () => {
+ const server = http.createServer(async (req,res)=> {
+  let body=''; for await (const chunk of req) body+=chunk;
+  if(req.url==='/') {res.writeHead(200,{'content-type':'text/html'}); res.end('<!doctype html><body>fixture'); return;}
+  res.writeHead(200,{'content-type':'application/json'}); res.end(JSON.stringify({kind:JSON.parse(body).kind}));
+ });
+ await new Promise(r=>server.listen(0,'127.0.0.1',r));
+ const origin=`http://127.0.0.1:${server.address().port}`;
+ const browser=await chromium.launch({headless:true});
+ const results=[];
+ try {
+  for(const mode of ['immediate-unroute','after-details-unroute']) {
+   const page=await browser.newPage(); await page.goto(origin);
+   const started=performance.now(); let completed=0,failed=0,overlap=0,continued=0;
+   for(let i=0;i<400;i++) {
+    let reportFinish; const gate=new Promise(r=>reportFinish=r);
+    let release; const held=new Promise(r=>release=r);
+    let phase='report';
+    const handler=async route=>{
+     const kind=route.request().postDataJSON().kind;
+     if(kind==='details') {if(phase==='teardown')overlap++; continued++; return route.continue();}
+     const response=await route.fetch(); release(); await gate; await route.fulfill({response});
+    };
+    await page.route('**/views',handler);
+    const report=page.waitForResponse(r=>r.url().endsWith('/views')&&r.request().postDataJSON().kind==='report',{timeout:1000});
+    const details=page.waitForResponse(r=>r.url().endsWith('/views')&&r.request().postDataJSON().kind==='details',{timeout:1000}).then(async r=>({ok:r.status()===200,body:await r.json()}),e=>({ok:false,error:e.message.split('\n')[0]}));
+    const run=page.evaluate(async()=>{
+     const report=await fetch('/views',{method:'POST',body:JSON.stringify({kind:'report'})}); await report.json();
+     const details=await fetch('/views',{method:'POST',body:JSON.stringify({kind:'details'})}); return details.json();
+    }).catch(e=>({error:e.message.split('\n')[0]}));
+    await held; reportFinish(); await report;
+    if(mode==='immediate-unroute') {phase='teardown'; await page.unroute('**/views',handler);}
+    const result=await details;
+    if(mode!=='immediate-unroute') {phase='teardown'; await page.unroute('**/views',handler);}
+    if(!result.ok) {failed++; console.log(JSON.stringify({mode,iteration:i,result})); await page.goto(origin);}
+    else {completed++; await run;}
+   }
+   results.push({mode,iterations:400,completed,failed,handlerDetailsDuringTeardown:overlap,detailsContinued:continued,elapsedMs:Math.round(performance.now()-started)});
+   await page.close();
+  }
+ } finally {await browser.close(); await new Promise(r=>server.close(r));}
+ console.log(JSON.stringify(results,null,2));
+})().catch(e=>{console.error(e.stack); process.exitCode=1;});

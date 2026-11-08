@@ -36,6 +36,21 @@ const appColumnTerms: Record<string, readonly [string, string]> = {
   "기준 종료": ["Baseline end", "Kết thúc cơ sở"], "작업 추가": ["Add task", "Thêm công việc"],
 };
 
+const columnHeaderSources: Readonly<Record<string, string>> = {
+  copySelection: "선택", text: "작업", externalId: "외부 ID",
+  projectStart: "시작", projectDuration: "기간", baselineStart: "기준 시작",
+  baselineEnd: "기준 종료", milestoneStage: "Milestone", "add-task": "작업 추가",
+};
+
+/** A native normalized header is presentation data, never a translation key. */
+export function ganttColumnHeader(id: string | number, locale: AppLocale): string | undefined {
+  if (!Object.hasOwn(columnHeaderSources, id)) return undefined;
+  const source = columnHeaderSources[id];
+  if (source === "Milestone") return source;
+  const words = appColumnTerms[source];
+  return locale === "ko" ? source : words[locale === "en" ? 0 : 1];
+}
+
 function calendarTerms(locale: AppLocale) {
   const formatLocale = LOCALE_FORMATS[locale];
   const monthFull = Array.from({ length: 12 }, (_, month) => new Intl.DateTimeFormat(formatLocale, { month: "long", timeZone: "UTC" }).format(new Date(Date.UTC(2026, month, 1))));

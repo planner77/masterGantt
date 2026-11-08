@@ -1,0 +1,148 @@
+{"name":"week","api":"svar-api-1","rows":[":00000000-0000-4000-8000-000000000003",":00000000-0000-4000-8000-000000000001",":00000000-0000-4000-8000-000000000002"],"generation":4,"outcome":"SETTLED","scale":"week","obs":{"generation":5,"stage":"delivery","outcome":"SETTLED"},"recovery":{"outcome":"SETTLED","changed":false}}
+{"name":"day","api":"svar-api-1","rows":[":00000000-0000-4000-8000-000000000003",":00000000-0000-4000-8000-000000000001",":00000000-0000-4000-8000-000000000002"],"generation":5,"outcome":"SETTLED","scale":"day","obs":{"generation":8,"stage":"delivery","outcome":"SETTLED"},"recovery":{"outcome":"SETTLED","changed":false}}
+{"name":"fullscreen","api":"svar-api-1","rows":[":00000000-0000-4000-8000-000000000003",":00000000-0000-4000-8000-000000000001",":00000000-0000-4000-8000-000000000002"],"generation":6,"outcome":"SETTLED","scale":"day","obs":{"generation":11,"stage":"delivery","outcome":"SETTLED"},"recovery":{"outcome":"SETTLED","changed":false}}
+{"name":"fullscreen-exit","api":"svar-api-1","rows":[":00000000-0000-4000-8000-000000000003",":00000000-0000-4000-8000-000000000001",":00000000-0000-4000-8000-000000000002"],"generation":7,"outcome":"SETTLED","scale":"day","obs":{"generation":14,"stage":"delivery","outcome":"SETTLED"},"recovery":{"outcome":"SETTLED","changed":false}}
+{"name":"resource-wbs","api":"svar-api-1","rows":[":00000000-0000-4000-8000-000000000003",":00000000-0000-4000-8000-000000000001",":00000000-0000-4000-8000-000000000002"],"generation":8,"outcome":"SETTLED","scale":"day","obs":{"generation":19,"stage":"delivery","outcome":"SETTLED"},"recovery":{"outcome":"SETTLED","changed":false}}
+{"name":"equipment-wbs","api":"svar-api-1","rows":[":00000000-0000-4000-8000-000000000003",":00000000-0000-4000-8000-000000000001",":00000000-0000-4000-8000-000000000002"],"generation":9,"outcome":"SETTLED","scale":"day","obs":{"generation":24,"stage":"delivery","outcome":"SETTLED"},"recovery":{"outcome":"SETTLED","changed":false}}
+{
+  "result": "PASS",
+  "api": "svar-api-1",
+  "original": [
+    ":00000000-0000-4000-8000-000000000001",
+    ":00000000-0000-4000-8000-000000000002",
+    ":00000000-0000-4000-8000-000000000003"
+  ],
+  "sorted": [
+    ":00000000-0000-4000-8000-000000000003",
+    ":00000000-0000-4000-8000-000000000001",
+    ":00000000-0000-4000-8000-000000000002"
+  ],
+  "records": [
+    {
+      "name": "week",
+      "api": "svar-api-1",
+      "rows": [
+        ":00000000-0000-4000-8000-000000000003",
+        ":00000000-0000-4000-8000-000000000001",
+        ":00000000-0000-4000-8000-000000000002"
+      ],
+      "generation": 4,
+      "outcome": "SETTLED",
+      "scale": "week",
+      "obs": {
+        "generation": 5,
+        "stage": "delivery",
+        "outcome": "SETTLED"
+      },
+      "recovery": {
+        "outcome": "SETTLED",
+        "changed": false
+      }
+    },
+    {
+      "name": "day",
+      "api": "svar-api-1",
+      "rows": [
+        ":00000000-0000-4000-8000-000000000003",
+        ":00000000-0000-4000-8000-000000000001",
+        ":00000000-0000-4000-8000-000000000002"
+      ],
+      "generation": 5,
+      "outcome": "SETTLED",
+      "scale": "day",
+      "obs": {
+        "generation": 8,
+        "stage": "delivery",
+        "outcome": "SETTLED"
+      },
+      "recovery": {
+        "outcome": "SETTLED",
+        "changed": false
+      }
+    },
+    {
+      "name": "fullscreen",
+      "api": "svar-api-1",
+      "rows": [
+        ":00000000-0000-4000-8000-000000000003",
+        ":00000000-0000-4000-8000-000000000001",
+        ":00000000-0000-4000-8000-000000000002"
+      ],
+      "generation": 6,
+      "outcome": "SETTLED",
+      "scale": "day",
+      "obs": {
+        "generation": 11,
+        "stage": "delivery",
+        "outcome": "SETTLED"
+      },
+      "recovery": {
+        "outcome": "SETTLED",
+        "changed": false
+      }
+    },
+    {
+      "name": "fullscreen-exit",
+      "api": "svar-api-1",
+      "rows": [
+        ":00000000-0000-4000-8000-000000000003",
+        ":00000000-0000-4000-8000-000000000001",
+        ":00000000-0000-4000-8000-000000000002"
+      ],
+      "generation": 7,
+      "outcome": "SETTLED",
+      "scale": "day",
+      "obs": {
+        "generation": 14,
+        "stage": "delivery",
+        "outcome": "SETTLED"
+      },
+      "recovery": {
+        "outcome": "SETTLED",
+        "changed": false
+      }
+    },
+    {
+      "name": "resource-wbs",
+      "api": "svar-api-1",
+      "rows": [
+        ":00000000-0000-4000-8000-000000000003",
+        ":00000000-0000-4000-8000-000000000001",
+        ":00000000-0000-4000-8000-000000000002"
+      ],
+      "generation": 8,
+      "outcome": "SETTLED",
+      "scale": "day",
+      "obs": {
+        "generation": 19,
+        "stage": "delivery",
+        "outcome": "SETTLED"
+      },
+      "recovery": {
+        "outcome": "SETTLED",
+        "changed": false
+      }
+    },
+    {
+      "name": "equipment-wbs",
+      "api": "svar-api-1",
+      "rows": [
+        ":00000000-0000-4000-8000-000000000003",
+        ":00000000-0000-4000-8000-000000000001",
+        ":00000000-0000-4000-8000-000000000002"
+      ],
+      "generation": 9,
+      "outcome": "SETTLED",
+      "scale": "day",
+      "obs": {
+        "generation": 24,
+        "stage": "delivery",
+        "outcome": "SETTLED"
+      },
+      "recovery": {
+        "outcome": "SETTLED",
+        "changed": false
+      }
+    }
+  ]
+}

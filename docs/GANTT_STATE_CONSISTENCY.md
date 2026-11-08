@@ -1,3 +1,10 @@
+## Issue #889 / #890 — locale header·조회 밀도 적용
+
+Issue #890의 native sort는 원본 sibling order를 쓰는 명령이 아니다. 현재 sort descriptor·유효한 stable-tie history·공개 column comparator와 canonical hierarchy로 표시 기대 순서를 독립 계산한다. canonical payload/parent/Link·누락/중복·branch 불변 검증을 유지하며 정렬된 tree의 정확한 기대 순서가 검증된 경우에만 canonical proof로 정규화한다. 실제 Core/DOM 순서·Y는 정렬된 기대값과 exact 비교하고 무정렬 상태는 기존 canonical 순서를 그대로 강제한다. sort 입력은 새 관측 세대이며 낡은 SETTLED를 승계하지 않는다.
+
+
+GSC01~12와 candidate 상태를 유지한다. header 문자열은 복원 가능한 열 레이아웃 state가 아니며 고정 column ID에서 현재 locale 문구를 생성한다. 모든 native set-columns 복원은 새 header 객체를 사용하고 stale locale/projection/gesture는 적용하지 않는다. frame의 공통 density 입력은 본문만 처리하며 잠금·View 교체·새 사용자 입력이 이전 요청을 폐기한다. 조회 panel의 row/date bookmark와 native Coordinator의 소유권을 구별하고 canonical 쓰기/강제remount를 추가하지 않는다. [증거/미검증](exec-plans/active/ISSUE_889.md).
+
 # Gantt State Consistency Standard
 
 표준 식별자: `GSC` · 버전: `1.0.0-candidate` · 작성: 2026-10-13 · 소유: Architecture/Manager · 문서 상태: `REVIEW_PENDING`

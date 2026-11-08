@@ -1,3 +1,11 @@
+## Issue #889 / #890 — 일정 View 공통 작업면과 현재 언어 헤더 (2026-11-08)
+
+WBS/Resource/설비는 같은 View·표시 단위·전체 화면과 44px 상태 슬롯을 사용한다. 조회 전용·건수·다시 조회·stale/error는 이 슬롯에서 제공하고 추가 strip으로 본문을 밀지 않는다. Grid는 WBS 열 ID·폭·순서·표시 상태, 2단 Day/Week 날짜축·행 밀도·semantic focus/selection을 공유한다. 조회 View의 편집 명령은 비활성이다. 선택 도움말은 기존 ContextHelp의 44px 버튼으로 열며 긴 언어에서도 원문과 키보드 포커스 표시를 가리지 않는다. Ctrl+휠은 세 View의 본문에서만 34↔28px(터치44px) 밀도를 변경한다.
+
+현재 locale의 고정 source key로 header/ARIA를 재생성하며 이전 번역 문자열을 레이아웃 복원 자료로 쓰지 않는다. 원본 Task/관리형 fallback·canonical ID·revision·WBS instance·현재 사용자 의도를 보존한다. 상세 설계/실제 검증과 미검증은 [Work Packet](docs/exec-plans/active/ISSUE_889.md)을 따른다.
+
+---
+
 ## Issue #885 — Markdown 편집 UX Design Delta B (2026-11-07)
 
 Issue/Task 편집기에서 필드의 폼·sticky title·scroll owner·44px 터치 타깃을 유지하면서 Description만 공유 MDXEditor로 교체한다. 시각적 편집이 기본이며 Markdown 원문 모드 전환은 툴바에서 접근 가능하다. 구 일반 텍스트는 원문 그대로, 명시적 변환 후 Markdown. 허용 서식은 제목·인라인 강조·코드·인용·목록/GFM task list·표·링크·구분선이며 이미지/파일/HTML 임베드/외부 fetch는 제공하지 않는다. 읽기 모드의 Markdown AST 렌더러는 HTML/이미지를 제거하고 HTTP(S) 링크만 안전하게 연다. 잠금·동시성·locale 전환은 초안을 파괴하지 않는다. [상세 #885](docs/exec-plans/active/ISSUE_885.md). 실제 390/768/1024/1440/1920px 화면 및 언어 검증은 아직 NOT TESTED.

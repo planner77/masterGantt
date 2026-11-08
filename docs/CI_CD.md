@@ -1,3 +1,13 @@
+## Issue #889/#890 — PR #894 CI #3572.1 Shard7 timeout-neutral four-spec rebalance (2026-11-08)
+
+[Full #3572.1](https://github.com/planner77/masterGantt/actions/runs/42446255333), Head `415631ce`, base `ecc15d17`: Chromium Shard1/2/3/4/5/6/8 SUCCESS; Shard7 119예정/116PASS 뒤 공통 35분 Job 상한과 일치하는 CANCELLED. Required Quality/Docker PASS, E2E aggregate/QA Final downstream FAIL. 기존 #3571의 #574 Task reveal 오류는 새 Head의 Shard3 SUCCESS로 재발 미관측. Shard7의 끝 3case는 NOT TESTED.
+
+기존 #885 F885-008의 과거 생성 모델/이동 원장을 유지하면서 `tests/config/e2e-shard-plan.json`에 `manualRebalance894` 단독 추가: Shard7→2 `project-task-context-menu`(관측5.78m), 7→5 `project-list-search-filter`(3.79m), 7→4 `milestone-stage-exchange`(2.26m), 6→7 `gantt-state-product-integration`(4.83m). 구 파일 수 `[17,18,17,21,17,17,21,19]`→신 `[17,19,17,22,18,16,19,19]`, 실제 Git Tree discovered147 files exactly assigned147, duplicates0. 실측 1 Run의 완료 파일 구간만 산술 이동한 비교는 `[25.8,25.58,26.4,26.76,24.69,25.37,26.63(+미완료3),27.8]`분이고 **원격 성능/35분 이내 성공 예측 아님**; cold compile·실측 편차/중단 뒤 Test 시간은 미측정이다. 과거 `generatedAt/sourceRunIds/metrics/projectedMs`를 현행 시간으로 오해하거나 덮지 않는다.
+
+`tests/scripts/e2e-shard-planner.test.ts`는 147 spec unique inventory·원본 #885 이력·후속 네 이동/현재 정확 할당·현재 count를 검증한다. 35m/8 shards/worker1/PR fail-fast/retries/skip/E2E assertion/Required Quality/E2E/Docker/Trusted QA/Owner 통제 불변, `.github/workflows/ci.yml` 및 Release workflow 수정 없음. 근거 및 다음 Head 미검증/잔여 위험은 [#889·#890 누적 원장](ISSUE_889_890_FAILURE_ANALYSIS.md)과 [Work Packet](exec-plans/active/ISSUE_889.md)에 기록했다. 새 Full PR CI 시작 뒤 모니터링하지 않고 merge/Main/GHCR/Issue close는 보류한다.
+
+---
+
 ## Issue #885 F885-008 — Full PR CI #3563.1 E2E 35분 상한·8샤드 균형 보정 (2026-11-07)
 
 [PR #887 Full #3563.1 / Run 42376741473](https://github.com/planner77/masterGantt/actions/runs/42376741473)은 QA Preflight·Policy·TypeScript·ESLint·Vitest·Next build·Docker·Required Quality·Docker가 SUCCESS이고 Chromium 샤드 2/4/5/6/7/8이 SUCCESS였다. 샤드 1/3은 공통 `timeout-minutes: 35`에 각각 약35.3분 만에 취소되어 전체 Run이 **CANCELLED**, E2E 집계/QA Final은 미통과했다. 검사 assertion 실패나 단순 `npm ci` 설치 실패로 분류하지 않는다.
@@ -1256,3 +1266,7 @@ Full #3524.1의 실제 inline 이름 저장 재시작case가 본문30초를 초�
 C003 성능 해석: 분리된 fixture 예산 때문에 Playwright reporter duration은 준비를 제외한 본문 시간이다. 실제 전체 비용은 inline-name-restart-preparation과 isolated-application performance의 준비/restart/전체elapsed를 함께 읽는다. 짧아진 본문 duration을 dev compile 개선·전체여정단축·10개성공run baseline으로 해석하지 않는다. 기존 shard 성능원장/projectedMs/sourceRunIds와 정책은 변경하지 않는다.
 
 C003 최종 동일동결source의31spec/192계획=190PASS/기존2SKIP/FAIL0, 별도2CPU3반복PASS(고유합계미가산), 최종type/lint/탐색/정책/문서구조PASS다. 자동Pre-PR UNKNOWN94는BLOCKED로유지하고원격/Owner/Manager NOT TESTED와구별한다. [최종정제증거](evidence/issue-866/ci3524-local-validation.json), 단일원장C003 E를따른다.
+
+## Issue #889 / PR #894 — 재실패 원인과 검증 인계 (2026-11-08)
+
+[#3569~#3573 누적 원장](ISSUE_889_890_FAILURE_ANALYSIS.md#ci-3573-001--전-이력-재수집과-reportdetails-라우팅-수명-경합-2026-11-08)에서 Draft 차단, #574 제품 실패, Shard7 35분 취소, 최신 #730 details transport 실패를 분리한다. 기존 `manualRebalance894`의147exact/unique8·4개 whole-spec 이동·35분/worker1/Required3는 유지하고 planner Unit과 두 실패 spec 전체를 검증한다. 최신 교정은 저장 후 report→details 사이의 테스트 route teardown을 상세 검증 이후로 옮기며 workflow/권한/Ruleset·skip/retry/timeout을 변경하지 않는다. 새 Head Full8의 성공/비용 절감 및 Trusted/Owner 승인은 새 원격 증거 전 NOT TESTED이며 CI 시작 후 모니터링하지 않는다.

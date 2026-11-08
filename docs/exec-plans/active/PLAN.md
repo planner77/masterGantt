@@ -1,3 +1,7 @@
+## Issue #889 / #890 — 일정 View·locale 통합 수정 (2026-11-08)
+
+최신main ecc15d17/0.145.0에서 단일 fix/issue-889-890-gantt-presentation, PATCH후보0.145.1로 진행한다. [통합Packet](ISSUE_889.md)에 공통 toolbar/status·열/날짜축/density와 현재 locale source header·최신 gesture 복원 설계 및 AC를 기록한다. HIGH/OWNER_MANAGED/qa_required=true/release_required=true/release_authorized=false. 별도 UI설계/구현/테스트/사전기술검토·문서/리뷰/충돌 처리 뒤 Ready PR Full CI 시작까지만 수행한다. 이후모니터링·병합/Main/GHCR/Release·Issue종료없음. 새Head Required3/Trusted·Owner/Manager NOT TESTED, MERGE_READY BLOCKED. [원장](../../ISSUE_889_890_FAILURE_ANALYSIS.md).
+
 ## Issue #880 — PR #883 Full #3537.1 REWORK R2 (2026-11-07)
 
 [Packet R2](ISSUE_880.md)와 [누적 원장](../../ISSUE_880_FAILURE_ANALYSIS.md)을 따른다. 최초3533선언실패·R1 두P2/전체이력과 이번3537 Quality/DockerPASS·E2E readonly필터 실패/취소7을 대조했다. pristineRED와 높이만 바꾼 반사실로 native 작업면0을 확정했고 CSS의 필터/일정 높이·overflow 배분을 보완한다. 원래readonly단언과5폭·낮은창/Fullscreen·현재receipt·원본쓰기0를확장하며 기존R1고유회귀와같은동결7spec/64case로검증한다. HIGH/OWNER_MANAGED/qa_required=true·후보0.143.0/release_authorized=false,새Head원격·Owner/Manager NOT TESTED/MERGE_READY BLOCKED. 동결1310입력7e9163c0.../64Chromium·190Unit·type/lint검증PASS이며문서·리뷰·충돌·사전기술검토후새FullCI등록까지만진행하며이후모니터링/병합/GHCR/Issue종료없다.

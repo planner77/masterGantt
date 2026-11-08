@@ -7,6 +7,12 @@ export interface SerializedCoreInput {
   readonly tree: unknown;
   readonly links: unknown;
 }
+export interface CorePresentationOptions {
+  /** Independently derived from canonical hierarchy and public sort clauses. */
+  readonly expectedTreeOrder?: readonly string[];
+  /** Server-owned preorder, used only by semantic conformance verification. */
+  readonly canonicalTaskOrder?: readonly string[];
+}
 const object = (value: unknown): value is Record<string, unknown> => value !== null && typeof value === "object" && !Array.isArray(value);
 const id = (value: unknown): string => {
   if ((typeof value !== "string" || value.length === 0) && (typeof value !== "number" || !Number.isFinite(value))) throw new Error("id");
@@ -83,9 +89,10 @@ function validHierarchy(raw: readonly unknown[], tasks: readonly { readonly id: 
   });
 }
 const failed = (reason: CoreReadFailure): CoreReadResult => ({ ok: false, outcome: "FAILED", reason });
-export function normalizeSerializedCore(input: SerializedCoreInput): CoreReadResult {
+export function normalizeSerializedCore(input: SerializedCoreInput, options: CorePresentationOptions = {}): CoreReadResult {
   let stage: CoreReadFailure = "INVALID_TASKS";
   try {
+    if ((options.expectedTreeOrder === undefined) !== (options.canonicalTaskOrder === undefined)) return failed("INCONSISTENT_TREE");
     const tasks = array(input.tasks, task);
     if (!validHierarchy(input.tasks as readonly unknown[], tasks)) return failed("INVALID_TASKS");
     stage = "INVALID_TREE";
@@ -94,18 +101,48 @@ export function normalizeSerializedCore(input: SerializedCoreInput): CoreReadRes
       return Object.freeze({ id: id(value.id), parent: parent(value.parent) });
     });
     if (!validHierarchy(input.tree as readonly unknown[], tree)) return failed("INVALID_TREE");
-    if (tasks.length !== tree.length || tasks.some((value, index) => value.id !== tree[index].id || value.parent !== tree[index].parent)) return failed("INCONSISTENT_TREE");
+    const expectedTreeOrder = options.expectedTreeOrder;
+    if (expectedTreeOrder === undefined) {
+      if (tasks.length !== tree.length || tasks.some((value, index) => value.id !== tree[index].id || value.parent !== tree[index].parent)) return failed("INCONSISTENT_TREE");
+    } else {
+      const byId = new Map(tasks.map(task => [task.id, task]));
+      if (expectedTreeOrder.length !== tasks.length || new Set(expectedTreeOrder).size !== tasks.length ||
+          tree.length !== tasks.length || expectedTreeOrder.some((id, index) => !byId.has(id) || tree[index].id !== id || tree[index].parent !== byId.get(id)!.parent))
+        return failed("INCONSISTENT_TREE");
+      // A presentation permutation cannot conceal different payload in the
+      // public task/tree collections. Canonical conformance is still checked
+      // against the unchanged task collection by the caller's normal proof.
+      const treeTasks = array(input.tree, task);
+      if (treeTasks.some(value => {
+        const expected = byId.get(value.id);
+        return !expected || (Object.keys(value) as Array<keyof NormalizedCoreTask>).some(key => value[key] !== expected[key]);
+      })) return failed("INCONSISTENT_TREE");
+    }
     stage = "INVALID_LINKS";
     const links = array(input.links, link);
     const ids = new Set(tasks.map(value => value.id));
     if (!unique(links) || links.some(value => !ids.has(value.source) || !ids.has(value.target))) return failed("INVALID_LINKS");
-    return { ok: true, value: Object.freeze({ tasks, tree, links }) };
+    let canonicalTasks = tasks;
+    if (options.canonicalTaskOrder !== undefined) {
+      const canonicalTaskOrder = options.canonicalTaskOrder;
+      const byId = new Map(tasks.map(value => [value.id, value]));
+      if (expectedTreeOrder === undefined || canonicalTaskOrder.length !== tasks.length ||
+          new Set(canonicalTaskOrder).size !== tasks.length || canonicalTaskOrder.some(id => !byId.has(id)) ||
+          tasks.some((value, index) => value.id !== expectedTreeOrder[index])) return failed("INCONSISTENT_TREE");
+      const ordered = canonicalTaskOrder.map(id => byId.get(id)!);
+      // Reordering cannot turn a different parent relation into canonical
+      // authority: require a complete valid preorder and retain every value.
+      if (!validHierarchy(ordered.map(value => ({ id: value.id, parent: value.parent })), ordered)) return failed("INCONSISTENT_TREE");
+      canonicalTasks = Object.freeze(ordered);
+    }
+    const canonicalTree = expectedTreeOrder === undefined ? tree : Object.freeze(canonicalTasks.map(value => Object.freeze({ id: value.id, parent: value.parent })));
+    return { ok: true, value: Object.freeze({ tasks: canonicalTasks, tree: canonicalTree, links }) };
   } catch { return failed(stage); }
 }
 /** Only public read APIs; errors and null collections never become empty success. */
-export function readCoreSnapshot(api: Pick<IApi, "serialize">): CoreReadResult {
+export function readCoreSnapshot(api: Pick<IApi, "serialize">, options: CorePresentationOptions = {}): CoreReadResult {
   try {
-    return normalizeSerializedCore({ tasks: api.serialize({ data: "tasks" }), tree: api.serialize({ data: "tree" }), links: api.serialize({ data: "links" }) });
+    return normalizeSerializedCore({ tasks: api.serialize({ data: "tasks" }), tree: api.serialize({ data: "tree" }), links: api.serialize({ data: "links" }) }, options);
   } catch { return failed("READ_FAILED"); }
 }
 /** SVAR 2.7.3 materializes summary roll-up dates from dated descendants even

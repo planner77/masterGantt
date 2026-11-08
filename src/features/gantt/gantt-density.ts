@@ -30,6 +30,6 @@ export function nextDensityLevel(level: number, direction: number, coarse: boole
 export const DENSITY_INPUT_EXCLUSION = 'input, textarea, select, [contenteditable]:not([contenteditable="false"]), dialog, [role="dialog"], [role="menu"], [role="listbox"], [popover]';
 export function isDensityWheelTarget(target: Element, root: HTMLElement) {
   if (!root.contains(target) || target.closest(DENSITY_INPUT_EXCLUSION)) return false;
-  if (target.closest('.wx-scale, .wx-header')) return false;
-  return Boolean(target.closest('.wx-table .wx-body, .wx-chart .wx-bars, .wx-chart .wx-content, .wx-table .wx-row[data-id]'));
+  if (target.closest('.wx-scale, .wx-header, .project-schedule-view-header, .project-gantt-scale-toolbar')) return false;
+  return Boolean(target.closest('.wx-table .wx-body, .wx-chart .wx-bars, .wx-chart .wx-content, .wx-table .wx-row[data-id], [data-schedule-view-body]'));
 }

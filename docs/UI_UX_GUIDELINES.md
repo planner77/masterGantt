@@ -1,3 +1,9 @@
+## Issue #889 / #890 — 일정 표현과 언어 복원
+
+세 일정 View는 동일 toolbar 상태 슬롯·Grid 열 예산·native split/2단 날짜축 높이를 사용한다. loading/error/readonly가 공통 제어와 작업면 시작점을 바꾸지 않아야 한다. Grid/Chart 본문 Ctrl+휠만 공통 density 입력 owner가 처리하며 header/toolbar/input/menu/dialog·일반 스크롤은 보존한다. 숨긴 WBS는 mounted/inert이고 조회 View의 편집 affordance는 실행 불가다. locale 변경은 열 배치와 source label을 분리하고 최신 gesture/request 경계를 확인한다. 5폭/ko/en/vi·Day/Week·keyboard/Fullscreen과 ≤1px 공통 좌표, 원본쓰기0·같은instance의 실제 증거 및 native125%/실기기 미검증은 [통합 Packet](exec-plans/active/ISSUE_889.md)을 따른다.
+
+---
+
 ## Issue #885 — 본문 원문 보존과 폼 키보드 탐색
 
 Issue/Task 공통 Markdown 편집기는 단순 재개방·모드 전환·다른 필드의 저장만으로 원문 또는 dirty 상태를 변경하지 않는다. 비사용자 자동 링크 변환은 사용하지 않으며 수동 링크 툴바와 읽기용 안전 GFM 링크는 유지한다. 일반 rich-text 본문의 Tab/ShiftTab은 폼 탐색에 사용하고, nested table/code/Source의 고유 키맵을 전역으로 제거하지 않는다. 기존 title/body scroll·locale/element identity·viewport/focus ring을 유지하고 실제 tab-stop 수로 한정한 키보드 경로를 검증한다. 중첩 편집기의 독립 키보드 탈출과 실제 AT/native125%는 실행 전 NOT TESTED다. [실행·실패 증거](ISSUE_885_FAILURE_ANALYSIS.md).

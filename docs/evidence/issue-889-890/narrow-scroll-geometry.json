@@ -1,0 +1,25 @@
+{
+  "scrollOwnership": {
+    "before": {
+      "outerLeft": 0,
+      "innerLeft": 0,
+      "outerWidth": 366,
+      "innerWidth": 718,
+      "barX": 529
+    },
+    "after": {
+      "outerLeft": 354,
+      "innerLeft": 20
+    }
+  },
+  "hit": {
+    "width": 72,
+    "visibleWidth": 72,
+    "visibleHeight": 27,
+    "x": 191,
+    "y": 791.5,
+    "ownerLeft": 12,
+    "ownerRight": 378,
+    "hit": true
+  }
+}

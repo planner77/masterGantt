@@ -8,6 +8,47 @@
   padding: 0 0 0.5rem;
 }
 
+/* Both presentations occupy one toolbar slot, including while GET status
+   changes. Common View/scale/fullscreen controls keep their geometry. */
+.project-gantt-view-status-slot {
+  position: relative;
+  flex: 1 1 24rem;
+  min-width: 0;
+  height: 44px;
+}
+.project-gantt-view-status-slot .project-copy-selection-controls {
+  height: 100%;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+.project-gantt-view-status-slot .project-copy-selection-controls > [role="status"] {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.project-gantt-view-status-slot .project-copy-selection-controls > button { flex: 0 0 auto; }
+.project-copy-selection-controls[data-inactive] { visibility: hidden; }
+.project-copy-selection-help { display: flex; flex: 0 0 44px; }
+.project-gantt-view-status-slot .project-copy-selection-help > button {
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  margin: 0;
+  padding: 0;
+}
+.project-gantt-projected-status-slot {
+  position: absolute;
+  inset: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+.project-gantt-projected-status-slot[hidden] { display: none; }
+
+@media (max-width: 48rem) {
+  .project-gantt-view-status-slot { flex-basis: 100%; order: 1; }
+  .project-gantt-view-status-slot .project-copy-selection-controls > button { padding-inline: 4px; }
+}
+
 /* SVAR's four-row Grid overscan must not create a second vertical scroll
    range. Clip it at the table viewport while its parent keeps native X scroll. */
 .project-gantt-widget .wx-table-container > .wx-table {

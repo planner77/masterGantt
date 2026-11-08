@@ -106,8 +106,9 @@ describe("historical E2E shard planner", () => {
     // 누락·중복은 계속 실패해야 하며 hash fallback으로 대체하지 않는다.
     // #866 Phase A adds language-shell to shard 5; Phase B adds master-data to shard 7.
     // #880 신규 일정 View spec은 기존 배치를 유지하며 shard 3에 명시 등록한다.
-    // #885 F885-008: preserve 147/147 specs while redistributing six observed long-running files.
-    expect(plan.shards.map(group => group.files.length)).toEqual([17, 18, 17, 21, 17, 17, 21, 19]);
+    // #885 F885-008 remains historical; #894 CI-3572-001 redistributes four
+    // whole spec files, still covering all 147 current specs exactly once.
+    expect(plan.shards.map(group => group.files.length)).toEqual([17, 19, 17, 22, 18, 16, 19, 19]);
     expect(new Set(entries).size).toBe(entries.length);
     expect([...entries].sort()).toEqual(discovered); // New specs require deliberate plan slots.
     const selected = [1, 2, 3, 4, 5, 6, 7, 8].flatMap(shard =>
@@ -115,21 +116,59 @@ describe("historical E2E shard planner", () => {
     );
     expect([...selected].sort()).toEqual(discovered);
     expect(new Set(selected).size).toBe(discovered.length);
-    const incident = (plan as typeof plan & { manualRebalance885: {
-      sourceRunId: number; originalHeadSha: string; beforeFileCounts: number[];
-      afterFileCounts: number[]; explicitSpecCount: number; jobTimeoutMinutes: number;
-      movedFiles: Array<{ file: string; from: number; to: number }>;
-    } }).manualRebalance885;
+    const evidence = plan as typeof plan & {
+      manualRebalance885: {
+        sourceRunId: number; originalHeadSha: string; beforeFileCounts: number[];
+        afterFileCounts: number[]; explicitSpecCount: number; jobTimeoutMinutes: number;
+        movedFiles: Array<{ file: string; from: number; to: number }>;
+      };
+      manualRebalance894: {
+        sourceRunId: number; sourceRunNumber: number; sourceHeadSha: string;
+        sourceBaseSha: string; originalConclusion: string; jobTimeoutMinutes: number;
+        shard7ObservedPassCount: number; shard7PlannedTestCount: number;
+        beforeFileCounts: number[]; afterFileCounts: number[];
+        explicitSpecCount: number; movedFiles: Array<{ file: string; from: number; to: number }>;
+      };
+    };
+    const incident = evidence.manualRebalance885;
     expect(incident.sourceRunId).toBe(42376741473);
     expect(incident.originalHeadSha).toBe("26ac9049a82ea143e1aa614039c3cf62041e2a04");
     expect(incident.beforeFileCounts).toEqual([19, 18, 19, 18, 18, 18, 18, 19]);
-    expect(incident.afterFileCounts).toEqual(plan.shards.map(group => group.files.length));
+    // #885 is an immutable historical placement, not the live #894 layout.
+    expect(incident.afterFileCounts).toEqual([17, 18, 17, 21, 17, 17, 21, 19]);
     expect(incident.jobTimeoutMinutes).toBe(35);
     expect(incident.explicitSpecCount).toBe(discovered.length);
     expect(incident.movedFiles).toHaveLength(6);
-    for (const movement of incident.movedFiles) {
-      expect(plan.shards.filter(group => group.files.includes(movement.file)).map(group => group.shard)).toEqual([movement.to]);
+    const correction = evidence.manualRebalance894;
+    expect(correction.sourceRunId).toBe(42446255333);
+    expect(correction.sourceRunNumber).toBe(3572);
+    expect(correction.sourceHeadSha).toBe("415631ce7c1fc279e9cddb37e0070495de209565");
+    expect(correction.sourceBaseSha).toBe("ecc15d171f08dbb249ff52b13ca616592d1c9ac7");
+    expect(correction.originalConclusion).toBe("cancelled");
+    expect(correction.jobTimeoutMinutes).toBe(35);
+    expect([correction.shard7ObservedPassCount, correction.shard7PlannedTestCount]).toEqual([116, 119]);
+    expect(correction.explicitSpecCount).toBe(discovered.length);
+    expect(correction.beforeFileCounts).toEqual(incident.afterFileCounts);
+    expect(correction.afterFileCounts).toEqual(plan.shards.map(group => group.files.length));
+    expect(correction.movedFiles).toHaveLength(4);
+    expect(new Set(correction.movedFiles.map(item => item.file)).size).toBe(correction.movedFiles.length);
+    const restoredCounts = plan.shards.map(group => group.files.length);
+    for (const movement of correction.movedFiles) {
       expect(movement.from).not.toBe(movement.to);
+      expect(movement.from).toBeGreaterThanOrEqual(1);
+      expect(movement.to).toBeLessThanOrEqual(8);
+      expect(plan.shards.filter(group => group.files.includes(movement.file)).map(group => group.shard)).toEqual([movement.to]);
+      restoredCounts[movement.to - 1]--;
+      restoredCounts[movement.from - 1]++;
+    }
+    expect(restoredCounts).toEqual(correction.beforeFileCounts);
+    for (const movement of incident.movedFiles) {
+      // A current move may supersede the historical destination, but its
+      // provenance must join exactly to the previous shard.
+      const newer = correction.movedFiles.find(item => item.file === movement.file);
+      if (newer) expect(newer.from).toBe(movement.to);
+      expect(plan.shards.filter(group => group.files.includes(movement.file)).map(group => group.shard))
+        .toEqual([newer?.to ?? movement.to]);
     }
     for (const [file, assignedShard] of [
       // Current eight-shard placement supersedes historical six-shard corrections;
@@ -152,6 +191,8 @@ describe("historical E2E shard planner", () => {
       ["schedule-views.spec.ts", 3],
       ["i18n.spec.ts", 8],
       ["project-transfer-layout-491.spec.ts", 6],
+      ["gantt-state-product-integration.spec.ts", 7],
+      ["project-task-context-menu.spec.ts", 2],
       ["canonical-projection.spec.ts", 6],
       ["logistics-target-authoring.spec.ts", 7],
       ["project-task-delete-context.spec.ts", 5],
@@ -161,8 +202,8 @@ describe("historical E2E shard planner", () => {
       // #885 Full #3563.1 35-minute canceled shard 1/3 and six-file, timeout-neutral rebalance.
       ["project-summary-bar-visual.spec.ts", 4],
       ["project-grid-reorder-persistence.spec.ts", 4],
-      ["project-list-search-filter.spec.ts", 7],
-      ["milestone-stage-exchange.spec.ts", 7],
+      ["project-list-search-filter.spec.ts", 5],
+      ["milestone-stage-exchange.spec.ts", 4],
       ["milestone-visibility-persistence.spec.ts", 4],
       ["logistics-dashboard-request-state.spec.ts", 7],
     ] as const) {

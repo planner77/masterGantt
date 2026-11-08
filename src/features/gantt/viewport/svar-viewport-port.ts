@@ -56,7 +56,7 @@ export function createSvarViewportPort(options: PortOptions): ViewportPort & { d
       frame.dispatchEvent(new CustomEvent("mastergantt:viewport-coordinator", { bubbles: true, detail: { phase, kind: command?.kind, outcome, writes, apiInstance: options.context().apiInstance, revision: options.context().revision, projectionEpoch: options.context().projectionEpoch, ...metadata } }));
     }
   };
-  const exec = async (action: "scroll-chart" | "resize-chart", parameters: object) => {
+  const exec = async (action: "scroll-chart" | "resize-chart", parameters: object, axisObserved = false) => {
     writes++;
     const returned: unknown = api.exec(action, parameters);
     const failure = Symbol("timeout");
@@ -64,7 +64,12 @@ export function createSvarViewportPort(options: PortOptions): ViewportPort & { d
     try {
       const value = await Promise.race([Promise.resolve(returned), new Promise(resolve => { timer = setTimeout(() => resolve(failure), 1500); })]);
       if (value === failure) throw new Error("TIMED_OUT");
-      if (value === false) throw new Error("COMMAND_REJECTED");
+      // In the existing synthetic Axis Transaction only, an installed Core may
+      // return false for an effective resize or a no-op preserved scroll. This
+      // is NOT success: U4 must still prove actual axis coverage, physical
+      // capacity and Core/native X/Y for three stable frames. Other commands
+      // continue to treat a false result as a rejection.
+      if (value === false && !axisObserved) throw new Error("COMMAND_REJECTED");
     } finally { clearTimeout(timer); }
   };
   const repair = (target: ViewportPosition, diagnostic = false) => {
@@ -140,15 +145,15 @@ export function createSvarViewportPort(options: PortOptions): ViewportPort & { d
       if (!width || !height) return false;
       // Preserve the pre-existing synchronous pair. No await or authority
       // reacquisition can leave a cancelled half-pair in the physical container.
-      const expansion = exec("resize-chart", { width: axisAuthority.minimumWidth, height, scrollSize: state._scrollSize ?? 0 });
-      const physical = exec("resize-chart", { width, height, scrollSize: state._scrollSize ?? 0 });
+      const expansion = exec("resize-chart", { width: axisAuthority.minimumWidth, height, scrollSize: state._scrollSize ?? 0 }, true);
+      const physical = exec("resize-chart", { width, height, scrollSize: state._scrollSize ?? 0 }, true);
       await Promise.all([expansion, physical]);
       return context.current();
     },
     applyPosition: async (target, context) => {
       if (!context.current()) return false;
       repairs = 0;
-      await exec("scroll-chart", { ...target, eventSource: tag });
+      await exec("scroll-chart", { ...target, eventSource: tag }, true);
       if (!context.current()) return false;
       const sample = read();
       if (sample.core.left === target.left && sample.core.top === target.top &&
@@ -170,7 +175,13 @@ export function createSvarViewportPort(options: PortOptions): ViewportPort & { d
     if (!(start instanceof Date) || !(end instanceof Date) || !current() || axisTransaction?.state().busy || options.canChangeAxis?.() === false) return null;
     const lease = source ? { stamp: source, priority: 1 } : options.lease(), controller = new AbortController();
     const revision = options.context().revision;
-    const authorized = () => current() && options.context().revision === revision && options.canChangeAxis?.() !== false;
+    // dataReady/scale is an admission gate, checked above before any write.
+    // Synthetic resize and the preserved scroll can transiently invalidate
+    // its own projection/readiness while public Core layout catches up.
+    // Do not let that self-induced transition revoke the registered U4 lease.
+    // The Coordinator's original source/gesture/intent and project revision
+    // remain live guards; U4 still requires observed axis and X/Y settlement.
+    const authorized = () => current() && options.context().revision === revision;
     const scale = options.context().scale as "day" | "week";
     const desiredWidth = minimumWidth ?? minimumTimelineScaleWidthForEnd({ start, end: options.requestedEnd(), scaleMode: scale });
     if (!Number.isFinite(desiredWidth) || desiredWidth <= 0 || desiredWidth > 1_000_000) return null;

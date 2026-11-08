@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { IApi, ITask } from "@svar-ui/react-gantt";
 import { normalizeCanonicalCore, normalizeSerializedCore, readCoreSnapshot, sameCoreSnapshot } from "../../../src/features/gantt/state-consistency";
+import { expectedPresentationOrder } from "../../../src/features/gantt/state-consistency/presentation-sort";
 
 const leaf = (id: string, parent = 0 as string | number): ITask => ({ id, parent, text: id, type: "task", start: new Date(2026, 0, 1), end: new Date(2026, 0, 2), progress: 0 });
 const input = (tasks: unknown[], links: unknown = []) => ({ tasks, tree: tasks, links });
@@ -75,5 +76,90 @@ describe("public actual Core reader", () => {
   it("accepts an actual empty collection but never turns unreadable links into empty", () => {
     expect(normalizeSerializedCore({ tasks: [], tree: [], links: [] })).toEqual({ ok: true, value: { tasks: [], tree: [], links: [] } });
     expect(normalizeSerializedCore({ tasks: [], tree: null, links: [] })).toMatchObject({ ok: false, reason: "INVALID_TREE" });
+  });
+
+  it("normalizes only an independently expected presentation tree while preserving the canonical task order", () => {
+    const tasks = [leaf("Z"), leaf("A"), leaf("B")];
+    const expectedTreeOrder = expectedPresentationOrder(tasks, [{ id: "text" }], [{ key: "text", order: "asc" }])!;
+    const sortedTree = [tasks[1], tasks[2], tasks[0]];
+    const desired = normalizeCanonicalCore({ tasks, links: [] });
+    expect(normalizeSerializedCore({ tasks, tree: sortedTree, links: [] })).toMatchObject({ ok: false, reason: "INCONSISTENT_TREE" });
+    const actual = normalizeSerializedCore({ tasks: sortedTree, tree: sortedTree, links: [] }, { expectedTreeOrder, canonicalTaskOrder: tasks.map(task => String(task.id)) });
+    expect(actual.ok && desired.ok && sameCoreSnapshot(actual.value, desired.value)).toBe(true);
+    expect(actual.ok && actual.value.tasks.map(task => task.id)).toEqual(["Z", "A", "B"]);
+    expect(actual.ok && actual.value.tree.map(task => task.id)).toEqual(["Z", "A", "B"]);
+    const read = readCoreSnapshot({ serialize: config => (config?.data === "tree" || config?.data === "tasks" ? sortedTree : []) } as Pick<IApi, "serialize">, { expectedTreeOrder, canonicalTaskOrder: tasks.map(task => String(task.id)) });
+    expect(read).toEqual(actual);
+  });
+
+  it("keeps exact sort order, branch membership, IDs and tree owned payload guards", () => {
+    const tasks = [
+      { ...leaf("Z"), type: "summary" }, leaf("child2", "Z"), leaf("child1", "Z"), leaf("A"),
+    ];
+    const expectedTreeOrder = expectedPresentationOrder(tasks, [{ id: "text" }], [{ key: "text", order: "asc" }])!;
+    const byId = new Map(tasks.map(task => [String(task.id), task]));
+    const sortedTree = expectedTreeOrder.map(id => byId.get(id)!);
+    const options = { expectedTreeOrder, canonicalTaskOrder: tasks.map(task => String(task.id)) };
+    expect(normalizeSerializedCore({ tasks: sortedTree, tree: sortedTree, links: [] }, options).ok).toBe(true);
+    for (const tree of [
+      tasks,
+      [sortedTree[1], sortedTree[0], ...sortedTree.slice(2)],
+      [...sortedTree.slice(0, -1), sortedTree[0]],
+      sortedTree.slice(1),
+      sortedTree.map((task, index) => index === 0 ? { ...task, id: "foreign" } : task),
+      sortedTree.map(task => task.id === "child1" ? { ...task, parent: "A" } : task),
+      sortedTree.map((task, index) => index === 0 ? { ...task, text: "changed" } : task),
+      sortedTree.map((task, index) => index === 0 ? { ...task, start: new Date(2030, 0, 1) } : task),
+    ]) expect(normalizeSerializedCore({ tasks: sortedTree, tree, links: [] }, options).ok).toBe(false);
+    expect(normalizeSerializedCore({ tasks: sortedTree, tree: sortedTree, links: [] }, { ...options, expectedTreeOrder: ["foreign", ...expectedTreeOrder.slice(1)] }).ok).toBe(false);
+    expect(normalizeSerializedCore({ tasks: sortedTree, tree: sortedTree, links: [] }, { ...options, expectedTreeOrder: [...expectedTreeOrder, "foreign"] }).ok).toBe(false);
+    expect(normalizeSerializedCore({ tasks: sortedTree, tree: sortedTree, links: [{ id: "L", source: "A", target: "missing" }] }, options)).toMatchObject({ ok: false, reason: "INVALID_LINKS" });
+  });
+
+  it("does not erase matching task/tree payload or link drift from the canonical conformance comparison", () => {
+    const tasks = [leaf("B"), leaf("A")];
+    const expectedTreeOrder = ["A", "B"];
+    const desired = normalizeCanonicalCore({ tasks, links: [{ id: "L", source: "A", target: "B", type: "e2s" }] });
+    for (const change of ["text", "date", "parent", "link"] as const) {
+      const changed = tasks.map(task => ({ ...task }));
+      if (change === "text") changed[0].text = "drift";
+      if (change === "date") changed[0].end = new Date(2030, 0, 1);
+      if (change === "parent") changed[0].parent = "A";
+      const links = [{ id: "L", source: "A", target: "B", type: change === "link" ? "s2s" : "e2s" }];
+      const result = normalizeSerializedCore({ tasks: [changed[1], changed[0]], tree: [changed[1], changed[0]], links }, { expectedTreeOrder, canonicalTaskOrder: tasks.map(task => String(task.id)) });
+      expect(!result.ok || desired.ok && !sameCoreSnapshot(result.value, desired.value)).toBe(true);
+    }
+  });
+
+  it("separates raw sorted observations from server-order semantic verification without inventing an old-generation source order", () => {
+    const desiredTasks = [leaf("Z"), leaf("A"), leaf("B")];
+    const sorted = [desiredTasks[1], desiredTasks[2], desiredTasks[0]];
+    const expectedTreeOrder = expectedPresentationOrder(desiredTasks, [{ id: "text" }], [{ key: "text", order: "asc" }])!;
+    const raw = normalizeSerializedCore({ tasks: sorted, tree: sorted, links: [] });
+    expect(normalizeSerializedCore({ tasks: sorted, tree: sorted, links: [] }, { expectedTreeOrder }).ok).toBe(false);
+    expect(normalizeSerializedCore({ tasks: sorted, tree: sorted, links: [] }, { canonicalTaskOrder: desiredTasks.map(task => String(task.id)) }).ok).toBe(false);
+    expect(raw.ok && raw.value.tasks.map(task => task.id)).toEqual(["A", "B", "Z"]);
+    const verified = normalizeSerializedCore({ tasks: sorted, tree: sorted, links: [] }, {
+      expectedTreeOrder, canonicalTaskOrder: desiredTasks.map(task => String(task.id)),
+    });
+    const desired = normalizeCanonicalCore({ tasks: desiredTasks, links: [] });
+    expect(verified.ok && desired.ok && sameCoreSnapshot(verified.value, desired.value)).toBe(true);
+    // The actual/old snapshot remains readable for a real add/delete drift;
+    // only current-generation semantic approval requires exact expected IDs.
+    const older = sorted.slice(0, -1);
+    expect(normalizeSerializedCore({ tasks: older, tree: older, links: [] }).ok).toBe(true);
+    expect(normalizeSerializedCore({ tasks: older, tree: older, links: [] }, {
+      expectedTreeOrder, canonicalTaskOrder: desiredTasks.map(task => String(task.id)),
+    }).ok).toBe(false);
+    expect(normalizeSerializedCore({ tasks: sorted, tree: sorted, links: [] }, {
+      expectedTreeOrder, canonicalTaskOrder: ["A", "Z", "foreign"],
+    }).ok).toBe(false);
+    expect(normalizeSerializedCore({ tasks: sorted, tree: sorted, links: [] }, {
+      expectedTreeOrder, canonicalTaskOrder: ["A", "A", "Z"],
+    }).ok).toBe(false);
+    const wrongPermutation = [sorted[1], sorted[0], sorted[2]];
+    expect(normalizeSerializedCore({ tasks: wrongPermutation, tree: wrongPermutation, links: [] }, {
+      expectedTreeOrder, canonicalTaskOrder: desiredTasks.map(task => String(task.id)),
+    }).ok).toBe(false);
   });
 });
