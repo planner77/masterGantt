@@ -1,0 +1,105 @@
+{
+  "issues": [
+    889,
+    890
+  ],
+  "baseline": "ecc15d171f08dbb249ff52b13ca616592d1c9ac7",
+  "version": "0.145.1",
+  "date": "2026-11-08",
+  "source": {
+    "inputs": 1339,
+    "normalized_sha256": "9425e0521645433d958bc72952feed5618e892d48b2282887e493087a158b5e5",
+    "raw_before_generated_cleanup": "9f73598d8f3ec76268e052d79bc66132fb78af022219be2e87486144a3d86a3a",
+    "generated_tsconfig_includes": 14,
+    "raw_after_cleanup": "9425e0521645433d958bc72952feed5618e892d48b2282887e493087a158b5e5",
+    "normalization": "Only Next isolated UUID type include additions; all other tsconfig fields checked against HEAD. next-env.d.ts excluded as generated."
+  },
+  "unit": {
+    "status": "PASS",
+    "files": 23,
+    "passed": 491,
+    "failed": 0,
+    "command": "vitest run --config tests/config/vitest.config.ts --maxWorkers=2 tests/features/gantt/gantt-density.test.ts tests/features/gantt/schedule-view-scale.test.ts tests/features/gantt/schedule-view-projection.test.ts tests/features/gantt/week-calendar-interval.test.ts tests/features/day-header-tooltip.test.ts tests/features/gantt/viewport-coordinator.test.ts tests/lib/i18n-phase-a.test.ts tests/features/gantt/axis-transaction.test.ts tests/features/gantt/state-consistency-harness.test.ts tests/features/gantt/axis-transaction-runtime-fixture.test.ts tests/features/gantt/state-consistency-runtime-fixture.test.ts tests/features/gantt/canonical-recovery-runtime.test.ts tests/scripts/prepr-verifier.test.ts tests/features/gantt/presentation-sort.test.ts tests/features/gantt/core-reader.test.ts tests/features/gantt/core-conformance.test.ts tests/features/gantt/product-consistency.test.ts tests/features/gantt/projection-settled.test.ts tests/features/gantt/projection-observation.test.ts tests/features/gantt/projection-observation-scheduler.test.ts tests/features/gantt/canonical-recovery.test.ts tests/features/gantt/state-consistency-contract.test.ts tests/features/gantt/state-consistency-manifest.test.ts"
+  },
+  "chromium": {
+    "status": "PASS",
+    "specs": 8,
+    "passed": 66,
+    "failed": 0,
+    "skipped": 0,
+    "interrupted": 0,
+    "retries": 0,
+    "workers": 1,
+    "duration_minutes": 8.9,
+    "command": "npx playwright test --config tests/config/playwright.config.ts tests/e2e/i18n.spec.ts tests/e2e/schedule-views.spec.ts tests/e2e/project-workspace-layout.spec.ts tests/e2e/project-summary-bar-visual.spec.ts tests/e2e/project-gantt-scale.spec.ts tests/e2e/project-gantt-fullscreen.spec.ts tests/e2e/projection-row-alignment.spec.ts tests/e2e/viewport-coordinator.spec.ts --workers=1 --retries=0"
+  },
+  "lint": {
+    "status": "PASS",
+    "errors": 0,
+    "existing_warnings": 2
+  },
+  "typecheck": "PASS",
+  "independent_technical_review": {
+    "agent": "/root/qa_review",
+    "open_findings": 0,
+    "scope": "Current frozen product/test source; exact committed Head and review are recorded in Issue STATUS after publication",
+    "qa_final_remote": "NOT TESTED"
+  },
+  "automatic_prepr": {
+    "status": "BLOCKED",
+    "source_stable": true,
+    "working_fingerprint": "e174f0d040f176cbacd749b733a677f84b198baca422a6c12f13618344c8ca4a",
+    "selected_tests": 36,
+    "unknown": [
+      "src/features/gantt/product-consistency.ts",
+      "src/features/gantt/schedule-view-panel.css",
+      "src/features/gantt/schedule-view-panel.tsx",
+      "src/features/gantt/schedule-view-scale.ts",
+      "tests/fixtures/gantt-canonical-recovery/actual-recovery-provenance.json",
+      "tests/fixtures/gantt-state-consistency/capture-sources/core-reader-original.snapshot.txt"
+    ],
+    "missing": 0,
+    "executed_commands": 0,
+    "report": ".prepr-reports/2026-11-08T03-38-37.052Z-1297450-b9f8ec06/report.json",
+    "manual_verified_source_sha256": "9425e0521645433d958bc72952feed5618e892d48b2282887e493087a158b5e5",
+    "manual_evidence": "local-validation.json",
+    "note": "Automatic mapping remains BLOCKED; explicitly selected Unit491/Chromium66/Core12 are independent manual validation, not automatic mapping PASS."
+  },
+  "ruleset": {
+    "id": 24043042,
+    "enforcement": "active",
+    "strict": true,
+    "review_threads_must_resolve": true,
+    "required": [
+      "Build, static checks, and unit tests",
+      "Chromium end-to-end tests",
+      "Docker build and runtime smoke test"
+    ],
+    "changed": false
+  },
+  "not_tested": [
+    "new PR quality/e2e/docker",
+    "Trusted QA",
+    "Owner/Manager ACCEPT",
+    "native 125% browser zoom",
+    "all projected coarse/touch combinations",
+    "all locale/viewport/View/scale/state combinations",
+    "real assistive technology",
+    "main/GHCR/Release"
+  ],
+  "risk_level": "HIGH",
+  "qa_method": "OWNER_MANAGED",
+  "qa_required": true,
+  "manager_decision": "NOT TESTED",
+  "MERGE_READY": "BLOCKED",
+  "release_authorized": false,
+  "actual_installed_core": {
+    "status": "PASS",
+    "scenarios": 12,
+    "source_files": 8,
+    "source_stable": true,
+    "receipt": "current-core-recovery-receipt.json",
+    "runtime": "current-core-recovery-runtime.json",
+    "note": "Local unsorted default recovery regression; does not replace sorted product E2E/remote CI"
+  }
+}

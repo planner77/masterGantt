@@ -1,3 +1,11 @@
+## [0.145.1] — Unreleased / Issue #889·#890 (2026-11-08)
+
+- WBS/Resource/설비의 공통 toolbar 상태 슬롯·열 배치·2단 Day/Week 헤더 및 본문 Ctrl+휠 세로 밀도를 통합한다.
+- 언어 왕복·전체화면·표시단위 복원에서 고정 Grid header를 현재 locale source로 재생성하고 기존 열 레이아웃과 Core 인스턴스를 보존한다.
+- 원본 Task/Assignment/설비·revision·서버 권한과 조회 전용 정책은 유지한다. 실제 검증/미검증은 [통합 Work Packet](docs/exec-plans/active/ISSUE_889.md) 참조. 정식 릴리스 미승인/미게시.
+
+---
+
 ## [0.145.0] — Unreleased / Issue #885 formal GHCR candidate (2026-11-08)
 
 - Issue/Task/Summary/Milestone Description 공통 MDXEditor(시각적/Markdown Source), 안전한 읽기 뷰, 명시적인 legacy plain-to-Markdown 전환.

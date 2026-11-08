@@ -2,13 +2,17 @@ import type { IApi, ITask, ILink } from "@svar-ui/react-gantt";
 import { describe, expect, it, vi } from "vitest";
 import { buildProjection } from "../../../src/features/gantt/canonical-projection";
 import { createCanonicalRecovery, type RecoveryCanonical } from "../../../src/features/gantt/canonical-recovery";
-import { normalizeSerializedCore } from "../../../src/features/gantt/state-consistency";
+import { normalizeCanonicalCore, normalizeSerializedCore } from "../../../src/features/gantt/state-consistency";
+import { expectedPresentationOrder } from "../../../src/features/gantt/state-consistency/presentation-sort";
+import { compareCanonicalTaskField } from "../../../src/features/gantt/viewport/locale-presentation";
 import { canonicalFixture, driftFixture, proofContextFixture } from "../../fixtures/gantt-state-consistency/synthetic";
 import type { CanonicalGanttSnapshot } from "../../../src/features/gantt/canonical-snapshot-sync";
-function harness(initial = canonicalFixture(), stalled = false) {
+function harness(initial = canonicalFixture(), stalled = false, presentation = false, sortKey: "text" | "projectStart" | "projectDuration" = "text") {
   let tasks: ITask[] = initial.tasks.map(task => ({ ...task })); let links: ILink[] = initial.links.map(link => ({ ...link }));
   let server: CanonicalGanttSnapshot = canonicalFixture(), identity = proofContextFixture().desired, instance = "api-1", time = 0;
   let afterExec: (() => void) | undefined;
+  let sortEpoch = 0, capturedSortEpoch = 0;
+  const sortColumns = [{ id: sortKey, sort: sortKey === "text" ? true : (first: ITask, second: ITask) => compareCanonicalTaskField(first, second, sortKey === "projectStart" ? "start" : "duration") }];
   const exec = vi.fn(async (action: string, payload: Record<string, unknown>) => {
     const id = String(payload.id), item = tasks.find(task => String(task.id) === id);
     if (action === "update-task" && item) Object.assign(item, payload.task);
@@ -22,15 +26,32 @@ function harness(initial = canonicalFixture(), stalled = false) {
     }
     if (action === "delete-link") links = links.filter(link => String(link.id) !== id);
     if (action === "add-link") links.push({ ...(payload.link as ILink) });
+    if (action === "sort-tasks") {
+      const order = expectedPresentationOrder(tasks, sortColumns, [{ key: sortKey, order: "desc" }]);
+      if (!order) throw new Error("SORT_SOURCE_UNAVAILABLE");
+      const byId = new Map(tasks.map(task => [String(task.id), task]));
+      tasks = order.map(id => byId.get(id)!);
+    }
     afterExec?.();
   });
-  const fetchCanonical = vi.fn(async (_signal: AbortSignal): Promise<RecoveryCanonical> => { void _signal; return { snapshot: server, identity }; });
+  const fetchCanonical = vi.fn(async (_signal: AbortSignal): Promise<RecoveryCanonical> => { void _signal; capturedSortEpoch = sortEpoch; return { snapshot: server, identity }; });
+  const approvedReader = { readCore: vi.fn(() => normalizeSerializedCore({ tasks, tree: tasks, links }, {
+    expectedTreeOrder: expectedPresentationOrder(server.tasks, sortColumns, [{ key: sortKey, order: "desc" }]) ?? [],
+    canonicalTaskOrder: server.tasks.map(task => String(task.id)),
+  })) };
+  const beforeVerification = vi.fn(async (current: () => boolean) => {
+    const valid = () => current() && sortEpoch === capturedSortEpoch;
+    if (!valid()) throw new Error("SUPERSEDED");
+    await exec("sort-tasks", { key: sortKey, order: "desc" });
+    if (!valid()) throw new Error("SUPERSEDED");
+  });
   const abort = new AbortController();
   const recovery = createCanonicalRecovery({ core: { readCore: () => normalizeSerializedCore({ tasks, tree: tasks, links }) },
+    ...(presentation ? { verificationCore: approvedReader, beforeVerification } : {}),
     api: { exec: exec as IApi["exec"], getTask: ((id: string | number) => tasks.find(task => String(task.id) === String(id))) as IApi["getTask"] },
     clock: { now: () => stalled ? performance.now() : time, frame: async () => { if (stalled) return new Promise<boolean>(() => {}); time += 16; return true; } }, abort: { signal: abort.signal, isCurrent: () => true }, fetchCanonical,
-    currentIdentity: () => identity, apiInstance: () => instance }, { maxFrames: stalled ? 1 : 3, timeoutMs: stalled ? 20 : 48 });
-  return { recovery, exec, fetchCanonical, abort, actual: () => ({ tasks, links }), setServer(value: CanonicalGanttSnapshot) { server = value; }, advanceTime(milliseconds: number) { time += milliseconds; },
+    currentIdentity: () => identity, apiInstance: () => instance }, { maxFrames: stalled ? 1 : presentation ? 12 : 3, timeoutMs: stalled ? 20 : presentation ? 250 : 48 });
+  return { recovery, exec, fetchCanonical, abort, approvedReader, beforeVerification, changeSort() { sortEpoch++; }, actual: () => ({ tasks, links }), setServer(value: CanonicalGanttSnapshot) { server = value; }, advanceTime(milliseconds: number) { time += milliseconds; },
     setIdentity(value: typeof identity) { identity = value; }, replaceApi() { instance = "api-2"; }, onExec(value: () => void) { afterExec = value; } };
 }
 function reject(value: ReturnType<typeof harness>, outcome: Parameters<ReturnType<typeof createCanonicalRecovery>["completeMutation"]>[1]) {
@@ -38,6 +59,77 @@ function reject(value: ReturnType<typeof harness>, outcome: Parameters<ReturnTyp
   expect(value.recovery.canWrite()).toBe(false); expect(value.recovery.completeMutation(ticket, outcome)).toBe(true); return ticket;
 }
 describe("U2 latest-canonical recovery (SC-02~05/07)", () => {
+  it("treats a verified presentation permutation as a data no-op with no native hierarchy moves", async () => {
+    const canonical = canonicalFixture();
+    const value = harness({ ...canonical, tasks: [...canonical.tasks].reverse() }, false, true);
+    expect(await value.recovery.recover()).toMatchObject({ outcome: "SETTLED", changed: false });
+    expect(value.exec.mock.calls.map(([action]) => action)).toEqual(["sort-tasks"]);
+    expect(value.beforeVerification).toHaveBeenCalledTimes(1);
+    expect(value.actual().tasks.map(task => task.id)).toEqual(["C", "B", "A"]);
+  });
+
+  it("replays presentation even when raw canonical data did not change but native configuration reset its sort", async () => {
+    const value = harness(canonicalFixture(), false, true);
+    expect(await value.recovery.recover()).toMatchObject({ outcome: "SETTLED", changed: false });
+    expect(value.beforeVerification).toHaveBeenCalledTimes(1);
+    expect(value.exec.mock.calls.map(([action]) => action)).toEqual(["sort-tasks"]);
+    expect(value.actual().tasks.map(task => task.id)).toEqual(["C", "B", "A"]);
+  });
+
+  it.each(["date", "temporary-add", "delete", "hierarchy", "link"] as const)("repairs raw sorted %s drift before an independent current presentation proof", async kind => {
+    const canonical = canonicalFixture(), drift = driftFixture(kind);
+    // Both raw Core collections use full preorder; only siblings may be
+    // presentation-sorted. The parent/child drift remains explicit input.
+    const initial = kind === "hierarchy" ? drift : { ...drift, tasks: [...drift.tasks].reverse() };
+    const value = harness(initial, false, true); value.setServer(canonical);
+    expect(await value.recovery.recover()).toMatchObject({ outcome: "SETTLED", changed: true });
+    expect(value.actual().tasks.map(task => task.id)).toEqual(["C", "B", "A"]);
+    const approved = value.approvedReader.readCore();
+    expect(approved.ok).toBe(true);
+    const desired = normalizeCanonicalCore(canonical);
+    expect(desired.ok).toBe(true);
+    if (approved.ok && desired.ok) expect(approved.value).toEqual(desired.value);
+  });
+
+  it.each(["projectStart", "projectDuration"] as const)("keeps old/new canonical generation separate through a %s-sorted edit recovery", async sortKey => {
+    const canonical = canonicalFixture();
+    canonical.tasks.forEach((task, index) => { task.projectDisplayKey = JSON.stringify({ taskId: task.id, start: `2026-10-0${index + 1}`, duration: index + 1 }); });
+    const next = { ...canonical, tasks: canonical.tasks.map(task => task.id === "B" ? { ...task, start: new Date(2026, 9, 9), projectDisplayKey: JSON.stringify({ taskId: "B", start: "2026-10-09", duration: 5 }) } : { ...task }) };
+    const value = harness({ ...canonical, tasks: [...canonical.tasks].reverse() }, false, true, sortKey); value.setServer(next);
+    expect(await value.recovery.recover()).toMatchObject({ outcome: "SETTLED", changed: true });
+    expect(value.actual().tasks.find(task => task.id === "B")).toMatchObject({ start: new Date(2026, 9, 9), projectDisplayKey: next.tasks[1].projectDisplayKey });
+    expect(value.exec.mock.calls.some(([action]) => action === "update-task")).toBe(true);
+    expect(value.actual().tasks.map(task => task.id)).toEqual(["B", "C", "A"]);
+  });
+
+  it("revokes the old presentation replay when a newer user sort arrives during its awaited action", async () => {
+    const value = harness(canonicalFixture(), false, true);
+    value.onExec(() => value.changeSort());
+    expect(await value.recovery.recover()).toMatchObject({ outcome: "SUPERSEDED", reason: "SOURCE_CHANGED" });
+    expect(value.recovery.canWrite()).toBe(false);
+  });
+
+  it("does not approve wrong presentation order or an approval reader that rewrites owned payload", async () => {
+    const reset = harness(canonicalFixture(), false, true);
+    reset.beforeVerification.mockImplementation(async () => {});
+    expect(await reset.recovery.recover()).toMatchObject({ outcome: "FAILED", reason: "INCONSISTENT_TREE" });
+    const drift = harness(driftFixture("date"), false, true);
+    drift.approvedReader.readCore.mockImplementation(() => normalizeCanonicalCore(canonicalFixture()));
+    drift.exec.mockImplementation(async () => {});
+    expect(await drift.recovery.recover()).toMatchObject({ outcome: "FAILED", reason: "INCONSISTENT_TREE" });
+    expect(drift.recovery.canWrite()).toBe(false);
+  });
+
+  it.each(["tasks", "tree"] as const)("rejects duplicate approved %s IDs even when every ID exists in raw Core", async collection => {
+    const value = harness(canonicalFixture(), false, true);
+    const canonical = normalizeCanonicalCore(canonicalFixture());
+    if (!canonical.ok) throw new Error("fixture");
+    const approved = { ...canonical.value, [collection]: [canonical.value[collection][0], canonical.value[collection][0], canonical.value[collection][2]] };
+    value.approvedReader.readCore.mockReturnValue({ ok: true, value: approved });
+    expect(await value.recovery.recover()).toMatchObject({ outcome: "FAILED", reason: "INCONSISTENT_TREE" });
+    expect(value.recovery.canWrite()).toBe(false);
+  });
+
   it("applies a successful root add from an interleaved server collection through full canonical preorder", async () => {
     const parent: ITask = { id: "parent", parent: 0, type: "summary", text: "Parent", progress: 0 };
     const child: ITask = { id: "child", parent: "parent", type: "task", text: "Child", progress: 0 };

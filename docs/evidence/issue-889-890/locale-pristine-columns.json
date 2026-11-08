@@ -1,0 +1,622 @@
+{
+  "source": "ecc15d17",
+  "kind": "pristine baseline with temporary ID/header-only observer",
+  "columnsAtLocaleCapture": [
+    {
+      "locale": "en",
+      "columns": [
+        {
+          "id": "copySelection",
+          "header": [
+            {
+              "text": "Select"
+            }
+          ]
+        },
+        {
+          "id": "text",
+          "header": [
+            {
+              "text": "Task"
+            }
+          ]
+        },
+        {
+          "id": "externalId",
+          "header": [
+            {
+              "text": "External ID"
+            }
+          ]
+        },
+        {
+          "id": "projectStart",
+          "header": [
+            {
+              "text": "Start"
+            }
+          ]
+        },
+        {
+          "id": "projectDuration",
+          "header": [
+            {
+              "text": "Duration"
+            }
+          ]
+        },
+        {
+          "id": "baselineStart",
+          "header": [
+            {
+              "text": "Baseline start"
+            }
+          ]
+        },
+        {
+          "id": "milestoneStage",
+          "header": [
+            {
+              "text": "Milestone"
+            }
+          ]
+        },
+        {
+          "id": "baselineEnd",
+          "header": [
+            {
+              "text": "Baseline end"
+            }
+          ]
+        },
+        {
+          "id": "add-task",
+          "header": [
+            {
+              "text": "Add task"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "locale": "vi",
+      "columns": [
+        {
+          "id": "copySelection",
+          "header": [
+            {
+              "text": "Select"
+            }
+          ]
+        },
+        {
+          "id": "text",
+          "header": [
+            {
+              "text": "Công việc"
+            }
+          ]
+        },
+        {
+          "id": "externalId",
+          "header": [
+            {
+              "text": "External ID"
+            }
+          ]
+        },
+        {
+          "id": "projectStart",
+          "header": [
+            {
+              "text": "Start"
+            }
+          ]
+        },
+        {
+          "id": "projectDuration",
+          "header": [
+            {
+              "text": "Thời lượng"
+            }
+          ]
+        },
+        {
+          "id": "baselineStart",
+          "header": [
+            {
+              "text": "Baseline start"
+            }
+          ]
+        },
+        {
+          "id": "milestoneStage",
+          "header": [
+            {
+              "text": "Milestone"
+            }
+          ]
+        },
+        {
+          "id": "baselineEnd",
+          "header": [
+            {
+              "text": "Baseline end"
+            }
+          ]
+        },
+        {
+          "id": "add-task",
+          "header": [
+            {
+              "text": "Thêm công việc"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "locale": "en",
+      "columns": [
+        {
+          "id": "copySelection",
+          "header": [
+            {
+              "text": "Chọn"
+            }
+          ]
+        },
+        {
+          "id": "text",
+          "header": [
+            {
+              "text": "Công việc"
+            }
+          ]
+        },
+        {
+          "id": "externalId",
+          "header": [
+            {
+              "text": "ID bên ngoài"
+            }
+          ]
+        },
+        {
+          "id": "projectStart",
+          "header": [
+            {
+              "text": "Bắt đầu"
+            }
+          ]
+        },
+        {
+          "id": "projectDuration",
+          "header": [
+            {
+              "text": "Thời lượng"
+            }
+          ]
+        },
+        {
+          "id": "baselineStart",
+          "header": [
+            {
+              "text": "Bắt đầu cơ sở"
+            }
+          ]
+        },
+        {
+          "id": "milestoneStage",
+          "header": [
+            {
+              "text": "Milestone"
+            }
+          ]
+        },
+        {
+          "id": "baselineEnd",
+          "header": [
+            {
+              "text": "Kết thúc cơ sở"
+            }
+          ]
+        },
+        {
+          "id": "add-task",
+          "header": [
+            {
+              "text": "Thêm công việc"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "locale": "ko",
+      "columns": [
+        {
+          "id": "copySelection",
+          "header": [
+            {
+              "text": "Select"
+            }
+          ]
+        },
+        {
+          "id": "text",
+          "header": [
+            {
+              "text": "작업"
+            }
+          ]
+        },
+        {
+          "id": "externalId",
+          "header": [
+            {
+              "text": "External ID"
+            }
+          ]
+        },
+        {
+          "id": "projectStart",
+          "header": [
+            {
+              "text": "Start"
+            }
+          ]
+        },
+        {
+          "id": "projectDuration",
+          "header": [
+            {
+              "text": "기간"
+            }
+          ]
+        },
+        {
+          "id": "baselineStart",
+          "header": [
+            {
+              "text": "Baseline start"
+            }
+          ]
+        },
+        {
+          "id": "milestoneStage",
+          "header": [
+            {
+              "text": "Milestone"
+            }
+          ]
+        },
+        {
+          "id": "baselineEnd",
+          "header": [
+            {
+              "text": "Baseline end"
+            }
+          ]
+        },
+        {
+          "id": "add-task",
+          "header": [
+            {
+              "text": "작업 추가"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "locale": "vi",
+      "columns": [
+        {
+          "id": "copySelection",
+          "header": [
+            {
+              "text": "Chọn"
+            }
+          ]
+        },
+        {
+          "id": "text",
+          "header": [
+            {
+              "text": "Công việc"
+            }
+          ]
+        },
+        {
+          "id": "externalId",
+          "header": [
+            {
+              "text": "ID bên ngoài"
+            }
+          ]
+        },
+        {
+          "id": "projectStart",
+          "header": [
+            {
+              "text": "Bắt đầu"
+            }
+          ]
+        },
+        {
+          "id": "projectDuration",
+          "header": [
+            {
+              "text": "Thời lượng"
+            }
+          ]
+        },
+        {
+          "id": "baselineStart",
+          "header": [
+            {
+              "text": "Bắt đầu cơ sở"
+            }
+          ]
+        },
+        {
+          "id": "milestoneStage",
+          "header": [
+            {
+              "text": "Milestone"
+            }
+          ]
+        },
+        {
+          "id": "baselineEnd",
+          "header": [
+            {
+              "text": "Kết thúc cơ sở"
+            }
+          ]
+        },
+        {
+          "id": "add-task",
+          "header": [
+            {
+              "text": "Thêm công việc"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "locale": "ko",
+      "columns": [
+        {
+          "id": "copySelection",
+          "header": [
+            {
+              "text": "Chọn"
+            }
+          ]
+        },
+        {
+          "id": "text",
+          "header": [
+            {
+              "text": "Công việc"
+            }
+          ]
+        },
+        {
+          "id": "externalId",
+          "header": [
+            {
+              "text": "ID bên ngoài"
+            }
+          ]
+        },
+        {
+          "id": "projectStart",
+          "header": [
+            {
+              "text": "Bắt đầu"
+            }
+          ]
+        },
+        {
+          "id": "projectDuration",
+          "header": [
+            {
+              "text": "Thời lượng"
+            }
+          ]
+        },
+        {
+          "id": "baselineStart",
+          "header": [
+            {
+              "text": "Bắt đầu cơ sở"
+            }
+          ]
+        },
+        {
+          "id": "milestoneStage",
+          "header": [
+            {
+              "text": "Milestone"
+            }
+          ]
+        },
+        {
+          "id": "baselineEnd",
+          "header": [
+            {
+              "text": "Kết thúc cơ sở"
+            }
+          ]
+        },
+        {
+          "id": "add-task",
+          "header": [
+            {
+              "text": "Thêm công việc"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "locale": "en",
+      "columns": [
+        {
+          "id": "copySelection",
+          "header": [
+            {
+              "text": "Select"
+            }
+          ]
+        },
+        {
+          "id": "text",
+          "header": [
+            {
+              "text": "Task"
+            }
+          ]
+        },
+        {
+          "id": "externalId",
+          "header": [
+            {
+              "text": "External ID"
+            }
+          ]
+        },
+        {
+          "id": "projectStart",
+          "header": [
+            {
+              "text": "Start"
+            }
+          ]
+        },
+        {
+          "id": "projectDuration",
+          "header": [
+            {
+              "text": "Duration"
+            }
+          ]
+        },
+        {
+          "id": "baselineStart",
+          "header": [
+            {
+              "text": "Baseline start"
+            }
+          ]
+        },
+        {
+          "id": "milestoneStage",
+          "header": [
+            {
+              "text": "Milestone"
+            }
+          ]
+        },
+        {
+          "id": "baselineEnd",
+          "header": [
+            {
+              "text": "Baseline end"
+            }
+          ]
+        },
+        {
+          "id": "add-task",
+          "header": [
+            {
+              "text": "Add task"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "locale": "vi",
+      "columns": [
+        {
+          "id": "copySelection",
+          "header": [
+            {
+              "text": "Select"
+            }
+          ]
+        },
+        {
+          "id": "text",
+          "header": [
+            {
+              "text": "Công việc"
+            }
+          ]
+        },
+        {
+          "id": "externalId",
+          "header": [
+            {
+              "text": "External ID"
+            }
+          ]
+        },
+        {
+          "id": "projectStart",
+          "header": [
+            {
+              "text": "Start"
+            }
+          ]
+        },
+        {
+          "id": "projectDuration",
+          "header": [
+            {
+              "text": "Thời lượng"
+            }
+          ]
+        },
+        {
+          "id": "baselineStart",
+          "header": [
+            {
+              "text": "Baseline start"
+            }
+          ]
+        },
+        {
+          "id": "milestoneStage",
+          "header": [
+            {
+              "text": "Milestone"
+            }
+          ]
+        },
+        {
+          "id": "baselineEnd",
+          "header": [
+            {
+              "text": "Baseline end"
+            }
+          ]
+        },
+        {
+          "id": "add-task",
+          "header": [
+            {
+              "text": "Thêm công việc"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

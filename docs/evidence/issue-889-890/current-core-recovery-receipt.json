@@ -1,0 +1,68 @@
+{
+  "schema": "issue-890-current-core-recovery/1",
+  "collection": "SYNTHETIC_CORE_BROWSER",
+  "capturedAt": "2026-11-08T03:28:04.733Z",
+  "sourceBase": "ecc15d171f08dbb249ff52b13ca616592d1c9ac7",
+  "sourceWorkingCopy": true,
+  "sourceStart": {
+    "src/features/gantt/state-consistency/core-reader.ts": "84a6e1d71bc19adb1221a52fde6b4589702990753acc9dde74f6f66618f3d591",
+    "src/features/gantt/state-consistency/presentation-sort.ts": "39f572e5a1078771168749679cd70426599f317b54ed2d5d798fb13a1900734e",
+    "src/features/gantt/canonical-recovery.ts": "26c6447468ba32a85fa236278442d3978034abb88493beba764a0d4ce1459305",
+    "src/features/gantt/core-conformance.ts": "6b6e2d52e8fa6ba8ef73d5a96f2ee41bc61e118f457e78f7ad0efae7862dc138",
+    "src/features/gantt/canonical-snapshot-sync.ts": "7a6fbcc0837cce5175545ad9b29287077d0a8b0c915307621c7235990be3d791",
+    "src/features/gantt/state-consistency/contracts.ts": "53c9dea5479811fc6e459e130e9dff40b69468ceda97faaaf82b646aebd091e7",
+    "tests/fixtures/gantt-canonical-recovery/browser.tsx": "102fccbddb05b8b9c50497e7220344de1011cae60c0bbb12d1976ea0ac5954ca",
+    "tests/fixtures/gantt-canonical-recovery/prepare-browser.mjs": "1302adbb81cab6fc3b3707e66fc77739b779abb3e24654dc603ed3f91849d7d5"
+  },
+  "sourceEnd": {
+    "src/features/gantt/state-consistency/core-reader.ts": "84a6e1d71bc19adb1221a52fde6b4589702990753acc9dde74f6f66618f3d591",
+    "src/features/gantt/state-consistency/presentation-sort.ts": "39f572e5a1078771168749679cd70426599f317b54ed2d5d798fb13a1900734e",
+    "src/features/gantt/canonical-recovery.ts": "26c6447468ba32a85fa236278442d3978034abb88493beba764a0d4ce1459305",
+    "src/features/gantt/core-conformance.ts": "6b6e2d52e8fa6ba8ef73d5a96f2ee41bc61e118f457e78f7ad0efae7862dc138",
+    "src/features/gantt/canonical-snapshot-sync.ts": "7a6fbcc0837cce5175545ad9b29287077d0a8b0c915307621c7235990be3d791",
+    "src/features/gantt/state-consistency/contracts.ts": "53c9dea5479811fc6e459e130e9dff40b69468ceda97faaaf82b646aebd091e7",
+    "tests/fixtures/gantt-canonical-recovery/browser.tsx": "102fccbddb05b8b9c50497e7220344de1011cae60c0bbb12d1976ea0ac5954ca",
+    "tests/fixtures/gantt-canonical-recovery/prepare-browser.mjs": "1302adbb81cab6fc3b3707e66fc77739b779abb3e24654dc603ed3f91849d7d5"
+  },
+  "sourceStable": true,
+  "installedGanttVersion": "2.7.3",
+  "installedStoreVersion": "2.7.2",
+  "environment": {
+    "browser": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+    "timezone": "Asia/Seoul",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    }
+  },
+  "commands": [
+    "node tests/fixtures/gantt-canonical-recovery/prepare-browser.mjs",
+    "node /tmp/issue890-run-current-recovery.mjs"
+  ],
+  "publicOperation": "Existing fixture window.__gsc664.run(), installed public Core API only",
+  "result": "PASS",
+  "counts": {
+    "tasks": 5,
+    "links": 2,
+    "scenarios": 12
+  },
+  "runtimeSha256": "c89426058312c2fb24223258a1e76c5b9ddccc22af145f09e281d96f30573305",
+  "bundleSha256": "450242e19edc9faba35207418e2017f45b0d90d686c4d8accfe96e4ecc7ec8d5",
+  "notTested": [
+    "sorted locale/product generation transitions (separate E2E)",
+    "actual HTTP/SQLite",
+    "full PR CI/Trusted QA/Owner ACCEPT",
+    "main/GHCR/Release"
+  ],
+  "historicalArtifacts": "Existing actual-recovery-2.7.3.json and sha256 values remain unchanged; historical core reader is separately preserved by original.snapshot mapping.",
+  "captureRunnerSnapshot": {
+    "path": "current-core-recovery-runner.snapshot.txt",
+    "sha256": "0b56d868edf52e42e5213c0738a25f202067531a566eab370dffd4ad696d135d",
+    "meaning": "Exact runner bytes used for this execution; annotation added after completion."
+  },
+  "finalFrozenSource": {
+    "inputs": 1339,
+    "normalizedSha256": "9425e0521645433d958bc72952feed5618e892d48b2282887e493087a158b5e5",
+    "authority": "Manager supplied final source fingerprint; captured source files independently rehashed below."
+  }
+}

@@ -1,3 +1,10 @@
+## Issue #890 / #889 — native Grid label 원본 보존
+
+현재 active sort는 열의 sort 설정과 별도 상태다. locale snapshot은 active descriptor와 동률 정렬 우선순위를 보존하고 동일 API/projection/사용자 입력 lease에서 공개 sort-tasks로 복원한다. 빠른 언어 전환의 임시 native init 상태가 원래 의도를 덮지 않으며 최신 사용자 정렬은 오래된 복원보다 우선한다. 정렬된 표시 순서와 canonical 원본 계층은 독립 검증하고 새 receipt가 실제로 정착했는지 확인한다.
+
+
+native normalized header는 Locale 렌더에서 변형될 수 있으므로 이전 표시 문자열을 source로 다시 복원하지 않는다. 열 ID→고정 source key→현재 locale의 header를 새 객체로 생성하고 width/hidden/flexgrow/order 등 배치만 별도로 보존한다. WBS와 조회 View의 헤더·Day/Week·ARIA는 현재 언어를 사용하며 자유입력·managed fallback·ID·revision은 바꾸지 않는다. 기존 Locale→public API→projection/viewport 복원은 최신 요청/gesture만 수용한다. [통합 Packet](exec-plans/active/ISSUE_889.md)과 실제 재현 원장을 따른다.
+
 # Issue #866 — Phase C: 화면 국제화와 상태 보존 설계
 
 ## 적용 범위와 검증 상태 (2026-11-05)

@@ -1,6 +1,7 @@
 "use client";
 
 import { ScheduleViewPanel } from "./schedule-view-panel";
+import { ContextHelp } from "@/components/ui/context-help";
 
 import { observeScaleDecoration } from "./scale-decoration-observer";
 
@@ -10,7 +11,8 @@ import { createInlineNameSession, type InlineNameSubmitCause } from "./inline-na
 
 import { createViewportCoordinator, type ViewportCoordinator, type ViewportController, type ViewportStamp, type ViewportContext } from "./viewport/viewport-coordinator";
 import { copyViewportHandoffSource, createCopyViewportRevocation, type CanonicalMutationRequest } from "./viewport/copy-viewport-continuity";
-import { canRestoreLocaleInitColumns } from "./viewport/locale-presentation";
+import { canRestoreLocaleInitColumns, canonicalTaskSortValue, compareCanonicalTaskField, currentLocaleColumns, LOCALE_SORT_EVENT_SOURCE, restoreLocaleSort, type CanonicalSortField, type LocaleSort } from "./viewport/locale-presentation";
+import { expectedPresentationOrder, mergePresentationSort, type PresentationSortClause } from "./state-consistency/presentation-sort";
 import { createSvarViewportPort } from "./viewport/svar-viewport-port";
 
 import { createCoreActionTrace, traceFingerprint, type TraceContext } from "./diagnostics/core-action-trace";
@@ -388,6 +390,7 @@ interface ProjectGanttProps {
   readonly projectPublicId?: string;
 }
 
+const EMPTY_PRESENTATION_SORT: readonly PresentationSortClause[] = Object.freeze([]);
 const baseProjectColumns: IColumnConfig[] = [
   { id: "text", header: "작업", width: 180, flexgrow: 1, sort: true },
   { id: "externalId", header: "외부 ID", width: 108, getter: (task) => task.externalId ?? "—" },
@@ -477,16 +480,24 @@ export function ProjectGantt({
 }: ProjectGanttProps) {
   const { locale, t, formatLocale: locales } = useI18n();
   const [scheduleView, setScheduleView] = useState<"wbs" | "resource" | "equipment">("wbs");
+  const [scheduleStatusContainer, setScheduleStatusContainer] = useState<HTMLDivElement | null>(null);
   const scheduleViewReference = useRef(scheduleView);
   const viewVisible = projectViewVisible && scheduleView === "wbs";
   const editable = projectEditable && scheduleView === "wbs";
   const mutationLocked = projectMutationLocked || scheduleView !== "wbs";
   useLayoutEffect(() => { scheduleViewReference.current = scheduleView; }, [scheduleView]);
   const ganttWords = SVAR_LOCALES[locale];
+  const nativeLocaleReference = useRef(locale);
+  const localeSortIntentReference = useRef(0);
+  const presentationSortReference = useRef<{ api: IApi | null; active: readonly PresentationSortClause[]; effective: readonly PresentationSortClause[] }>({ api: null, active: [], effective: [] });
   const { notify } = useWorkspaceNotifications();
   const [density, setDensity] = useState({ level: 0, coarse: false });
   const ganttCellHeight = densityHeight(density.level, density.coarse);
   const densityReference = useRef(density);
+  const densityBlockedReference = useRef(false);
+  useLayoutEffect(() => {
+    densityBlockedReference.current = projectMutationLocked || mutationPending || canonicalRecoveryBlocked;
+  }, [projectMutationLocked, mutationPending, canonicalRecoveryBlocked]);
   const pendingDensityAnchor = useRef<{ rowId: string; offset: number; left: number; source: ViewportStamp } | null>(null);
   const apiReference = useRef<IApi | null>(null);
   const readScheduleApi = useCallback(() => apiReference.current, []);
@@ -1306,27 +1317,38 @@ export function ProjectGantt({
     return state;
   }
 
-  async function restoreSummaryToggleState(api: IApi, summaryState: ReadonlyMap<string, boolean>) {
+  const restoreSummaryToggleState = useCallback(async (api: IApi, summaryState: ReadonlyMap<string, boolean>) => {
     for (const [taskId, collapsed] of summaryState) {
       const task = tasksByIdReference.current.get(taskId);
       if (!task || !tasksReference.current.some((candidate) => candidate.parentExternalId === task.externalId)) continue;
       await api.exec("open-task", { id: taskId, mode: !collapsed });
     }
-  }
+  }, []);
 
-  async function restoreFullscreenUiState(
+  const restoreOwnedPresentationSort = useCallback(async (api: IApi, isCurrent: () => boolean) => {
+    const source = presentationSortReference.current;
+    const intent = localeSortIntentReference.current;
+    if (source.api !== api || !source.active.length) return;
+    const current = () => isCurrent() && apiReference.current === api && presentationSortReference.current === source &&
+      localeSortIntentReference.current === intent;
+    await restoreLocaleSort(api, source.active, current, source.effective);
+    if (!current()) throw new Error("SUPERSEDED");
+  }, []);
+
+  const restoreFullscreenUiState = useCallback(async (
     savedColumns: IColumnConfig[],
     summaryState: ReadonlyMap<string, boolean>,
-  ) {
+  ) => {
     const api = apiReference.current;
     if (!api) return;
 
     const nextFrame = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
     await nextFrame();
     await nextFrame();
-    await api.exec("set-columns", { columns: savedColumns });
+    if (apiReference.current !== api) return;
+    await api.exec("set-columns", { columns: currentLocaleColumns(savedColumns, nativeLocaleReference.current) });
     await restoreSummaryToggleState(api, summaryState);
-  }
+  }, [restoreSummaryToggleState]);
 
   useEffect(() => {
     const saved = fullscreenUiStateReference.current;
@@ -1341,7 +1363,7 @@ export function ProjectGantt({
       if (!cancelled) onCanonicalSyncFailureReference.current();
     });
     return () => { cancelled = true; };
-  }, [apiInstanceId, isFullscreen]);
+  }, [apiInstanceId, isFullscreen, restoreFullscreenUiState]);
 
   async function toggleFullscreen() {
     const frame = fullscreenFrameReference.current;
@@ -1561,12 +1583,7 @@ export function ProjectGantt({
           ? {
             ...column,
             hidden: !columnVisibility.projectStart,
-            sort: (first: ITask, second: ITask) => {
-              const firstStart = tasksByIdReference.current.get(String(first.id))?.start;
-              const secondStart = tasksByIdReference.current.get(String(second.id))?.start;
-              if (!firstStart || !secondStart) return !firstStart && !secondStart ? 0 : !firstStart ? 1 : -1;
-              return firstStart === secondStart ? 0 : firstStart < secondStart ? -1 : 1;
-            },
+            sort: (first: ITask, second: ITask) => compareCanonicalTaskField(first, second, "start"),
             getter: (task: ITask) => {
               const start = typeof task.id === "string" ? tasksByIdReference.current.get(task.id)?.start : null;
               return start ? formatLocaleDateOnly(start, browserLocales()) : "—";
@@ -1576,6 +1593,7 @@ export function ProjectGantt({
             ? {
               ...column,
               hidden: !columnVisibility.projectDuration,
+              sort: (first: ITask, second: ITask) => compareCanonicalTaskField(first, second, "duration"),
               getter: (task: ITask) => (
                 // Core renders elapsed calendar duration for its bar. Keep
                 // the Grid contract truthful by reading the scheduler's
@@ -1586,9 +1604,9 @@ export function ProjectGantt({
               ),
             }
           : column.id === "baselineStart"
-            ? { ...column, hidden: !columnVisibility.baselineStart }
+            ? { ...column, hidden: !columnVisibility.baselineStart, sort: (first: ITask, second: ITask) => compareCanonicalTaskField(first, second, "baselineStart") }
           : column.id === "baselineEnd"
-            ? { ...column, hidden: !columnVisibility.baselineEnd }
+            ? { ...column, hidden: !columnVisibility.baselineEnd, sort: (first: ITask, second: ITask) => compareCanonicalTaskField(first, second, "baselineEnd") }
           : column.id === "text"
             ? {
               ...column,
@@ -2105,6 +2123,8 @@ export function ProjectGantt({
     viewportPortReference.current = port; viewportCoordinatorReference.current = coordinator;
     const consistency = createProductConsistency({ api, root, apiInstance: apiInstanceId,
       projection: () => projectionReference.current,
+      presentationSort: () => presentationSortReference.current.api === api ? presentationSortReference.current.effective : EMPTY_PRESENTATION_SORT,
+      replayPresentationSort: isCurrent => restoreOwnedPresentationSort(api, isCurrent),
       identity: () => ({ revision: projectionReference.current.revision, keys: projectionReference.current.keys,
         query: viewportContextReference.current?.key ?? "", scope: viewportContextReference.current?.scope ?? null }),
       visible: () => peerViewportContext.current.visible,
@@ -2125,10 +2145,11 @@ export function ProjectGantt({
       if (!(event.target instanceof Element)) return;
       const filter = (event.type === "input" || event.type === "change") && event.target.closest(".project-schedule-filter-toolbar, .project-task-filter-panel");
       if (filter) coordinator.filterInput();
-      else if (root.contains(event.target) && event.target.closest(".wx-chart, .wx-gantt, .wx-table-container") && !event.target.closest("dialog")) {
+      else if (((root.contains(event.target) && event.target.closest(".wx-chart, .wx-gantt, .wx-table-container")) ||
+          (frame?.contains(event.target) && event.target.closest("[data-schedule-view-scroll]"))) && !event.target.closest("dialog")) {
         // Density owns one wheel-burst lease. Sub-threshold tail events must
         // not revoke its in-flight anchor; unrelated native input still wins.
-        if (!(event instanceof WheelEvent && event.ctrlKey && !event.altKey && !event.metaKey && event.cancelable && isDensityWheelTarget(event.target, root))) coordinator.userInput();
+        if (!(event instanceof WheelEvent && event.ctrlKey && !event.altKey && !event.metaKey && event.cancelable && isDensityWheelTarget(event.target, frame ?? root))) coordinator.userInput();
         if (event instanceof WheelEvent && event.deltaX > 0 && !event.ctrlKey && event.target.closest(".wx-chart"))
           scheduleTimelineExtension(api, coordinator.stamp());
       }
@@ -2158,10 +2179,12 @@ export function ProjectGantt({
       onViewportController?.(null);
       metadataViewportReference.current?.cleanup(); metadataViewportReference.current = null;
     };
-  }, [apiInstanceId, onViewportController, recordTimelineEnd, scheduleTimelineExtension, expandTimelineScale]);
+  }, [apiInstanceId, onViewportController, recordTimelineEnd, scheduleTimelineExtension, expandTimelineScale, restoreOwnedPresentationSort]);
   useEffect(() => {
     const root = ganttScrollReference.current;
     if (!root || !apiInstanceId) return;
+    const inputRoot = fullscreenFrameReference.current;
+    if (!inputRoot) return;
     const primary = window.matchMedia("(pointer: coarse)");
     const any = window.matchMedia("(any-pointer: coarse)");
     const accumulator = createDensityWheel();
@@ -2172,7 +2195,7 @@ export function ProjectGantt({
       const coordinator = viewportCoordinatorReference.current;
       const sample = viewportPortReference.current?.read();
       const vertical = root.querySelector<HTMLElement>(".wx-gantt");
-      if (coordinator && sample?.measurable && vertical) {
+      if (scheduleViewReference.current === "wbs" && coordinator && sample?.measurable && vertical) {
         const body = vertical.getBoundingClientRect();
         const targetY = y ?? body.top + body.height / 2;
         const rows = [...root.querySelectorAll<HTMLElement>(".wx-table .wx-row[data-id]")]
@@ -2188,6 +2211,10 @@ export function ProjectGantt({
         }
       }
       projectionReceiptReference.current = null;
+      if (scheduleViewReference.current !== "wbs") {
+        inputRoot.querySelector('[data-schedule-view-scroll]')?.dispatchEvent(
+          new CustomEvent("project-gantt-density", { detail: { pointerY: y } }));
+      }
       densityReference.current = { level, coarse };
       setDensity({ level, coarse });
     };
@@ -2200,12 +2227,12 @@ export function ProjectGantt({
       change(0, coarse, null);
     };
     const wheel = (event: WheelEvent) => {
-      if (!event.ctrlKey || event.altKey || event.metaKey || !event.cancelable || !(event.target instanceof Element) || !isDensityWheelTarget(event.target, root)) return;
+      if (!event.ctrlKey || event.altKey || event.metaKey || !event.cancelable || !(event.target instanceof Element) || !isDensityWheelTarget(event.target, inputRoot)) return;
       event.preventDefault();
       event.stopPropagation();
       // Native mutation/recovery owns temporary row geometry. Consume the
       // shortcut but pause density until that canonical boundary settles.
-      if (mutationLockedReference.current || consistencyBlockedReference.current || event.buttons !== 0) {
+      if (densityBlockedReference.current || event.buttons !== 0) {
         accumulator.reset();
         return;
       }
@@ -2217,9 +2244,12 @@ export function ProjectGantt({
       if (!next) return;
       direction = next;
       if (scheduled) return;
+      const requestedView = scheduleViewReference.current;
+      const requestedSource = viewportCoordinatorReference.current?.stamp();
       scheduled = requestAnimationFrame(() => {
         scheduled = 0;
-        if (mutationLockedReference.current || consistencyBlockedReference.current) { accumulator.reset(); return; }
+        if (densityBlockedReference.current || requestedView !== scheduleViewReference.current ||
+            (requestedSource && !viewportCoordinatorReference.current?.validSource(requestedSource))) { accumulator.reset(); return; }
         const current = densityReference.current;
         const level = nextDensityLevel(current.level, direction, current.coarse);
         if (level !== current.level) viewportCoordinatorReference.current?.userInput();
@@ -2229,10 +2259,10 @@ export function ProjectGantt({
     syncPointer();
     primary.addEventListener("change", syncPointer);
     any.addEventListener("change", syncPointer);
-    root.addEventListener("wheel", wheel, { capture: true, passive: false });
+    inputRoot.addEventListener("wheel", wheel, { capture: true, passive: false });
     return () => {
       cancelAnimationFrame(scheduled);
-      root.removeEventListener("wheel", wheel, true);
+      inputRoot.removeEventListener("wheel", wheel, true);
       primary.removeEventListener("change", syncPointer);
       any.removeEventListener("change", syncPointer);
     };
@@ -2407,10 +2437,35 @@ export function ProjectGantt({
   // Core 2.7.3 reinitializes its store when Locale words change. Refresh its
   // stable input arrays before the child passive effect, then restore only
   // presentation state through public APIs and the existing viewport lease.
-  const nativeLocaleReference = useRef(locale);
+  useEffect(() => {
+    const api = apiReference.current;
+    if (!api || !apiInstanceId) return;
+    const tag = "project-locale-sort-intent";
+    if (presentationSortReference.current.api !== api) presentationSortReference.current = { api, active: [], effective: [] };
+    api.intercept("sort-tasks", event => {
+      const sourceFields: Readonly<Record<string, CanonicalSortField>> = { projectStart: "start", projectDuration: "duration", baselineStart: "baselineStart", baselineEnd: "baselineEnd" };
+      const field = Object.hasOwn(sourceFields, event.key) ? sourceFields[event.key] : undefined;
+      if (!field) return true;
+      const tasks = api.serialize({ data: "tasks" });
+      return Array.isArray(tasks) && tasks.every(task => canonicalTaskSortValue(task, field).ok);
+    }, { tag });
+    api.on("sort-tasks", event => {
+      if (event.eventSource === LOCALE_SORT_EVENT_SOURCE) return;
+      localeSortIntentReference.current++;
+      const active = (api.getState()._sort ?? []).map(({ key, order }) => ({ key, order: order ?? "desc" }));
+      const knownColumns = new Set((api.getState().columns ?? []).map(column => column.id));
+      presentationSortReference.current = { api, active,
+        effective: mergePresentationSort(active, presentationSortReference.current.effective.filter(clause => knownColumns.has(clause.key))) };
+      projectionReceiptReference.current = null;
+      consistencyReference.current?.observation.invalidate();
+      requestProjectionObservationReference.current?.();
+    }, { tag });
+    return () => api.detach(tag);
+  }, [apiInstanceId]);
   const localePresentationReference = useRef<{
     locale: typeof locale; api: IApi; projection: CanonicalProjection; coordinator: ViewportCoordinator | null;
     columns: IColumnConfig[]; gridWidth: number; selected: string[];
+    sort: LocaleSort[]; effectiveSort: readonly PresentationSortClause[]; sortPending: boolean; sortIntent: number;
     summaries: Map<string, boolean>; source: ViewportStamp | null;
     position: { left: number; top: number };
   } | null>(null);
@@ -2423,8 +2478,17 @@ export function ProjectGantt({
     const summaries = new Map(svarTasks.filter(task => tasksByIdReference.current.get(String(task.id))?.type === "summary")
       .map(task => [String(task.id), Boolean(api.getTask(task.id!)?.open)] as const));
     const sample = viewportPortReference.current?.read();
-    const saved = { locale, api, projection, coordinator: viewportCoordinatorReference.current, columns: (state.columns ?? []).map(column => ({ ...column })),
+    const previous = localePresentationReference.current;
+    const coordinator = viewportCoordinatorReference.current;
+    const inheritPendingSort = previous?.sortPending && previous.api === api && previous.projection === projection &&
+      previous.sortIntent === localeSortIntentReference.current && coordinator === previous.coordinator &&
+      (!previous.source || coordinator?.validSource(previous.source) || (coordinator && canRestoreLocaleInitColumns(previous.source, coordinator.stamp())));
+    const activeSort = state._sort?.length ? state._sort : inheritPendingSort ? previous.sort : [];
+    const effectiveSort = mergePresentationSort(activeSort.map(({ key, order }) => ({ key, order: order ?? "desc" })),
+      presentationSortReference.current.api === api ? presentationSortReference.current.effective : []);
+    const saved = { locale, api, projection, coordinator: viewportCoordinatorReference.current, columns: currentLocaleColumns(state.columns ?? [], locale),
       gridWidth: state.gridWidth ?? 480, selected: (state.selected ?? []).map(String), summaries,
+      sort: activeSort.map(descriptor => ({ ...descriptor })), effectiveSort, sortPending: true, sortIntent: localeSortIntentReference.current,
       source: viewportCoordinatorReference.current?.stamp() ?? null,
       position: sample?.measurable ? { ...sample.core } : { left: state.scrollLeft, top: state.scrollTop } };
     localePresentationReference.current = saved;
@@ -2433,7 +2497,7 @@ export function ProjectGantt({
     // stamp remains valid even after a user resized the Grid columns.
     for (const column of initialConfig.columns) {
       const current = saved.columns.find(candidate => candidate.id === column.id);
-      if (current) Object.assign(column, { width: current.width, hidden: current.hidden, flexgrow: current.flexgrow });
+      if (current) Object.assign(column, { header: current.header, width: current.width, hidden: current.hidden, flexgrow: current.flexgrow });
     }
     refreshNativeLocaleInputs(initialConfig, tasks, links, viewRootTaskId, summaries);
     projectionReceiptReference.current = null;
@@ -2447,6 +2511,7 @@ export function ProjectGantt({
     const current = () => {
       const coordinator = viewportCoordinatorReference.current;
       return !cancelled && localePresentationReference.current === saved && apiReference.current === saved.api &&
+        localeSortIntentReference.current === saved.sortIntent &&
         projectionReference.current === saved.projection && coordinator === saved.coordinator &&
         (!saved.source || coordinator?.validSource(saved.source) === true ||
           (restoringInitColumns && coordinator !== null && canRestoreLocaleInitColumns(saved.source, coordinator.stamp())));
@@ -2456,7 +2521,7 @@ export function ProjectGantt({
       const api = saved.api;
       canonicalSyncDepthReference.current += 1;
       try {
-        await api.exec("set-columns", { columns: saved.columns });
+        await api.exec("set-columns", { columns: currentLocaleColumns(saved.columns, saved.locale) });
         if (!current()) return;
         await api.exec("resize-grid", { width: saved.gridWidth });
         // The init-only exception ends here. Filter, selection, and viewport
@@ -2465,6 +2530,9 @@ export function ProjectGantt({
         if (!current()) return;
         const visible = wbsDisplayMode === "compatibility" && visibleTaskIds === null ? null : new Set(saved.projection.membershipIds);
         await api.exec("filter-tasks", { open: false, filter: visible ? (task: ITask) => visible.has(String(task.id)) : undefined });
+        await restoreLocaleSort(api, saved.sort, current, saved.effectiveSort);
+        if (!current()) return;
+        saved.sortPending = false;
         for (const [id, open] of saved.summaries) {
           if (!current()) return;
           if (api.getTask(id)?.open !== open) await api.exec("open-task", { id, mode: open });
@@ -2555,7 +2623,10 @@ export function ProjectGantt({
       const expandedTree = new Set(currentTasks.filter(task => task.open !== false).map(task => String(task.id)));
       const expected = buildProjection({ revision: requestedProjection.revision, tasks: currentTasks, links: [], displayTasks: [] }, { scope: viewRootTaskId, filter: visibleTaskIds, displayMode: wbsDisplayMode, expandedTree, columnPrefs: null, scale: scaleMode });
       const actualVisibleIds = api.getState()._tasks.map(task => String(task.id));
-      const membershipCorrect = JSON.stringify(actualVisibleIds) === JSON.stringify(expected.logicalVisibleIds);
+      const expectedOrder = expectedPresentationOrder(currentTasks, api.getState().columns ?? [],
+        presentationSortReference.current.api === api ? presentationSortReference.current.effective : []);
+      const expectedVisibleIds = expectedOrder?.filter(id => expected.logicalVisibleIds.includes(id));
+      const membershipCorrect = expectedVisibleIds !== undefined && JSON.stringify(actualVisibleIds) === JSON.stringify(expectedVisibleIds);
       const resetEmptyFilter = async () => {
         // Locale is presentation-only. An unchanged empty query has no new
         // authority to reset a timeline the user has subsequently panned.
@@ -2656,7 +2727,7 @@ export function ProjectGantt({
           ...nextColumns.map((column) => ({ ...column })),
         );
         diagnosticTraceReference.current?.record("effect-apply", "set-columns");
-        await api.exec("set-columns", { columns: nextColumns });
+        await api.exec("set-columns", { columns: currentLocaleColumns(nextColumns, nativeLocaleReference.current) });
         // Add/remove optional columns without consuming the user's name-column
         // width. Core's flex column otherwise absorbs the fixed stage width.
         if (previousWidth !== nextWidth) {
@@ -2675,7 +2746,7 @@ export function ProjectGantt({
       }
     }).catch(() => onCanonicalSyncFailureReference.current());
   // Scale changes have their own saved-width restoration path below.
-  }, [columns, ensureTimelineEnd, apiInstanceId]);
+  }, [columns, ensureTimelineEnd, apiInstanceId, restoreSummaryToggleState]);
 
 
   const observedProjectionReference = useRef<CanonicalProjection | null>(null);
@@ -2696,16 +2767,19 @@ export function ProjectGantt({
       const previousSelection = observedSelectionReference.current?.api === api ? observedSelectionReference.current.ids : [];
       const taskSelectionChanged = triggers.includes("select-task") || selectedIds.length !== previousSelection.length || selectedIds.some((id, index) => id !== previousSelection[index]);
       const generation = ++projectionObservationAttempt.current;
+      const sortIntent = localeSortIntentReference.current;
       const reportObservation = (stage: "rows" | "semantic" | "delivery", outcome: string) => {
         if (process.env.NODE_ENV !== "production" && !disposed && generation === projectionObservationAttempt.current)
           root.dataset.ganttProjectionObservation = JSON.stringify({ generation, stage, outcome });
       };
       reportObservation("rows", "PENDING");
       const isCurrent = () => !disposed && apiReference.current === api &&
+        sortIntent === localeSortIntentReference.current &&
         generation === projectionObservationAttempt.current && projectRevisionReference.current === requested.revision &&
         projectionReference.current.keys.data === requested.keys.data && projectionReference.current.keys.structure === requested.keys.structure && projectionReference.current.keys.membership === requested.keys.membership &&
         projectionReference.current.keys.layout === requested.keys.layout && peerViewportContext.current.visible;
       observation = observeProjectionSettled(api, root, requested, { apiInstance: apiInstanceId, generation,
+        expectedTaskOrder: expectedPresentationOrder(requested.tasks, api.getState().columns ?? [], presentationSortReference.current.api === api ? presentationSortReference.current.effective : []),
         reasons: triggers.includes("layout") ? [...new Set([...reasons, "layout"])] : reasons, scale: scaleMode, scope: viewRootTaskId, filterKey: traceFingerprint(viewportContinuityKey), taskSelectionChanged, queryConditionsChanged, expectedColumns: columns.map(column => ({ id: column.id, hidden: column.hidden ?? false })) }, isCurrent);
       void observation.promise.then(receipt => {
         if (disposed || generation !== projectionObservationAttempt.current) return;
@@ -3289,7 +3363,7 @@ export function ProjectGantt({
     const restore = async () => {
       await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
       if (!cancelled) {
-        await api.exec("set-columns", { columns: savedColumns });
+        await api.exec("set-columns", { columns: currentLocaleColumns(savedColumns, nativeLocaleReference.current) });
         if (savedSummary && !cancelled && apiReference.current === api) await restoreSummaryToggleState(api, savedSummary);
         if (pendingScaleSummaryReference.current === savedSummary) pendingScaleSummaryReference.current = null;
         ensureTimelineEnd(api);
@@ -3300,7 +3374,7 @@ export function ProjectGantt({
       if (!cancelled) onCanonicalSyncFailureReference.current();
     });
     return () => { cancelled = true; };
-  }, [apiInstanceId, ensureTimelineEnd, scaleMode, scheduleTimelineExtension]);
+  }, [apiInstanceId, ensureTimelineEnd, scaleMode, scheduleTimelineExtension, restoreSummaryToggleState]);
 
 
 
@@ -4657,7 +4731,8 @@ export function ProjectGantt({
           <button aria-pressed={scaleMode === "day"} onClick={() => changeScaleMode("day")} type="button">{t("일")}</button>
           <button aria-pressed={scaleMode === "week"} onClick={() => changeScaleMode("week")} type="button">{t("주")}</button>
         </div>
-        <div hidden={scheduleView !== "wbs"} className="project-copy-selection-controls" role="group" aria-label={t("복사 대상 선택")}>
+        <div className="project-gantt-view-status-slot">
+        <div aria-hidden={scheduleView !== "wbs" || undefined} inert={scheduleView !== "wbs"} data-inactive={scheduleView !== "wbs" || undefined} className="project-copy-selection-controls" role="group" aria-label={t("복사 대상 선택")}>
           <span role="status" aria-atomic="true">{t("선택 {count}개", { count: selectedTaskIds.length })}{selectionHiddenCount ? t(" · 접힌 하위 {count}개", { count: selectionHiddenCount }) : ""}</span>
           <button type="button" disabled={!selectedTaskIds.length || !editable || mutationLocked} onClick={() => copyCurrentSelection()}>{t("선택 복사")}</button>
           <button type="button" disabled={!selectedTaskIds.length} onClick={() => {
@@ -4666,9 +4741,13 @@ export function ProjectGantt({
             setSelectionMessage("선택을 해제했습니다.");
             ganttScrollReference.current?.focus({ preventScroll: true });
           }}>{t("선택 해제")}</button>
-          <span className="project-copy-selection-help">{t("체크박스 · Ctrl/Cmd · Shift로 선택")}</span>
+          <span className="project-copy-selection-help"><ContextHelp label={t("복사 대상 선택")}>
+            {t("체크박스 · Ctrl/Cmd · Shift로 선택")}
+          </ContextHelp></span>
         </div>
-        {editable && viewRootTaskId === null ? (
+        <div ref={setScheduleStatusContainer} className="project-gantt-projected-status-slot" hidden={scheduleView === "wbs"} />
+        </div>
+        {projectEditable && viewRootTaskId === null ? (
               <button className="project-gantt-fullscreen-button" disabled={mutationLocked} onClick={() => onTaskCreateReference.current({ name: "새 요약 작업", type: "summary" })} type="button">{t("요약 작업 추가")}</button> ) : null}
         <button className="project-gantt-fullscreen-button" ref={fullscreenButtonReference} type="button"
           aria-label={isFullscreen ? t("Gantt 전체 화면 종료") : t("Gantt 전체 화면")} aria-pressed={isFullscreen}
@@ -4684,6 +4763,7 @@ export function ProjectGantt({
         key={projectPublicId} view={scheduleView} projectPublicId={projectPublicId} projectRevision={projectRevision}
         tasks={tasks} visibleTaskIds={projection.membershipIds} contextKey={viewportContinuityKey}
         scaleMode={scaleMode} cellHeight={ganttCellHeight} readApi={readScheduleApi}
+        calendar={calendar} statusContainer={scheduleStatusContainer}
         selectedTaskIds={selectedTaskIds} active={projectViewVisible} blocked={projectMutationLocked || mutationPending || canonicalRecoveryBlocked}
         onSelect={id => applySelectionGesture(id, "single", false, false)}
         onOpenTask={id => { if (!projectMutationLocked && !mutationPending && !canonicalRecoveryBlocked && tasksByIdReference.current.has(id)) onTaskEditorOpenReference.current(id); }}

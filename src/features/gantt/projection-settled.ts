@@ -36,7 +36,7 @@ function linkShape(links: readonly ILink[]) {
 /** Read-only, finite observation of actual Core and native rows. exec receipts
  * are deliberately absent: a resolved command is not a committed projection. */
 export function observeProjectionSettled(api: IApi, root: HTMLElement, projection: CanonicalProjection,
-  context: { apiInstance: string; generation: number; reasons: readonly string[]; scale: string; scope: string | null; filterKey: string; taskSelectionChanged: boolean; queryConditionsChanged: boolean; expectedColumns: readonly { id: string | undefined; hidden: boolean }[] },
+  context: { apiInstance: string; generation: number; reasons: readonly string[]; scale: string; scope: string | null; filterKey: string; taskSelectionChanged: boolean; queryConditionsChanged: boolean; expectedColumns: readonly { id: string | undefined; hidden: boolean }[]; expectedTaskOrder?: readonly string[] | null },
   isCurrent: () => boolean, timeoutMs = 1500): { promise: Promise<ProjectionReceipt>; cancel: () => void } {
   let cancel = () => {};
   const promise = new Promise<ProjectionReceipt>(resolve => {
@@ -58,7 +58,11 @@ export function observeProjectionSettled(api: IApi, root: HTMLElement, projectio
       if (!Array.isArray(actual) || !Array.isArray(links) || !Array.isArray(state._tasks)) return finish("NOT_MEASURABLE");
       const byId = new Map(actual.map(task => [String(task.id), task]));
       const membership = new Set(projection.membershipIds);
-      logicalVisibleIds = projection.membershipIds.filter(id => {
+      if (context.expectedTaskOrder === null) return finish("NOT_MEASURABLE");
+      const fullOrder = context.expectedTaskOrder ?? projection.tasks.map(task => String(task.id));
+      if (new Set(fullOrder).size !== fullOrder.length || fullOrder.length !== projection.tasks.length ||
+          fullOrder.some(id => !byId.has(id))) return finish("NOT_MEASURABLE");
+      logicalVisibleIds = fullOrder.filter(id => membership.has(id)).filter(id => {
         let parent = byId.get(id)?.parent;
         const visited = new Set<string>([id]);
         while (parent && byId.has(String(parent)) && !visited.has(String(parent))) {

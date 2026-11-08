@@ -12,6 +12,10 @@ export type CanonicalRecoveryResult =
   | Readonly<{ outcome: "SUPERSEDED" | "FAILED" | "TIMED_OUT" | "BLOCKED"; reason: string }>;
 export interface CanonicalRecoveryPorts {
   readonly core: CoreReaderPort;
+  /** Raw Core remains the repair input; this optional reader independently
+   * approves a supported presentation against the desired canonical source. */
+  readonly verificationCore?: CoreReaderPort;
+  beforeVerification?(isCurrent: () => boolean): Promise<void>;
   readonly api: Pick<IApi, "exec" | "getTask">;
   readonly clock: ConsistencyClockPort;
   readonly abort: ConsistencyAbortPort;
@@ -27,6 +31,14 @@ function materialize(snapshot: ObservedCoreSnapshot): CanonicalGanttSnapshot {
     baselineStart: task.baselineStart ?? undefined, baselineEnd: task.baselineEnd ?? undefined, baselineDuration: task.baselineDuration ?? undefined })), links: snapshot.links.map(link => ({ ...link, type: link.type as ILink["type"] })) };
 }
 
+function sameOwnedCollections(raw: ObservedCoreSnapshot, approved: ObservedCoreSnapshot): boolean {
+  const tasks = new Map(raw.tasks.map(task => [task.id, task])), tree = new Map(raw.tree.map(task => [task.id, task]));
+  if (tasks.size !== raw.tasks.length || tree.size !== raw.tree.length || tasks.size !== approved.tasks.length || tree.size !== approved.tree.length ||
+      new Set(approved.tasks.map(task => task.id)).size !== approved.tasks.length || new Set(approved.tree.map(task => task.id)).size !== approved.tree.length ||
+      approved.tasks.some(task => !tasks.has(task.id)) || approved.tree.some(task => !tree.has(task.id))) return false;
+  return sameConformanceSnapshot({ tasks: approved.tasks.map(task => tasks.get(task.id)!), tree: approved.tree.map(task => tree.get(task.id)!), links: raw.links }, approved);
+}
+
 /** Opt-in data reconciler. U5 owns wiring every native mutation to invalidation.
  * No remount, viewport write, server retry, revision invention or draft mutation. */
 export function createCanonicalRecovery(ports: CanonicalRecoveryPorts, budget: { maxFrames: number; timeoutMs: number } = { maxFrames: 12, timeoutMs: 250 }) {
@@ -36,6 +48,12 @@ export function createCanonicalRecovery(ports: CanonicalRecoveryPorts, budget: {
   let ticket: MutationTicket | null = null;
   let disposed = false, authorizationRequired = false;
   let active: AbortController | null = null;
+  const verificationReader: CoreReaderPort = ports.verificationCore ? { readCore: () => {
+    const raw = ports.core.readCore(), approved = ports.verificationCore!.readCore();
+    if (!raw.ok) return raw;
+    if (!approved.ok) return approved;
+    return sameOwnedCollections(raw.value, approved.value) ? approved : { ok: false, outcome: "FAILED", reason: "INCONSISTENT_TREE" };
+  } } : ports.core;
   const cancel = () => { active?.abort(); active = null; };
   const state = (): ConformanceContext => {
     const identity = ports.currentIdentity();
@@ -117,7 +135,9 @@ export function createCanonicalRecovery(ports: CanonicalRecoveryPorts, budget: {
         const actual = ports.core.readCore();
         if (!current()) throw new Error("SUPERSEDED");
         if (!actual.ok) throw new Error(actual.reason);
-        const changed = !sameConformanceSnapshot(actual.value, desired.value);
+        const approved = ports.verificationCore ? verificationReader.readCore() : undefined;
+        const comparison = approved?.ok && sameConformanceSnapshot(approved.value, desired.value) ? approved.value : actual.value;
+        const changed = !sameConformanceSnapshot(comparison, desired.value);
         if (changed) {
           const raw = materialize(actual.value);
           const tasks: ITask[] = raw.tasks.map(task => ({ ...task, open: ports.api.getTask(task.id!)?.open }));
@@ -137,11 +157,13 @@ export function createCanonicalRecovery(ports: CanonicalRecoveryPorts, budget: {
             if (!equalLink(link, actualLinks.get(link.id))) await bounded(() => Promise.resolve(ports.api.exec("add-link", { link: { ...link, type: link.type as ILink["type"] }, eventSource: "project-canonical-sync" })));
           }
         }
+        if (ports.beforeVerification) await bounded(() => ports.beforeVerification!(current));
+        assertBudget();
         // Canonical's new revision is returned to caller, never written/invented here.
         // Validation uses the fetched identity while source/query are still guarded.
         const clean: ConformanceContext = { ...state(), identity: canonical.identity, dirty: false, recovery: { ...state().recovery, phase: "SETTLED" } };
         assertBudget();
-        let verification = verifyCoreConformance({ reader: ports.core, desired: canonical.snapshot, context: clean,
+        let verification = verifyCoreConformance({ reader: verificationReader, desired: canonical.snapshot, context: clean,
           observation: { id: observation, startedAt, deadline: startedAt + budget.timeoutMs }, current: () => current() ? clean : state() });
         for (let frame = 0; !verification.ok && verification.reason === "CORE_DRIFT" && remainingFrames > 0 && ports.clock.now() < deadline; frame++) {
           if (!current()) throw new Error("SUPERSEDED");
@@ -149,7 +171,7 @@ export function createCanonicalRecovery(ports: CanonicalRecoveryPorts, budget: {
           const frameReady = await Promise.race([ports.clock.frame(controller.signal), aborted]);
           assertBudget();
           if (!frameReady) throw new Error("SUPERSEDED");
-          verification = verifyCoreConformance({ reader: ports.core, desired: canonical.snapshot, context: clean,
+          verification = verifyCoreConformance({ reader: verificationReader, desired: canonical.snapshot, context: clean,
             observation: { id: observation, startedAt, deadline: startedAt + budget.timeoutMs }, current: () => current() ? clean : state() });
         }
         assertBudget();

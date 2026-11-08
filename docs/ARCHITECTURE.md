@@ -1,3 +1,11 @@
+## Issue #889 / #890 — 표시 상태와 label identity 분리
+
+일정 frame이 공통 toolbar/status 슬롯과 density wheel 입력을 소유한다. 조회 panel은 native axis/column layout을 읽고 자체 read-only 행을 투영하며 synthetic ID를 Core에 주입하지 않는다. 열 label은 canonical column ID의 고정 source key에서 현재 locale로 생성하고, native header 객체와 layout snapshot의 참조를 공유하지 않는다. locale/fullscreen/scale 복원은 기존 public API와 현재 projection/gesture lease를 따른다. 서버 API·DB·일정 엔진·canonical writer ownership은 불변이다. [통합 설계](exec-plans/active/ISSUE_889.md).
+
+현재 sort descriptor와 안정 정렬의 동률 우선순위는 표시 상태로 별도 소유한다. canonical Task/parent/Link/ID를 검증한 뒤 그 원본 계층과 공개 열 comparator로 기대 표시 순서를 독립 계산한다. Core의 정렬된 tasks/tree는 정확한 기대 순서와 일치할 때만 원본 순서의 proof로 정규화하고, 실제 표시행과 DOM은 정렬된 기대 순서로 정확 비교한다. 사용자 sort 입력은 기존 receipt를 폐기하고 새 관측을 요청한다.
+
+---
+
 ## Issue #880 — 일정 View projection의 독립 읽기 경계
 
 Resource·설비 View는 app-owned 조회 전용 Grid+Chart를 사용한다. 기존 mounted WBS Core와 canonical Reconciler/Viewport Coordinator 소유권을 유지하고 synthetic row key를 canonical tasks/links/writer에 넣지 않는다. 표시행은 `viewRowKey`, 원본 열기·선택 의미는 `canonicalTaskId`를 사용한다. Grid/Chart는 동일 row/window·세로 scroll을 공유하고 기존 날짜축/표시단위/밀도를 읽는다. 독립 projection은 업무 날짜·공수·Capacity를 계산하는 새 엔진이 아니다.

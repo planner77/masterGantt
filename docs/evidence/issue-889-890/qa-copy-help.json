@@ -1,0 +1,47 @@
+{
+  "results": [
+    {
+      "locale": "vi",
+      "focusOpen": true,
+      "clickOpen": true,
+      "escapeClose": true,
+      "focusRestored": true
+    },
+    {
+      "locale": "en",
+      "focusOpen": true,
+      "clickOpen": true,
+      "escapeClose": true,
+      "focusRestored": true
+    },
+    {
+      "locale": "ko",
+      "focusOpen": true,
+      "clickOpen": true,
+      "escapeClose": true,
+      "focusRestored": true
+    }
+  ],
+  "fullscreen": {
+    "popoverOpen": true,
+    "x": 141.078125,
+    "y": 317,
+    "width": 236.921875,
+    "height": 45.5,
+    "viewportInside": true
+  },
+  "ring": {
+    "focusVisible": false,
+    "outlineWidth": "3px",
+    "outlineOffset": "0px",
+    "button": {
+      "y": 267,
+      "bottom": 311
+    },
+    "clip": {
+      "y": 267,
+      "bottom": 311
+    }
+  },
+  "fullscreenAfterHelpEscape": true
+}

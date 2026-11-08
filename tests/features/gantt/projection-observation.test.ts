@@ -6,6 +6,7 @@ import type { CanonicalGanttSnapshot } from "../../../src/features/gantt/canonic
 import type { CoreReadResult } from "../../../src/features/gantt/state-consistency/contracts";
 import { createViewportCoordinator, type ViewportPort, type ViewportSample } from "../../../src/features/gantt/viewport/viewport-coordinator";
 import captured from "../../fixtures/gantt-state-consistency/actual-core-2.7.3.json";
+import { expectedPresentationOrder } from "../../../src/features/gantt/state-consistency/presentation-sort";
 
 function fixture(input: CanonicalGanttSnapshot = canonicalFixture()) {
   const desired = input;
@@ -33,6 +34,33 @@ function fixture(input: CanonicalGanttSnapshot = canonicalFixture()) {
 afterEach(() => vi.useRealTimers());
 
 describe("U3 semantic projection receipts (opt-in)", () => {
+  it("accepts exact independently calculated presentation order while canonical payload remains strict", async () => {
+    const f = fixture();
+    f.port.readExpectedDisplayOrder = () => expectedPresentationOrder(f.desired.tasks, [{ id: "text", sort: true }], [{ key: "text", order: "desc" }]);
+    const order = ["C", "B", "A"];
+    f.setRows({ ...f.rows, logicalVisibleIds: order, coreVisibleIds: order,
+      mountedRows: [{ id: "C", text: "Synthetic C" }], requiredMountedIds: ["C"] });
+    const operation = f.observer.observe(f.desired); await f.settle();
+    const result = await operation.promise;
+    expect(result.outcome).toBe("SETTLED");
+    expect(result.receipt?.proof.snapshot.tasks.map(task => task.id)).toEqual(["A", "B", "C"]);
+    expect(result.receipt?.rows.logicalVisibleIds).toEqual(order);
+    f.core.replace(driftFixture("date"));
+    expect(await f.observer.observe(f.desired).promise).toMatchObject({ outcome: "FAILED", receipt: null });
+    expect(f.core.effects).toEqual({ coreWrites: 0, mutationRetries: 0 });
+  });
+
+  it("rejects the wrong native display order and malformed independent sort expectations", async () => {
+    for (const expected of [["C", "B", "A"], ["A", "A", "C"], ["A", "B", "OTHER"], null]) {
+      const f = fixture();
+      f.port.readExpectedDisplayOrder = () => expected;
+      const operation = f.observer.observe(f.desired, 1);
+      await vi.advanceTimersByTimeAsync(2);
+      expect(await operation.promise).toMatchObject({ outcome: "TIMED_OUT", receipt: null });
+      expect(f.core.effects).toEqual({ coreWrites: 0, mutationRetries: 0 });
+    }
+  });
+
   it("retains the exact completed receipt and captured intent across fresh DTO/observation attempts", async () => {
     const f = fixture();
     const first = f.observer.observe(f.desired); await f.settle();

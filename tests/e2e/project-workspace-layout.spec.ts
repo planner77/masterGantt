@@ -105,6 +105,26 @@ for (const variant of [
       await expect(externalIdHeader).toHaveCount(0);
       await page.keyboard.press("Escape");
       await expect(columnMenu).toBeHidden();
+      // #890: hidden optional columns must be rebuilt from their stable source,
+      // including columns revealed only after a language round trip.
+      const language = page.getByRole("combobox", { name: /^(표시 언어|Display language|Ngôn ngữ hiển thị)$/ }).first();
+      const labels = { ko: "외부 ID", en: "External ID", vi: "ID bên ngoài" } as const;
+      for (const locale of ["vi", "en", "ko", variant.locale.slice(0, 2)] as (keyof typeof labels)[]) {
+        await language.selectOption(locale);
+        await expect(page.locator("html")).toHaveAttribute("lang", locale);
+        await expect(frame).toHaveAttribute("data-project-gantt-instance", instance!);
+        await expect(frame).toHaveAttribute("data-project-gantt-api-instance", apiInstance!);
+        await expect(gridHeaders.locator('[data-header-id=":externalId"]')).toHaveCount(0);
+        await gridHeader.click({ button: "right" });
+        const option = columnMenu.getByRole("checkbox", { name: labels[locale], exact: true });
+        await expect(option).not.toBeChecked();
+        await option.check();
+        await expect(gridHeaders.locator('[data-header-id=":externalId"]')).toHaveText(labels[locale]);
+        await option.uncheck();
+        await expect(gridHeaders.locator('[data-header-id=":externalId"]')).toHaveCount(0);
+        await page.keyboard.press("Escape");
+        await expect(columnMenu).toBeHidden();
+      }
       const before = await Promise.all([projectHeader, gridHeader, chartHeader].map((locator) => locator.boundingBox()));
       await gantt.evaluate((element) => { element.scrollTop = 500; });
       await expect.poll(() => gantt.evaluate((element) => element.scrollTop)).toBeGreaterThan(100);

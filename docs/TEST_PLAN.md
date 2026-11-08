@@ -1,3 +1,11 @@
+## Issue #889 / #890 — 일정 공통 표현·언어 왕복 회귀
+
+기존 i18n/schedule-views E2E를 EXTEND하여 모든 고정 열 header KO→VI→EN→KO·역순/반복, 열 폭/hidden/order·동일 Core·초안/canonical/쓰기0를 검증한다. 실제 HTTP/SQLite 조회 View에서 공통 toolbar/split/header geometry·5폭·Day/Week·본문 양쪽 density/상하한/anchor·readonly·source 실패를 검사한다. 공통 header/date 함수 Unit은 번역된 mutable 객체 재주입·주/월/DST 경계를 다룬다. #822 Summary/density·scale/fullscreen/projection/viewport·Workspace 고유 테스트를 유지하며 삭제/skip/단언·timeout 완화 없음. 로컬 선별 검증과 새 Head Full Required3/E2E8/Trusted·Owner는 별도다. 실제 명령·최초실패·미검증은 [Packet](exec-plans/active/ISSUE_889.md)·[원장](ISSUE_889_890_FAILURE_ANALYSIS.md)을 따른다.
+
+#890 추가 active-sort 회귀는 single/multi·stable-tie history·rapid locale·최신 sort gesture·동일 API/선택/scroll·쓰기0 및 fresh delivery/semantic SETTLED를 검사한다. 순수 기대 정렬/원본 Core reader와 row 관측의 wrong permutation·누락/중복·외부 ID·payload/parent/Link·stale context 음성을 보존한다. 초기65PASS의 누락과 보완 뒤 새 source 회귀는 원장에서 구별한다.
+
+---
+
 ## Issue #880 R2 — readonly 고급 필터 geometry 회귀
 
 TEST_LIFECYCLE_REVIEW=EXTEND 기존 project-search-filter3case 중 readonlycase의 원래1024×900·match1/contextSummary1·같은 instance·자식행 표시/leaf제외 단언을 유지하고 실제 Grid/Chart usableheight·현재 logical/Core/DOM과 header/rowbudget을 확인한다. 같은 case에서390/768/1024/1440/1920 및 낮은1024×480의 필터 내부·schedule scope scroll/focus·조건/초기화/닫기·문서 가로overflow0·원본 쓰기0을 검사한다. 낮은 Fullscreen은 진입/종료 대표 경계를 확인한다. viewport1200은 진단 반사실이며 원본 기대 환경의 교정값으로 사용하지 않는다.

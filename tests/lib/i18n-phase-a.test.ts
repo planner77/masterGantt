@@ -5,7 +5,7 @@ import {
 import {
   LOCALE_STORAGE_KEY, normalizeLocale, resolveLocale, SUPPORTED_LOCALES,
 } from "../../src/lib/i18n/locales";
-import { SVAR_LOCALES } from "../../src/features/gantt/svar-locales";
+import { ganttColumnHeader, SVAR_LOCALES } from "../../src/features/gantt/svar-locales";
 import { SSR_DATE_LOCALE, formatLocaleDateOnly } from "../../src/lib/date-display";
 
 describe("Issue #866 Phase A locale foundation", () => {
@@ -119,5 +119,13 @@ describe("Issue #866 Phase A locale foundation", () => {
       expect(text).toContain("2026");
       expect(formatLocaleDateOnly("2026-02-30", locale)).toBe("—");
     }
+  });
+
+  it("resolves every fixed Gantt header by column identity rather than a previously translated label", () => {
+    const ids = ["copySelection", "text", "externalId", "projectStart", "projectDuration", "baselineStart", "baselineEnd", "milestoneStage", "add-task"];
+    expect(ids.map(id => ganttColumnHeader(id, "ko"))).toEqual(["선택", "작업", "외부 ID", "시작", "기간", "기준 시작", "기준 종료", "Milestone", "작업 추가"]);
+    expect(ids.map(id => ganttColumnHeader(id, "en"))).toEqual(["Select", "Task", "External ID", "Start", "Duration", "Baseline start", "Baseline end", "Milestone", "Add task"]);
+    expect(ids.map(id => ganttColumnHeader(id, "vi"))).toEqual(["Chọn", "Công việc", "ID bên ngoài", "Bắt đầu", "Thời lượng", "Bắt đầu cơ sở", "Kết thúc cơ sở", "Milestone", "Thêm công việc"]);
+    for (const id of ["constructor", "toString", "__proto__", "Task name", 0]) expect(ganttColumnHeader(id, "en")).toBeUndefined();
   });
 });

@@ -1,0 +1,214 @@
+[
+  {
+    "width": 390,
+    "slot": {
+      "x": 12,
+      "y": 617.5,
+      "w": 366,
+      "h": 44
+    },
+    "buttons": [
+      {
+        "text": "Sao chép mục đã chọn",
+        "disabled": false,
+        "rect": {
+          "x": 106.46875,
+          "y": 622.5,
+          "w": 142.46875,
+          "h": 34
+        },
+        "within": true,
+        "hit": true
+      },
+      {
+        "text": "Bỏ chọn",
+        "disabled": false,
+        "rect": {
+          "x": 256.9375,
+          "y": 622.5,
+          "w": 57.46875,
+          "h": 34
+        },
+        "within": true,
+        "hit": true
+      },
+      {
+        "text": "ⓘ",
+        "disabled": false,
+        "rect": {
+          "x": 322.40625,
+          "y": 617.5,
+          "w": 44,
+          "h": 44
+        },
+        "within": true,
+        "hit": true
+      }
+    ],
+    "focused": [
+      true,
+      true,
+      true
+    ],
+    "documentOverflow": false
+  },
+  {
+    "width": 768,
+    "slot": {
+      "x": 24,
+      "y": 501.5,
+      "w": 720,
+      "h": 44
+    },
+    "buttons": [
+      {
+        "text": "Sao chép mục đã chọn",
+        "disabled": false,
+        "rect": {
+          "x": 118.46875,
+          "y": 506.5,
+          "w": 142.46875,
+          "h": 34
+        },
+        "within": true,
+        "hit": true
+      },
+      {
+        "text": "Bỏ chọn",
+        "disabled": false,
+        "rect": {
+          "x": 268.9375,
+          "y": 506.5,
+          "w": 57.46875,
+          "h": 34
+        },
+        "within": true,
+        "hit": true
+      },
+      {
+        "text": "ⓘ",
+        "disabled": false,
+        "rect": {
+          "x": 334.40625,
+          "y": 501.5,
+          "w": 44,
+          "h": 44
+        },
+        "within": true,
+        "hit": true
+      }
+    ],
+    "focused": [
+      true,
+      true,
+      true
+    ],
+    "documentOverflow": false
+  },
+  {
+    "width": 1024,
+    "slot": {
+      "x": 24,
+      "y": 405.5,
+      "w": 637.578125,
+      "h": 44
+    },
+    "buttons": [
+      {
+        "text": "Sao chép mục đã chọn",
+        "disabled": false,
+        "rect": {
+          "x": 118.46875,
+          "y": 410.5,
+          "w": 150.46875,
+          "h": 34
+        },
+        "within": true,
+        "hit": true
+      },
+      {
+        "text": "Bỏ chọn",
+        "disabled": false,
+        "rect": {
+          "x": 276.9375,
+          "y": 410.5,
+          "w": 65.46875,
+          "h": 34
+        },
+        "within": true,
+        "hit": true
+      },
+      {
+        "text": "ⓘ",
+        "disabled": false,
+        "rect": {
+          "x": 350.40625,
+          "y": 405.5,
+          "w": 44,
+          "h": 44
+        },
+        "within": true,
+        "hit": true
+      }
+    ],
+    "focused": [
+      true,
+      true,
+      true
+    ],
+    "documentOverflow": false
+  },
+  {
+    "width": 1440,
+    "slot": {
+      "x": 691.671875,
+      "y": 230,
+      "w": 385.90625,
+      "h": 44
+    },
+    "buttons": [
+      {
+        "text": "Sao chép mục đã chọn",
+        "disabled": false,
+        "rect": {
+          "x": 786.140625,
+          "y": 235,
+          "w": 150.46875,
+          "h": 34
+        },
+        "within": true,
+        "hit": true
+      },
+      {
+        "text": "Bỏ chọn",
+        "disabled": false,
+        "rect": {
+          "x": 944.609375,
+          "y": 235,
+          "w": 65.46875,
+          "h": 34
+        },
+        "within": true,
+        "hit": true
+      },
+      {
+        "text": "ⓘ",
+        "disabled": false,
+        "rect": {
+          "x": 1018.078125,
+          "y": 230,
+          "w": 44,
+          "h": 44
+        },
+        "within": true,
+        "hit": true
+      }
+    ],
+    "focused": [
+      true,
+      true,
+      true
+    ],
+    "documentOverflow": false
+  }
+]

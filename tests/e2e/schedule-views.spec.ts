@@ -14,6 +14,15 @@ test.use({ ...isolatedApplicationOptions, isolatedProjectMasterAdminPassword: ta
 const selector = (page: Page) => page.getByLabel("View", { exact: true });
 const view = (page: Page, name: "resource" | "equipment") => page.locator(`[data-schedule-view="${name}"]`);
 const taskRows = (root: Locator, taskId: string) => root.locator(`[data-view-row-key][data-canonical-task-id="${taskId}"]`);
+const viewHeaderLabels = {
+  ko: { copySelection: "선택", text: "작업", projectStart: "시작", projectDuration: "기간" },
+  en: { copySelection: "Select", text: "Task", projectStart: "Start", projectDuration: "Duration" },
+  vi: { copySelection: "Chọn", text: "Công việc", projectStart: "Bắt đầu", projectDuration: "Thời lượng" },
+} as const;
+async function expectViewHeaders(root: Locator, locale: keyof typeof viewHeaderLabels) {
+  for (const [id, label] of Object.entries(viewHeaderLabels[locale]))
+    await expect(root.locator(`[role="columnheader"][data-column-id="${id}"]`)).toHaveText(label);
+}
 
 async function axisGeometry(frame: Locator, root: Locator, task: { taskId: string; start: string | null; end: string | null }, mode: "day" | "week") {
   const bar = taskRows(root, task.taskId).first().locator(".project-schedule-view-bar");
@@ -80,7 +89,7 @@ test("#880 실제 원본 다중 Resource·설비 View, Editor 동일 ID, 5폭·�
   await expect(page.getByRole("dialog", { name: "작업 정보", exact: true })).toHaveCount(0);
   await group2.getByRole("button").click();
   await expect(taskRows(resource, f.task.taskId)).toHaveCount(3);
-  await info.attach("schedule-view-resource-1440.png", { body: await page.screenshot(), contentType: "image/png" });
+  await info.attach("schedule-view-resource-1440.png", { body: await page.screenshot({ path: "output/playwright/issue-889-890/resource-1440.png" }), contentType: "image/png" });
   const open = taskRows(resource, f.task.taskId).first().getByRole("button", { name: `작업 정보 열기: ${f.task.name}`, exact: true });
   await open.focus(); await open.press("Enter");
   const editor = page.getByRole("dialog", { name: "작업 정보", exact: true });
@@ -139,22 +148,38 @@ test("#880 실제 원본 다중 Resource·설비 View, Editor 동일 ID, 5폭·�
     expect(geometry.controlHeight).toBeGreaterThanOrEqual(36);
     if (width === 390) {
       const bar = taskRows(equipment, f.task.taskId).first().locator(".project-schedule-view-bar");
-      await bar.evaluate(element => {
+      const scrollOwnership = await bar.evaluate(element => {
         const owner = element.closest<HTMLElement>("[data-schedule-view-scroll]")!;
+        const outer = element.closest<HTMLElement>(".project-schedule-view")!;
+        const grid = element.closest("[data-view-row-key]")!.querySelector("[data-schedule-view-grid-cell]")!;
+        const before = { outerLeft: outer.scrollLeft, innerLeft: owner.scrollLeft,
+          outerWidth: outer.clientWidth, innerWidth: owner.clientWidth, barX: element.getBoundingClientRect().x };
+        // WBS and projected Views share a minimum-width work surface. Its
+        // outer horizontal owner reveals the chart on a narrow viewport.
         owner.scrollLeft = Math.max(0, Number.parseFloat((element as HTMLElement).style.left) - 16);
+        outer.scrollLeft = Math.max(0, grid.getBoundingClientRect().width - 80);
+        return { before, after: { outerLeft: outer.scrollLeft, innerLeft: owner.scrollLeft } };
       });
       const hit = await bar.evaluate(element => {
-        const bounds = element.getBoundingClientRect(), owner = element.closest("[data-schedule-view-scroll]")!.getBoundingClientRect();
-        const x = Math.max(owner.left + 1, bounds.left) + Math.min(bounds.width, owner.right - Math.max(owner.left + 1, bounds.left)) / 2;
-        const y = bounds.top + bounds.height / 2;
-        return { width: bounds.width, x, y, ownerLeft: owner.left, ownerRight: owner.right,
+        const bounds = element.getBoundingClientRect();
+        const owner = element.closest(".project-schedule-view")!.getBoundingClientRect();
+        const left = Math.max(0, owner.left, bounds.left), right = Math.min(innerWidth, owner.right, bounds.right);
+        const top = Math.max(0, owner.top, bounds.top), bottom = Math.min(innerHeight, owner.bottom, bounds.bottom);
+        const x = (left + right) / 2, y = (top + bottom) / 2;
+        return { width: bounds.width, visibleWidth: right - left, visibleHeight: bottom - top, x, y, ownerLeft: owner.left, ownerRight: owner.right,
           hit: element.contains(document.elementFromPoint(x, y)) };
       });
-      expect(hit.width).toBeGreaterThan(0); expect(hit.x).toBeGreaterThan(hit.ownerLeft); expect(hit.x).toBeLessThan(hit.ownerRight); expect(hit.hit).toBe(true);
+      await info.attach("schedule-view-390-scroll-owners", { contentType: "application/json", body: JSON.stringify({ scrollOwnership, hit }) });
+      expect(hit.width).toBeGreaterThan(0); expect(hit.visibleWidth).toBeGreaterThan(0); expect(hit.visibleHeight).toBeGreaterThan(0);
+      expect(hit.x).toBeGreaterThan(hit.ownerLeft); expect(hit.x).toBeLessThan(hit.ownerRight); expect(hit.hit).toBe(true);
+      await page.mouse.click(hit.x, hit.y);
+      await expect(editor.getByLabel("작업명", { exact: true })).toHaveValue(f.task.name);
+      await editor.press("Escape"); await expect(editor).toHaveCount(0);
       geometries.push({ width, barHit: hit });
     }
     geometries.push({ width, ...geometry });
-    await info.attach(`schedule-view-equipment-${width}.png`, { body: await page.screenshot(), contentType: "image/png" });
+    await expect(equipment.getByRole("treegrid")).toHaveAttribute("data-ready", "true");
+    await info.attach(`schedule-view-equipment-${width}.png`, { body: await page.screenshot({ path: `output/playwright/issue-889-890/equipment-${width}.png` }), contentType: "image/png" });
   }
   await page.setViewportSize({ width: 1440, height: 1000 });
   await frame.getByRole("button", { name: "주", exact: true }).click();
@@ -164,6 +189,28 @@ test("#880 실제 원본 다중 Resource·설비 View, Editor 동일 ID, 5폭·�
   await frame.getByRole("button", { name: "Gantt 전체 화면", exact: true }).click();
   await expect.poll(() => page.evaluate(() => document.fullscreenElement?.classList.contains("project-gantt-frame"))).toBe(true);
   await expect(selector(page)).toBeVisible();
+  const scaleCell = equipment.locator(".project-schedule-view-scale-row").last().locator("[data-scale-date]").first();
+  await scaleCell.focus();
+  const scaleTooltip = page.locator(".project-schedule-view-scale-tooltip");
+  await expect(scaleTooltip).toBeVisible();
+  expect(await scaleTooltip.evaluate(element => document.fullscreenElement?.contains(element))).toBe(true);
+  for (const locale of ["vi", "en", "ko"] as const) {
+    // Exercise the actual cross-tab preference event without moving header focus.
+    await page.evaluate(locale => {
+      const key = "mastergantt.ui.locale";
+      localStorage.setItem(key, locale);
+      window.dispatchEvent(new StorageEvent("storage", { key, newValue: locale, storageArea: localStorage }));
+    }, locale);
+    await expect(page.locator("html")).toHaveAttribute("lang", locale);
+    await expect(scaleCell).toBeFocused();
+    await expectViewHeaders(equipment, locale);
+    await expect(scaleTooltip).toHaveText((await scaleCell.getAttribute("aria-label"))!);
+    expect(await scaleTooltip.evaluate(element => {
+      const box = element.getBoundingClientRect(); return { visible: box.width > 0 && box.height > 0, fullscreen: document.fullscreenElement?.contains(element) };
+    })).toEqual({ visible: true, fullscreen: true });
+  }
+  await scaleCell.press("Escape");
+  await expect(scaleTooltip).toHaveCount(0);
   await frame.getByRole("button", { name: "Gantt 전체 화면 종료", exact: true }).click();
   await expect.poll(() => page.evaluate(() => document.fullscreenElement === null)).toBe(true);
   await selector(page).selectOption("wbs");
@@ -216,15 +263,31 @@ test("#880 source 조회 실패·잘못된 Project/revision·늦은 Resource 응
     responseKind = kind;
     if (kind !== 401) {
       const completed = page.waitForResponse(response => new URL(response.url()).pathname.endsWith("/schedule-view-source"));
-      await resource.getByRole("button", { name: "다시 조회", exact: true }).click();
+      await page.locator(".project-gantt-frame").getByRole("button", { name: "다시 조회", exact: true }).click();
       await completed;
     }
-    await expect(resource.getByRole("alert")).toContainText("View 데이터를 확인할 수 없습니다");
+    await expect(page.locator(".project-gantt-frame").getByRole("alert")).toContainText("View 데이터를 확인할 수 없습니다");
     await expect(resource.locator("[data-canonical-task-id]")).toHaveCount(0);
+    if (kind === 401) for (const width of [390, 768]) {
+      await page.setViewportSize({ width, height: 1000 });
+      const alert = page.locator(".project-gantt-frame").getByRole("alert");
+      const geometry = await alert.evaluate(element => {
+        const box = element.getBoundingClientRect();
+        return { width: box.width, height: box.height, clientWidth: element.clientWidth, scrollWidth: element.scrollWidth };
+      });
+      expect(geometry.width).toBeGreaterThan(60); expect(geometry.height).toBeGreaterThan(12);
+      const refresh = page.locator(".project-gantt-frame").getByRole("button", { name: "다시 조회", exact: true });
+      await refresh.focus(); await expect(refresh).toBeFocused();
+      expect(await refresh.evaluate(element => {
+        const box = element.getBoundingClientRect(); return element.contains(document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2));
+      })).toBe(true);
+      observations.push({ injected: kind, viewport: width, alert: geometry });
+    }
+    await page.setViewportSize({ width: 1440, height: 1000 });
     observations.push({ injected: kind, rows: 0 });
   }
   responseKind = "late";
-  await resource.getByRole("button", { name: "다시 조회", exact: true }).click();
+  await page.locator(".project-gantt-frame").getByRole("button", { name: "다시 조회", exact: true }).click();
   await expect.poll(() => lateReady).toBe(true);
   responseKind = "real";
   await selector(page).selectOption("equipment");
@@ -235,7 +298,7 @@ test("#880 source 조회 실패·잘못된 Project/revision·늦은 Resource 응
   await expect(selector(page)).toHaveValue("equipment");
   await expect(resource).toHaveCount(0);
   await expect(taskRows(equipment, f.task.taskId)).toHaveCount(2);
-  await expect(equipment.getByRole("alert")).toHaveCount(0);
+  await expect(page.locator(".project-gantt-frame").getByRole("alert")).toHaveCount(0);
   expect(writes).toEqual([]);
   expect((await f.snapshot()).data).toEqual(baseline.data);
   await info.attach("schedule-view-read-errors", { contentType: "application/json", body: JSON.stringify({
@@ -466,7 +529,7 @@ test("#880 P2 비WBS nonzero viewport는 재조회·Editor 취소와 저장·wor
     phases.push({ name, before, after: await position() });
   };
   let prepared = await prepare();
-  await root.getByRole("button", { name: "다시 조회", exact: true }).click();
+  await page.locator(".project-gantt-frame").getByRole("button", { name: "다시 조회", exact: true }).click();
   await verify("다시 조회", prepared);
   prepared = await prepare();
   await taskRows(root, target.taskId).getByRole("button", { name: `작업 정보 열기: ${target.name}`, exact: true }).click();
@@ -499,7 +562,7 @@ test("#880 P2 비WBS nonzero viewport는 재조회·Editor 취소와 저장·wor
     await gate; await route.fulfill({ response });
   });
   try {
-    await root.getByRole("button", { name: "다시 조회", exact: true }).click();
+    await page.locator(".project-gantt-frame").getByRole("button", { name: "다시 조회", exact: true }).click();
     await expect.poll(() => started).toBe(true);
     await grid.hover(); await page.mouse.wheel(40, 64);
     const newerIntent = { x: prepared.x + 40, y: prepared.y + 64 };
@@ -539,7 +602,7 @@ test("#880 P2 비WBS nonzero viewport는 재조회·Editor 취소와 저장·wor
     headers: { Origin: isolatedApplication, "If-Match": `"${catalog.revision}"` }, data: { name: "ZZ Group" },
   });
   expect(renamed.status()).toBe(200); catalog = ((await renamed.json()) as ResourceCatalogResponse).data;
-  await root.getByRole("button", { name: "다시 조회", exact: true }).click();
+  await page.locator(".project-gantt-frame").getByRole("button", { name: "다시 조회", exact: true }).click();
   await expect(grid).toHaveAttribute("data-ready", "true");
   await expect(root.locator(`[data-view-group-kind="resourceGroup"][data-view-entity-id="${f.g1.id}"]`)).toContainText("ZZ Group");
   await expect.soft.poll(async () => Math.abs((await anchor(originalPath)).y - originalAnchor.y), { message: "Group 정렬이 바뀌어도 같은 표시 경로의 canonical Task 앵커 offset을 유지한다" }).toBeLessThanOrEqual(1);
@@ -550,7 +613,7 @@ test("#880 P2 비WBS nonzero viewport는 재조회·Editor 취소와 저장·wor
     headers: { Origin: isolatedApplication, "If-Match": `"${catalog.revision}"` }, data: { resourceIds: [f.bob.id] },
   });
   expect(removed.status()).toBe(200);
-  await root.getByRole("button", { name: "다시 조회", exact: true }).click();
+  await page.locator(".project-gantt-frame").getByRole("button", { name: "다시 조회", exact: true }).click();
   await expect(grid).toHaveAttribute("data-ready", "true");
   await expect(grid).toHaveAttribute("data-logical-row-count", "88");
   await expect(originalPath).toHaveCount(0);
@@ -566,13 +629,147 @@ test("#880 P2 비WBS nonzero viewport는 재조회·Editor 취소와 저장·wor
   await localeSelector.selectOption("en");
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
   await expect(grid).toHaveAttribute("data-ready", "true");
+  await expectViewHeaders(root, "en");
   await expect.soft.poll(position, { message: "표시 언어 EN 전환은 같은 View identity와 nonzero viewport를 유지한다" }).toEqual(localeBefore);
   await localeSelector.selectOption("ko");
   await expect(page.locator("html")).toHaveAttribute("lang", "ko");
   await expect(grid).toHaveAttribute("data-ready", "true");
+  await expectViewHeaders(root, "ko");
   await expect.soft.poll(position, { message: "표시 언어 KO 복귀도 같은 nonzero viewport를 유지한다" }).toEqual(localeBefore);
   expect((await f.snapshot()).data).toEqual(afterTaskSave.data);
   await info.attach("schedule-view-viewport-refresh", { contentType: "application/json", body: JSON.stringify({
     phases, logicalIndex, anchorTop, originalAnchor, afterRename, afterMembership, localeBefore, localeAfter: await position(),
   }, null, 2) });
+});
+
+test("#889 세 View 공통 작업면·날짜 헤더·Grid/Chart Ctrl 휠 밀도와 canonical 쓰기0", async ({ page, isolatedApplication, observeIsolatedApi }, info) => {
+  test.setTimeout(180_000);
+  const f = await seedScheduleViews(page, isolatedApplication, observeIsolatedApi);
+  await openWorkspaceView(page, "schedule");
+  const baseline = await f.snapshot();
+  const writes = observeProjectWrites(page, f.publicId);
+  const frame = page.locator(".project-gantt-frame");
+  const instance = await frame.getAttribute("data-project-gantt-instance");
+  await expect(frame).toHaveAttribute("data-project-gantt-api-instance", /.+/);
+  const api = await frame.getAttribute("data-project-gantt-api-instance");
+  const native = await frame.locator(".wx-gantt").elementHandle();
+  const receipts: unknown[] = [];
+  await page.evaluate(() => document.fonts.ready.then(() => undefined));
+  const geometry = () => frame.evaluate(element => {
+    const mode = element.getAttribute("data-schedule-view-mode");
+    const box = (target: Element | null) => {
+      if (!target) throw new Error("현재 View geometry target이 없습니다.");
+      const rect = target.getBoundingClientRect();
+      return { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
+    };
+    return {
+      view: box(element.querySelector("[data-schedule-view-selector]")),
+      scale: box(element.querySelector(".project-gantt-scale-controls")),
+      fullscreen: box(element.querySelector('[aria-keyshortcuts="Control+Shift+F Meta+Shift+F"]')),
+      surface: box(element.querySelector(mode === "wbs" ? ".project-gantt-scroll" : ".project-schedule-view")),
+      header: box(element.querySelector(mode === "wbs" ? ".wx-scale" : ".project-schedule-view-header")),
+      grid: box(element.querySelector(mode === "wbs" ? ".wx-table-container" : "[data-schedule-view-grid-cell]")),
+    };
+  });
+  const waitView = async (mode: "wbs" | "resource" | "equipment") => {
+    await selector(page).selectOption(mode);
+    if (mode === "wbs") await expect(frame.locator(".wx-gantt")).toBeVisible();
+    else await expect(view(page, mode).getByRole("treegrid")).toHaveAttribute("data-ready", "true");
+  };
+  const compareShell = async (expected: Awaited<ReturnType<typeof geometry>>) => {
+    const actual = await geometry();
+    for (const key of ["view", "scale", "fullscreen", "surface"] as const) for (const axis of ["x", "y", "width", "height"] as const)
+      expect(Math.abs(actual[key][axis] - expected[key][axis]), `${key}.${axis}`).toBeLessThanOrEqual(1);
+    expect(Math.abs(actual.header.height - expected.header.height), "동일 2단 날짜 헤더 높이").toBeLessThanOrEqual(1);
+    expect(Math.abs(actual.grid.width - expected.grid.width), "동일 native Grid split").toBeLessThanOrEqual(1);
+    receipts.push({ mode: await selector(page).inputValue(), ...actual });
+  };
+  for (const width of [390, 768, 1024, 1440, 1920]) {
+    await page.setViewportSize({ width, height: 1000 });
+  for (const scale of ["day", "week"] as const) {
+    await waitView("wbs");
+    await frame.getByRole("button", { name: scale === "day" ? "일" : "주", exact: true }).click();
+    await expect(frame).toHaveAttribute("data-gantt-scale-mode", scale);
+    const wbs = await geometry();
+    for (const mode of ["resource", "equipment", "wbs"] as const) { await waitView(mode); await compareShell(wbs); }
+    if (scale === "week") {
+      await waitView("equipment");
+      await expect(view(page, "equipment").locator(".project-schedule-view-axis")).toContainText(/W\d{2}/);
+    }
+  }
+  }
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await waitView("wbs");
+  await frame.getByRole("button", { name: "일", exact: true }).click();
+  const nativeBarHeights = new Map<number, { task: number; summary: number }>();
+  for (const mode of ["wbs", "resource", "equipment"] as const) {
+    await waitView(mode);
+    const target = (surface: "grid" | "chart") => frame.locator(mode === "wbs"
+      ? surface === "grid" ? ".wx-table .wx-row[data-id]" : ".wx-chart .wx-bars"
+      : surface === "grid" ? "[data-schedule-view-grid-cell]" : "[data-schedule-view-chart-cell]").first();
+    for (const surface of ["grid", "chart"] as const) {
+      for (const height of [32, 30, 28, 28, 30, 32, 34, 34]) {
+        const current = Number(await frame.getAttribute("data-gantt-cell-height"));
+        const delta = height < current || height === 28 ? 120 : -120;
+        const consumed = await target(surface).evaluate((element, deltaY) => {
+          const event = new WheelEvent("wheel", { ctrlKey: true, deltaY, bubbles: true, cancelable: true });
+          element.dispatchEvent(event); return event.defaultPrevented;
+        }, delta);
+        expect(consumed, `${mode}/${surface}: 본문 Ctrl+휠 브라우저 확대 차단`).toBe(true);
+        await expect(frame).toHaveAttribute("data-gantt-cell-height", String(height));
+        await expect(frame).toHaveAttribute("data-project-gantt-api-instance", api!);
+        if (mode === "wbs") {
+          const task = await frame.locator(".wx-bar.wx-task").first().evaluate(element => element.getBoundingClientRect().height);
+          const summary = await frame.locator(".wx-bar.wx-summary").first().evaluate(element => Number.parseFloat(getComputedStyle(element, "::before").height));
+          nativeBarHeights.set(height, { task, summary });
+        } else {
+          const nativeHeight = nativeBarHeights.get(height)!;
+          await expect.poll(() => view(page, mode).locator(".project-schedule-view-bar").first().evaluate(element => element.getBoundingClientRect().height)).toBeCloseTo(nativeHeight.task, 0);
+          await expect.poll(() => view(page, mode).locator(".project-schedule-view-summary-bar").first().evaluate(element => element.getBoundingClientRect().height)).toBeCloseTo(nativeHeight.summary, 0);
+          const offsets = await view(page, mode).locator("[data-view-row-key]").evaluateAll(rows => rows.map(row => {
+            const grid = row.querySelector("[data-schedule-view-grid-cell]")!.getBoundingClientRect();
+            const chart = row.querySelector("[data-schedule-view-chart-cell]")!.getBoundingClientRect();
+            const bar = row.querySelector(".project-schedule-view-bar, .project-schedule-view-summary-bar")?.getBoundingClientRect();
+            return { row: row.getBoundingClientRect().height, grid: grid.height, chart: chart.height, error: bar ? Math.abs(bar.y + bar.height / 2 - grid.y - grid.height / 2) : 0 };
+          }));
+          for (const row of offsets) {
+            expect(row.row).toBe(height); expect(row.grid).toBe(row.chart);
+            // Grid/Chart cells share the row content box, excluding its 1px divider.
+            expect(row.grid).toBeGreaterThanOrEqual(height - 1); expect(row.grid).toBeLessThanOrEqual(height);
+            expect(row.error).toBeLessThanOrEqual(1);
+          }
+        }
+      }
+    }
+    if (mode !== "wbs") {
+      // The last-row/empty-body canvas owns the same shortcut as row cells.
+      const blank = view(page, mode).locator(".project-schedule-view-canvas");
+      const consumed = await blank.evaluate(element => {
+        const event = new WheelEvent("wheel", { ctrlKey: true, deltaY: 120, bubbles: true, cancelable: true });
+        element.dispatchEvent(event); return event.defaultPrevented;
+      });
+      expect(consumed).toBe(true);
+      await expect(frame).toHaveAttribute("data-gantt-cell-height", "32");
+      await target("grid").dispatchEvent("wheel", { ctrlKey: true, deltaY: -120, bubbles: true, cancelable: true });
+      await expect(frame).toHaveAttribute("data-gantt-cell-height", "34");
+    }
+    const header = frame.locator(mode === "wbs" ? ".wx-scale" : ".project-schedule-view-header").first();
+    const excluded = await header.evaluate(element => {
+      const event = new WheelEvent("wheel", { ctrlKey: true, deltaY: 120, bubbles: true, cancelable: true });
+      element.dispatchEvent(event); return event.defaultPrevented;
+    });
+    expect(excluded).toBe(false);
+    const ordinary = await target("grid").evaluate(element => {
+      const event = new WheelEvent("wheel", { deltaY: 120, bubbles: true, cancelable: true });
+      element.dispatchEvent(event); return event.defaultPrevented;
+    });
+    expect(ordinary).toBe(false);
+    await expect(frame).toHaveAttribute("data-gantt-cell-height", "34");
+  }
+  await waitView("wbs");
+  await expect(frame).toHaveAttribute("data-project-gantt-instance", instance!);
+  expect(await native!.evaluate(element => element.isConnected)).toBe(true);
+  await page.screenshot({ path: "output/playwright/issue-889-890/wbs-1440.png" });
+  expect(writes).toEqual([]); expect((await f.snapshot()).data).toEqual(baseline.data);
+  await info.attach("issue-889-shared-shell-density", { contentType: "application/json", body: JSON.stringify({ receipts, writes, api, instance }, null, 2) });
 });

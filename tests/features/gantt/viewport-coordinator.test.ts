@@ -1,4 +1,4 @@
-import { canRestoreLocaleInitColumns } from "../../../src/features/gantt/viewport/locale-presentation";
+import { canRestoreLocaleInitColumns, canonicalTaskSortValue, compareCanonicalTaskField, currentLocaleColumns, LOCALE_SORT_EVENT_SOURCE, restoreLocaleSort } from "../../../src/features/gantt/viewport/locale-presentation";
 import { describe, expect, it, vi } from "vitest";
 import type { ProjectionReceipt } from "../../../src/features/gantt/projection-settled";
 import {
@@ -949,5 +949,92 @@ describe("Locale init column restoration admission", () => {
   it("fails closed for malformed identity", () => {
     expect(canRestoreLocaleInitColumns(source, { ...normalized, context: "{}" })).toBe(false);
     expect(canRestoreLocaleInitColumns(source, { ...normalized, context: "invalid" })).toBe(false);
+  });
+
+  it("rebuilds fixed labels after native header mutation without changing captured column layout or behavior", () => {
+    const getter = () => "user entered nguyên văn";
+    const columns = [
+      { id: "projectStart", header: [{ text: "Bắt đầu", tooltip: "Bắt đầu" }], width: 137, hidden: true, align: "center" as const, getter },
+      { id: "text", header: [{ text: "Công việc" }], width: 294, flexgrow: 1, sort: true },
+      { id: "externalId", header: [{ text: "ID bên ngoài" }], width: 106, hidden: false },
+    ];
+    const before = JSON.stringify(columns);
+    for (const [locale, labels] of [["en", ["Start", "Task", "External ID"]], ["ko", ["시작", "작업", "외부 ID"]], ["vi", ["Bắt đầu", "Công việc", "ID bên ngoài"]]] as const) {
+      const restored = currentLocaleColumns(columns, locale);
+      expect(restored.map(column => column.header)).toEqual(labels);
+      expect(restored.map(column => ({ ...column, header: undefined })))
+        .toEqual(columns.map(column => ({ ...column, header: undefined })));
+      expect(restored[0].getter).toBe(getter);
+      expect(restored[0]).not.toBe(columns[0]);
+      // A subsequent native normalization can replace its output header;
+      // the saved snapshot and every following restore keep their identity.
+      restored[0].header = [{ text: "stale native translated text" }];
+      expect(JSON.stringify(columns)).toBe(before);
+    }
+  });
+
+  it("does not reinterpret unknown column names or prototype keys as fixed UI text", () => {
+    const columns = [{ id: "custom", header: "User-entered Bắt đầu" }, { id: "constructor", header: "opaque source" }];
+    expect(currentLocaleColumns(columns, "ko").map(column => column.header)).toEqual(columns.map(column => column.header));
+  });
+
+  it("restores active multi-column sort in its original priority through public actions without editing the saved descriptors", async () => {
+    const exec = vi.fn(async () => undefined);
+    const sort = [{ key: "text", order: "desc" as const }, { key: "projectStart", order: "asc" as const }];
+    const before = JSON.stringify(sort);
+    await restoreLocaleSort({ exec }, sort, () => true);
+    expect(exec.mock.calls).toEqual([
+      ["sort-tasks", { key: "text", order: "desc", add: false, eventSource: LOCALE_SORT_EVENT_SOURCE }],
+      ["sort-tasks", { key: "projectStart", order: "asc", add: true, eventSource: LOCALE_SORT_EVENT_SOURCE }],
+    ]);
+    expect(JSON.stringify(sort)).toBe(before);
+  });
+
+  it("does not sort an unsorted view or resurrect stale sort after newer input during an await", async () => {
+    let current = true;
+    const exec = vi.fn(async () => { current = false; });
+    await restoreLocaleSort({ exec }, [], () => true);
+    expect(exec).not.toHaveBeenCalled();
+    const sort = [{ key: "text", order: "asc" as const }, { key: "projectStart", order: "desc" as const }];
+    await restoreLocaleSort({ exec }, sort, () => false);
+    expect(exec).not.toHaveBeenCalled();
+    await restoreLocaleSort({ exec }, sort, () => current);
+    expect(exec).toHaveBeenCalledTimes(1);
+    expect(exec).toHaveBeenCalledWith("sort-tasks", { key: "text", order: "asc", add: false, eventSource: LOCALE_SORT_EVENT_SOURCE });
+  });
+
+  it("replays inactive tie priorities before current clauses while leaving only active public sort markers", async () => {
+    const exec = vi.fn(async () => undefined);
+    const active = [{ key: "projectStart", order: "asc" as const }];
+    const effective = [...active, { key: "text", order: "desc" as const }, { key: "externalId", order: "asc" as const }];
+    await restoreLocaleSort({ exec }, active, () => true, effective);
+    expect(exec.mock.calls).toEqual([
+      ["sort-tasks", { key: "externalId", order: "asc", add: false, eventSource: LOCALE_SORT_EVENT_SOURCE }],
+      ["sort-tasks", { key: "text", order: "desc", add: false, eventSource: LOCALE_SORT_EVENT_SOURCE }],
+      ["sort-tasks", { key: "projectStart", order: "asc", add: false, eventSource: LOCALE_SORT_EVENT_SOURCE }],
+    ]);
+  });
+
+  it("sorts each old or new native row by its own canonical generation instead of renderer or current DTO values", () => {
+    const old = { id: "task", start: new Date(2030, 0, 1), projectDisplayKey: JSON.stringify({ taskId: "task", start: "2026-01-01", duration: 2, baselineStart: "2026-01-01", baselineEnd: "2026-01-02" }) };
+    const next = { id: "task", start: new Date(2020, 0, 1), projectDisplayKey: JSON.stringify({ taskId: "task", start: "2026-02-01", duration: 10, baselineStart: "2026-02-01", baselineEnd: "2026-02-10" }) };
+    for (const field of ["start", "duration", "baselineStart", "baselineEnd"] as const) expect(compareCanonicalTaskField(old, next, field)).toBe(-1);
+    expect(canonicalTaskSortValue(old, "start")).toBe(canonicalTaskSortValue(old, "start"));
+    old.projectDisplayKey = JSON.stringify({ taskId: "task", start: "2026-03-01", duration: 20 });
+    expect(compareCanonicalTaskField(old, next, "start")).toBe(1);
+    expect(compareCanonicalTaskField(old, next, "duration")).toBe(1);
+  });
+
+  it("keeps unscheduled canonical values distinct from malformed, missing, or foreign snapshot source", () => {
+    const unset = { id: "task", projectDisplayKey: JSON.stringify({ taskId: "task", start: null, duration: null }) };
+    const scheduled = { id: "task", projectDisplayKey: JSON.stringify({ taskId: "task", start: "2026-01-01", duration: 1 }) };
+    expect(canonicalTaskSortValue(unset, "start")).toEqual({ ok: true, value: null });
+    expect(compareCanonicalTaskField(unset, scheduled, "start")).toBe(1);
+    for (const source of [undefined, "not-json", "[]", JSON.stringify({ taskId: "other", start: "2026-01-01" }), JSON.stringify({ taskId: "task", duration: 1 }), JSON.stringify({ taskId: "task", start: "2026-02-30" })]) {
+      const invalid = { id: "task", projectDisplayKey: source };
+      expect(canonicalTaskSortValue(invalid, "start")).toEqual({ ok: false });
+      expect(() => compareCanonicalTaskField(invalid, scheduled, "start")).toThrow("CANONICAL_SORT_SOURCE_UNAVAILABLE");
+    }
+    for (const duration of [-1, "3"]) expect(canonicalTaskSortValue({ id: "task", projectDisplayKey: JSON.stringify({ taskId: "task", duration }) }, "duration")).toEqual({ ok: false });
   });
 });

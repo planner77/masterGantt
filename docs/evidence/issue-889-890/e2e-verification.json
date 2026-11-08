@@ -1,0 +1,44 @@
+{
+  "issues": [
+    889,
+    890
+  ],
+  "environment": "local Chromium; actual HTTP/SQLite schedule fixture and existing mock-backed canonical UI fixtures",
+  "status": "PASS",
+  "spec_count": 8,
+  "passed": 66,
+  "failed": 0,
+  "skipped": 0,
+  "interrupted": 0,
+  "duration_reported": "8.9m",
+  "workers": 1,
+  "retries": 0,
+  "source_input_count": 1339,
+  "normalized_source_sha256": "9425e0521645433d958bc72952feed5618e892d48b2282887e493087a158b5e5",
+  "raw_start_sha256": "9425e0521645433d958bc72952feed5618e892d48b2282887e493087a158b5e5",
+  "raw_end_sha256": "9f73598d8f3ec76268e052d79bc66132fb78af022219be2e87486144a3d86a3a",
+  "generated_end_tsconfig_includes": 14,
+  "normalization": "Only generated Next isolated UUID type include additions; all other tsconfig fields checked against HEAD; generated next-env.d.ts excluded",
+  "specs": [
+    "i18n",
+    "schedule-views",
+    "project-workspace-layout",
+    "project-summary-bar-visual",
+    "project-gantt-scale",
+    "project-gantt-fullscreen",
+    "projection-row-alignment",
+    "viewport-coordinator"
+  ],
+  "active_sort_ac": "PASS: single/multi/rapid/newer user header gesture; fresh current SETTLED receipt and exact ordered logical/Core/DOM rows; native/app selection; nonzero viewport; HTTP write0",
+  "prior_local_run": {
+    "passed": 65,
+    "normalized_source_sha256": "0b2533867b12834e06988e4ea141a1c564ff119c9b180b72475de293af195317",
+    "coverage_limit": "Active sort AC was not covered and QA found a real regression; this run is historical evidence only"
+  },
+  "remote_ci": "NOT TESTED",
+  "manager_accept": "NOT TESTED",
+  "not_claimed": [
+    "actual browser 125% zoom",
+    "all locale/viewport/touch cross-product combinations"
+  ]
+}

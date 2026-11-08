@@ -25,6 +25,8 @@ export interface ProjectionObservationPort extends CoreReaderPort, CoreVerifierP
   readonly abort: ConsistencyAbortPort;
   readContext(): ProjectionObservationContext;
   readRows(): ProjectionRowEvidence;
+  /** Recomputed from canonical input and intended public sort, never native row order. */
+  readExpectedDisplayOrder?(proof: CoreConformanceProof): readonly string[] | null;
   /** Independently read actual scale/date extent and layout, encoded by caller. */
   readLayoutAxis(): LayoutAxisIdentity;
   /** Existing bounded, allowlisted trace: id=semantic ID, count=attempt ID. */
@@ -66,12 +68,15 @@ const snapshot = <T>(value: T): T => {
   freeze(copy);
   return copy;
 };
-function validRows(rows: ProjectionRowEvidence, proof: CoreConformanceProof): boolean {
+function validRows(rows: ProjectionRowEvidence, proof: CoreConformanceProof, expectedOrder?: readonly string[] | null): boolean {
   const logical = rows.logicalVisibleIds, mounted = rows.mountedRows.map(row => row.id);
   const logicalSet = new Set(logical), mountedSet = new Set(mounted);
   const byId = new Map(proof.snapshot.tasks.map(task => [task.id, task]));
+  if (expectedOrder === null) return false;
+  const fullOrder = expectedOrder ?? proof.snapshot.tasks.map(task => task.id);
+  if (fullOrder.length !== byId.size || new Set(fullOrder).size !== fullOrder.length || fullOrder.some(id => !byId.has(id))) return false;
   return rows.aligned && equal(logical, rows.coreVisibleIds) && logicalSet.size === logical.length &&
-    logical.every(id => byId.has(id)) && equal(proof.snapshot.tasks.filter(task => logicalSet.has(task.id)).map(task => task.id), logical) && mountedSet.size === mounted.length &&
+    logical.every(id => byId.has(id)) && equal(fullOrder.filter(id => logicalSet.has(id)), logical) && mountedSet.size === mounted.length &&
     equal(logical.filter(id => mountedSet.has(id)), mounted) &&
     rows.mountedRows.every(row => byId.get(row.id)?.text === row.text) &&
     rows.requiredMountedIds.every(id => logicalSet.has(id) && mountedSet.has(id));
@@ -106,7 +111,7 @@ export function createProjectionObservation(port: ProjectionObservationPort) {
       const valid = !disposed && !port.abort.signal.aborted && port.abort.isCurrent() && context.visible && context.mounted &&
         equal(context, receipt.context) && equal(port.readLayoutAxis(), context.layoutAxis) &&
         ["IDLE", "SETTLED"].includes(recovery.phase) && recovery.generation === context.source.recovery &&
-        actual.ok && sameCoreSnapshot(actual.value, receipt.proof.snapshot) && rows.measurable && validRows(rows, receipt.proof) &&
+        actual.ok && sameCoreSnapshot(actual.value, receipt.proof.snapshot) && rows.measurable && validRows(rows, receipt.proof, port.readExpectedDisplayOrder?.(receipt.proof)) &&
         equal(rows, receipt.rows) && geometryIdentity(port) === receipt.geometry &&
         !disposed && !port.abort.signal.aborted && port.abort.isCurrent() && equal(port.readRecovery(), recovery) && equal(port.readContext(), context) && completed === receipt;
       if (!valid) clearCompletion();
@@ -190,7 +195,7 @@ export function createProjectionObservation(port: ProjectionObservationPort) {
         // extents still invalidate reuse, even under the same layout/axis keys.
         const geometryKey = JSON.stringify([g.chartX, g.chartY, g.chartWidth, g.chartHeight, g.scrollWidth, g.scrollHeight, g.verticalClientHeight, g.gridWidth]);
         if (![g.chartX, g.chartY, g.chartWidth, g.chartHeight, g.scrollWidth, g.scrollHeight, g.verticalClientHeight, g.gridWidth].every(Number.isFinite) || g.chartWidth <= 0 || g.chartHeight <= 0) return finish("NOT_MEASURABLE");
-        const valid = validRows(rows, proof);
+        const valid = validRows(rows, proof, port.readExpectedDisplayOrder?.(proof));
         const signature = stableKey([rows, geometryKey]);
         if (completed && valid && equal(completed.context, initial) && sameCoreSnapshot(completed.proof.snapshot, actual.value) &&
           equal(completed.rows, rows) && completed.geometry === geometryKey) return finish("SETTLED", completed, true);
