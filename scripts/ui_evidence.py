@@ -96,13 +96,27 @@ def validate_manifest(manifest_path: Path) -> dict:
             "verdict": "EVIDENCE_INTEGRITY_VERIFIED_NOT_UAT"}
 
 
+def canonical_manifests(directory: Path) -> list[Path]:
+    """Only producer originals are canonical; Playwright /attachments are renamed copies.
+
+    testInfo.attach(path=...) copies both JSON and PNG to a nested attachments
+    directory with a content-hash suffix. The copied JSON still references the
+    original PNG basename, so validating it as a new manifest is a false FAIL.
+    The original sibling pair remains subject to every integrity check.
+    """
+    return sorted(
+        path for path in directory.rglob("ui-evidence-*.json")
+        if "attachments" not in path.relative_to(directory).parts[:-1]
+    )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("directory", type=Path, help="Playwright test-results root")
     args = parser.parse_args()
     try:
         ensure(args.directory.is_dir(), "test-results directory missing")
-        files = list(args.directory.rglob("ui-evidence-*.json"))
+        files = canonical_manifests(args.directory)
         ensure(bool(files), "NOT TESTED: no synthetic Visual Evidence captured")
         ensure(len(files) <= 150, "too many evidence manifests")
         outcomes = [validate_manifest(file) for file in files]

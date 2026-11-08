@@ -71,6 +71,7 @@
 - `docs/ARCHITECTURE.md`: N/A(기존 Preview·Playwright·QA/Lifecycle 모듈을 확장하며 제품 구조 불변)
 
 ## Validation / Status
+- Rework #900 / Full #3577.1: Preflight, Policy (including existing Python UAT/Visual Evidence unit), Quality/Build, Docker PASS on prior exact `9f36ccae7dff8bb5887e93867d0ab23dee75c517`; Chromium E2E #3/8 test cases 148 PASS/1 SKIPPED but post-test synthetic evidence validator fails on the `attachments/` JSON copy; #4/8 canceled by matrix. Correct canonical output-root vs Playwright reporter-copy distinction reusing existing scanner/attachments; no new pipeline/approval. Updated Head Full CI still NOT TESTED. Details: docs/ISSUE_895_FAILURE_ANALYSIS.md.
 - GitHub remote source changes completed/ongoing; actual local/test CI: NOT TESTED until exact source run. No fake PASS.
 - Stage A: reusable contract/advisory visual evidence/manual UAT verification. Stage B auto-blocking UAT required only with a separate Owner authorization after positive and negative remote evidence.
 - Final merge/Main/Release/GHCR/Issue closure: NOT AUTHORIZED in this request.

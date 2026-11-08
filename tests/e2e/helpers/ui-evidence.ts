@@ -60,6 +60,8 @@ export async function captureSyntheticUiEvidence(page: Page, info: TestInfo, inp
   };
   const jsonPath = info.outputPath("ui-evidence-" + input.state + ".json");
   await writeFile(jsonPath, JSON.stringify(manifest, null, 2) + "\n", "utf8");
-  await info.attach("ui-evidence-" + input.state + ".png", { path: pngPath, contentType: "image/png" });
-  await info.attach("ui-evidence-" + input.state + ".json", { path: jsonPath, contentType: "application/json" });
+  // Report attachments remain useful to reviewers, but must not look like
+  // independent canonical ui-evidence files when Playwright copies them.
+  await info.attach("합성 UI PNG 증거 " + input.state, { path: pngPath, contentType: "image/png" });
+  await info.attach("합성 UI JSON 증거 " + input.state, { path: jsonPath, contentType: "application/json" });
 }

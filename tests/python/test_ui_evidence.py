@@ -42,6 +42,30 @@ class UiEvidenceTests(unittest.TestCase):
         result = ui_evidence.validate_manifest(self.manifest)
         self.assertEqual(result["verdict"], "EVIDENCE_INTEGRITY_VERIFIED_NOT_UAT")
 
+    def test_playwright_attached_copies_are_not_canonical(self):
+        # Real #3577.1 Playwright report duplicated JSON/PNG under attachments/
+        # with hashed names. The copied JSON's screenshot refers to the original
+        # basename and must not be treated as another independent manifest.
+        attachments = self.root / "attachments"
+        attachments.mkdir()
+        (attachments / "ui-evidence-view-json-hash.json").write_bytes(
+            self.manifest.read_bytes())
+        (attachments / "ui-evidence-view-png-hash.png").write_bytes(
+            self.image.read_bytes())
+        original_only = ui_evidence.canonical_manifests(self.root)
+        self.assertEqual(original_only, [self.manifest])
+        self.assertEqual(
+            ui_evidence.validate_manifest(original_only[0])["verdict"],
+            "EVIDENCE_INTEGRITY_VERIFIED_NOT_UAT")
+
+    def test_original_missing_still_not_approved_by_attachment(self):
+        attachments = self.root / "attachments"
+        attachments.mkdir()
+        (attachments / "ui-evidence-view-json-hash.json").write_bytes(
+            self.manifest.read_bytes())
+        self.manifest.unlink()
+        self.assertEqual(ui_evidence.canonical_manifests(self.root), [])
+
     def test_data_must_be_synthetic(self):
         self.source["fixture"]["kind"] = "production"
         self.write()
