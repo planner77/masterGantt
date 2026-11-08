@@ -18,6 +18,11 @@ The existing large docs/TEST_PLAN.md is preserved byte-for-byte to retain histor
 - tests/python/test_preview_uat.py covers correct Owner receipt, REWORK after ACCEPT, stale SHA/image/evidence, nonOwner/foreign Issue, duplicate or incomplete comment and unavailable decision.
 - Actual browser UAT on isolated Preview + Owner ACCEPT is **NOT TESTED** in this implementation; do not fabricate a screenshot or GHCR deployment.
 
+## #900 / #3578.1 — 35분 E2E 샤드 임계시간 보완
+- CI Full Run #3578.1 (42475849089) completed Quality/Preflight/Docker and 7/8 E2E shards; shard 3 verified one canonical synthetic UI evidence manifest after the #3577.1 correction. Shard 2 hit the unchanged 35-minute Job limit after 102/113 test PASS, leaving 11 NOT RUN; this is an incomplete E2E suite, not a product assertion PASS or UAT approval.
+- Reuse existing `tests/config/e2e-shard-plan.json` + `scripts/e2e-shard-planner.mjs` and the existing single `tests/scripts/e2e-shard-planner.test.ts` invariant test. Move **entire files**, not selected tests: `issue-734-equipment-dashboard.spec.ts` 2→8 and `issue-735-system-dashboard.spec.ts` 4→6 using source-run completion intervals. Keep 147 E2E specs each exactly once; assert current destinations and reverse-link #900→#894→#885 history. Preserve historical projectedMs and all earlier decisions without interpreting them as new forecasts.
+- Previous runner observed Playwright wall (minutes): shard 1 25.2, 2 censored at 35m, 3 27.4, 4 31.3, 5 23.2, 6 21.4, 7 22.7, 8 19.5. Transferred file completion spans of about 7.6m and 5.0m produce only **shift-only approximations**, not guaranteed wall times (especially 11 censored cases). New exact Head Full8, QA and Owner gates remain necessary. Do not enlarge 35m timeout, enable retries, alter fail-fast, test assertions, Required Check or worker count.
+
 ## Current validation boundary
 - Source authored on branch ci/issue-895-896-897-reuse-visual-uat from exact main SHA 90c5a1a951c749a9690b1c83e5a74b6d122dd6e3 (PR #894 already merged).
 - No full local Node/Python/Chromium/Docker environment in this session; exact updated PR Head's required CI and default-main Trusted QA are necessary evidence.

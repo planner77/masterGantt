@@ -66,7 +66,6 @@
       "projectedMs": 1265824,
       "files": [
         "tests/e2e/issue-622-resource-plan-target.spec.ts",
-        "tests/e2e/issue-734-equipment-dashboard.spec.ts",
         "tests/e2e/logistics-type-catalog-admin.spec.ts",
         "tests/e2e/milestone-management-persistence.spec.ts",
         "tests/e2e/milestone-stage-editor.spec.ts",
@@ -116,7 +115,6 @@
         "tests/e2e/gantt-state-recovery-editor.spec.ts",
         "tests/e2e/issue-725-process-workareas.spec.ts",
         "tests/e2e/issue-733-process-workarea-dashboard.spec.ts",
-        "tests/e2e/issue-735-system-dashboard.spec.ts",
         "tests/e2e/milestone-exchange-state.spec.ts",
         "tests/e2e/milestone-stage-exchange.spec.ts",
         "tests/e2e/milestone-timeline-interchange-http.spec.ts",
@@ -170,6 +168,7 @@
         "tests/e2e/error-boundary-regression.spec.ts",
         "tests/e2e/issue-726-logistics-master.spec.ts",
         "tests/e2e/issue-726-task-logistics.spec.ts",
+        "tests/e2e/issue-735-system-dashboard.spec.ts",
         "tests/e2e/issue-737-target0-acceptance.spec.ts",
         "tests/e2e/master-controls-density.spec.ts",
         "tests/e2e/milestone-stage-dashboard.spec.ts",
@@ -215,6 +214,7 @@
         "tests/e2e/admin-legacy-button-spacing.spec.ts",
         "tests/e2e/i18n.spec.ts",
         "tests/e2e/issue-621-resource-target.spec.ts",
+        "tests/e2e/issue-734-equipment-dashboard.spec.ts",
         "tests/e2e/milestone-dashboard-state.spec.ts",
         "tests/e2e/milestone-stage-grid-mock.spec.ts",
         "tests/e2e/milestone-visibility.spec.ts",
@@ -1981,5 +1981,97 @@
     "estimateCaveat": "Single Run #3572; Shard7 3 unexecuted cases, Next/runner cold starts and between-test gaps are not measured after relocation. The 26.63 minute value for Shard7 is only 116 executed cases adjusted by completed-file wall intervals, not a full-shard prediction. No 35-minute success guarantee. Historical generatedAt/metrics/projectedMs/sourceRunIds/manualRebalance885 are unchanged.",
     "validation": "STATIC_GIT_TREE_EXACT_147_AND_UNIQUE_8_GROUPS; UNIT_AND_NEW_FULL_PR_CI_NOT_TESTED",
     "scope": "Only file-to-shard assignments, test assertions and docs; preserve E2E8, 35-minute cap, workers1, PR fail-fast, no retry/skip/assertion modifications, Required3 and trusted QA."
+  },
+  "manualRebalance900": {
+    "issue": 895,
+    "relatedIssues": [
+      896,
+      897
+    ],
+    "incident": "PR900-F003-3578",
+    "pullRequest": 900,
+    "sourceRunId": 42475849089,
+    "sourceRunNumber": 3578,
+    "runAttempt": 1,
+    "sourceHeadSha": "6bf821cf9c57941f2e1547b8cb1552b6f99ea277",
+    "sourceBaseSha": "90c5a1a951c749a9690b1c83e5a74b6d122dd6e3",
+    "sourceTestMergeSha": "a1ba45dfdb01d0fbff46c757add5ed756335698e",
+    "originalConclusion": "cancelled",
+    "jobTimeoutMinutes": 35,
+    "cancelledShard": 2,
+    "cancelledShardJobId": 128717738673,
+    "cancelledShardSelectedCases": 113,
+    "cancelledShardObservedPasses": 102,
+    "cancelledShardUnfinishedCases": 11,
+    "cancelledShardObservedAssertionFailures": 0,
+    "successfulShards": [
+      1,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "originalObservedTestWallMinutes": [
+      25.2,
+      null,
+      27.4,
+      31.3,
+      23.2,
+      21.4,
+      22.7,
+      19.5
+    ],
+    "cancelledShardJobWallMinutesApprox": 35.2,
+    "originalShardFileCounts": [
+      17,
+      19,
+      17,
+      22,
+      18,
+      16,
+      19,
+      19
+    ],
+    "revisedShardFileCounts": [
+      17,
+      18,
+      17,
+      21,
+      18,
+      17,
+      19,
+      20
+    ],
+    "explicitSpecCount": 147,
+    "movedFiles": [
+      {
+        "file": "tests/e2e/issue-734-equipment-dashboard.spec.ts",
+        "from": 2,
+        "to": 8,
+        "observedCompletedCases": 8,
+        "observedTestBodyMinutes": 4.5,
+        "observedCompletionSpanMinutes": 7.6
+      },
+      {
+        "file": "tests/e2e/issue-735-system-dashboard.spec.ts",
+        "from": 4,
+        "to": 6,
+        "observedCompletedCases": 6,
+        "observedTestBodyMinutes": 3.1,
+        "observedCompletionSpanMinutes": 5
+      }
+    ],
+    "approximateShiftOnlyResult": {
+      "shard2": "<= about 27.6m observed portion; 11 uncompleted tests remain UNMEASURED",
+      "shard4": "about 26.3m from previously completed 31.3m",
+      "shard6": "about 26.4m from previously completed 21.4m",
+      "shard8": "about 27.1m from previously completed 19.5m",
+      "note": "Estimated only from #3578 observed per-file completion intervals. Transfer of fixture/setup gaps and 11 incomplete cases is not guaranteed; runner/host variance and suite overhead unmodelled."
+    },
+    "historicalEvidence": "#3577.1 Chromium shard 4 was CANCELLED after a different shard failed; #3578.1 shard 4 completed successfully in 31.3m. Prior evidence and historical fields unmodified.",
+    "preservation": "All 147 specs appear exactly once across eight shards; unchanged 35m cap, workers=1, PR max-failures=1/fail-fast, Playwright assertions, Required Quality/E2E/Docker, trusted QA and Owner controls. No existing main/PR workflow change.",
+    "validation": "STATIC_EXACT_147_UNIQUE_EIGHT_SHARDS_ONLY; NEW_EXACT_HEAD_FULL_PR_CI_NOT_TESTED"
   }
 }
