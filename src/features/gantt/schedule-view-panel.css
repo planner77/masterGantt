@@ -21,7 +21,10 @@
 .project-schedule-view-scale-row > span { box-sizing: border-box; position: absolute; top: 0; height: 100%; display: flex; align-items: center; justify-content: center; border-inline-end: var(--wx-gantt-border, 1px solid var(--border)); overflow: hidden; white-space: nowrap; }
 .project-schedule-view-scale-row [data-non-working] { background: var(--wx-gantt-holiday-background, var(--muted)); color: var(--wx-gantt-holiday-color, var(--muted-foreground)); }
 .project-schedule-view-row { position: absolute; left: 0; width: 100%; border-bottom: var(--wx-grid-body-row-border, 1px solid var(--border)); box-sizing: border-box; }
-.project-schedule-view-name > button { display: flex; align-items: center; gap: .375rem; height: 100%; min-height: 100%; width: 100%; border: 0; background: transparent; color: var(--foreground); padding: 0; text-align: start; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font: inherit; cursor: pointer; }
+.project-schedule-view-name > button { display: flex; align-items: center; gap: .375rem; height: 100%; min-height: 100%; min-width: 0; flex: 1 1 auto; border: 0; background: transparent; color: var(--foreground); padding: 0; text-align: start; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font: inherit; cursor: pointer; }
+.project-schedule-view-name > .project-schedule-view-info { flex: 0 0 36px; width: 36px; justify-content: center; color: var(--muted-foreground); font-size: 1rem; }
+.project-schedule-view-name > .project-schedule-view-info:hover { color: var(--foreground); }
+@media (pointer: coarse), (any-pointer: coarse) { .project-schedule-view-name > .project-schedule-view-info { flex-basis: 44px; width: 44px; } }
 .project-schedule-view-name small { flex: 0 0 auto; font-weight: 400; color: var(--muted-foreground); }
 .project-schedule-view-group .project-schedule-view-grid { font-weight: var(--wx-font-weight-md, 500); }
 .project-schedule-view-row[aria-selected="true"] .project-schedule-view-grid, .project-schedule-view-row[aria-selected="true"] .project-schedule-view-chart { background-color: var(--wx-gantt-select-color, var(--accent)); }
