@@ -43,7 +43,8 @@ export function isDensityWheelTarget(target: Element, root: HTMLElement, point?:
   const projected = target.closest<HTMLElement>('[data-schedule-view-scroll]');
   if (projected && root.contains(projected)) {
     const bounds = projected.getBoundingClientRect();
-    if (point && inBounds(bounds, point)) {
+    if (point) {
+      if (!inBounds(bounds, point)) return false;
       const header = projected.querySelector<HTMLElement>('.project-schedule-view-header')?.getBoundingClientRect();
       const scrollbar = projected.querySelector<HTMLElement>('.project-schedule-view-grid-scrollbar')?.getBoundingClientRect();
       const top = Math.max(bounds.top, header?.bottom ?? bounds.top);
@@ -58,7 +59,7 @@ export function isDensityWheelTarget(target: Element, root: HTMLElement, point?:
   const native = target.closest<HTMLElement>('.wx-gantt, .wx-chart, .wx-table-container, .project-gantt-scroll');
   if (!native || !root.contains(native)) return false;
   const nativeBody = root.querySelector<HTMLElement>('.wx-gantt');
-  if (point && nativeBody && inBounds(nativeBody.getBoundingClientRect(), point)) return true;
+  if (point && nativeBody) return inBounds(nativeBody.getBoundingClientRect(), point);
   // Preserve Core row/bar synthetic assertions and handle scroll overlays
   // whose event target is the native body rather than a rendered row.
   return Boolean(target.closest('.wx-gantt, .wx-chart, .wx-table-container, .project-gantt-scroll'));
