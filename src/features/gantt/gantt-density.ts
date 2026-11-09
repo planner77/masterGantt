@@ -28,8 +28,38 @@ export function nextDensityLevel(level: number, direction: number, coarse: boole
 }
 
 export const DENSITY_INPUT_EXCLUSION = 'input, textarea, select, [contenteditable]:not([contenteditable="false"]), dialog, [role="dialog"], [role="menu"], [role="listbox"], [popover]';
-export function isDensityWheelTarget(target: Element, root: HTMLElement) {
-  if (!root.contains(target) || target.closest(DENSITY_INPUT_EXCLUSION)) return false;
-  if (target.closest('.wx-scale, .wx-header, .project-schedule-view-header, .project-gantt-scale-toolbar')) return false;
-  return Boolean(target.closest('.wx-table .wx-body, .wx-chart .wx-bars, .wx-chart .wx-content, .wx-table .wx-row[data-id], [data-schedule-view-body]'));
+const DENSITY_CHROME = '.wx-scale, .wx-header, .project-schedule-view-header, .project-schedule-view-status, .project-schedule-view-grid-scrollbar, .project-gantt-scale-toolbar';
+type DensityPointer = Readonly<{ x: number; y: number }>;
+const inBounds = (rect: DOMRect, point: DensityPointer) =>
+  rect.width > 0 && rect.height > 0 && point.x >= rect.left && point.x < rect.right && point.y >= rect.top && point.y < rect.bottom;
+
+/** Recognize the *visible* body, including blank rows and scroll layers.
+ * A synthetic WheelEvent without coordinates still uses its DOM target; real
+ * pointer events additionally respect sticky headers and the grid scrollbar.
+ * This predicate never owns wheel input outside the current Gantt frame. */
+export function isDensityWheelTarget(target: Element, root: HTMLElement, point?: DensityPointer) {
+  if (!root.contains(target) || target.closest(DENSITY_INPUT_EXCLUSION) || target.closest(DENSITY_CHROME)) return false;
+
+  const projected = target.closest<HTMLElement>('[data-schedule-view-scroll]');
+  if (projected && root.contains(projected)) {
+    const bounds = projected.getBoundingClientRect();
+    if (point && inBounds(bounds, point)) {
+      const header = projected.querySelector<HTMLElement>('.project-schedule-view-header')?.getBoundingClientRect();
+      const scrollbar = projected.querySelector<HTMLElement>('.project-schedule-view-grid-scrollbar')?.getBoundingClientRect();
+      const top = Math.max(bounds.top, header?.bottom ?? bounds.top);
+      const bottom = Math.min(bounds.bottom, scrollbar?.top ?? bounds.bottom);
+      return point.y >= top && point.y < bottom;
+    }
+    // Coordinates are absent for existing synthetic DOM tests (0,0). The
+    // element is still owned by the projected body, never by its chrome.
+    return true;
+  }
+
+  const native = target.closest<HTMLElement>('.wx-gantt, .wx-chart, .wx-table-container, .project-gantt-scroll');
+  if (!native || !root.contains(native)) return false;
+  const nativeBody = root.querySelector<HTMLElement>('.wx-gantt');
+  if (point && nativeBody && inBounds(nativeBody.getBoundingClientRect(), point)) return true;
+  // Preserve Core row/bar synthetic assertions and handle scroll overlays
+  // whose event target is the native body rather than a rendered row.
+  return Boolean(target.closest('.wx-gantt, .wx-chart, .wx-table-container, .project-gantt-scroll'));
 }
