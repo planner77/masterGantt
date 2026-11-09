@@ -17,5 +17,15 @@
 - 근거: [#898](https://github.com/planner77/masterGantt/issues/898), [#899](https://github.com/planner77/masterGantt/issues/899), [#822 테스트](../tests/e2e/project-summary-bar-visual.spec.ts), [#880/#889 테스트](../tests/e2e/schedule-views.spec.ts), [#889/#890 과거 원장](ISSUE_889_890_FAILURE_ANALYSIS.md), [#896 UI Evidence](UI_EVIDENCE.md).
 - 신규 코드: `src/features/gantt/gantt-density.ts`, `project-gantt.tsx`, `schedule-view-panel.tsx/.css`, `schedule-view-reveal.ts`, 관련 Vitest/E2E.
 - 위험: 브라우저마다 Ctrl+wheel event.target·cancelable 및 OS가 합성하는 zoom 동작이 다를 수 있음. Native125% 확대, touch/hybrid pointer, 다중 시작점 클램프, viewport 소유권·동기화 경합은 새 Head의 실제 브라우저와 운영 환경에서 별도 판정 필요.
-- 원격 Run ID/Attempt/Job 정보: **아직 없음 / PR CI 시작 전**. PR open 후 모니터링하지 않는다. 이 상태는 PR CI PASS/실운영 ACCEPT가 아니다.
+- 원격 최초 Full PR CI: [#3606.1 / Run 42568402966](https://github.com/planner77/masterGantt/actions/runs/42568402966), 실패 source `77d79ef963beecbc2f4c2f46975701dea4d77008`. 메타데이터 직접 FAIL과 각 required Job SKIPPED를 아래 원장에 구분. 새 Head PASS/실운영 ACCEPT 아님.
 - GHCR/릴리스: `release_required=true`, `release_authorized=false`; 이전 v0.145.1 불변, Issue open 유지.
+
+## R898-899-PR904-001 — Full PR CI #3606.1 직접 실패와 파생 구분 (2026-11-09)
+
+- **Run**: `42568402966` / attempt `1` / PR `#904` / source `77d79ef963beecbc2f4c2f46975701dea4d77008` / result `failure`.
+- **DIRECT 1**: 변경 경로 판정 Job `128999906441`, Step `CI 실행 추적 메타데이터 검증`, `scripts/verify-ci-run-trace.py`: `PR 본문에는 canonical 'Refs #<Primary Issue>'가 정확히 1개 필요합니다: []`. 기존 본문은 Markdown 강조 한 줄 안에 `Refs #898`가 있어 독립 정규식을 충족하지 못했고 제목에도 `Issue #898` 형식이 없었다. 후속 분기에서 branch/title도 실패할 가능성 선제 보완.
+- **DIRECT 2**: QA 신뢰 경계 Job `128999906060`, Step `보호 변경·AGENT 경로 판정`: `QA 경로 BLOCKED: PR 본문 qa_method의 명시값 필요`. 기존 PR 본문은 `risk_level=HIGH, qa_method=OWNER_MANAGED`를 한 문장에 넣어 strict 단독-line parser가 거절. 독립 단일 필드 `risk_level`, `qa_method`, `qa_required`, `release_required`, `release_authorized`로 정규화.
+- **DERIVED**: `PR 빠른 검사 판정` Job `128999998250`는 `CHANGES_RESULT: failure` 파생; Required Quality/Chromium E2E/Docker 집계는 `failure`이나 구현 Jobs, TypeScript, Vitest, 8 Chromium, Docker smoke는 **SKIPPED/NOT RUN**. 실제 제품 테스트 FAIL 증거로 오인하지 않는다. FAST_DEVELOPMENT는 non-authoritative SKIPPED.
+- **REVIEW P2 (CI 직접 실패는 아님)**: PR Review Thread `PRRT_kwDOUUB7Bc61JB5u`, `project-gantt.tsx:2230`: 좌표 누락 합성 `WheelEvent`의 `clientX/Y=(0,0)`가 `isDensityWheelTarget`에서 유효 native/projected body 밖으로 판단되어 #822 `project-summary-bar-visual.spec.ts:607-617`, #889 `schedule-views.spec.ts:753-758` 회귀 위험. 조건부 `isTrusted=false && x=0 && y=0`에서만 DOM fallback 유지, 실제 pointer 위치 판정 보존. 기존 Unit과 원래 E2E assertions 유지/새 helper Unit 추가.
+- **PRE-FLIGHT 잠재 실패 선제 보완**: 현재 기본 브랜치 `scripts/qa_preflight.py`의 `reuse_review_gate`는 Work Packet `REUSE_DECISION: EXTEND` 단독 값·후보 설명을, `docs_gate`는 exact `AC01..AC06` mapping과 `DOCUMENTATION_SYNC` 경로별 `UPDATED/N/A(reason)`를 요구한다. 최초 #3606.1에서 실행 전 차단되었으나 구조상 추가 문제가 확인되어 제품·보호 Gate 변경 없이 Work Packet을 보완한다. 원본 큰 `docs/TEST_PLAN.md`는 Git blob으로 전체 읽고 기존 내용을 보존한 채 새 실패/시험 절만 맨 위에 추가한다.
+- **REWORK 검증 및 재개**: GitHub API 실제 실패 Log와 원본 기본 브랜치 Validator를 비교한 정적 분석. 정확 새 Head의 로컬/원격 Unit·E2E·Typecheck·Docker·Trusted/Owner/Preview 결과는 실행 전 `NOT TESTED`. PR #904 유지/단일 새 변경 push→Full PR CI 시작, 모니터링 없음. 기존 Run 실패는 누적 보존, skip/retry/timeout/Required3 변경 없음.

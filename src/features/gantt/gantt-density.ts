@@ -30,6 +30,13 @@ export function nextDensityLevel(level: number, direction: number, coarse: boole
 export const DENSITY_INPUT_EXCLUSION = 'input, textarea, select, [contenteditable]:not([contenteditable="false"]), dialog, [role="dialog"], [role="menu"], [role="listbox"], [popover]';
 const DENSITY_CHROME = '.wx-scale, .wx-header, .project-schedule-view-header, .project-schedule-view-status, .project-schedule-view-grid-scrollbar, .project-gantt-scale-toolbar';
 type DensityPointer = Readonly<{ x: number; y: number }>;
+/** Retain the established DOM-target fallback for unpositioned synthetic
+ * WheelEvents. Trusted wheel input, including a real (0,0) pointer, must still
+ * pass spatial hit testing; positioned synthetic events are also measured. */
+export function densityWheelPointer(event: Pick<WheelEvent, "clientX" | "clientY" | "isTrusted">): DensityPointer | undefined {
+  if (!event.isTrusted && event.clientX === 0 && event.clientY === 0) return undefined;
+  return { x: event.clientX, y: event.clientY };
+}
 const inBounds = (rect: DOMRect, point: DensityPointer) =>
   rect.width > 0 && rect.height > 0 && point.x >= rect.left && point.x < rect.right && point.y >= rect.top && point.y < rect.bottom;
 

@@ -1,3 +1,12 @@
+## Issues #898 / #899 — Full PR #904 Run #3606.1 실패/재시험 구분 (2026-11-09)
+
+- [최초 Full #3606.1](https://github.com/planner77/masterGantt/actions/runs/42568402966): `verify-ci-run-trace.py` PR 본문 standalone `Refs #898` 누락 및 신뢰 QA bootstrap의 standalone `qa_method` 선언 누락이 **직접 실패**. Fast Gate/Required3 FAIL은 파생, 실제 Vitest/TypeScript/ESLint/Chromium E2E8/Docker smoke는 SKIPPED/NOT TESTED. 이 실행을 앱 기능 FAIL로 재분류하지 않는다.
+- 기존 #822 `project-summary-bar-visual.spec.ts:607-617`·#889 `schedule-views.spec.ts:753-758`의 좌표 없는 synthetic `WheelEvent`는 DOM 대상 fallback의 고유 계약이다. `densityWheelPointer`는 untrusted+(0,0)에서만 fallback, 실제 trusted 또는 좌표 있는 이벤트에서는 가시 Gantt body hit-test 유지한다. `tests/features/gantt/gantt-density.test.ts`에 양·음성 Unit을 추가하고 기존 단언을 삭제/skip/완화하지 않는다.
+- #898의 실제 `Control + page.mouse.wheel` 3 View×Grid/Chart와 browser zoom 계측, #899의 Resource·설비 Grid 단일 클릭→현재 projected barStart 좌측 ±1px·Editor 닫힘, 명시 Editor 접근, source/revision/원본 서버 쓰기0 검증은 `tests/e2e/schedule-views.spec.ts` 기존 #880/#889 실제 HTTP/SQLite fixture/원본 Core를 재사용·확장한다.
+- #895의 REUSE_REVIEW, #896 UI evidence PNG/geometry/manifest, #897 Preview Owner UAT를 기존 고유 검증으로 보존. Work Packet `docs/exec-plans/active/ISSUE_898.md`, 누적 원장 `docs/ISSUE_898_899_FAILURE_ANALYSIS.md`, 추가 세부 계획 `docs/ISSUE_898_899_TEST_PLAN.md`와 연결한다. 새 SHA Full Quality/E2E8/Docker/Trusted·Owner/실기기 UAT 모두 실행 근거 전 NOT TESTED, Required3 및 보호 정책 불변.
+
+---
+
 ## Issue #896 MAIN F-004 — Canonical Merge API payload와 불변 사고 음성 회귀 (2026-11-09)
 
 [Main #3598.1 / Run42553577656](https://github.com/planner77/masterGantt/actions/runs/42553577656)의 직접 실패는 PR #902 성공 후 생성된 영어 전용 요약과 여러 줄 본문이 기존 한글 single-line Merge 계약을 위반한 것. Source 코드는 이미 이 형태를 차단하며 기존 parser/CI/Ruleset을 약화할 필요가 없다.

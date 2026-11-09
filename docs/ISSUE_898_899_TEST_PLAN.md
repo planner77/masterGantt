@@ -23,3 +23,9 @@
 7. #896 PNG+DOM geometry+manifest로 source SHA/viewport/locale/AC를 연결하고 #897 격리 Preview Owner UAT는 별도 게이트로 남긴다. 운영 Chrome/Edge·Native125%·실제 마우스/trackpad/touch/하이브리드/스크린리더는 명시한 경우에만 PASS, 그 외 NOT TESTED.
 
 **작성 시점 상태:** 새 테스트 코드 작성 완료, 실제 로컬/원격 실행 및 Owner UAT **NOT TESTED**. PR open으로 Full PR CI를 시작하되 이후 모니터링하지 않는다.
+
+## #904 Full #3606.1 REWORK · 테스트/구조 계약 (2026-11-09)
+
+- PR 메타데이터 source 계약은 `scripts/verify-ci-run-trace.py`의 `Refs #898` 단독 한 줄, Title의 `Issue #898` 하나, branch의 Primary `issue-898` 하나와 일치. `scripts/qa_preflight.py`의 위험/QA/릴리스 standalone 선언, Work Packet AC01..AC06/문서별 UPDATED·N/A(reason)/REUSE_REVIEW를 준수한다. 기존 검증 스크립트·workflow는 수정하지 않는다.
+- `tests/features/gantt/gantt-density.test.ts` (EXTEND): `densityWheelPointer`가 좌표가 없는 synthetic `isTrusted=false, (0,0)`를 DOM fallback으로, trusted 실제 (0,0)·nonzero pointer를 좌표 판정으로 분리함을 검증. 기존 `project-summary-bar-visual.spec.ts:607-617` / `schedule-views.spec.ts:753-758` 합성 DOM 취소 회귀는 KEEP_UNIQUE, WBS·projected 실제 `Control + page.mouse.wheel` 위치 테스트와 별도로 유지한다.
+- **Run #3606.1**은 메타데이터/QA 단계에서 FAIL한 실행으로 **실제 제품 테스트는 SKIPPED**. 신규 HEAD의 실제 Unit·Typecheck·ESLint·E2E8·Docker PASS는 새 Full PR CI가 끝날 때까지 NOT TESTED. 기존 타 이슈 CI나 synthetic PASS를 승격하지 않는다.

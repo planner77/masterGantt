@@ -19,8 +19,11 @@
 
 ## REUSE_REVIEW
 
-- REUSE_DECISION: **EXTEND**. 사용자 현재 요청의 “각 단계에서 이전 단계 결과를 재활용할 수 있으면 재활용”이라는 명시적 범위에 따른 승인. 이전 #895의 공통 재사용 정책 및 #896/#897 증거/Preview 기능은 대체하거나 우회하지 않는다.
-- REUSE_CANDIDATES:
+- REUSE_DECISION: EXTEND
+
+사용자 현재 요청의 “각 단계에서 이전 단계 결과를 재활용할 수 있으면 재활용”이라는 명시적 범위에 따른 승인이다. 이전 #895의 공통 재사용 정책 및 #896/#897 증거/Preview 기능은 대체하거나 우회하지 않는다.
+- REUSE_CANDIDATES: #822 density engine/frame listener, #880/#889 조회 panel·fixture·bookmark, #852 native start-align 의미, #896 UI Evidence helper와 #897 Preview UAT.
+
   1. #822 `createDensityWheel`·`nextDensityLevel`·기존 frame capture listener/입력 lease: 로직/버스트/프로필 그대로 확장.
   2. #880/#889 `ScheduleViewPanel`, source GET/receipt·projection/`viewRowKey`·bookmark·native axis/한 scroller/Editor canonical 진입: 신규 Core scroll writer 없이 확장.
   3. #852 WBS `TASK_REVEAL align:start` 사용자 의도와 #889 스크롤/선택/resize/cellHeight 일관성: 설계 의미만 재사용, 숨긴 WBS viewport 직접 변경 금지.
@@ -43,6 +46,13 @@
 - ADD: `tests/features/gantt/schedule-view-reveal.test.ts` (정확 날짜 좌표·capacity 경계·없는 날짜/미측정 typed 분류)만 신규 생성; 다른 data/schema/보안 테스트는 중복하지 않는다.
 ## AC_TEST_COVERAGE
 
+- AC01: #898 WBS·Resource·설비의 실제 Ctrl+wheel Grid/Chart fine34↔28px·native geometry, 기존 #822/#889 및 새 schedule-views 물리 pointer E2E EXTEND; #899 조회 단일 클릭 차트 좌측 정렬은 동일 실제 HTTP/SQLite 시나리오.
+- AC02: #898 실제 브라우저 Page Zoom 독립 측정(devicePixelRatio/innerWidth/visualViewport)과 취소 가능 wheel·(0,0) synthetic fallback·헤더 음성, density Unit·schedule-views/#822 E2E; #899 명시 Editor 더블클릭/Enter/Chart 동등 ID.
+- AC03: #898 일반 wheel·Editor/input/header 외부 제외·burst/coarse, #822 고유 테스트 KEEP_UNIQUE; #899 중복 viewRowKey/실행 용량 부족·날짜 미산정 typed 분기 Unit과 Resource/Equipment 클릭 흐름.
+- AC04: #898 기존 WBS Core identity·원본 snapshot/revision/readonly write0, #880/#889 HTTP/SQLite fixture 및 E2E, 신규 source/browser start CSS px 측정; #899 실제 mouse/keyboard/scrollLeft·선택 경쟁·원본 불변.
+- AC05: #898 기존 물리 wheel E2E 및 #889 synthetic 차이를 분리하고 현재 정확 SHA #896 PNG/geometry/flow manifest 증거 재사용; #899 #895 재사용 출처와 인수 기준 연결, 기존 검증 삭제/skip 없음.
+- AC06: #898/#899 AGENTS·DESIGN·UI_UX·PROJECT_UX·GSC·TEST_PLAN·Work Packet·누적 실패 원장 동기화; 신규 Ready Full PR Required Quality/E2E8/Docker, 기본 브랜치 Trusted QA·Owner/Preview UAT와 별도 릴리스 gate는 재실행 후에만 판정.
+
 - AC #898-01/02: WBS·Resource·설비 × Grid/Chart 실제 `page.mouse.wheel`/Ctrl, 34→32→30→32→34 및 실제 변경 geometry/pageZoom 독립 확인. 별도 기존 #889 synthetic full cycle 34→28→34을 유지; 전체 3 View × 모든 포인터 위치 조합은 원격/운영에서 추가 확인.
 - AC #898-03/04: body 이외 Ctrl+wheel·일반 wheel/Editor/툴바 제외; canonical/WBS instance 및 server writes0. 기존 #822/#889 회귀를 함께 사용.
 - AC #899-01/02: Resource/설비 단일 클릭→bar left와 sticky split right 오차 ≤1 CSS px, Editor 닫힘. 더블클릭/명시 버튼 Enter/Chart 클릭으로 같은 canonical Editor 접근.
@@ -51,11 +61,38 @@
 
 ## DOCUMENTATION_SYNC
 
-- DOCUMENTATION_SYNC: `AGENTS.md`, `DESIGN.md`, `docs/PROJECT_UX.md`, `docs/UI_UX_GUIDELINES.md`, `docs/GANTT_STATE_CONSISTENCY.md`, `CHANGELOG.md`, 새 Work Packet/테스트 계획/누적 실패 원장 갱신. `docs/TEST_PLAN.md`는 원본 용량 >1MB로 Connector 본문을 완전하게 제공하지 않아 삭제/부분 교체 금지; 추가 시험 계약을 `docs/ISSUE_898_899_TEST_PLAN.md`에 기록하고 기존 원본 링크를 보존. 다른 docs(API,DB_SCHEMA,SECURITY,IMPORT_EXPORT,CI_CD)은 계약 불변으로 N/A.
+- `AGENTS.md`: UPDATED
+- `DESIGN.md`: UPDATED
+- `docs/TEST_PLAN.md`: UPDATED
+- `docs/PROJECT_UX.md`: UPDATED
+- `docs/UI_UX_GUIDELINES.md`: UPDATED
+- `docs/GANTT_STATE_CONSISTENCY.md`: UPDATED
+- `CHANGELOG.md`: UPDATED
+- `docs/exec-plans/active/PLAN.md`: UPDATED
+- `docs/exec-plans/active/ISSUE_898.md`: UPDATED
+- `docs/ISSUE_898_899_TEST_PLAN.md`: UPDATED
+- `docs/ISSUE_898_899_FAILURE_ANALYSIS.md`: UPDATED
+- `docs/QA_REVIEW_POLICY.md`: N/A(QA Trusted와 Owner Managed의 기존 통과 조건 및 역할 보호 정책 변경 없음)
+- `docs/CI_CD.md`: N/A(Required3 E2E8 Docker와 workflow trigger 및 이미지 출처 정책 변경 없음)
+- `docs/GITHUB_OPERATIONS.md`: N/A(PR metadata 원본 규약을 준수할 뿐 CI 운영 절차나 권한 변경 없음)
+- `docs/REMOTE_VALIDATION.md`: N/A(SHA Run Attempt E2E 실측과 운영 UAT의 구분 및 원격 검증 기준 불변)
+- `docs/SCHEDULING_ENGINE.md`: N/A(조회 UI의 선택 스크롤 및 휠 대상만 변경하고 일정 계산 엔진 불변)
+- `docs/API.md`: N/A(Project GET 읽기 경계 및 서버 계약 변경 없음)
+- `docs/DB_SCHEMA.md`: N/A(SQLite 데이터 구조와 migration 변경 없음)
+- `docs/SECURITY.md`: N/A(세션 권한 및 readonly API 쓰기 차단 계약 불변)
+
+대용량 `docs/TEST_PLAN.md`의 기존 1.18MB 원문은 Git Blob SHA를 기준으로 손실 없이 읽어 맨 앞에 본 실패·재시험 계약만 추가했다. 상세 #898/#899 수용 커버리지는 `docs/ISSUE_898_899_TEST_PLAN.md`에도 보존한다.
 ## LOCAL_VALIDATION_SELECTION
 
-- LOCAL_VALIDATION: 이 작업의 편집 인터페이스로 로컬 Node/Chromium·full repo의 신뢰 가능한 실제 실행 결과를 확보하지 못했으므로 Unit/E2E/typecheck/lint/실마우스/원격 CI 결과는 **NOT TESTED**. 이전 Head의 PASS·코드 리뷰/정적 검사/새 테스트 작성은 실제 실행 PASS를 뜻하지 않음.
+- LOCAL_VALIDATION: 원격 Full #3606.1은 PR 메타데이터/QA Bootstrap 직접 FAIL, Quality/E2E8/Docker SKIPPED다. 수정 브랜치의 실제 로컬 Node/Chromium·full repo 검증 결과를 확보하지 못했으므로 Unit/E2E/typecheck/lint/실마우스/원격 CI 결과는 **NOT TESTED**. 이전 Head의 PASS·코드 리뷰/정적 검사/새 테스트 작성은 실제 실행 PASS를 뜻하지 않음.
 ## 검증 상태 / CI 인계
 
-- CI 진입: 신규 PR을 `main` 대상 Ready로 열어 표준 Full PR CI를 트리거하되 **모니터링하지 않는다**. open PR 이후 남은 unresolved review thread/merge conflict는 확인·해결 가능한 범위만 처리하고 새로운 code push 시 기존 Head의 검증은 stale.
+- CI 진입: 기존 PR #904/브랜치를 유지한다. #3606.1 실패 원인과 Codex P2 리뷰 반영/미해결 thread 해결/최신 main 충돌 검증 뒤, 수정 HEAD를 한 번 push하여 새 표준 Full PR CI를 시작하고 **완료 모니터링하지 않는다**. 수정 전 #3606.1의 결과는 새 HEAD에 전이하지 않는다.
 - 후속 Gate: 실제 PR Head Required3/E2E8·Trusted·Owner/Preview UAT와 main exact OCI/정식 Patch tag/GHCR/Finalizer는 별도 확인 전 `BLOCKED/NOT TESTED`; 기존 0.145.1 tag/digest/FINAL 변경 금지.
+
+## PR #904 — Full #3606.1 원인·보완 및 재개 (2026-11-09)
+
+- 실패 source `77d79ef963beecbc2f4c2f46975701dea4d77008`, Run [42568402966.1](https://github.com/planner77/masterGantt/actions/runs/42568402966). 변경 경로 판정 Job `128999906441`의 `verify-ci-run-trace.py`가 PR 본문 canonical standalone `Refs #898` 없음으로 직접 FAIL, QA Bootstrap Job `128999906060`이 PR body의 독립 `qa_method: OWNER_MANAGED` 선언 없음으로 직접 FAIL. Fast Gate 실패와 Required3 aggregate 실패는 파생, 제품 Vitest/ESLint/TypeScript/E2E8/Docker는 SKIPPED.
+- 리뷰 [P2 thread](https://github.com/planner77/masterGantt/pull/904/files) `PRRT_kwDOUUB7Bc61JB5u`: 좌표 없는 synthetic `WheelEvent`의 `clientX/Y=0`를 실제 포인터로 오인하는 회귀. `densityWheelPointer`에서 **untrusted && (0,0)**만 DOM fallback 처리; 신뢰된 실제 `(0,0)` 또는 좌표 있는 이벤트는 기존 body 좌표 검증을 그대로 수행. 동일 helper를 Native input lease와 capture wheel 모두 사용하고 Unit/기존 #822/#889 회귀를 유지한다.
+- PR title의 Primary Issue `Issue #898` 하나, branch `issue-898-899` Primary 898, PR body canonical `Refs #898` 한 줄, 정규화된 위험/QA/릴리스 선언과 Work Packet REUSE_REVIEW/AC_TEST_COVERAGE/DOCUMENTATION_SYNC 구조로 수정한다. 이 변경은 CI 검증기 변경·문서 안전검사 완화가 아니다.
+- 재사용: 이전 #822/#880/#889 Unit/E2E와 현재 실패 Run/Job, #896 원본 UI evidence helper. 검증 대상 새 Head의 전체 PASS·운영 기기·Owner/Trusted/UAT **NOT TESTED**; merge/release_authorized=false.
