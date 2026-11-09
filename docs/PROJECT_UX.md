@@ -1,3 +1,12 @@
+## Issues #898 / #899 — Gantt 실제 휠·조회 Grid 탐색 계약 (2026-11-09)
+
+- WBS/Resource/설비 전체에서 Grid/Chart **가시 body**의 Ctrl+마우스휠은 Gantt 행 높이·폰트·Task/요약 막대 크기를 34/32/30/28px 단계로 조정한다. 기존 coarse44px 예외, 단일 capture reader/DOM scroll bookmark/Project owner, 헤더·메뉴·Editor·입력 제외를 유지하며 브라우저 Page Zoom은 유효한 본문 이벤트에서만 차단한다.
+- Resource/설비의 Task Grid 단일 클릭/셀 탭은 해당 canonical Task를 선택하고 클릭한 **표시 경로(rowKey)**의 Chart Task 시작 X를 Grid/Chart 경계로 이동한다(가능한 경우 ±1px). 자체 조회 scroller만 이동하고 WBS 원본 viewport·DB/API 저장·readonly 권한은 변경하지 않는다. 동일 Task가 여러 Group/설비 아래 있으면 선택 highlight는 동일한 canonical ID로 표현하되 스크롤 anchor는 클릭한 rowKey를 유지한다.
+- Task Editor는 Grid **더블클릭**, `작업 정보 열기`라는 별도 키보드/터치 버튼, 기존 Chart Bar 선택으로 명시적으로 연다. Group/Model/Equipment 노드는 Editor가 아닌 접고 펴기만 제공한다. 미산정 날짜/범위 부족/측정 불가는 typed 상태로 기록하고 무한 scroll·자동 Editor fallback 금지.
+- 실제 브라우저 입력, source race, Fullscreen/Day/Week, 5폭 및 KO/EN/VI·가상행·UAT의 최종 판정은 별도 시험 증거로 수행. [#898/#899 Work Packet](exec-plans/active/ISSUE_898_899.md). 이전 #822/#880/#889 자동 성공은 이번 운영 결함을 소급 승인하지 않는다.
+
+---
+
 ## Issue #889 / #890 — 일정 View의 동일 배치·밀도·언어
 
 View 전환은 공통 toolbar와 작업면 안의 내용만 바꾼다. 조회 전용·작업 건수·다시 조회/오류는 공통 상태 슬롯에 표시한다. WBS 선택 도움말은 44px ContextHelp 버튼으로 전체 문구를 열고 focus/click/Escape와 전체화면을 지원한다. Resource/설비 Grid는 WBS의 열 폭/순서/표시 상태와 Day/Week 2단 헤더를 재사용한다. Ctrl+휠은 세 View의 Grid/Chart 본문에서 34→32→30→28px 및 역방향34px 상한, coarse44px을 적용한다. 조회 View는 canonicalTaskId로 원본 작업 정보만 열며 추가/수정/drag는 제공하지 않는다.
