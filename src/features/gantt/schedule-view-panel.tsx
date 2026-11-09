@@ -333,7 +333,19 @@ export function ScheduleViewPanel(props: Props) {
     const top = headerHeight + logicalIndex * cellHeight;
     if (top < root.scrollTop + headerHeight || top + cellHeight > root.scrollTop + root.clientHeight) root.scrollTop = Math.max(0, top - headerHeight);
     setViewport({ top: root.scrollTop, left: root.scrollLeft, height: root.clientHeight, width: root.clientWidth });
-    requestAnimationFrame(() => root.querySelector<HTMLElement>(`[data-view-row-key="${CSS.escape(row.viewRowKey)}"] button:not(:disabled)`)?.focus({ preventScroll: true }));
+    // #880/#899: roving keyboard navigation must retain the original Task
+    // information control even though single click now belongs to the separate
+    // selection button. Group rows still focus their expand/collapse control.
+    const intent = userIntent.current;
+    requestAnimationFrame(() => {
+      if (!root.isConnected || intent !== userIntent.current) return;
+      const currentRow = root.querySelector<HTMLElement>(`[data-view-row-key="${CSS.escape(row.viewRowKey)}"]`);
+      const preferred = row.kind === "task"
+        ? currentRow?.querySelector<HTMLButtonElement>("button[data-schedule-task-open]:not(:disabled)")
+        : null;
+      const target = preferred ?? currentRow?.querySelector<HTMLButtonElement>("button:not(:disabled)");
+      target?.focus({ preventScroll: true });
+    });
   };
 
   const errorMessage = requestState?.key === sourceKey && requestState.error ? t(requestState.error)

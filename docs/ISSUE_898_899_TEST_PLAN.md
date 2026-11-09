@@ -41,3 +41,10 @@
 - [Full #3609.1](https://github.com/planner77/masterGantt/actions/runs/42579764884): #880 기존 `tests/e2e/schedule-views.spec.ts:102-108` Enter→Editor→Escape의 정보 버튼 focus 기대 직접 FAIL(Chromium shard3), 기존 TypeScript/Vitest/ESLint/Build/Docker PASS. Shard6 PASS, 나머지 6 CANCELLED, aggregate E2E/QA Final 파생 FAIL. 코드의 `finishTaskEditor` 첫 버튼 fallback이 분리된 선택 버튼으로 이동시키는 소스 회귀.
 - **EXTEND**: 기존 #880 actual HTTP/SQLite Editor Test의 `toBeFocused`를 약화하지 않는다. 새 #899 실브라우저 테스트에도 Grid select 더블클릭→해당 select 버튼, 정보 버튼 keyboard Enter→해당 info, Chart Bar 클릭→해당 Bar를 각각 `toBeFocused`로 단언한다. Role-aware fallback은 동일 표시 rowKey·canonical task/source freshness 확인 뒤 처리. DOM 교체/가상행/두 번째 사용자 입력과 비모달 인접 경계는 기존 테스트·Work Packet 사용.
 - **KEEP_UNIQUE**: 기존 #822/#889 실제/합성 휠·Page Zoom/저장0와 프로젝트 Editor 권한/초안·기존 Focus 변형 E2E를 삭제/skip하지 않는다. Full Required Quality + Chromium8 + Docker, Trusted/Owner/UAT 및 정확 SHA를 다시 검증한다. 새 Head/운영 UAT는 실행 전 `NOT TESTED`.
+
+## PR #904 Full #3610.1 — 가상화 85행 roving keyboard Focus 회귀 (2026-11-09)
+
+- [원본 Run #3610.1](https://github.com/planner77/masterGantt/actions/runs/42596598153): Chromium shard3의 기존 #880 `schedule-views.spec.ts:366` End→마지막 행 정보 버튼 focused 직접 FAIL. 가상행은 보이고 `received: inactive`, 제품 `navigateRow`의 첫 활성 버튼 focus는 #899에서 분리한 일반 선택 버튼을 지칭하게 됨. Required Quality/Docker·Unit/Typecheck/Build 성공, 7개 shard 취소/QA Final 파생.
+- **KEEP_UNIQUE**: 기존 #880 테스트의 85개 Task/virtual window·logical count/2초 settled, End→084 정보 버튼 focused, Home→그룹 expand/collapse focused, 검색/계층 필터·WBS viewport/bookmark·원본 서버 writes0 조건·5개 폭/Day·Week 유지. 기존 #880 Editor Escape와 #899 명시 정보 버튼 Enter/Chart/더블클릭 복귀 E2E도 유지, test timeout/retry/skip 변경 없음.
+- **EXTEND**: 같은 실제 SQLite/HTTP #880 fixture에서 Task `084`의 정보 버튼에 End로 포커스→`ArrowUp`→Task `083` 정보 버튼 focused→`ArrowDown`→Task `084` focused, 이어 기존 `Home` 그룹 버튼 검사. `navigateRow`는 Task 정보 버튼/Group 확장 버튼을 의미별 포커스 타깃으로 사용하고 다른 새 입력이 오면 stale RAF를 종료한다.
+- **판정**: 3 View의 실제 `Control+page.mouse.wheel`, #899 projected click reveal+Editor, scroll/원본 writes0/브라우저 pageZoom은 동일 Full E2E8 검증 대상이며 단일 E2E 성공만으로 전체 PASS 전이 금지. 정확 새 Head 로컬/원격 Test 결과와 사람 UAT는 아직 `NOT TESTED`.

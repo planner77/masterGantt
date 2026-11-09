@@ -366,6 +366,13 @@ test("#880 85개 일반 Task의 가상행 window와 검색·계층 필터의 동
   await expect(lastTask).toBeVisible(); await expect(lastTask).toBeFocused();
   const settledMs = await page.evaluate(started => performance.now() - started, scrollStart);
   expect(settledMs).toBeLessThan(2_000);
+  // #880/#899: Up/Down after a virtualized End must continue to focus the
+  // actual Task information action, not the new single-click selection button.
+  await lastTask.press("ArrowUp");
+  const previousTask = resource.getByRole("button", { name: "작업 정보 열기: 가상화 작업 083", exact: true });
+  await expect(previousTask).toBeFocused();
+  await previousTask.press("ArrowDown");
+  await expect(lastTask).toBeFocused();
   await virtualGrid.press("Home");
   await expect(resource.locator('[data-view-row-kind="group"]').first().getByRole("button")).toBeFocused();
   await selector(page).selectOption("equipment");

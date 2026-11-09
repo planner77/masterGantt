@@ -1,3 +1,9 @@
+## Issues #898 / #899 — 85행 virtualized Resource/Equipment 키보드 포커스 (2026-11-09)
+
+조회 전용 Resource·설비 View에서 Task Grid의 `End`·`Home`·`ArrowUp`·`ArrowDown` 키 탐색은 논리 `viewRowKey`를 통해 가상행을 렌더한 후, 일반 Task이면 명시 `작업 정보 열기` 버튼(`data-schedule-task-open`)에 포커스를 설정하고 그룹이면 접기·펼치기 버튼에 둔다. 일반 Task의 **단일 클릭 선택 버튼**은 Edit 명령이 아니므로 키보드 탐색의 정보 버튼 focus 계약을 대체하지 않는다. 원래 Editor Enter/Escape 뒤 트리거로 복귀하는 별도 부모 `finishTaskEditor` 경로는 유지하고, 후속 사용자 입력이 발생하면 과거 RAF focus 요청이 최신 입력을 덮지 않게 한다. 기존 원본/가상 Window/검색/readonly·서버 쓰기0/2초 측정, #880 End/Home와 #899 키보드·실제 wheel E2E를 보존한다. [실패 원장](ISSUE_898_899_FAILURE_ANALYSIS.md), [Test Plan](ISSUE_898_899_TEST_PLAN.md).
+
+---
+
 ## Issues #898 / #899 — Resource·설비 Grid의 명시 Task Editor 진입·호출 지점 복원 (2026-11-09)
 
 Resource·설비 조회 View의 Task Grid 일반 단일 클릭은 canonical Task 선택과 현재 표시행 Chart 시작점 정렬만 수행한다. 같은 행의 별도 `작업 정보 열기` 버튼(키보드 Enter/Space 및 터치 접근 가능), Grid 더블클릭 또는 Chart Bar 클릭으로만 원본 Task Editor를 연다. 원본 Task/권한/readonly·revision/Gantt Core/서버 쓰기0는 기존 계약 그대로다.
