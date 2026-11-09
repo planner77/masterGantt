@@ -93,6 +93,9 @@ export function ScheduleViewPanel(props: Props) {
   const [axis, setAxis] = useState<{ start: number; width: number; grid: number; left: number; headerHeight: number; columns: IColumnConfig[] } | null>(null);
   const focusRow = useRef<string | null>(null);
   const bookmark = useRef<ProjectionBookmark | null>(null);
+  // Preserve the clicked duplicated projection path across React selection
+  // rerenders, but relinquish it to a later actual user input/source receipt.
+  const selectedPathAnchor = useRef<{ rowKey: string; context: string; receipt: number; intent: number } | null>(null);
   const requestSequence = useRef(0);
   const userIntent = useRef(0);
 
@@ -237,17 +240,9 @@ export function ScheduleViewPanel(props: Props) {
       }
       root.dataset.lastRevealStatus = status;
       root.dataset.lastRevealRowKey = row.viewRowKey;
+      selectedPathAnchor.current = { rowKey: row.viewRowKey, context: projectionContext,
+        receipt: loaded?.receipt ?? -1, intent: userIntent.current };
       captureBookmark(root);
-      // The clicked projected path, not the first duplicate canonical Task,
-      // remains the selection bookmark through density and locale reflow.
-      if (bookmark.current) {
-        const byKey = new Map(rows.map(entry => [entry.viewRowKey, entry]));
-        const ancestors: string[] = [];
-        let parent = row.parentViewRowKey;
-        while (parent) { ancestors.push(parent); parent = byKey.get(parent)?.parentViewRowKey ?? null; }
-        bookmark.current = { ...bookmark.current, rowKey: row.viewRowKey, canonicalTaskId: row.canonicalTaskId,
-          ancestors, offset: root.scrollTop - rows.indexOf(row) * cellHeight };
-      }
       setViewport({ top: root.scrollTop, left: root.scrollLeft, height: root.clientHeight, width: root.clientWidth });
     }
     props.onSelect(row.canonicalTaskId);
@@ -262,7 +257,12 @@ export function ScheduleViewPanel(props: Props) {
   const presentation = `${sourceKey}:${loaded?.receipt}:${axis?.start}:${axis?.width}:${locale}:${cellHeight}`;
   const captureBookmark = useCallback((root: HTMLDivElement) => {
     if (!source || !axis || !loaded || !props.active || props.blocked || root.clientWidth === 0 || root.clientHeight === 0) return;
-    const index = Math.min(rows.length - 1, Math.floor(root.scrollTop / cellHeight));
+    const topIndex = Math.max(0, Math.min(rows.length - 1, Math.floor(root.scrollTop / cellHeight)));
+    const anchor = selectedPathAnchor.current;
+    const trustedAnchor = anchor && anchor.context === projectionContext && anchor.receipt === loaded.receipt && anchor.intent === userIntent.current;
+    if (anchor && !trustedAnchor) selectedPathAnchor.current = null;
+    const selectedIndex = trustedAnchor ? rows.findIndex(row => row.viewRowKey === anchor.rowKey) : -1;
+    const index = selectedIndex >= 0 ? selectedIndex : topIndex;
     const row = rows[index];
     const byKey = new Map(rows.map(entry => [entry.viewRowKey, entry]));
     const ancestors: string[] = [];
@@ -270,7 +270,7 @@ export function ScheduleViewPanel(props: Props) {
     while (parent) { ancestors.push(parent); parent = byKey.get(parent)?.parentViewRowKey ?? null; }
     bookmark.current = { context: projectionContext, presentation, receipt: loaded.receipt, intent: userIntent.current,
       rowKey: row?.viewRowKey ?? null, canonicalTaskId: row?.canonicalTaskId ?? null, ancestors,
-      offset: root.scrollTop - Math.max(0, index) * cellHeight, date: axis.start + root.scrollLeft / pixelsPerDay };
+      offset: root.scrollTop - index * cellHeight, date: axis.start + root.scrollLeft / pixelsPerDay };
   }, [source, axis, loaded, props.active, props.blocked, rows, cellHeight, projectionContext, presentation, pixelsPerDay]);
 
   useLayoutEffect(() => {
