@@ -692,6 +692,89 @@ require(
 )
 
 
+# MAIN-896-001: 원본 Main #3598.1은 PR #902 병합 커밋의 영문 제목과
+# 비어 있지 않은 여러 줄 본문 때문에 신뢰 추적 검증에서 차단됐다.
+# 불변 원본 병합을 수정/강제 푸시하거나 파서를 완화하거나 이전 실패를 PASS로 간주하지 않는다.
+failed_896_subject = "Issue #896 · PR #902 · UI evidence provenance and shard stability"
+failed_896_message = (
+    failed_896_subject
+    + "\n\nRefs #896\n\n"
+    + "Owner-managed merge approved after exact PR Full CI #3597.1 (42545834269.1) "
+    + "and Trusted QA #1250.1 (42548844585.1). Preserve main Full CI, temporary "
+    + "verified GHCR ci-SHA publication and Generic no-release Finalizer; no "
+    + "formal SemVer release authorization."
+)
+for original_896_value in (failed_896_subject, failed_896_message):
+    require(
+        main_run_name.parse_merge_title(original_896_value) is None,
+        "#896 Main #3598.1의 잘못된 병합 메시지는 계속 거부해야 합니다",
+    )
+    try:
+        trace.validate_push({
+            "ref": "refs/heads/main",
+            "head_commit": {"message": original_896_value},
+        })
+    except trace.TraceError:
+        pass
+    else:
+        raise SystemExit("#896 원본 Main 병합 실패를 PASS로 표시하면 안 됩니다")
+    try:
+        main_run_name.validate_merge_title(original_896_value, 896, 902)
+    except ValueError:
+        pass
+    else:
+        raise SystemExit("#896 원본 영문 제목·여러 줄 본문은 사전 검증에서 거부해야 합니다")
+
+# 교정은 동일 Issue의 비문서 변경을 포함한 새 전체 검증 PR에서 수행한다.
+# 기존 helper를 재사용하며 999는 합성 테스트 번호일 뿐 실제 GitHub PR이 아니다.
+# 후속 병합 직전 실제 PR 번호와 Head SHA를 다시 검증해야 한다.
+corrective_896_summary = "합성 UI 증거 Main CI 복구"
+corrective_896_payload = main_run_name.merge_api_payload(
+    896, 999, corrective_896_summary, "e" * 40
+)
+require(
+    corrective_896_payload == {
+        "merge_method": "merge",
+        "commit_title": "Issue #896 · PR #999 · 합성 UI 증거 Main CI 복구",
+        "commit_message": "",
+        "expected_head_sha": "e" * 40,
+    }
+    and main_run_name.validate_merge_title(
+        corrective_896_payload["commit_title"], 896, 999
+    ) == corrective_896_payload["commit_title"]
+    and trace.validate_push({
+        "ref": "refs/heads/main",
+        "head_commit": {
+            "message": corrective_896_payload["commit_title"]
+            + corrective_896_payload["commit_message"]
+        },
+    }) == (896, 999),
+    "#896 교정 병합은 한글 단일 행·빈 본문·정확한 Head SHA 계약을 유지해야 합니다",
+)
+corrective_896_cli = subprocess.run(
+    [sys.executable, str(MAIN_RUN_NAME_IMPL),
+     "--issue", "896", "--pr", "999",
+     "--validate-title", corrective_896_payload["commit_title"],
+     "--as-merge-payload", "--expected-head-sha", "e" * 40],
+    capture_output=True, text=True, check=True,
+)
+require(
+    json.loads(corrective_896_cli.stdout) == corrective_896_payload,
+    "#896 실제 CLI 반환값은 검증된 제목·빈 본문·Head SHA와 일치해야 합니다",
+)
+for incorrect_896_title in (
+    corrective_896_payload["commit_title"] + "\n\nRefs #896",
+    corrective_896_payload["commit_title"].replace("PR #999", "PR #902"),
+    corrective_896_payload["commit_title"].replace("Issue #896", "Issue #895"),
+):
+    try:
+        main_run_name.validate_merge_title(incorrect_896_title, 896, 999)
+    except ValueError:
+        pass
+    else:
+        raise SystemExit("#896 다른 Issue/PR 번호 또는 비어 있지 않은 병합 본문은 차단해야 합니다")
+
+
 # Issue #603 / PR #604: a *one-line* English-only merge title was invalid.
 # This exact historical main SHA cannot be rewritten; a later same-Issue PR
 # with full-scope CI and a Korean canonical title must supersede its failed CI.

@@ -1,3 +1,7 @@
+## Issue #896 — MAIN #3598.1 Trace 실패 same-Issue non-docs 교정 (2026-11-09)
+
+[Main #3598.1](https://github.com/planner77/masterGantt/actions/runs/42553577656)의 changes/verify-ci-run-trace.py 직접 FAIL: PR #902 불변 두-parent merge 8ae8413d의 영어 요약·여러 줄 본문이 기존 한국어 one-line/empty body 계약 위반. Required3 파생 FAIL, GHCR SKIPPED, Issue OPEN. **기존** main_ci_run_name.py/verify-ci-run-trace.py/verify-issue-lifecycle.py 및 Generic Finalizer의 same-Issue 교정 규칙을 우선 재사용하고 검증기/Required3 완화 금지. 새 fix/issue-896-main-trace-recovery branch(최신 main)에서 비문서 정책 회귀 음성·양성 + 단일 실패 원장/Work Packet/TEST_PLAN·CI_CD·운영·REMOTE_VALIDATION 문서를 함께 갱신한다. Full PR Required3+Chromium8/default-main Trusted QA·Owner HIGH 수용·review0/strict main 이후에만 helper가 생성한 canonical 한글 제목·빈 본문·SHA lease로 병합. 정확 새로운 push Main CI 및 ci-SHA GHCR/Finalizer no-release/Issue 종료는 미검증으로 분리, Main 시작 뒤 모니터링 제외. [Packet](ISSUE_896.md) / [원장](../../ISSUE_896_FAILURE_ANALYSIS.md).
+
 ## Issue #896 · PR #902 Full #3594.1 REWORK (2026-11-09)
 
 E2E3/8의 #880 증거 수집이 `git diff --binary HEAD` 동기 출력 ENOBUFS로 실패했다. 원본 quality/docker PASS·7샤드 취소를 보존하고 실제 합성 Git RED→전체 bytes streaming hash 보완→Git 양·음성/공유 helper3소비자→문서·독립 기술검토·리뷰/충돌→같은 PR 새 CI 시작 순서다. 기존 Stage A 설계/버전0.145.1/Required3·Full8·Trusted·권한을 유지한다. [Work Packet](ISSUE_896.md), [누적 원장](../../ISSUE_896_FAILURE_ANALYSIS.md). 이후 모니터링·병합·게시·종료 없음.

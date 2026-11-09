@@ -1,3 +1,11 @@
+## Issue #896 — MAIN #3598.1 이후 정확 소스 복구 검증 (2026-11-09)
+
+원본 Main SHA 8ae8413d00d50f476f8f377fe207effa70c23195 / Run42553577656 attempt1은 changes/verify-ci-run-trace.py의 noncanonical Merge 메시지로 FAIL, required Quality/E2E/Docker 파생 FAIL, 실제 구현/Publisher 미실행이다. 이전 PR #902 Full #3597.1·Trusted #1250.1 성공은 버전0.145.1의 PR Head 검증이며 이 Main SHA를 승인하지 않는다.
+
+- 최신 main/Issue/PR 단일 Refs·Title/Branch Issue, HEAD/base/test-merge 및 Run/Attempt 구분을 재조회한다. 같은-Issue non-docs corrective PR에서 scripts/verify-issue-lifecycle.py의 정확 원본 음성 및 기존 main_ci_run_name.py helper/CLI positive를 확인하고, 모든 기존 Quality/E2E8/Docker·Trusted·Owner/high 위험 경계를 복원한다.
+- 실제 PR 번호·40자리 Head·main SHA를 고정한 merge_api_payload 및 --validate-title 출력으로 한 줄 한글 제목/빈 body/lease를 확인한 뒤 두-parent Merge만 허용한다. 정확한 새 Merge SHA push Run이 시작되었는지 확인하고, Main Required3/Chromium8/OCI candidate/digest/SBOM/provenance 및 Generic Finalizer same-Issue supersession/no-release cleanup/Issue 종료는 완료된 독립 GitHub Job 상태로만 판정한다. 원본 실패 SHA 재실행으로 소급 성공 주장 금지.
+- 최초 승인 범위는 교정/Full PR CI 제출 및 조건 충족 후 병합과 Main CI **시작**, Main의 성공·GHCR 게시·Issue CLOSED는 각 실제 결과 확인 전 NOT TESTED. [누적 원장](ISSUE_896_FAILURE_ANALYSIS.md).
+
 ## Issue #896 · PR #902 Full #3594.1 원본 실패 (2026-11-09)
 
 [Run42526579195.1](https://github.com/planner77/masterGantt/actions/runs/42526579195), Head1cc214f85ba2e1c16a65d10d51044829eef5dc98: required quality/docker PASS, E2E3/8 Job128872296678의 #880 capture Git ENOBUFS가 직접 실패이고 E2E aggregate/QA Final은 파생 FAIL이다. 나머지7샤드는 CANCELLED이며 원본 로그 전체에서 추가 assertion 실패 미관측이다. 전체 diff를 buffering 없이 hash하는 보완의 로컬 PASS는 새 Head 원격 전체 PASS가 아니다. [누적 원장](ISSUE_896_FAILURE_ANALYSIS.md), 새 CI 시작 후 모니터링하지 않는다.
