@@ -1,3 +1,7 @@
+## Issue #896 — v2 증거와 Preview 연결 (2026-11-09)
+
+v2 manifest의 source Head와 Preview source를 일치시킨다. CI checkout/test-merge SHA를 PR Head로 표시하지 않는다. 로컬 dirty 캡처는 working 지문을 보존하고 clean Preview 동등성으로 수용하지 않는다. PNG/geometry·fixture digest와 실제 flow를 확인해도 #897 Owner UAT·Manager ACCEPT는 별도다. 본 #896 구현은 Preview 이미지를 게시하지 않는다. public에는 합성 fixture만 허용하며 실운영 UAT는 승인된 private 위치에 보존한다. [계약](UI_EVIDENCE.md).
+
 ## Issues #896–#897 — 기존 GHCR Preview의 Visual Evidence·Owner UAT 연결 (2026-11-08)
 
 현재 워크플로는 시험용 이미지의 정확 SHA·GHCR digest와 Docker/API/SQLite Smoke만 보장한다. **접속 가능한 사내 Preview 웹서버와 실제 사용자 UAT는 별도**다. 기존 #703 workflow_dispatch/Owner authorize/Build-once/격리 Compose를 재사용하고 운영 DB·Secrets를 사용하거나 새 정식 GHCR 태그를 만들지 않는다.

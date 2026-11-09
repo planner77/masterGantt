@@ -1,3 +1,11 @@
+## Issue #896 · Git provenance 대용량 양·음성 (2026-11-09)
+
+기존 helper와 실제 #880/#889/#890 소비자를 재사용한다. 임시 실제 Git 저장소에서 1MiB 이상 합성 바이너리 diff의 ENOBUFS RED를 확인한 뒤, bounded stdout streaming SHA256의 전체 bytes 일치와 작은 diff·staged/unstaged·untracked/ignored dirty·Git 실패 차단을 기존 Vitest runner로 검증한다. 기존 UI Python27·comparator21의 불변 파일 결과는 재사용하고 helper 영향 브라우저3개를 실행한다. 테스트 삭제/skip·buffer/timeout/retry 임의 확대나 새 Required Gate는 없다. [원장](ISSUE_896_FAILURE_ANALYSIS.md).
+
+## Issue #896 — 기존 Visual Evidence pilot 확장 (2026-11-09)
+
+기존 schedule-views #889 공통 작업면/밀도 5폭·Day/Week와 i18n #890 언어 왕복/숨긴 열 복원 테스트에 대표 합성 PNG·geometry·flow를 연결한다. 기존 API·DB·쓰기0/instance/assertions와 E2E8 배치는 유지한다. v2 무결성 및 기존 #118 비교기 양·음성은 CSS/header/밀도 회귀와 baseline/font/OS/fixture drift를 분리한다. 승인 golden·전 화면 DESIGN·Owner UAT는 자동 PASS가 아니다. [AC 추적·Test Lifecycle](exec-plans/active/ISSUE_896.md), [계약](UI_EVIDENCE.md), [실제 결과·실패 원장](ISSUE_896_FAILURE_ANALYSIS.md).
+
 ## Issue #889 / #890 — 일정 공통 표현·언어 왕복 회귀
 
 기존 i18n/schedule-views E2E를 EXTEND하여 모든 고정 열 header KO→VI→EN→KO·역순/반복, 열 폭/hidden/order·동일 Core·초안/canonical/쓰기0를 검증한다. 실제 HTTP/SQLite 조회 View에서 공통 toolbar/split/header geometry·5폭·Day/Week·본문 양쪽 density/상하한/anchor·readonly·source 실패를 검사한다. 공통 header/date 함수 Unit은 번역된 mutable 객체 재주입·주/월/DST 경계를 다룬다. #822 Summary/density·scale/fullscreen/projection/viewport·Workspace 고유 테스트를 유지하며 삭제/skip/단언·timeout 완화 없음. 로컬 선별 검증과 새 Head Full Required3/E2E8/Trusted·Owner는 별도다. 실제 명령·최초실패·미검증은 [Packet](exec-plans/active/ISSUE_889.md)·[원장](ISSUE_889_890_FAILURE_ANALYSIS.md)을 따른다.

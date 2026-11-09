@@ -1,3 +1,7 @@
+## Issue #896 — 합성 UI 증거 확인 (2026-11-09)
+
+기존 CI E2E Job Summary의 source/base/test-merge·run/attempt와 artifact 링크를 확인하고 같은 artifact 안의 canonical manifest·PNG·geometry·fixture digest를 검사한다. Playwright attachments의 사본을 원본으로 세지 않는다. summary/manifest의 PASS 문자열은 Owner UAT나 Trusted 승인 증거가 아니다. 기존 Full8/Required3·권한·Release/Finalizer를 유지하고 수동 Stage B 활성은 별도 Owner 결정 사항이다. [명령·판정](UI_EVIDENCE.md).
+
 ## Issues #895–#897 — Owner 재사용 결정과 Preview UAT의 GitHub 원장
 
 - 모든 Issue의 Work Packet에는 REUSE_REVIEW와 기존 구현·테스트·CI 증거의 실제 후보/조건·Owner 결정 출처를 넣는다. 필요한 결정이 사용자 입력에 없다면 새 구현/PR 전에 질문한다(#895). PR 본문 자기신고는 Owner 허가 증명이 아니다.

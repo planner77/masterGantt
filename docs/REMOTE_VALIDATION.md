@@ -1,3 +1,11 @@
+## Issue #896 · PR #902 Full #3594.1 원본 실패 (2026-11-09)
+
+[Run42526579195.1](https://github.com/planner77/masterGantt/actions/runs/42526579195), Head1cc214f85ba2e1c16a65d10d51044829eef5dc98: required quality/docker PASS, E2E3/8 Job128872296678의 #880 capture Git ENOBUFS가 직접 실패이고 E2E aggregate/QA Final은 파생 FAIL이다. 나머지7샤드는 CANCELLED이며 원본 로그 전체에서 추가 assertion 실패 미관측이다. 전체 diff를 buffering 없이 hash하는 보완의 로컬 PASS는 새 Head 원격 전체 PASS가 아니다. [누적 원장](ISSUE_896_FAILURE_ANALYSIS.md), 새 CI 시작 후 모니터링하지 않는다.
+
+## Issue #896 — 시각 증거의 정확 출처와 판정 경계 (2026-11-09)
+
+기존 E2E shard의 `ui-evidence-ci-<run>-<attempt>-shard-<n>`와 Job Summary를 함께 확인한다. v2 source/baseline/test-merge·PR/run/attempt는 원본 CI 이벤트와 대조하고 PNG·geometry·fixture SHA256를 검사한다. 누락 NOT TESTED, 출처/환경 drift BLOCKED, 실제 무결성/수치 위반 FAIL을 구분한다. 새 Required Check나 자동 DESIGN/UAT 승인은 없다. 대표 화면과 테스트 단계만 검증하며 native125%·실제 OS/font/AT·Owner Preview와 Runner-minutes 개선은 미실행 시 NOT TESTED다. [계약·명령](UI_EVIDENCE.md), [원장](ISSUE_896_FAILURE_ANALYSIS.md).
+
 ## Issues #895–#897 — 원격 검증 시각 자료와 Owner Preview UAT
 
 1. Owner가 승인한 기존 기능 재사용 결정과 현재 main/PR source SHA를 Work Packet의 REUSE_REVIEW에 기록한다. 질문 미확정·Owner evidence 출처 부재는 BLOCKED; trusted QA는 PR의 자기선언을 Owner 승인으로 사용하지 않는다.
