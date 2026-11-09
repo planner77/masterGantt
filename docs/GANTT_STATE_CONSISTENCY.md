@@ -1,3 +1,12 @@
+## Issues #898 / #899 — 조회 입력과 원본 상태 격리 (2026-11-09)
+
+- Ctrl+wheel은 기존 Gantt frame 한 곳에서만 capture하고 `currentView`·유효한 body pointer/cancelable·Coordinator input lease를 확인한다. 기존 fine/coarse 프로필과 canonical native Core snapshot/row anchor는 불변. 사용자의 일반 scroll·다른 입력이 passive restore를 덮어쓰지 못하도록 GSC 입력 우선순위를 유지.
+- Resource·설비 readonly View에서 단일 Grid 클릭은 `canonicalTaskId` 선택과 **클릭한 projected rowKey**의 표시 viewport를 변경할 수 있지만 WBS/Core 원본 Task hierarchy/Link/revision, API server write 및 다른 View의 scroll writer는 변경할 수 없다. `scrollLeft`는 현재 실제 projected scroller에서만 갱신하고 source/axis/scroll capacity가 충족하지 않으면 typed 불가 상태. 중복 할당의 단일 canonical ID/복수 viewRowKey 경계를 보존.
+- 명시 `Task Editor` 열기(더블클릭/정보 버튼/Chart Bar)에는 기존 Task edit session 및 readonly 권한이 적용된다. 이벤트 shortcut/선택/Editor 동작을 혼합하거나 임의 remount/Private Core API/둘째 data writer를 만들지 않는다.
+- [#898/#899 상세](exec-plans/active/ISSUE_898_899.md); 실제 Head 테스트/Trusted/Owner 검증 전 `NOT TESTED`.
+
+---
+
 ## Issue #889 / #890 — locale header·조회 밀도 적용
 
 Issue #890의 native sort는 원본 sibling order를 쓰는 명령이 아니다. 현재 sort descriptor·유효한 stable-tie history·공개 column comparator와 canonical hierarchy로 표시 기대 순서를 독립 계산한다. canonical payload/parent/Link·누락/중복·branch 불변 검증을 유지하며 정렬된 tree의 정확한 기대 순서가 검증된 경우에만 canonical proof로 정규화한다. 실제 Core/DOM 순서·Y는 정렬된 기대값과 exact 비교하고 무정렬 상태는 기존 canonical 순서를 그대로 강제한다. sort 입력은 새 관측 세대이며 낡은 SETTLED를 승계하지 않는다.
