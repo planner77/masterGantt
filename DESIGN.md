@@ -1,3 +1,12 @@
+## Issues #898 / #899 — 실제 Gantt 입력과 선택/Editor 명시성 (2026-11-09)
+
+- #898: WBS·Resource·설비의 **가시 Grid/Chart 본문**에서 실제 Ctrl+wheel을 받는다. 기존 `project-gantt-frame`의 단일 캡처 listener와 34/32/30/28px(coarse44px)을 재사용하되, 표시된 row/bar뿐 아니라 빈 본문·스크롤 층도 위치·영역으로 판정한다. `cancelable`인 유효 shortcut만 Page Zoom 방지; 헤더·툴바·Editor·input·메뉴·영역 바깥은 차단 금지. 실제 pointer/브라우저 zoom 검증은 합성 WheelEvent PASS와 별개다.
+- #899: Resource·설비 Grid Task의 **단일 클릭은 선택+현재 표시행 `viewRowKey`의 차트 시작점 좌측 정렬**(scroll capacity가 가능한 경우 분리선 오차 ≤1px)만 수행한다. 더블클릭·키보드/터치 가능한 명시 정보 버튼·Chart Bar 클릭은 기존 원본 canonical Task Editor를 연다. 그룹은 expand/collapse만. 같은 Task의 복수 표시행은 원본 선택 identity와 clicked row anchor를 분리한다.
+- 날짜 누락/스크롤 용량 부족/측정 불가는 typed 상태로 남기고 축 확장, Core hidden viewport 강제 이동, false PASS, API·DB·권한·revision 변경으로 우회하지 않는다. 원본 WBS native Core/selection/scroll/단일 writer와 readonly 조회 계약 유지.
+- 자세한 설계·AC/재사용·실측 한계: [통합 Work Packet](docs/exec-plans/active/ISSUE_898_899.md), [시험 계획](docs/ISSUE_898_899_TEST_PLAN.md), [실패 원장](docs/ISSUE_898_899_FAILURE_ANALYSIS.md). Source/CI/실운영 사용자 UAT 전 `NOT TESTED`, merge/release 미승인.
+
+---
+
 ## Issue #889 / #890 — 일정 View 공통 작업면과 현재 언어 헤더 (2026-11-08)
 
 WBS/Resource/설비는 같은 View·표시 단위·전체 화면과 44px 상태 슬롯을 사용한다. 조회 전용·건수·다시 조회·stale/error는 이 슬롯에서 제공하고 추가 strip으로 본문을 밀지 않는다. Grid는 WBS 열 ID·폭·순서·표시 상태, 2단 Day/Week 날짜축·행 밀도·semantic focus/selection을 공유한다. 조회 View의 편집 명령은 비활성이다. 선택 도움말은 기존 ContextHelp의 44px 버튼으로 열며 긴 언어에서도 원문과 키보드 포커스 표시를 가리지 않는다. Ctrl+휠은 세 View의 본문에서만 34↔28px(터치44px) 밀도를 변경한다.
