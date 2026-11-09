@@ -3,7 +3,7 @@
 - Ctrl+wheel은 기존 Gantt frame 한 곳에서만 capture하고 `currentView`·유효한 body pointer/cancelable·Coordinator input lease를 확인한다. 기존 fine/coarse 프로필과 canonical native Core snapshot/row anchor는 불변. 사용자의 일반 scroll·다른 입력이 passive restore를 덮어쓰지 못하도록 GSC 입력 우선순위를 유지.
 - Resource·설비 readonly View에서 단일 Grid 클릭은 `canonicalTaskId` 선택과 **클릭한 projected rowKey**의 표시 viewport를 변경할 수 있지만 WBS/Core 원본 Task hierarchy/Link/revision, API server write 및 다른 View의 scroll writer는 변경할 수 없다. `scrollLeft`는 현재 실제 projected scroller에서만 갱신하고 source/axis/scroll capacity가 충족하지 않으면 typed 불가 상태. 중복 할당의 단일 canonical ID/복수 viewRowKey 경계를 보존.
 - 명시 `Task Editor` 열기(더블클릭/정보 버튼/Chart Bar)에는 기존 Task edit session 및 readonly 권한이 적용된다. 이벤트 shortcut/선택/Editor 동작을 혼합하거나 임의 remount/Private Core API/둘째 data writer를 만들지 않는다.
-- [#898/#899 상세](exec-plans/active/ISSUE_898_899.md); 실제 Head 테스트/Trusted/Owner 검증 전 `NOT TESTED`.
+- [#898/#899 상세](exec-plans/active/ISSUE_898.md); 실제 Head 테스트/Trusted/Owner 검증 전 `NOT TESTED`.
 
 ---
 
