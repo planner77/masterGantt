@@ -106,9 +106,9 @@ describe("historical E2E shard planner", () => {
     // 누락·중복은 계속 실패해야 하며 hash fallback으로 대체하지 않는다.
     // #866 Phase A adds language-shell to shard 5; Phase B adds master-data to shard 7.
     // #880 신규 일정 View spec은 기존 배치를 유지하며 shard 3에 명시 등록한다.
-    // #885/#894/#900 are immutable historical snapshots; #902 adds a newer placement.
-    // Every one of the 147 specs remains explicitly assigned exactly once.
-    expect(plan.shards.map(group => group.files.length)).toEqual([18, 19, 17, 22, 18, 16, 19, 18]);
+    // #885/#894/#900/#902 records are immutable historical snapshots.
+    // #3596 F-003 is the newest eight-shard placement, all 147 unique.
+    expect(plan.shards.map(group => group.files.length)).toEqual([18, 18, 18, 20, 18, 17, 19, 19]);
     expect(new Set(entries).size).toBe(entries.length);
     expect([...entries].sort()).toEqual(discovered); // New specs require deliberate plan slots.
     const selected = [1, 2, 3, 4, 5, 6, 7, 8].flatMap(shard =>
@@ -172,6 +172,17 @@ describe("historical E2E shard planner", () => {
         explicitSpecCount: number; movedFiles: Array<{ file: string; from: number; to: number }>;
       };
     }).manualRebalance902;
+    const rebalance902F003 = (plan as typeof plan & {
+      manualRebalance902F003: {
+        sourceRunId: number; sourceRunNumber: number; sourceHeadSha: string;
+        sourceBaseSha: string; originalConclusion: string; jobTimeoutMinutes: number;
+        cancelledShard: number; cancelledShardSelectedCases: number;
+        cancelledShardObservedPasses: number; cancelledShardExistingSkips: number;
+        cancelledShardUnfinishedCases: number; successfulShards: number[];
+        beforeFileCounts: number[]; afterFileCounts: number[];
+        explicitSpecCount: number; movedFiles: Array<{ file: string; from: number; to: number }>;
+      };
+    }).manualRebalance902F003;
     expect(rebalance900.sourceRunId).toBe(42475849089);
     expect(rebalance900.sourceHeadSha).toBe("6bf821cf9c57941f2e1547b8cb1552b6f99ea277");
     expect(rebalance900.sourceBaseSha).toBe("90c5a1a951c749a9690b1c83e5a74b6d122dd6e3");
@@ -200,9 +211,38 @@ describe("historical E2E shard planner", () => {
     expect(rebalance902.successfulShards).toEqual([1, 2, 3, 4, 5, 6, 7]);
     expect(rebalance902.explicitSpecCount).toBe(discovered.length);
     expect(rebalance902.beforeFileCounts).toEqual(rebalance900.revisedShardFileCounts);
-    expect(rebalance902.afterFileCounts).toEqual(plan.shards.map(group => group.files.length));
+    expect(rebalance902.afterFileCounts).toEqual(rebalance902F003.beforeFileCounts);
     expect(rebalance902.movedFiles).toHaveLength(3);
     expect(new Set(rebalance902.movedFiles.map(item => item.file)).size).toBe(3);
+    // F-003: time-limited E2E shard4 is distinct from F-002's canceled shard8.
+    expect(rebalance902F003.sourceRunId).toBe(42536951142);
+    expect(rebalance902F003.sourceRunNumber).toBe(3596);
+    expect(rebalance902F003.sourceHeadSha).toBe("60436a936be02c3c5313575321aab951d0cf7c26");
+    expect(rebalance902F003.sourceBaseSha).toBe("1826b479a80c64ef16efe768b31f75d62170639e");
+    expect(rebalance902F003.originalConclusion).toBe("cancelled");
+    expect(rebalance902F003.jobTimeoutMinutes).toBe(35);
+    expect(rebalance902F003.cancelledShard).toBe(4);
+    expect([rebalance902F003.cancelledShardSelectedCases, rebalance902F003.cancelledShardObservedPasses,
+      rebalance902F003.cancelledShardExistingSkips, rebalance902F003.cancelledShardUnfinishedCases])
+      .toEqual([126, 91, 1, 34]);
+    expect(rebalance902F003.successfulShards).toEqual([1, 2, 3, 5, 6, 7, 8]);
+    expect(rebalance902F003.explicitSpecCount).toBe(discovered.length);
+    expect(rebalance902F003.beforeFileCounts).toEqual(rebalance902.afterFileCounts);
+    expect(rebalance902F003.afterFileCounts).toEqual(plan.shards.map(group => group.files.length));
+    expect(rebalance902F003.movedFiles).toHaveLength(4);
+    expect(new Set(rebalance902F003.movedFiles.map(item => item.file)).size).toBe(4);
+    const historicalF002Counts = [...rebalance902F003.afterFileCounts];
+    for (const movement of rebalance902F003.movedFiles) {
+      expect(movement.from).not.toBe(movement.to);
+      expect(movement.from).toBeGreaterThanOrEqual(1);
+      expect(movement.to).toBeLessThanOrEqual(8);
+      expect(plan.shards.filter(group => group.files.includes(movement.file)).map(group => group.shard))
+        .toEqual([movement.to]);
+      historicalF002Counts[movement.to - 1]--;
+      historicalF002Counts[movement.from - 1]++;
+    }
+    expect(historicalF002Counts).toEqual(rebalance902F003.beforeFileCounts);
+
     const historicalCounts = [...rebalance902.afterFileCounts];
     for (const movement of rebalance902.movedFiles) {
       expect(movement.from).not.toBe(movement.to);
@@ -242,16 +282,19 @@ describe("historical E2E shard planner", () => {
       // A later decision can override a former destination, never its history.
       const newer = correction.movedFiles.find(item => item.file === movement.file);
       const newest = rebalance900.movedFiles.find(item => item.file === movement.file);
+      const latest = rebalance902F003.movedFiles.find(item => item.file === movement.file);
       if (newer) expect(newer.from).toBe(movement.to);
       if (newest) expect(newest.from).toBe(newer?.to ?? movement.to);
+      if (latest) expect(latest.from).toBe(newest?.to ?? newer?.to ?? movement.to);
       expect(plan.shards.filter(group => group.files.includes(movement.file)).map(group => group.shard))
-        .toEqual([newest?.to ?? newer?.to ?? movement.to]);
+        .toEqual([latest?.to ?? newest?.to ?? newer?.to ?? movement.to]);
     }
     for (const [file, assignedShard] of [
       // Current eight-shard placement supersedes historical six-shard corrections;
       // validate each current destination and preserve every unique current spec.
       ["country-calendar-admin.spec.ts", 1],
       ["milestone-timeline-interchange-http.spec.ts", 4],
+      ["milestone-management-persistence.spec.ts", 4],
       ["project-task-editor.spec.ts", 2],
       ["issue-623-resource-mvp.spec.ts", 1],
       ["issue-751-performance-telemetry.spec.ts", 1],
@@ -275,11 +318,11 @@ describe("historical E2E shard planner", () => {
       ["project-settings-layout-490.spec.ts", 1],
       ["project-task-delete-context.spec.ts", 5],
       ["issue-730-view-composer.spec.ts", 5],
-      ["issue-733-process-workarea-dashboard.spec.ts", 4],
+      ["issue-733-process-workarea-dashboard.spec.ts", 3],
       ["issue-726-task-logistics.spec.ts", 6],
       // #885 Full #3563.1 35-minute canceled shard 1/3 and six-file, timeout-neutral rebalance.
-      ["project-summary-bar-visual.spec.ts", 4],
-      ["project-grid-reorder-persistence.spec.ts", 4],
+      ["project-summary-bar-visual.spec.ts", 6],
+      ["project-grid-reorder-persistence.spec.ts", 8],
       ["project-list-search-filter.spec.ts", 5],
       ["milestone-stage-exchange.spec.ts", 4],
       ["milestone-visibility-persistence.spec.ts", 4],

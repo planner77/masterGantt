@@ -166,3 +166,39 @@ quality/e2e/docker·Trusted/Owner UI 수용·Manager ACCEPT·Stage B 활성은 N
 - 이전 Playwright 소요에 완료 구간을 단순 이전하면 샤드1/2/4/6 약25.6/22.7/28.3/25.8m 참고치. 이는 통제되지 않은 **shift-only** 계산일 뿐 setup/host/fixture 시간 및 8/8 미완료 2개·분산 변동이 미계측되어 새 Full PASS, 향상률, 비용 절감을 증명하지 않는다.
 - `.github/workflows/ci.yml`, 제품 UI/API/DB/버전 및 8-shard/workers1/35m/PR fail-fast/max-failures1/skip/retry/Required3/Trusted/Owner/OCI/Release/Finalizer는 변경하지 않는다. 이전 원격 PASS는 진단 참고일 뿐 새 Head의 공식 PASS가 아니다. 새 Head의 Quality/Chromium8/Docker/Trusted·Owner UI UAT·Manager ACCEPT는 **NOT TESTED**, MERGE_READY=BLOCKED.
 - 리뷰 스레드0 및 main ancestry/충돌(현 기준 head997841a7, base1826b479, mergeable=true) 확인. 작업 후 재확인하며 같은 PR branch 단일 commit으로 `synchronize` Full CI를 시작하고 모니터링하지 않는다. 병합/Main/GHCR·이슈 종료는 범위 밖이다.
+
+## PR #902 · Full #3596.1 — F-003: Chromium 4/8 Job 취소·전체 샤드 부담 재평가 (2026-11-09)
+
+### A–C. 원본 출처·누적 Cross-run 실패 매트릭스
+
+- [PR Full CI #3596.1 / Run42536951142 / attempt1](https://github.com/planner77/masterGantt/actions/runs/42536951142), event `pull_request/synchronize`, Run conclusion **CANCELLED**. Head `60436a936be02c3c5313575321aab951d0cf7c26`, base `1826b479a80c64ef16efe768b31f75d62170639e`, test-merge `e6b82a95b22b6a675061601538264231f1a6f7c1`. [원본 ci-pr-source Artifact13640170260](https://github.com/planner77/masterGantt/actions/runs/42536951142/artifacts/13640170260), 이력 불변. 우선 최신 Run의 실제8개 shard Job·Policy·Vitest·Docker 및 Required 집계를 읽기 전용으로 대조하였다.
+- Policy128903426291, TypeScript128903426268, ESLint128903426224, Vitest128903426214, PR Fast128903844774, Preflight128903340673, PR Build128903910478 **PASS**. Required Quality [128904251128](https://github.com/planner77/masterGantt/actions/runs/42536951142/job/128904251128) **PASS**; Docker [128905292230](https://github.com/planner77/masterGantt/actions/runs/42536951142/job/128905292230) **PASS**. Required E2E [128913220031](https://github.com/planner77/masterGantt/actions/runs/42536951142/job/128913220031) **FAIL**은 PR shard result=CANCELLED의 fail-closed 집계, QA Final [128913250076](https://github.com/planner77/masterGantt/actions/runs/42536951142/job/128913250076) **FAIL**은 E2E 미성공에 따른 파생. Main OCI 및 해당 PR 비대상 분기는 SKIPPED, PASS가 아님.
+- **F-003 직접:** [E2E 4/8 Job128903910523](https://github.com/planner77/masterGantt/actions/runs/42536951142/job/128903910523) `Running 126 tests using 1 worker`, 실제 **91 PASS·기존 SKIP1·34 미완료**. 2026-11-09T00:26:36Z `The operation was canceled.`; 35분 Job 한계에 근접한 runner 취소이며 실제 assertion FAIL은 원본 로그에서 미관측. 마지막 통과 파일 `resource-tabs.spec.ts`, 이후 시작하지 못한 파일 `resource-target-dashboard-api.spec.ts`, `task-editor-form-density.spec.ts`, `template-picker-ux.spec.ts`, `ui-semantic-tokens.spec.ts`, `viewport-coordinator.spec.ts`. 34 미완료 사례의 정확한 분량·실행시간은 NOT TESTED. [4/8 합성 Artifact13640957360](https://github.com/planner77/masterGantt/actions/runs/42536951142/artifacts/13640957360) 261bytes는 전체 UI 증거 수용이나 테스트 완료 증거가 아니다.
+
+| E2E Shard · Job ID | 선택 | PASS | 원래 SKIP | 미완료 | Playwright wall | 상태 |
+| --- | ---: | ---: | ---: | ---: | ---: | --- |
+| 1/8 · 128903910600 | 111 | 111 | 0 | 0 | 28.3m | SUCCESS |
+| 2/8 · 128903910521 | 111 | 111 | 0 | 0 | 32.6m | SUCCESS |
+| 3/8 · 128903910708 | 149 | 148 | 1 | 0 | 26.5m | SUCCESS |
+| 4/8 · 128903910523 | 126 | 91 | 1 | 34 | 35m 한계 | CANCELLED |
+| 5/8 · 128903910578 | 92 | 92 | 0 | 0 | 28.1m | SUCCESS |
+| 6/8 · 128903910591 | 86 | 85 | 1 | 0 | 27.2m | SUCCESS |
+| 7/8 · 128903910672 | 109 | 109 | 0 | 0 | 29.4m | SUCCESS |
+| 8/8 · 128903910579 | 111 | 111 | 0 | 0 | 27.4m | SUCCESS |
+| 합계 | 895 | 858 | 3 | 34 | — | 전체 PASS 아님 |
+
+- **과거 이력과의 관계:** F-001 #3594.1 `schedule-views.spec.ts→helpers/ui-evidence.ts` Git `ENOBUFS`는 기존 streaming 보완 이후 #3595/#3596 모두 3/8에서 재발 미관측. F-002 #3595.1 8/8(121/123, timeout) 후 #902 3-file 재균형으로 #3596 8/8 111 PASS; 그러나 4/8은 22.1m→35m 취소, 2/8은 17.8→32.6m로 새 근접위험. F-003은 신규 환경/스케줄 용량 병목이며 F-001 코드를 재수정하는 문제가 아니다. 필수 Job 결론과 직접 원인(4/8) 구분, 취소/기존 SKIP/미실행을 모두 별개 보존한다.
+- 원본 실패 파일 합집합은 여전히 F-001 `tests/e2e/schedule-views.spec.ts` / `tests/e2e/helpers/ui-evidence.ts`이며 F-002/003에는 **직접 assertion FAIL 파일 없음**. F-003 미완료 5개 파일과 재배치 대상 4개 파일은 시간 병목 검증 합집합에 추가하되 실제 테스트 실패로 쓰지 않는다. 8개 shard 모두에서 보인 `GitCommitInfo timeout of 3000ms`는 E2E 실행을 중단하지 않았으므로 이번 취소의 원인으로 단정하지 않는다.
+
+### D–F. 측정 기반 수정·동일 소스 검증 계획
+
+- #3596 8개 실제 로그의 file별 완료 timestamp 차이(이전 파일 마지막 완료→이번 파일 마지막 완료)와 body time을 비교했다. UI fixture·assertion 오류는 미관측이며 #3596 4/8에 전체 runner wall 약34분(92개 완료) 이후 34개 NOT TESTED. 이전 #3595의 정상4/8은 22.1m였지만 서로 다른 source file 배치 및 host 조건이므로 개선인과를 확정할 수 없다.
+- `REUSE_DECISION=EXTEND` 유지. 기존 `scripts/e2e-shard-planner.mjs`·147 spec 계획·`tests/scripts/e2e-shard-planner.test.ts` 역사 감사 코드를 그대로 확장. 이력 #885/#894/#900/#902 F-002는 변경하지 않고 새 `manualRebalance902F003`에 출처를 별도 추가한다.
+- 이동은 전체 spec만 네 가지: **#733 Process dashboard 4→3** (5case/274s file elapsed/161.5s body), **Project summary bar visual 4→6** (20case/245s/244.4s body), **Project grid reorder persistence 4→8** (5case/181s/67.8s body), **Milestone management persistence 2→4** (3case/170s/100.5s body). F-003 완료 시 4번의 현재 관측 완료구간에서 순차 스펙 11.7분 가량을 덜고 2번 2.8분을 추가하는 **관측값 기준 순변경 약 -8.8분**, 미완료34건의 총 wall은 UNKNOWN이다. 2/8→약29.8m, 3/8→31.1m, 6/8→31.3m, 8/8→30.4m는 완료구간 단순 이전 참고치이고 새로운 Job PASS나 35분 안전보증이 아니다.
+- 8개 그룹 파일 수 전 [18,19,17,22,18,16,19,18] → 후 [18,18,18,20,18,17,19,19], **147개 고유 테스트 파일·전체 원본 검증 범위 동일**. 기존 `#885/#894/#900/#902` 이력 소급 변경 없음. Static current placement와 F-003→F-002→#900→#894→#885 복원/override 단위 assertions 확장. `.github/workflows/ci.yml`, Playwright spec 구현·시나리오, workers1/35m/8shards/fail-fast/max-failures1·retry/skip·Required3·Trusted/Owner·GHCR/Release·제품 API/DB/UI/버전 불변.
+- 이전 원격 성공 7개 샤드/Quality/Docker는 **진단**에서만 재사용. 실제 새 배치의 Full8 통과는 **새 exact Head PR CI만** 판정 가능하다. 로컬 정적 계획·원장/테스트 계약을 검사한 뒤 리뷰0·main 충돌 확인, 같은 PR에 단일 커밋으로 CI 시작. 신규 Head/Owner UI 수용/Manager merge ACCEPT·미완료 실제 실행시간은 NOT TESTED, MERGE_READY=BLOCKED. CI 모니터링·병합/Main/GHCR/Issue 종료 없음.
+
+### F-003 사전 정적 검증 (실행 전 상태)
+
+- 수정 candidate JSON과 현 PR Git tree의 `tests/e2e/**/*.spec.ts` 실제 파일명을 대조하여 **147/147 고유 배치 PASS**, 명시 8그룹 [18,18,18,20,18,17,19,19], 신규 이동 4개 정확 이전·이후 위치 PASS. #885/#894/#900/#902(F-002) 원문 metadata 불변 및 F-003→F-002→#900→#894→#885의 그룹 카운트/승계 위치를 독립 JavaScript 정적 계산으로 역산 **PASS**.
+- 추가한 TypeScript Vitest 테스트 파일의 실제 `npx vitest` 실행은 현재 작업 환경에서 **NOT RUN**이다. 기존 #3596 Vitest PASS는 이전 Head `60436a9`의 결과이며 새 Test source의 PASS로 승계하지 않는다. 새 PR Full CI의 Quality/Chromium8/Docker/Trusted 및 Owner 수용은 시작 전 **NOT TESTED**.
