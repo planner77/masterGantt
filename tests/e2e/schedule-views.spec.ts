@@ -844,7 +844,7 @@ test("#889 세 View 공통 작업면·날짜 헤더·Grid/Chart Ctrl 휠 밀도�
   await info.attach("issue-889-shared-shell-density", { contentType: "application/json", body: JSON.stringify({ receipts, writes, api, instance }, null, 2) });
 });
 
-test("#898/#899 projected Grid single-click reveal and real pointer Ctrl+wheel across three Views", async ({ page, isolatedApplication, observeIsolatedApi }) => {
+test("#898/#899 projected Grid single-click reveal and real pointer Ctrl+wheel across three Views", async ({ page, isolatedApplication, observeIsolatedApi }, info) => {
   test.setTimeout(180_000);
   const f = await seedScheduleViews(page, isolatedApplication, observeIsolatedApi);
   await openWorkspaceView(page, "schedule");
@@ -884,6 +884,22 @@ test("#898/#899 projected Grid single-click reveal and real pointer Ctrl+wheel a
       return Math.abs(element.getBoundingClientRect().left - grid.right);
     })).toBeLessThanOrEqual(1);
     await expect.poll(async () => scroller.evaluate(element => element.scrollLeft)).toBeCloseTo(capacity.target, 0);
+    const splitError = await bar.evaluate(element => {
+      const grid = element.closest("[data-view-row-key]")!.querySelector("[data-schedule-view-grid-cell]")!.getBoundingClientRect();
+      return Math.abs(element.getBoundingClientRect().left - grid.right);
+    });
+    await captureSyntheticUiEvidence(page, info, {
+      issue: 899, acceptanceCriteria: ["AC01", "AC02", "AC03"], state: `${mode}-single-click-start-reveal-1440-ko`,
+      fixture: "schedule-views", locale: "ko",
+      elements: [{ name: "selectedTaskRow", locator: row }, { name: "taskBar", locator: bar },
+        { name: "projectedScroller", locator: scroller }],
+      flow: { id: `issue-899-${mode}-select-reveal`,
+        steps: ["동일 원본의 다중 표시행 확보", "Grid 작업명 단일 클릭", "현재 projected Chart 시작점과 sticky Grid 분리선 좌표 측정", "Task Editor 자동 열림 없음"],
+        outcome: "PASS" },
+      checks: [{ ac: "AC01", designRef: "DESIGN.md:1-5", measurement: "task-start-grid-split-x-error",
+        expected: 0, actual: splitError, tolerance: 1, outcome: "PASS" }],
+      exclusions: [{ scope: "real-device-uat", reason: "이 증거는 격리 Chromium fixture의 좌표/선택 흐름으로 운영 장치 사용성 수용과 별개" }],
+    });
 
     // Explicit mouse, keyboard and chart affordances still open the one
     // canonical Task Editor, with its existing session/readonly protection.
@@ -930,7 +946,7 @@ test("#898/#899 projected Grid single-click reveal and real pointer Ctrl+wheel a
     });
     const zoom = await browserZoom();
     for (const [surface, height, delta] of [["grid", "32", 120], ["chart", "30", 120],
-      ["grid", "32", -120], ["chart", "34", -120]] as const) {
+      ["grid", "28", 120], ["chart", "30", -120], ["grid", "32", -120], ["chart", "34", -120]] as const) {
       await physicalWheel(points[surface], delta);
       await expect(frame, `real Ctrl+wheel in ${mode}/${surface}`).toHaveAttribute("data-gantt-cell-height", height);
       expect(await browserZoom(), `browser page zoom must not change in ${mode}/${surface}`).toEqual(zoom);
