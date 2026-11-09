@@ -13,6 +13,7 @@ import { GANTT_CELL_WIDTH, type GanttScaleMode } from "./timeline-range";
 import { ganttColumnHeader } from "./svar-locales";
 import { formatLocaleDateOnly } from "../../lib/date-display";
 import { scheduleScaleCells } from "./schedule-view-scale";
+import { projectedTaskReveal, type ProjectedTaskRevealStatus } from "./schedule-view-reveal";
 import "./schedule-view-panel.css";
 
 const DAY = 86_400_000;
@@ -220,8 +221,39 @@ export function ScheduleViewPanel(props: Props) {
     first: firstTick, last: lastTick, mode: scaleMode, locale, calendar: props.calendar }) : { upper: [], lower: [] };
   const scaleTooltipText = scaleTooltip?.mode === scaleMode
     ? (scaleTooltip.tier === 0 ? scaleCells.upper : scaleCells.lower).find(cell => cell.date === scaleTooltip.date)?.tooltip : undefined;
+  const validTask = (id: string | null) => Boolean(id && props.tasks.some(task => task.taskId === id && task.type === "task"));
+  const selectTaskRow = (row: ScheduleViewRow) => {
+    if (row.kind !== "task" || !row.canonicalTaskId || !validTask(row.canonicalTaskId) || props.blocked || !source || !props.active) return;
+    const root = scroller.current;
+    focusRow.current = row.viewRowKey;
+    if (root) {
+      const reveal = axis ? projectedTaskReveal({ start: row.start, axisStart: axis.start, pixelsPerDay,
+        scrollWidth: root.scrollWidth, clientWidth: root.clientWidth })
+        : { status: "NOT_MEASURABLE" as const, left: 0 };
+      let status: ProjectedTaskRevealStatus = reveal.status;
+      if (status === "ALIGNED" || status === "NO_SCROLL_CAPACITY") {
+        if (Math.abs(root.scrollLeft - reveal.left) > 0.5) root.scrollLeft = reveal.left;
+        if (Math.abs(root.scrollLeft - reveal.left) > 1) status = "NOT_MEASURABLE";
+      }
+      root.dataset.lastRevealStatus = status;
+      root.dataset.lastRevealRowKey = row.viewRowKey;
+      captureBookmark(root);
+      // The clicked projected path, not the first duplicate canonical Task,
+      // remains the selection bookmark through density and locale reflow.
+      if (bookmark.current) {
+        const byKey = new Map(rows.map(entry => [entry.viewRowKey, entry]));
+        const ancestors: string[] = [];
+        let parent = row.parentViewRowKey;
+        while (parent) { ancestors.push(parent); parent = byKey.get(parent)?.parentViewRowKey ?? null; }
+        bookmark.current = { ...bookmark.current, rowKey: row.viewRowKey, canonicalTaskId: row.canonicalTaskId,
+          ancestors, offset: root.scrollTop - rows.indexOf(row) * cellHeight };
+      }
+      setViewport({ top: root.scrollTop, left: root.scrollLeft, height: root.clientHeight, width: root.clientWidth });
+    }
+    props.onSelect(row.canonicalTaskId);
+  };
   const openTask = (id: string) => {
-    if (props.blocked || !source || !props.tasks.some(task => task.taskId === id && task.type === "task")) return;
+    if (props.blocked || !source || !validTask(id)) return;
     const root = scroller.current;
     if (root) captureBookmark(root);
     props.onSelect(id); props.onOpenTask(id);
@@ -397,7 +429,9 @@ export function ScheduleViewPanel(props: Props) {
             data-task-completed={status === "completed" || undefined} data-view-row-key={row.viewRowKey} data-canonical-task-id={row.canonicalTaskId ?? undefined} data-view-row-kind={row.kind} data-view-entity-id={row.entityId} data-view-group-kind={row.groupKind}
             className={`project-schedule-view-row ${row.kind === "group" ? "project-schedule-view-group" : ""}`}
             style={{ top: headerHeight + (startRow + offset) * cellHeight, height: cellHeight }}>
-            <div className="project-schedule-view-grid" data-schedule-view-grid-cell data-schedule-view-body style={{ width: gridWidth }}>
+            <div className="project-schedule-view-grid" data-schedule-view-grid-cell data-schedule-view-body style={{ width: gridWidth }}
+              onClick={row.kind === "task" ? () => selectTaskRow(row) : undefined}
+              onDoubleClick={row.kind === "task" ? () => { if (row.canonicalTaskId) openTask(row.canonicalTaskId); } : undefined}>
               {gridColumns.map(column => <div key={column.id} role="gridcell" data-column-id={column.id}
                 className={`project-schedule-view-cell ${column.id === "text" ? "project-schedule-view-name" : ""}`}
                 style={{ width: column.width, textAlign: column.align ?? "start", transform: `translateX(${-gridOffset}px)`, paddingInlineStart: column.id === "text" ? 8 + row.depth * 16 : undefined }}>
@@ -408,8 +442,15 @@ export function ScheduleViewPanel(props: Props) {
                 onKeyDown={event => { if (event.key === "Escape") { event.stopPropagation(); setInfoTooltip(null); } }}
                 onClick={() => setCollapsed(current => { const next = new Set(current); if (next.has(row.viewRowKey)) next.delete(row.viewRowKey); else next.add(row.viewRowKey); return next; })}>
                 <span aria-hidden="true">{collapsed.has(row.viewRowKey) ? "▸" : "▾"}</span> {row.label}{row.active === false ? ` · ${t("비활성")}` : ""}{row.managementUnit === "fleet" ? ` (${row.quantity})` : ""} <small>{row.taskCount ? t("{count}개 작업", { count: row.taskCount }) : t("하위 작업 없음")}</small>
-              </button> : <button type="button" disabled={props.blocked} title={row.label} aria-label={t("작업 정보 열기: {name}", { name: row.label })}
-                onFocus={() => { focusRow.current = row.viewRowKey; }} onClick={() => row.canonicalTaskId && openTask(row.canonicalTaskId)}><span className="project-schedule-view-task-name">{row.label}</span><small>{statusLabel}</small></button>}
+              </button> : <>
+                <button type="button" disabled={props.blocked} title={row.label} aria-label={`${t("선택")}: ${row.label}`}
+                  onFocus={() => { focusRow.current = row.viewRowKey; }}><span className="project-schedule-view-task-name">{row.label}</span><small>{statusLabel}</small></button>
+                <button type="button" className="project-schedule-view-info" data-schedule-task-open disabled={props.blocked}
+                  title={t("작업 정보 열기: {name}", { name: row.label })} aria-label={t("작업 정보 열기: {name}", { name: row.label })}
+                  onFocus={() => { focusRow.current = row.viewRowKey; }}
+                  onClick={event => { event.stopPropagation(); if (row.canonicalTaskId) openTask(row.canonicalTaskId); }}
+                  onDoubleClick={event => event.stopPropagation()}><span aria-hidden="true">ⓘ</span></button>
+              </>}
               </> : column.id === "copySelection" && task ? <span className="project-schedule-view-selection" role="checkbox" aria-checked={selected} aria-readonly="true" aria-label={t("선택")} ><span aria-hidden="true">{selected ? "✓" : ""}</span></span> : <span title={cellValue(column, task)}>{cellValue(column, task)}</span>}
               </div>)}
             </div>
