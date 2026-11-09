@@ -939,6 +939,21 @@ test("#898/#899 projected Grid single-click reveal and real pointer Ctrl+wheel a
   };
   for (const mode of ["wbs", "resource", "equipment"] as const) {
     await selector(page).selectOption(mode);
+    // #898: selectOption acknowledges the control change, not React's
+    // asynchronous projected Source/axis/header commit. Measure only an
+    // actually ready, visible surface; do not mask missing geometry.
+    if (mode === "wbs") {
+      await expect(frame.locator(".project-gantt-scroll")).toBeVisible();
+      await expect(frame.locator(".wx-gantt").first()).toBeVisible();
+      await expect(frame.locator(".wx-table .wx-row[data-id]").first()).toBeVisible();
+      await expect(frame.locator(".wx-chart").first()).toBeVisible();
+    } else {
+      const surface = view(page, mode);
+      await expect(surface).toBeVisible();
+      await expect(surface.locator('[data-schedule-view-scroll]')).toHaveAttribute("data-ready", "true");
+      await expect(surface.locator(".project-schedule-view-header")).toBeVisible();
+      await expect(surface.locator(".project-schedule-view-header .project-schedule-view-grid")).toBeVisible();
+    }
     const points = mode === "wbs" ? await frame.evaluate(element => {
       const native = element.querySelector<HTMLElement>(".wx-gantt")!.getBoundingClientRect();
       const row = element.querySelector<HTMLElement>(".wx-table .wx-row[data-id]")!.getBoundingClientRect();

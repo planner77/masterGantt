@@ -48,3 +48,9 @@
 - **KEEP_UNIQUE**: 기존 #880 테스트의 85개 Task/virtual window·logical count/2초 settled, End→084 정보 버튼 focused, Home→그룹 expand/collapse focused, 검색/계층 필터·WBS viewport/bookmark·원본 서버 writes0 조건·5개 폭/Day·Week 유지. 기존 #880 Editor Escape와 #899 명시 정보 버튼 Enter/Chart/더블클릭 복귀 E2E도 유지, test timeout/retry/skip 변경 없음.
 - **EXTEND**: 같은 실제 SQLite/HTTP #880 fixture에서 Task `084`의 정보 버튼에 End로 포커스→`ArrowUp`→Task `083` 정보 버튼 focused→`ArrowDown`→Task `084` focused, 이어 기존 `Home` 그룹 버튼 검사. `navigateRow`는 Task 정보 버튼/Group 확장 버튼을 의미별 포커스 타깃으로 사용하고 다른 새 입력이 오면 stale RAF를 종료한다.
 - **판정**: 3 View의 실제 `Control+page.mouse.wheel`, #899 projected click reveal+Editor, scroll/원본 writes0/브라우저 pageZoom은 동일 Full E2E8 검증 대상이며 단일 E2E 성공만으로 전체 PASS 전이 금지. 정확 새 Head 로컬/원격 Test 결과와 사람 UAT는 아직 `NOT TESTED`.
+
+## PR #904 Full #3611.1 — 3 View 실제 pointer Readiness 동기화 (2026-11-09)
+
+- 원본 [Full #3611.1](https://github.com/planner77/masterGantt/actions/runs/42639239349)에서 Chromium shard3 신규 #898/#899 물리 wheel 테스트가 `schedule-views.spec.ts:949`의 projected header DOM 위치 읽기 중 `TypeError: ... null.getBoundingClientRect`로 직접 FAIL. Source/axis/header가 생성되기 전 View select 상태의 단순 측정은 실제 pointer/브라우저 Zoom 검증이 아니다.
+- **EXTEND 기존 원리**: 같은 `schedule-views.spec.ts`의 #880 가상화 테스트 `data-ready=true` gate, React projection의 `projection && axis` header 조건을 재사용한다. WBS에서는 실제 scroll/native gantt/row/chart 가시화, Resource·설비에서는 `data-ready=true` + header/grid visible을 확인한 뒤 실제 bounding coordinates 생성. 다른 runner/fixture/Helper/스케줄러 신규 추가 금지.
+- **KEEP_UNIQUE**: 기존 #880/#889/#822 E2E·실제 mouse Ctrl+wheel와 browser zoom 불변 측정·신규 #899 source task start-align(≤1CSS px)/Editor focus 및 canonical write0·#896 UI evidence는 변경/skip/timeout 완화 없이 유지. 실패 시 안전하게 FAIL, 새 HEAD E2E8 실제 실행 전 NOT TESTED.
