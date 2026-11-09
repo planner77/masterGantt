@@ -7,7 +7,7 @@ const base = { start: "2026-10-14", axisStart: Date.parse("2026-10-01T00:00:00Z"
 describe("Projected Resource/Equipment Grid Task horizontal reveal (#899)", () => {
   it("aligns the clicked Task start to the sticky Grid divider, without a second scroll writer", () => {
     expect(projectedTaskReveal(base)).toEqual({ status: "ALIGNED", left: 13 * 36 });
-    expect(projectedTaskReveal({ ...base, pixelsPerDay: 68 / 7 })).toEqual({ status: "ALIGNED", left: 13 * 68 / 7 });
+    expect(projectedTaskReveal({ ...base, pixelsPerDay: 68 / 7 })).toEqual({ status: "ALIGNED", left: 13 * (68 / 7) });
   });
   it("returns a typed limited-capacity result rather than falsely claiming alignment", () => {
     expect(projectedTaskReveal({ ...base, scrollWidth: 1200, clientWidth: 1200 }))
