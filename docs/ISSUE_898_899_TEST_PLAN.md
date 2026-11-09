@@ -1,6 +1,6 @@
 # Issues #898 / #899 — Test Lifecycle / 브라우저 회귀 추가 계획
 
-원본 Source of Truth: [docs/TEST_PLAN.md](TEST_PLAN.md) 및 [AGENTS.md](../AGENTS.md) #711, [Work Packet](exec-plans/active/ISSUE_898_899.md). 이 추가 계획은 원본 test plan을 대체하지 않는다. 원본 blob이 1MB 이상으로 GitHub Contents Connector에서 온전한 내용을 제공하지 않아 보호·보존한다.
+원본 Source of Truth: [docs/TEST_PLAN.md](TEST_PLAN.md) 및 [AGENTS.md](../AGENTS.md) #711, [Work Packet](exec-plans/active/ISSUE_898.md). 이 추가 계획은 원본 test plan을 대체하지 않는다. 원본 blob이 1MB 이상으로 GitHub Contents Connector에서 온전한 내용을 제공하지 않아 보호·보존한다.
 
 ## 기존 테스트 검색·재사용
 
