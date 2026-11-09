@@ -843,3 +843,102 @@ test("#889 세 View 공통 작업면·날짜 헤더·Grid/Chart Ctrl 휠 밀도�
   });
   await info.attach("issue-889-shared-shell-density", { contentType: "application/json", body: JSON.stringify({ receipts, writes, api, instance }, null, 2) });
 });
+
+test("#898/#899 projected Grid single-click reveal and real pointer Ctrl+wheel across three Views", async ({ page, isolatedApplication, observeIsolatedApi }) => {
+  test.setTimeout(180_000);
+  const f = await seedScheduleViews(page, isolatedApplication, observeIsolatedApi);
+  await openWorkspaceView(page, "schedule");
+  const baseline = await f.snapshot();
+  const writes = observeProjectWrites(page, f.publicId);
+  const frame = page.locator(".project-gantt-frame");
+  const apiInstance = await frame.getAttribute("data-project-gantt-api-instance");
+  const editor = page.getByRole("dialog", { name: "작업 정보", exact: true });
+
+  // Reuse the #880 HTTP/SQLite multi-assignment fixture, native #852 start
+  // semantics and #889 projected row geometry. A click is not an Editor open.
+  for (const mode of ["resource", "equipment"] as const) {
+    await selector(page).selectOption(mode);
+    const surface = view(page, mode);
+    const scroller = surface.locator("[data-schedule-view-scroll]");
+    await expect(scroller).toHaveAttribute("data-ready", "true");
+    await expect(taskRows(surface, f.task.taskId)).toHaveCount(mode === "resource" ? 3 : 2);
+    const row = taskRows(surface, f.task.taskId).first();
+    const bar = row.locator(".project-schedule-view-bar");
+    const select = row.locator(".project-schedule-view-name > button:not(.project-schedule-view-info)");
+    const info = row.getByRole("button", { name: `작업 정보 열기: ${f.task.name}`, exact: true });
+    const capacity = await bar.evaluate(element => {
+      const root = element.closest<HTMLElement>("[data-schedule-view-scroll]")!;
+      const x = Number.parseFloat((element as HTMLElement).style.left);
+      return { target: x, max: root.scrollWidth - root.clientWidth };
+    });
+    expect(capacity.max, "fixture must have enough horizontal room to prove exact start alignment").toBeGreaterThanOrEqual(capacity.target - 1);
+    await scroller.evaluate((element, target) => { element.scrollLeft = Math.min(element.scrollWidth - element.clientWidth, target + 100); }, capacity.target);
+    await select.click();
+    await expect(editor).toHaveCount(0);
+    await expect(scroller).toHaveAttribute("data-last-reveal-status", "ALIGNED");
+    await expect(scroller).toHaveAttribute("data-last-reveal-row-key", await row.getAttribute("data-view-row-key") ?? "");
+    for (const selected of await taskRows(surface, f.task.taskId).all())
+      await expect(selected).toHaveAttribute("aria-selected", "true");
+    await expect.poll(async () => bar.evaluate(element => {
+      const grid = element.closest("[data-view-row-key]")!.querySelector("[data-schedule-view-grid-cell]")!.getBoundingClientRect();
+      return Math.abs(element.getBoundingClientRect().left - grid.right);
+    })).toBeLessThanOrEqual(1);
+    await expect.poll(async () => scroller.evaluate(element => element.scrollLeft)).toBeCloseTo(capacity.target, 0);
+
+    // Explicit mouse, keyboard and chart affordances still open the one
+    // canonical Task Editor, with its existing session/readonly protection.
+    await select.dblclick();
+    await expect(editor.getByLabel("작업명", { exact: true })).toHaveValue(f.task.name);
+    await editor.press("Escape");
+    await info.focus(); await info.press("Enter");
+    await expect(editor.getByLabel("작업명", { exact: true })).toHaveValue(f.task.name);
+    await editor.press("Escape");
+    await bar.click();
+    await expect(editor.getByLabel("작업명", { exact: true })).toHaveValue(f.task.name);
+    await editor.press("Escape");
+    await expect(editor).toHaveCount(0);
+  }
+
+  const browserZoom = () => page.evaluate(() => ({
+    dpr: window.devicePixelRatio, width: window.innerWidth,
+    visualScale: window.visualViewport?.scale ?? 1,
+  }));
+  const physicalWheel = async (point: { x: number; y: number }, delta: number) => {
+    const target = await page.evaluate(({ x, y }) => document.elementFromPoint(x, y)?.tagName ?? null, point);
+    expect(target, "physical pointer must hit an actual DOM body element").not.toBeNull();
+    await page.mouse.move(point.x, point.y);
+    await page.keyboard.down("Control");
+    try { await page.mouse.wheel(0, delta); }
+    finally { await page.keyboard.up("Control"); }
+  };
+  for (const mode of ["wbs", "resource", "equipment"] as const) {
+    await selector(page).selectOption(mode);
+    const points = mode === "wbs" ? await frame.evaluate(element => {
+      const native = element.querySelector<HTMLElement>(".wx-gantt")!.getBoundingClientRect();
+      const row = element.querySelector<HTMLElement>(".wx-table .wx-row[data-id]")!.getBoundingClientRect();
+      const chart = element.querySelector<HTMLElement>(".wx-chart")!.getBoundingClientRect();
+      const y = Math.max(native.top + 16, Math.min(native.bottom - 18, row.top + row.height / 2));
+      return { grid: { x: row.left + Math.min(80, row.width / 2), y },
+        chart: { x: chart.left + Math.min(56, chart.width / 2), y } };
+    }) : await view(page, mode).evaluate(element => {
+      const root = element.querySelector<HTMLElement>("[data-schedule-view-scroll]")!.getBoundingClientRect();
+      const grid = element.querySelector<HTMLElement>(".project-schedule-view-header .project-schedule-view-grid")!.getBoundingClientRect();
+      const header = element.querySelector<HTMLElement>(".project-schedule-view-header")!.getBoundingClientRect();
+      const y = Math.min(root.bottom - 20, header.bottom + 18);
+      return { grid: { x: root.left + Math.min(grid.width / 2, 80), y },
+        chart: { x: root.left + grid.width + 56, y } };
+    });
+    const zoom = await browserZoom();
+    for (const [surface, height, delta] of [["grid", "32", 120], ["chart", "30", 120],
+      ["grid", "32", -120], ["chart", "34", -120]] as const) {
+      await physicalWheel(points[surface], delta);
+      await expect(frame, `real Ctrl+wheel in ${mode}/${surface}`).toHaveAttribute("data-gantt-cell-height", height);
+      expect(await browserZoom(), `browser page zoom must not change in ${mode}/${surface}`).toEqual(zoom);
+      await expect(frame).toHaveAttribute("data-project-gantt-api-instance", apiInstance!);
+    }
+  }
+  await expect(selector(page)).toHaveValue("equipment");
+  await selector(page).selectOption("wbs");
+  expect(writes).toEqual([]);
+  expect((await f.snapshot()).data).toEqual(baseline.data);
+});
