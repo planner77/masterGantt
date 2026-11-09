@@ -1,3 +1,11 @@
+## Issue #896 MAIN F-004 — Canonical Merge API payload와 불변 사고 음성 회귀 (2026-11-09)
+
+[Main #3598.1 / Run42553577656](https://github.com/planner77/masterGantt/actions/runs/42553577656)의 직접 실패는 PR #902 성공 후 생성된 영어 전용 요약과 여러 줄 본문이 기존 한글 single-line Merge 계약을 위반한 것. Source 코드는 이미 이 형태를 차단하며 기존 parser/CI/Ruleset을 약화할 필요가 없다.
+
+- **REUSE_REVIEW/TEST_LIFECYCLE_REVIEW EXTEND**: scripts/verify-issue-lifecycle.py의 #586/#639/#729/#808/#825/#854/#881 동일 유형 fail-closed 예제를 확장해 원본 #896/Main #3598 메시지(첫 행·본문)를 parse/trace/preflight에서 거부하고, 기존 scripts/main_ci_run_name.py --validate-title/--as-merge-payload를 통해 짧은 한글 제목+빈 본문+정확 Head SHA를 양성 검증한다. 잘못된 PR/Issue 또는 commit body는 음성으로 검사한다. 새 별도 테스트 runner·중복 구현·테스트 폐기·skip/retry/timeout 확대 없음.
+- 신규 same-Issue non-docs 교정 PR은 기존 #902 UI 증거/Geometry/Flow/해시 계약을 변경하지 않으며 실제 새 source의 Full PR Quality/E2E8/Docker와 default-main Trusted QA 및 Review/Owner 판정이 필요하다. 새 Main SHA의 push CI 및 GHCR digest/SBOM/provenance/Finalizer가 성공하기 전까지 결과는 NOT TESTED다.
+- **정식 Release N/A**: version0.145.1 변경 없음, release_required=false, release_authorized=false. 원본 실패를 PASS로 변경하거나 force-push·이전 immutable tag 재발행 금지. [Work Packet](exec-plans/active/ISSUE_896.md), [F-004 누적 실패 원장](ISSUE_896_FAILURE_ANALYSIS.md).
+
 ## Issue #896 · Git provenance 대용량 양·음성 (2026-11-09)
 
 기존 helper와 실제 #880/#889/#890 소비자를 재사용한다. 임시 실제 Git 저장소에서 1MiB 이상 합성 바이너리 diff의 ENOBUFS RED를 확인한 뒤, bounded stdout streaming SHA256의 전체 bytes 일치와 작은 diff·staged/unstaged·untracked/ignored dirty·Git 실패 차단을 기존 Vitest runner로 검증한다. 기존 UI Python27·comparator21의 불변 파일 결과는 재사용하고 helper 영향 브라우저3개를 실행한다. 테스트 삭제/skip·buffer/timeout/retry 임의 확대나 새 Required Gate는 없다. [원장](ISSUE_896_FAILURE_ANALYSIS.md).

@@ -1,3 +1,11 @@
+## Issue #896 MAIN #3598.1 — 정확 Merge payload 실패와 non-docs 교정 (2026-11-09)
+
+[원본 Main Run42553577656.1](https://github.com/planner77/masterGantt/actions/runs/42553577656): PR #902의 성공 Full #3597.1 및 Trusted #1250.1을 병합했지만, 두-parent merge SHA 8ae8413d00d50f476f8f377fe207effa70c23195의 제목이 "Issue #896 · PR #902 · UI evidence provenance and shard stability" (영어)이고 별도 Refs/Owner 본문이 추가되었다. 기존 main_ci_run_name.py의 한국어 30자 이하 단일 행 + commit_message="" 위반으로 verify-ci-run-trace.py changes/Job128954258111이 exit1; Quality/E2E/Docker는 파생 FAIL, 구현 미실행, GHCR publisher SKIPPED. 원본 SHA/FAIL은 불변.
+
+같은 Issue #896의 별도 **non-docs corrective PR**에 기존 scripts/verify-issue-lifecycle.py 고유 오류 음성·lease-bound payload/CLI 양성을 추가하여 보호 규칙을 재활용한다. Merge title parser/ci.yml/Required3/Runners/OCI/Finalizer/제품 version(0.145.1)은 완화·재설계하지 않는다. 새 PR Head의 Full Quality/E2E8/Docker, default-main Trusted QA, strict main, review0, Owner HIGH 수용 완료 후에만 실제 PR 번호 및 40자리 Head로 main_ci_run_name.py --as-merge-payload와 --validate-title 두 검사를 실행하고 결과의 merge_method=merge / commit_title(한국어) / **commit_message=""** / expected_head_sha를 누락 없이 Merge API에 전달한다.
+
+새 main push는 정확한 **신규** merge SHA에 대해 Full8+Required3 및 ci-(SHA) verified OCI digest/HTTPS/API/DB smoke, immutable source/SBOM/provenance를 수행해야 한다. Generic Finalizer의 same-Issue failed-main supersession과 no-release candidate cleanup·Issue close는 실제 성공 Main의 영수증이 있어야 가능하다. 이전 Main #3598 또는 PR #3597의 성공을 새 Main 성공으로 승계하지 않으며, SemVer tag/정식 이미지 게시 권한은 release_required=false / release_authorized=false로 N/A. [Work Packet](exec-plans/active/ISSUE_896.md) 및 [단일 실패 원장](ISSUE_896_FAILURE_ANALYSIS.md).
+
 ## Issue #896 · Full #3594.1 Git 지문 수집 보완 (2026-11-09)
 
 Quality/Docker 성공 뒤 E2E3/8의 #880 캡처가 동기 Git diff 출력 한도로 ENOBUFS 실패했다. 기존 helper의 전체 diff SHA256를 streaming 처리하고 Git 실패는 차단한다. 기존 8shard·Required3·timeout/retry·workflow·권한·OCI/Trusted/Owner는 이 보완에서 변경하지 않는다. 취소7샤드/원본 실패·새 Head 미검증을 [단일 원장](ISSUE_896_FAILURE_ANALYSIS.md)에 보존한다.

@@ -1,3 +1,15 @@
+## Issue #896 MAIN #3598.1 — 같은 Issue 교정 PR 병합 전 제목/본문 사전검증 (2026-11-09)
+
+- 원본 [Main #3598.1](https://github.com/planner77/masterGantt/actions/runs/42553577656)의 changes/verify-ci-run-trace.py는 영어 제목 + 여러 줄 본문을 거부했다. 앱/E2E 실패가 아니며 Git의 불변 merge commit 8ae8413d00d50f476f8f377fe207effa70c23195 또는 실패 Run을 재실행/force-push로 수정하지 않는다. 기존 #639/#729 한 줄 사전 검증과 #598 Owner-managed 승인 원칙을 재사용한다.
+- 새 동일-Issue non-docs PR을 만든 뒤 정확 PR/Head/Base, 세 Required/Chromium8, 기본 브랜치 Trusted QA, review0/충돌0, Owner HIGH 수용을 확인한다. 병합하기 직전 다음 기존 CLI의 결과를 **완전한 세트**로 생성/검증한다. 실 PR 번호/Head는 생성 후 GitHub에서 조회한 그대로 사용해야 한다.
+
+~~~bash
+python3 scripts/main_ci_run_name.py --issue 896 --pr "$PR_NUMBER" --summary "합성 UI 증거 Main CI 복구" --as-merge-payload --expected-head-sha "$PR_HEAD"
+python3 scripts/main_ci_run_name.py --issue 896 --pr "$PR_NUMBER" --validate-title "$COMMIT_TITLE_FROM_PREVIOUS_RESULT" --as-merge-payload --expected-head-sha "$PR_HEAD"
+~~~
+
+- 두 명령의 결과가 일치하고 SHA·base가 불변일 때 반환된 merge_method=merge, commit_title(한글 한 줄), commit_message=""(빈 본문), expected_head_sha를 모두 GitHub Merge API에 전달한다. PR 본문/Refs, Owner 인증 댓글, 감사 텍스트를 **merge commit body에 복제하지 않는다**. 빈 본문은 생략(null)하지 않고 명시적 empty string이다. 새 Main push의 Quality/E2E/Docker와 임시 GHCR ci-SHA digest/Smoke/Finalizer/Issue #896 CLOSED는 자동 성공이라 단정하지 않고 실제 출처 확인 후 판단한다. 정식 Release N/A.
+
 ## Issue #896 — 합성 UI 증거 확인 (2026-11-09)
 
 기존 CI E2E Job Summary의 source/base/test-merge·run/attempt와 artifact 링크를 확인하고 같은 artifact 안의 canonical manifest·PNG·geometry·fixture digest를 검사한다. Playwright attachments의 사본을 원본으로 세지 않는다. summary/manifest의 PASS 문자열은 Owner UAT나 Trusted 승인 증거가 아니다. 기존 Full8/Required3·권한·Release/Finalizer를 유지하고 수동 Stage B 활성은 별도 Owner 결정 사항이다. [명령·판정](UI_EVIDENCE.md).

@@ -692,6 +692,90 @@ require(
 )
 
 
+# MAIN-896-001: exact immutable Main #3598.1 failed in the trusted trace
+# gate because PR #902's two-parent merge carried an English-only subject
+# AND a multiline body.  Do not edit/force-push the original merge, weaken
+# the validator, claim a rerun has repaired that message, or skip Full CI.
+failed_896_subject = "Issue #896 · PR #902 · UI evidence provenance and shard stability"
+failed_896_message = (
+    failed_896_subject
+    + "\n\nRefs #896\n\n"
+    + "Owner-managed merge approved after exact PR Full CI #3597.1 (42545834269.1) "
+    + "and Trusted QA #1250.1 (42548844585.1). Preserve main Full CI, temporary "
+    + "verified GHCR ci-SHA publication and Generic no-release Finalizer; no "
+    + "formal SemVer release authorization."
+)
+for original_896_value in (failed_896_subject, failed_896_message):
+    require(
+        main_run_name.parse_merge_title(original_896_value) is None,
+        "immutable #896 Main #3598.1 invalid merge must remain rejected",
+    )
+    try:
+        trace.validate_push({
+            "ref": "refs/heads/main",
+            "head_commit": {"message": original_896_value},
+        })
+    except trace.TraceError:
+        pass
+    else:
+        raise SystemExit("invalid #896 original Main merge must not be reported PASS")
+    try:
+        main_run_name.validate_merge_title(original_896_value, 896, 902)
+    except ValueError:
+        pass
+    else:
+        raise SystemExit("English-only/multiline original #896 title must fail preflight")
+
+# The correction is a new same-Issue, non-docs, full-test PR.  Use the
+# existing pure helper; 999 is an isolated synthetic PR number, not a live
+# GitHub PR, and the real PR's number and exact Head must be checked later.
+corrective_896_summary = "합성 UI 증거 Main CI 복구"
+corrective_896_payload = main_run_name.merge_api_payload(
+    896, 999, corrective_896_summary, "e" * 40
+)
+require(
+    corrective_896_payload == {
+        "merge_method": "merge",
+        "commit_title": "Issue #896 · PR #999 · 합성 UI 증거 Main CI 복구",
+        "commit_message": "",
+        "expected_head_sha": "e" * 40,
+    }
+    and main_run_name.validate_merge_title(
+        corrective_896_payload["commit_title"], 896, 999
+    ) == corrective_896_payload["commit_title"]
+    and trace.validate_push({
+        "ref": "refs/heads/main",
+        "head_commit": {
+            "message": corrective_896_payload["commit_title"]
+            + corrective_896_payload["commit_message"]
+        },
+    }) == (896, 999),
+    "corrective #896 requires the same lease-bound one-line Korean title, empty body",
+)
+corrective_896_cli = subprocess.run(
+    [sys.executable, str(MAIN_RUN_NAME_IMPL),
+     "--issue", "896", "--pr", "999",
+     "--validate-title", corrective_896_payload["commit_title"],
+     "--as-merge-payload", "--expected-head-sha", "e" * 40],
+    capture_output=True, text=True, check=True,
+)
+require(
+    json.loads(corrective_896_cli.stdout) == corrective_896_payload,
+    "the actual CLI connector payload must match validated title/body/Head",
+)
+for incorrect_896_title in (
+    corrective_896_payload["commit_title"] + "\n\nRefs #896",
+    corrective_896_payload["commit_title"].replace("PR #999", "PR #902"),
+    corrective_896_payload["commit_title"].replace("Issue #896", "Issue #895"),
+):
+    try:
+        main_run_name.validate_merge_title(incorrect_896_title, 896, 999)
+    except ValueError:
+        pass
+    else:
+        raise SystemExit("wrong Issue, PR or nonempty merge body must be blocked")
+
+
 # Issue #603 / PR #604: a *one-line* English-only merge title was invalid.
 # This exact historical main SHA cannot be rewritten; a later same-Issue PR
 # with full-scope CI and a Korean canonical title must supersede its failed CI.
