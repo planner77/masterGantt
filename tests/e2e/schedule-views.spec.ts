@@ -865,7 +865,7 @@ test("#898/#899 projected Grid single-click reveal and real pointer Ctrl+wheel a
     const row = taskRows(surface, f.task.taskId).first();
     const bar = row.locator(".project-schedule-view-bar");
     const select = row.locator(".project-schedule-view-name > button:not(.project-schedule-view-info)");
-    const info = row.getByRole("button", { name: `작업 정보 열기: ${f.task.name}`, exact: true });
+    const openInfoButton = row.getByRole("button", { name: `작업 정보 열기: ${f.task.name}`, exact: true });
     const capacity = await bar.evaluate(element => {
       const root = element.closest<HTMLElement>("[data-schedule-view-scroll]")!;
       const x = Number.parseFloat((element as HTMLElement).style.left);
@@ -906,7 +906,7 @@ test("#898/#899 projected Grid single-click reveal and real pointer Ctrl+wheel a
     await select.dblclick();
     await expect(editor.getByLabel("작업명", { exact: true })).toHaveValue(f.task.name);
     await editor.press("Escape");
-    await info.focus(); await info.press("Enter");
+    await openInfoButton.focus(); await openInfoButton.press("Enter");
     await expect(editor.getByLabel("작업명", { exact: true })).toHaveValue(f.task.name);
     await editor.press("Escape");
     await bar.click();

@@ -29,3 +29,9 @@
 - PR 메타데이터 source 계약은 `scripts/verify-ci-run-trace.py`의 `Refs #898` 단독 한 줄, Title의 `Issue #898` 하나, branch의 Primary `issue-898` 하나와 일치. `scripts/qa_preflight.py`의 위험/QA/릴리스 standalone 선언, Work Packet AC01..AC06/문서별 UPDATED·N/A(reason)/REUSE_REVIEW를 준수한다. 기존 검증 스크립트·workflow는 수정하지 않는다.
 - `tests/features/gantt/gantt-density.test.ts` (EXTEND): `densityWheelPointer`가 좌표가 없는 synthetic `isTrusted=false, (0,0)`를 DOM fallback으로, trusted 실제 (0,0)·nonzero pointer를 좌표 판정으로 분리함을 검증. 기존 `project-summary-bar-visual.spec.ts:607-617` / `schedule-views.spec.ts:753-758` 합성 DOM 취소 회귀는 KEEP_UNIQUE, WBS·projected 실제 `Control + page.mouse.wheel` 위치 테스트와 별도로 유지한다.
 - **Run #3606.1**은 메타데이터/QA 단계에서 FAIL한 실행으로 **실제 제품 테스트는 SKIPPED**. 신규 HEAD의 실제 Unit·Typecheck·ESLint·E2E8·Docker PASS는 새 Full PR CI가 끝날 때까지 NOT TESTED. 기존 타 이슈 CI나 synthetic PASS를 승격하지 않는다.
+
+## PR #904 Full #3608.1 — E2E TestInfo 인자 shadowing REWORK (2026-11-09)
+
+- **원본 직접 실패**: Run [42573087287.1](https://github.com/planner77/masterGantt/actions/runs/42573087287)에서 `tests/e2e/schedule-views.spec.ts:891:44` TS2345. 신규 Playwright `test(..., async (fixtures, info))`의 `TestInfo`가 중첩 `const info = row.getByRole(...)`의 `Locator`로 가려져 #896 `captureSyntheticUiEvidence(page, info, ...)` 타입 계약을 위반했다.
+- **재사용 판정**: `EXTEND` 동일 E2E/Fixture/증거 Helper, 지역 변수만 `openInfoButton`으로 바꾸고 `focus`·`Enter` 참조 2곳만 재연결. 기존 #880/#889 HTTP/SQLite, #822 density/physical mouse, #896 UI Evidence manifest, 입력/보안/geometry/selection/Editor assertion 및 timeout·retry·skip·Required Quality/E2E8/Docker 유지.
+- **검증 전후 분리**: #3608.1에서 QA Bootstrap/Changes/Preflight/Vitest/ESLint/정책 PASS, TypeScript 직접 FAIL, E2E8/Next Build/Docker 구현 SKIPPED. 수정 HEAD `typecheck`·새 Full PR 8 shards/Docker/Trusted/Owner/실제 운영 UAT는 실행 근거 전 NOT TESTED. 결과는 [누적 원장](ISSUE_898_899_FAILURE_ANALYSIS.md)에 기록.
