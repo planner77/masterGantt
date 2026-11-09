@@ -3,7 +3,7 @@
 1. Gantt `Ctrl+wheel` gesture는 현재 View에서 포인터가 실제 Grid 또는 Chart 가시 **본문**에 있을 때만 소유하고 첫 취소 가능 wheel 이벤트의 브라우저 Page Zoom을 방지한다. 빈 row/Chart 배경·scroll layer도 측정하며 header/toolbar/input/Editor/menu/별도 화면의 브라우저 동작을 가로채지 않는다. DOM synthetic 테스트만으로 실제 browser zoom PASS 금지.
 2. Resource·설비 Grid Task 일반 단일 선택은 **Editor를 열지 않음**. 선택과 동시에 현재 projected scroller의 Task 시작을 sticky Grid/Chart 분리선 오른쪽으로 정렬(가능할 때 ≤1 CSS px). 원본 Task 선택 identity와 중복 경로의 표시행 `viewRowKey`를 분리한다. Editor는 더블클릭·명시적 label/키보드/터치 가능한 정보 버튼·기존 Chart Bar로 진입한다. Group 행은 축소/확대만.
 3. 실제 source receipt/revision/사용자 intent/읽기전용, WBS hidden Core 원본 인스턴스, status/errors/포커스 복원, 기존 44px coarse 타깃, Day/Week/전체화면·언어/좁은 화면을 보호한다. 불가능한 scroll alignment는 typed NO_DATE/NO_SCROLL_CAPACITY/NOT_MEASURABLE, 성공 화면으로 오인하지 않는다.
-4. 새 증거는 [#896 UI Evidence](UI_EVIDENCE.md) 기준으로 실제 pointer event·DOM geometry·원본 snapshot·PNG/manifest·Owner UAT를 구분한다. [통합 Work Packet](exec-plans/active/ISSUE_898_899.md), [시험 계획](ISSUE_898_899_TEST_PLAN.md).
+4. 새 증거는 [#896 UI Evidence](UI_EVIDENCE.md) 기준으로 실제 pointer event·DOM geometry·원본 snapshot·PNG/manifest·Owner UAT를 구분한다. [통합 Work Packet](exec-plans/active/ISSUE_898.md), [시험 계획](ISSUE_898_899_TEST_PLAN.md).
 
 ---
 
