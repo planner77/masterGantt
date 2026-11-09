@@ -692,10 +692,9 @@ require(
 )
 
 
-# MAIN-896-001: exact immutable Main #3598.1 failed in the trusted trace
-# gate because PR #902's two-parent merge carried an English-only subject
-# AND a multiline body.  Do not edit/force-push the original merge, weaken
-# the validator, claim a rerun has repaired that message, or skip Full CI.
+# MAIN-896-001: 원본 Main #3598.1은 PR #902 병합 커밋의 영문 제목과
+# 비어 있지 않은 여러 줄 본문 때문에 신뢰 추적 검증에서 차단됐다.
+# 불변 원본 병합을 수정/강제 푸시하거나 파서를 완화하거나 이전 실패를 PASS로 간주하지 않는다.
 failed_896_subject = "Issue #896 · PR #902 · UI evidence provenance and shard stability"
 failed_896_message = (
     failed_896_subject
@@ -708,7 +707,7 @@ failed_896_message = (
 for original_896_value in (failed_896_subject, failed_896_message):
     require(
         main_run_name.parse_merge_title(original_896_value) is None,
-        "immutable #896 Main #3598.1 invalid merge must remain rejected",
+        "#896 Main #3598.1의 잘못된 병합 메시지는 계속 거부해야 합니다",
     )
     try:
         trace.validate_push({
@@ -718,17 +717,17 @@ for original_896_value in (failed_896_subject, failed_896_message):
     except trace.TraceError:
         pass
     else:
-        raise SystemExit("invalid #896 original Main merge must not be reported PASS")
+        raise SystemExit("#896 원본 Main 병합 실패를 PASS로 표시하면 안 됩니다")
     try:
         main_run_name.validate_merge_title(original_896_value, 896, 902)
     except ValueError:
         pass
     else:
-        raise SystemExit("English-only/multiline original #896 title must fail preflight")
+        raise SystemExit("#896 원본 영문 제목·여러 줄 본문은 사전 검증에서 거부해야 합니다")
 
-# The correction is a new same-Issue, non-docs, full-test PR.  Use the
-# existing pure helper; 999 is an isolated synthetic PR number, not a live
-# GitHub PR, and the real PR's number and exact Head must be checked later.
+# 교정은 동일 Issue의 비문서 변경을 포함한 새 전체 검증 PR에서 수행한다.
+# 기존 helper를 재사용하며 999는 합성 테스트 번호일 뿐 실제 GitHub PR이 아니다.
+# 후속 병합 직전 실제 PR 번호와 Head SHA를 다시 검증해야 한다.
 corrective_896_summary = "합성 UI 증거 Main CI 복구"
 corrective_896_payload = main_run_name.merge_api_payload(
     896, 999, corrective_896_summary, "e" * 40
@@ -750,7 +749,7 @@ require(
             + corrective_896_payload["commit_message"]
         },
     }) == (896, 999),
-    "corrective #896 requires the same lease-bound one-line Korean title, empty body",
+    "#896 교정 병합은 한글 단일 행·빈 본문·정확한 Head SHA 계약을 유지해야 합니다",
 )
 corrective_896_cli = subprocess.run(
     [sys.executable, str(MAIN_RUN_NAME_IMPL),
@@ -761,7 +760,7 @@ corrective_896_cli = subprocess.run(
 )
 require(
     json.loads(corrective_896_cli.stdout) == corrective_896_payload,
-    "the actual CLI connector payload must match validated title/body/Head",
+    "#896 실제 CLI 반환값은 검증된 제목·빈 본문·Head SHA와 일치해야 합니다",
 )
 for incorrect_896_title in (
     corrective_896_payload["commit_title"] + "\n\nRefs #896",
@@ -773,7 +772,7 @@ for incorrect_896_title in (
     except ValueError:
         pass
     else:
-        raise SystemExit("wrong Issue, PR or nonempty merge body must be blocked")
+        raise SystemExit("#896 다른 Issue/PR 번호 또는 비어 있지 않은 병합 본문은 차단해야 합니다")
 
 
 # Issue #603 / PR #604: a *one-line* English-only merge title was invalid.

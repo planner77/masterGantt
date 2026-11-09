@@ -58,7 +58,7 @@
 - `docs/REMOTE_VALIDATION.md`: UPDATED
 - `docs/TEST_PLAN.md`: UPDATED
 - `docs/TEST_PLAN_895_897.md`: UPDATED
-- `docs/QA_REVIEW_POLICY.md`: UPDATED
+- `docs/QA_REVIEW_POLICY.md`: N/A(현재 PR은 기존 Owner-managed 정책과 QA 승인 계약을 재사용하며 해당 문서 내용을 수정하지 않음)
 - `docs/UI_UX_GUIDELINES.md`: UPDATED
 - `docs/ISSUE_LIFECYCLE.md`: UPDATED
 - `docs/PREVIEW_PUBLISH.md`: UPDATED
@@ -125,3 +125,11 @@
 - AC_TEST_COVERAGE: 기존 AC01~05의 #902 수용 범위 보존, AC06 추적/CI/OCI/Finalizer 보호의 새로운 음성·양성 및 실제 Full8. TEST_LIFECYCLE_REVIEW=EXTEND 동일 main-ci 제목·Trace 테스트, KEEP_UNIQUE #896 UI/Fixture/Source/E2E8/OCI, ADD 이번 불변 실패 원본 음성. test 삭제·skip·retry·timeout 완화 없음.
 - DOCUMENTATION_SYNC (교정 PR 실제 diff): docs/ISSUE_896_FAILURE_ANALYSIS.md, 이 Packet, docs/exec-plans/active/PLAN.md, docs/TEST_PLAN.md, docs/CI_CD.md, docs/GITHUB_OPERATIONS.md, docs/REMOTE_VALIDATION.md UPDATED. AGENTS.md=N/A(이미 표준 한글 one-line/empty body 명시); DESIGN.md/docs/UI_EVIDENCE.md/docs/API.md/docs/DB_SCHEMA.md=N/A(제품/화면/API/DB 계약 불변); docs/QA_REVIEW_POLICY.md/docs/ISSUE_LIFECYCLE.md/docs/GENERIC_RELEASE_FINALIZER.md=N/A(기존 보호/동일 Issue supersession 재사용); package/lock/CHANGELOG=N/A(version0.145.1 유지).
 - risk_level HIGH, qa_method OWNER_MANAGED, qa_required true, independent_qa N/A(Owner-managed). release_required=false, release_authorized=false, 정식 SemVer 릴리스 N/A. 새 Head Full PR Required3/8·Trusted+review0·main strict·Owner 명시 수용 이전에는 MERGE_READY BLOCKED. 검증 이후 실제 새 PR 번호와 Head로 main_ci_run_name.py --as-merge-payload 및 --validate-title 두 번 확인한 완전한 payload를 그대로 merge API에 전달한다. Main push Required3/verified GHCR ci-SHA/digest/Generic Finalizer/Issue closure는 별도 성공 증거를 필요로 하며, Main CI 시작 후 감시하지 않는다.
+
+## REWORK — PR #903 / Full #3603.1 (F-005: QA Preflight / Review P1, 2026-11-09)
+
+- **원본:** [Full PR #3603.1, Run42556604176 attempt1](https://github.com/planner77/masterGantt/actions/runs/42556604176), Head `2815ebd80a7816403746fc3f089e003184cc18ec`, base `8ae8413d00d50f476f8f377fe207effa70c23195`, test-merge `0883cb4c7fa0b7ff3fc247bc5086423b8f3e7701`. changes PASS, 직접 QA Preflight [Job128963728905](https://github.com/planner77/masterGantt/actions/runs/42556604176/job/128963728905) **FAIL**: `DOCUMENTATION_SYNC / AC_TEST_COVERAGE — 문서 변경 또는 N/A(reason) 미입증: docs/QA_REVIEW_POLICY.md`. Fast Gate/Required Quality/E2E/Docker·QA Final FAIL은 파생, 정책·Vitest·Chromium8·Docker 구현 SKIPPED/NOT TESTED. 원본 Main #3598 F-004와 별개 F-005로 보존.
+- **코드 리뷰:** [P1 스레드](https://github.com/planner77/masterGantt/pull/903#discussion_r4509208029) 1건 — 이번 lifecycle 회귀 검사에서 새로 직접 작성한 `require()`/`SystemExit` 영어 오류 설명이 `AGENTS.md` CI/CD 한글 원칙과 충돌. 원본 영어 Merge 사고 fixture, `PASS` 등 상태값은 변조하지 않고 신규 진단 문구 6건과 관련 신규 주석만 한글화한다.
+- **원인:** 최상단 `## DOCUMENTATION_SYNC`의 과거 #902 스냅샷에 `docs/QA_REVIEW_POLICY.md: UPDATED`를 유지했지만 현 교정 PR은 QA 정책 파일을 변경하지 않았다. 기본 브랜치 `qa_final_automated.docs_gate`는 정확한 fenced path별 단일 `UPDATED` 또는 `N/A(reason)` 선언을 읽고 `UPDATED`이면 실제 변경 경로에 파일이 있어야 한다. 후단 F-004 서술의 결합된 `N/A` 목록은 정규식 계약을 충족하지 않는다.
+- **REUSE_REVIEW=EXTEND:** 기존 trusted `qa_preflight.py`/`qa_final_automated.docs_gate` 및 기존 `scripts/verify-issue-lifecycle.py`의 음성·양성 검증을 그대로 재사용. `## DOCUMENTATION_SYNC`의 `docs/QA_REVIEW_POLICY.md`를 현 PR의 의미에 맞는 `N/A(기존 Owner-managed 보호 계약 불변, 문서 수정 없음)`로 바꾼다. 원본 #902에서 해당 문서가 UPDATED였다는 사실은 원본 병합 diff에 보존되며 이번 교정 변경의 현재 판정만 수정한다. 신뢰 QA 코드/Required3/검증 구조·skip/retry/timeout은 변경하지 않는다.
+- **TEST_LIFECYCLE_REVIEW:** EXTEND F-004 회귀 파일의 오류 설명 한글화 및 Work Packet의 기존 `DOCUMENTATION_SYNC` 구조. KEEP_UNIQUE 원본 사고 fixture 및 기존 Main 제목·Trace/OCI/Finalizer 검사, 8 Chromium 샤드. 추가 별도 러너 없음. **DOCUMENTATION_SYNC:** 이 Packet 및 단일 원장 UPDATED; `docs/QA_REVIEW_POLICY.md` N/A(정책·Owner 경계 변경 없음), 기타 F-004 변경 파일 유지. 새 Head에 대한 원격 Full/Trusted·Owner/Manager는 **NOT TESTED**이며 MERGE_READY=BLOCKED.
