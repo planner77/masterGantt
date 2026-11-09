@@ -1,3 +1,13 @@
+## Issues #898 / #899 — Resource·설비 Grid의 명시 Task Editor 진입·호출 지점 복원 (2026-11-09)
+
+Resource·설비 조회 View의 Task Grid 일반 단일 클릭은 canonical Task 선택과 현재 표시행 Chart 시작점 정렬만 수행한다. 같은 행의 별도 `작업 정보 열기` 버튼(키보드 Enter/Space 및 터치 접근 가능), Grid 더블클릭 또는 Chart Bar 클릭으로만 원본 Task Editor를 연다. 원본 Task/권한/readonly·revision/Gantt Core/서버 쓰기0는 기존 계약 그대로다.
+
+Editor를 Escape/취소로 닫으면 호출한 **정확한 버튼**으로 포커스를 복구한다. 명시 정보 버튼의 경우 일반 선택 버튼으로 바뀌면 안 되며, 차트 Bar/선택 버튼의 편집 호출도 각각 원래 트리거로 돌아간다. 기존 `editorTriggerReference`와 `scheduleOrigin.rowKey`를 재사용해 같은 표시행의 연결된 활성 원본 버튼을 우선하고 DOM이 재구성된 경우에만 같은 역할의 버튼→동일행의 활성 버튼→scroll root로 안전하게 복원한다. 이미 다른 사용자가 입력했거나 source/Project가 달라진 경우 낡은 핸들로 강제 focus·WBS 이동·두 번째 writer를 만들지 않는다.
+
+[통합 Work Packet](exec-plans/active/ISSUE_898.md), [Chromium Focus 실패 원장](ISSUE_898_899_FAILURE_ANALYSIS.md), [추가 시험 계획](ISSUE_898_899_TEST_PLAN.md). PR #904 Full #3609.1의 #880 기존 Editor-Enter/Escape `toBeFocused` 실패를 수정하며 기존 assertion을 완화하지 않는다. 새 Head Full Chromium8/Quality/Docker 및 Owner UAT 완료 전 `NOT TESTED`.
+
+---
+
 ## Issue #885 — Task/Summary/Milestone Description Markdown (2026-11-07)
 
 기존 Description은 `plain`으로 읽으며 다른 입력을 수정해도 서식이 바뀌지 않는다. **Markdown 편집으로 전환**을 직접 선택하면 안전 이스케이프 후 MDXEditor 시각적 편집이 열리고, 툴바 **Source mode**에서 원문을 입력한다. 저장 시 `description` 원문과 `descriptionFormat: "markdown"`을 함께 PATCH한다. Task 편집 잠금/readonly/stale/unsaved 취소 확인, 일정 계산, 프로젝트 revision/리소스 변경 잠금은 이전과 동일하다. 최대 10,000 Unicode 문자, 이미지·HTML 실행 불가, CodeFence·표·체크리스트·링크는 안전한 AST 렌더러로만 보여 준다.

@@ -906,12 +906,15 @@ test("#898/#899 projected Grid single-click reveal and real pointer Ctrl+wheel a
     await select.dblclick();
     await expect(editor.getByLabel("작업명", { exact: true })).toHaveValue(f.task.name);
     await editor.press("Escape");
+    await expect(select, "Grid double-click returns to its original select button").toBeFocused();
     await openInfoButton.focus(); await openInfoButton.press("Enter");
     await expect(editor.getByLabel("작업명", { exact: true })).toHaveValue(f.task.name);
     await editor.press("Escape");
+    await expect(openInfoButton, "explicit information command retains its focus on close").toBeFocused();
     await bar.click();
     await expect(editor.getByLabel("작업명", { exact: true })).toHaveValue(f.task.name);
     await editor.press("Escape");
+    await expect(bar, "Chart bar Editor returns to the clicked bar").toBeFocused();
     await expect(editor).toHaveCount(0);
   }
 

@@ -35,3 +35,9 @@
 - **원본 직접 실패**: Run [42573087287.1](https://github.com/planner77/masterGantt/actions/runs/42573087287)에서 `tests/e2e/schedule-views.spec.ts:891:44` TS2345. 신규 Playwright `test(..., async (fixtures, info))`의 `TestInfo`가 중첩 `const info = row.getByRole(...)`의 `Locator`로 가려져 #896 `captureSyntheticUiEvidence(page, info, ...)` 타입 계약을 위반했다.
 - **재사용 판정**: `EXTEND` 동일 E2E/Fixture/증거 Helper, 지역 변수만 `openInfoButton`으로 바꾸고 `focus`·`Enter` 참조 2곳만 재연결. 기존 #880/#889 HTTP/SQLite, #822 density/physical mouse, #896 UI Evidence manifest, 입력/보안/geometry/selection/Editor assertion 및 timeout·retry·skip·Required Quality/E2E8/Docker 유지.
 - **검증 전후 분리**: #3608.1에서 QA Bootstrap/Changes/Preflight/Vitest/ESLint/정책 PASS, TypeScript 직접 FAIL, E2E8/Next Build/Docker 구현 SKIPPED. 수정 HEAD `typecheck`·새 Full PR 8 shards/Docker/Trusted/Owner/실제 운영 UAT는 실행 근거 전 NOT TESTED. 결과는 [누적 원장](ISSUE_898_899_FAILURE_ANALYSIS.md)에 기록.
+
+## PR #904 Full #3609.1 — 조회 Editor 호출 지점 focus 복원 R3 (2026-11-09)
+
+- [Full #3609.1](https://github.com/planner77/masterGantt/actions/runs/42579764884): #880 기존 `tests/e2e/schedule-views.spec.ts:102-108` Enter→Editor→Escape의 정보 버튼 focus 기대 직접 FAIL(Chromium shard3), 기존 TypeScript/Vitest/ESLint/Build/Docker PASS. Shard6 PASS, 나머지 6 CANCELLED, aggregate E2E/QA Final 파생 FAIL. 코드의 `finishTaskEditor` 첫 버튼 fallback이 분리된 선택 버튼으로 이동시키는 소스 회귀.
+- **EXTEND**: 기존 #880 actual HTTP/SQLite Editor Test의 `toBeFocused`를 약화하지 않는다. 새 #899 실브라우저 테스트에도 Grid select 더블클릭→해당 select 버튼, 정보 버튼 keyboard Enter→해당 info, Chart Bar 클릭→해당 Bar를 각각 `toBeFocused`로 단언한다. Role-aware fallback은 동일 표시 rowKey·canonical task/source freshness 확인 뒤 처리. DOM 교체/가상행/두 번째 사용자 입력과 비모달 인접 경계는 기존 테스트·Work Packet 사용.
+- **KEEP_UNIQUE**: 기존 #822/#889 실제/합성 휠·Page Zoom/저장0와 프로젝트 Editor 권한/초안·기존 Focus 변형 E2E를 삭제/skip하지 않는다. Full Required Quality + Chromium8 + Docker, Trusted/Owner/UAT 및 정확 SHA를 다시 검증한다. 새 Head/운영 UAT는 실행 전 `NOT TESTED`.
