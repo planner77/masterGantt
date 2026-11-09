@@ -1,3 +1,11 @@
+## [0.145.2] — Unreleased / Issues #898·#899 (2026-11-09)
+
+- WBS/Resource/설비의 실제 Ctrl+마우스휠을 Grid/Chart 가시 본문·빈 배경/스크롤 레이어에서도 인식하도록 기존 Gantt 단일 캡처 wheel listener를 보완한다. 해당 본문 이벤트의 브라우저 Page Zoom 방지와 세로 밀도 34/32/30/28px 조정을 유지하고 입력·메뉴·헤더·Editor 등 제외 영역은 보존한다.
+- Resource·설비 View Task Grid의 단일 클릭을 **선택+현재 표시행 Chart 시작점 좌측 정렬**로 변경하고 Task Editor 자동 열기를 없앤다. 더블클릭/명시 정보 버튼(키보드·터치)/Chart Bar로 원본 Task Editor를 연다. 중복 배정 rowKey, canonical Task ID 및 readonly/쓰기0를 유지한다.
+- [통합 Work Packet](docs/exec-plans/active/ISSUE_898_899.md), [시험 계획](docs/ISSUE_898_899_TEST_PLAN.md), [원장](docs/ISSUE_898_899_FAILURE_ANALYSIS.md). 실제 새 HEAD Full PR CI·운영 기기 UAT는 NOT TESTED. 정식 GHCR 릴리스 미승인; 이전 0.145.1 태그·Digest 불변.
+
+---
+
 ## [0.145.1] — Unreleased / Issue #889·#890 (2026-11-08)
 
 - WBS/Resource/설비의 공통 toolbar 상태 슬롯·열 배치·2단 Day/Week 헤더 및 본문 Ctrl+휠 세로 밀도를 통합한다.
