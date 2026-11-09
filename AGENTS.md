@@ -10,7 +10,7 @@
 
 ## Issues #898 / #899 — Gantt 실제 Ctrl+휠·조회 Grid 선택 회귀 (2026-11-09)
 
-- 사용자 승인: #898과 #899를 **하나의 PR**에서 구현하며 #822/#880/#889/#895/#896 기존 코드/fixture/단일 frame capture listener/증거를 우선 재사용·확장한다. REUSE_REVIEW=EXTEND, 소스 출처·재사용 가능 조건과 미검증은 [통합 Work Packet](docs/exec-plans/active/ISSUE_898_899.md)에 기록한다.
+- 사용자 승인: #898과 #899를 **하나의 PR**에서 구현하며 #822/#880/#889/#895/#896 기존 코드/fixture/단일 frame capture listener/증거를 우선 재사용·확장한다. REUSE_REVIEW=EXTEND, 소스 출처·재사용 가능 조건과 미검증은 [통합 Work Packet](docs/exec-plans/active/ISSUE_898.md)에 기록한다.
 - #898: WBS/Resource/설비의 가시 Grid·Chart 본문에서 Ctrl+실제 휠의 행 밀도를 변경하고 브라우저 zoom을 막는다. 기존 34/32/30/28px(coarse44px), native single writer, header/input/menu/dialog 제외, 캡처 취소 가능 이벤트 범위 보존. 합성 WheelEvent 성공으로 실제 마우스 성공을 주장하지 않는다.
 - #899: Resource·설비 Grid Task 단일 선택=선택+현재 표시행의 Chart 시작점 좌측 reveal만. Editor는 명시 버튼/더블클릭/Chart Bar만. RowKey/TaskId 구분과 조회 readonly·source freshness/bookmark를 유지하고, 날짜·scroll capacity 부족을 typed 상태로 표시한다. WBS/서버 원본·CI/QA/보안은 변경하지 않는다.
 - 앱 후보 0.145.2, risk HIGH/OWNER_MANAGED/qa_required=true, release_required=true, release_authorized=false. Full PR Required3/E2E8·Trusted/Owner·#897 UAT와 정확 Main verified OCI/정식 GHCR는 별도이며, 요청 종료점은 **모니터링 없는 PR CI 시작**. 이전 v0.145.1 immutable tag/GHCR/FINAL 유지. [실패 원장](docs/ISSUE_898_899_FAILURE_ANALYSIS.md), [추가 Test Plan](docs/ISSUE_898_899_TEST_PLAN.md).
