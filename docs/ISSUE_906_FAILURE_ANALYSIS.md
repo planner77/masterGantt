@@ -265,3 +265,25 @@ D906-002의 inventory/필수 소비자 구분을 실제 관측된 범위로 좁�
 - 설치 의존성34108files/683162100bytes, 원본·복사·실행 전후5 inventory 동등 SHA256 4134b58c51707c51ecbd741b9c92e3efad7fe9fae9506255d00b9c3f8fbacccd. 원본 install/source와 controller 코드 불변, Next 생성 metadata audit PASS(AGENT 불변·next-env만 허용), 내부 snapshot cleanup PASS.
 - 새 helper 집중57case/typecheck/lint PASS. 독립 qa_docs도 snapshot12case를 실제 재실행해 PASS하고 진단 raw 결과를 읽어 source/control/deps/audit 보존을 대조했다.
 - 근거: diagnostic-906-f015-bc44 worktree의 .prepr-reports/f015-copy-preflight/diagnostic-result.json·chromium log/results·browser-source audit·failure artifacts. 새 frozen 프로젝트 commit에서 전체 fast/targeted/docker/admit를 다시 실행한다.
+
+## F906-017 · DOCKER / 재시작 이후 동적 포트 — FAIL
+
+- exact candidate `e9d50d161e78c4058174206e95d1419753d7a75d`, 고정 base `4aad8865972e3446f0d34c7ffcfd2bbab439e366`. Docker 검증 2026-11-10T23:24:14.411Z~23:29:35.958Z 최종 FAIL. 같은 source의 fast3909PASS/기존3SKIP와 targeted176PASS·Chromium4PASS는 해당 source 한정으로 보존한다.
+- 실패 step9 `Docker API/SQLite persistence`: 실제 `node scripts/verify-registry-api-smoke.mjs http://127.0.0.1:32768 mastergantt-w22-local`, 23:29:02.750Z 시작,31681ms,exit1. 재시작 이후 이전 localhost URL의 readiness를 기다려 실패했다. 이를 제품 API/DB 손상으로 단정하지 않고 실행 환경·호출 경계를 진단했다.
+- source fingerprint `ef486e88ddb5fa90f16d3d7e34dca90a300193ade7f9cc2aa92aaea300fdadbb`, content SHA256 `f77992136002c9588b0ad1de64f96a92299fbb6fe5a4b8dea3a840d232b8919b`, environment `c83364ab178020128d4dd5b4586ac87451e1ee1cafcb4030ea1632743ff57842`; sourceStable/environmentStable=true. 원본 report integrity `53bc2815c497814cadd2f9a2cdb17c40f3000bae4caa1fe41cf390674a4cd45d`, `.prepr-reports/final-docker-e9d50d16/report.json`·단계 로그/OCI는 ignored에 보존한다.
+- 확정 원인: Docker의 빈 HostPort 동적 매핑은 restart 때 다시 할당될 수 있다. 같은 image/container의 포트만 변경됐고, 이전 고정 URL을 계속 사용하는 smoke caller가 이를 반영하지 못했다. 제품 코드·SQLite 원본 계약 오류로 확대하지 않는다.
+- 교정 계획: 허용된 자기 container의 정확 ID/image·loopback 매핑을 재조회하여 restart 후 새 URL을 안전하게 사용한다. 이름/ID/image 변경·외부 주소·복수/누락 매핑·inspect 실패는 차단한다. 새 helper·음성 테스트와 API/SQLite 재시작 smoke의 실제 PASS는 아직 NOT TESTED다.
+- 단계 판정 REWORK: Push/Publish/Close BLOCKED. source가 바뀌므로 새 candidate에서 전체 fast/targeted/docker/admit와 독립 QA를 다시 수행하며 e9 이미지·old source PASS를 새 SHA 게시 근거로 재사용하지 않는다.
+
+## V906-012 · F906-017 원인 진단 / 동일 기존 image — PASS(진단 범위)
+
+- 실제 명령 `node /tmp/mastergantt-906-restart-port-probe.mjs`, 작업 worktree cwd. infra가 shell session98647 완료 exit0를 확인했다. 이는 container State.ExitCode0와 다른 관측이다. 2026-11-10T23:32:30.515Z~23:32:37.426Z, scope `DIAGNOSTIC_ONLY_EXISTING_IMAGE_NO_REBUILD`.
+- 기존 runtime-load.tar를 사용해 재빌드/registry write 없이 검사했다. image `sha256:fa55c77e7be04c7f61cddb2b684d208d9c1dd7af64b264ba782e760f8c2e133c`, container `c7ae517df0ed2b267ee788bb72273241489a4f796113c4e7d461bb7ad7ff9a32`는 restart 전후 같았다.
+- HostConfig의 127.0.0.1 동적 HostPort는 그대로지만 실제 포트32770→32771로 바뀌었다. old URL은 ECONNREFUSED, 새 URL readiness=true·컨테이너 내부HTTP200, process running/State.ExitCode0였다. 자기 container/anonymous volume cleanup=true.
+- 증거 `.prepr-reports/restart-port-diagnostic-e9/result.json`. 이 진단은 실제 원인·새 주소의 readiness만 검증한다. 수정된 helper의 권한·주소 guard와 Project/Task API·SQLite restart persistence, 새로운 candidate 전체 Gate는 별도 미실행이다.
+
+## V906-013 · F906-017 자기 container remap helper 집중 검증 — PASS(범위 제한)
+
+- 독립 qa_docs 실제 명령: `npx vitest run --config tests/config/vitest.config.ts tests/scripts/registry-smoke.test.ts --maxWorkers=1`, 작업 worktree cwd. exit0,1file/5tests PASS,268ms. runner Start at08:37:19 KST(2026-11-10T23:37:19Z, 초 단위 표시).
+- 같은 running container ID/image에 한해 변경된 포트를 따르고, 기존 고정 포트 호환·stale/외부 URL·비loopback·잘못된/없는/모호한 매핑·inspect 실패·예상하지 않은 container를 차단하는 계약을 검사했다. Docker runtime 검증 의무도 유지한다.
+- source는 e9 HEAD 위 WIP helper/core/API 변경이다. 전체 working source/env fingerprint는 미수집이며 새 exact candidate의 전체 Gate PASS가 아니다. 실제 수정 helper의 API/SQLite restart persistence·admission·GHCR는 아직 별도 검증이 필요하다. 원본 F906-017 FAIL과 원인 진단은 그대로 보존한다.

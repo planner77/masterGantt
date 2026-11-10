@@ -1912,6 +1912,218 @@
           }
         }
       ]
+    },
+    {
+      "id": "F906-017",
+      "issue": 906,
+      "ledger": "docs/ISSUE_906_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        907,
+        908
+      ],
+      "domain": "tooling",
+      "layer": "docker-restart-address",
+      "keywords": [
+        "dynamic-port",
+        "restart",
+        "readiness",
+        "loopback",
+        "container-identity"
+      ],
+      "cause": "Docker restart가 빈 HostPort의 동적 포트를 재할당했지만 smoke caller가 이전 URL을 유지",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/scripts/prepr-docker.test.ts",
+          "case": "다른 source/version·다른 loaded ID/platform/rootfs/root USER를 거부한다",
+          "historical": false,
+          "coverageArea": "기존 runtime image identity 계약; 동적 remap helper·API persistence는 원본 진단과 후속 새 candidate 검증"
+        },
+        {
+          "path": "tests/scripts/registry-smoke.test.ts",
+          "case": "follows a changed published port only for the same running container and image",
+          "additionalCases": [
+            "preserves fixed-port CI callers and rejects stale or external supplied URLs",
+            "rejects non-loopback, invalid, absent or ambiguous Docker mappings",
+            "fails closed on inspection failure, malformed responses or an unexpected container",
+            "maps the helper to real identity regression and keeps Docker runtime verification mandatory"
+          ],
+          "historical": false,
+          "coverageArea": "동일 running container/image에 한한 재시작 port remap·고정포트 호환·외부/stale URL·잘못된 mapping·inspect 실패 음성 및 mandatory runtime 연결; 실제 Docker/SQLite persistence는 새 candidate 별도"
+        }
+      ],
+      "plannedTests": [
+        {
+          "path": "tests/scripts/registry-smoke.test.ts",
+          "scope": "자기 container identity/loopback/단일 mapping/inspect 실패·포트 재할당 음성 검증, 실제 작성·실행 후 별도 근거 추가"
+        }
+      ],
+      "residualRisk": "교정 helper와 새 exact candidate 전체 Gate 전 미완료; 원본 FAIL과 진단 PASS 범위 분리",
+      "events": [
+        {
+          "id": "exact-candidate-restart-smoke-failed",
+          "at": "2026-11-10T23:29:02.750Z",
+          "timeNote": "durationMs=31681;Docker전체2026-11-10T23:24:14.411Z~2026-11-10T23:29:35.958Z",
+          "stage": "DOCKER",
+          "status": "FAIL",
+          "sourceSha": "e9d50d161e78c4058174206e95d1419753d7a75d",
+          "fixSourceSha": null,
+          "sourceFingerprint": "ef486e88ddb5fa90f16d3d7e34dca90a300193ade7f9cc2aa92aaea300fdadbb",
+          "sourceNote": "base4aad8865972e3446f0d34c7ffcfd2bbab439e366 exact candidate; sourceStable=true",
+          "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+          "environmentVersion": "masterGantt 0.145.1",
+          "command": [
+            "node",
+            "scripts/verify-registry-api-smoke.mjs",
+            "http://127.0.0.1:32768",
+            "mastergantt-w22-local"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "restart 후 같은 app/SQLite에 대한 readiness 및 Project/Task persistence 검증 완료",
+          "actual": "step9 API/SQLite smoke가 restart 이후 이전 localhost URL을 기다려 exit1; app/DB 고장으로 단정하지 않음",
+          "input": "실제 exact candidate의 자기 Docker container와 합성 API 데이터",
+          "classification": "ENVIRONMENT",
+          "recovery": "정확 자기 container ID/image/loopback mapping을 재조회해 새 URL 사용; 보안 음성 테스트와 새 candidate 전체 Gate 필요",
+          "residualRisk": "이전 source fast/targeted PASS는 보존하되 Docker FAIL로 Push/Publish/Close BLOCKED; 새 source 교정 결과 아직 NOT TESTED",
+          "evidenceScope": "EXACT",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_906_FAILURE_ANALYSIS.md"
+            },
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:final-docker-e9d50d16/report.json"
+            }
+          ],
+          "sourceContentSha256": "f77992136002c9588b0ad1de64f96a92299fbb6fe5a4b8dea3a840d232b8919b",
+          "sourceStable": true,
+          "environmentFingerprint": "c83364ab178020128d4dd5b4586ac87451e1ee1cafcb4030ea1632743ff57842",
+          "environmentStable": true,
+          "runtimeImageId": "sha256:fa55c77e7be04c7f61cddb2b684d208d9c1dd7af64b264ba782e760f8c2e133c",
+          "reportIntegritySha256": "53bc2815c497814cadd2f9a2cdb17c40f3000bae4caa1fe41cf390674a4cd45d"
+        },
+        {
+          "id": "same-image-port-reassignment-diagnosed",
+          "at": "2026-11-10T23:32:30.515Z",
+          "timeNote": "완료2026-11-10T23:32:37.426Z;shell session98647 exit0 확인",
+          "stage": "DOCKER",
+          "status": "PASS",
+          "sourceSha": "e9d50d161e78c4058174206e95d1419753d7a75d",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "기존 e9 runtime-load image 재사용 진단; 전체 source fingerprint를 새로 측정한 candidate Gate가 아님",
+          "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+          "environmentVersion": "masterGantt 0.145.1",
+          "command": [
+            "node",
+            "/tmp/mastergantt-906-restart-port-probe.mjs"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "기존 image/container identity 불변인 restart에서 주소 변화 여부를 실제 관측",
+          "actual": "동일 ID/image, port32770→32771; oldECONNREFUSED/newReady=true/internalHTTP200/processrunning; 자기 cleanup=true",
+          "input": "기존 prebuilt e9 image, 재빌드·registrywrite 없음",
+          "classification": "ENVIRONMENT",
+          "recovery": "원인 확인만 완료. 실제 helper remap 보안 검증/API·SQLite persistence 교정 PASS는 미실행",
+          "residualRisk": "진단 readiness PASS를 최종 Docker/게시 PASS로 전용 금지",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_906_FAILURE_ANALYSIS.md"
+            },
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:restart-port-diagnostic-e9/result.json"
+            }
+          ],
+          "sourceContentSha256": null,
+          "sourceStable": null,
+          "environmentFingerprint": null,
+          "environmentStable": null,
+          "runtimeImageId": "sha256:fa55c77e7be04c7f61cddb2b684d208d9c1dd7af64b264ba782e760f8c2e133c",
+          "environmentNote": "같은 host/container/image를 검산했으나 별도 전체 환경 fingerprint 미수집",
+          "diagnosticScope": "DIAGNOSTIC_ONLY_EXISTING_IMAGE_NO_REBUILD",
+          "containerId": "c7ae517df0ed2b267ee788bb72273241489a4f796113c4e7d461bb7ad7ff9a32",
+          "portBefore": "32770",
+          "portAfter": "32771",
+          "oldAddressAfterRestart": "ECONNREFUSED",
+          "internalStatus": "200",
+          "cleaned": true,
+          "verification": {
+            "sourceSha": "e9d50d161e78c4058174206e95d1419753d7a75d",
+            "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+            "imageDigest": null,
+            "backupId": null
+          }
+        },
+        {
+          "id": "focused-remap-guard-tests-passed",
+          "at": "2026-11-10T23:37:19Z",
+          "timeNote": "runner Start at08:37:19 KST(초 단위); duration268ms",
+          "stage": "UNIT",
+          "status": "PASS",
+          "sourceSha": "e9d50d161e78c4058174206e95d1419753d7a75d",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "e9 HEAD 위 WIP helper/core/API 수정의 독립 집중 실행; 전체 working fingerprint 미수집",
+          "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+          "environmentVersion": "masterGantt 0.145.1",
+          "command": [
+            "npx",
+            "vitest",
+            "run",
+            "--config",
+            "tests/config/vitest.config.ts",
+            "tests/scripts/registry-smoke.test.ts",
+            "--maxWorkers=1"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "엄격한 자기 container/image·loopback remap과 비정상/모호/외부/inspect 실패 차단 계약",
+          "actual": "독립 qa_docs 1file/5tests PASS,268ms; 실제 Docker/SQLite/admission/GHCR를 실행한 결과가 아님",
+          "input": "registry-smoke helper의 합성 Docker inspect 응답과 실제 mapping/mandatory runtime 연결 회귀",
+          "classification": "FIXTURE",
+          "recovery": "guard helper 양성·음성 집중 검증만 PASS; 새로운 exact candidate 전체 Gate와 restart API/SQLite는 별도",
+          "residualRisk": "WIP 집중 source 결과를 e9 exact Docker 또는 새 source 게시 승인으로 전용 금지",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_906_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "sourceContentSha256": null,
+          "sourceStable": null,
+          "environmentFingerprint": null,
+          "environmentStable": null,
+          "environmentNote": "동일 작업 환경의 집중 실행, 별도 전체 환경 fingerprint 미수집",
+          "reviewer": "/root/qa_recovery",
+          "testFileCount": 1,
+          "testCaseCount": 5,
+          "elapsedMs": 268,
+          "verification": {
+            "sourceSha": "e9d50d161e78c4058174206e95d1419753d7a75d",
+            "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
     }
   ]
 }

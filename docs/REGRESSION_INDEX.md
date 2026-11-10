@@ -38,3 +38,11 @@ F906-012의 실제 전체 Unit 실패를 추가하여 현재 기계 등록은 12
 ## F906-015 진단 범위 교정
 
 실패 개수는16개로 유지하고 F906-015에 실제 DIAGNOSTIC_ONLY source의 후속 Chromium4PASS·snapshot/dependency audit PASS를 추가했다. 최초 계획3은 정적 오계수였으며 readonly1+timezone3의 실제4case로 정정한다. 기존 실패 시점의 실행0/root error1·계획3 원문은 삭제하지 않는다. 이 진단 source/controller는 최종 프로젝트 candidate와 다르므로 게시·운영 PASS로 사용하지 않는다.
+
+## Docker 재시작 주소 원본 추가
+
+현재 실제 실패는17개다. F906-017은 exact e9 candidate의 restart 후 동적 주소 변경을 caller가 반영하지 못한 Docker smoke FAIL이다. 동일 image/container 재시작 진단에서 포트 재할당과 새 주소 readiness만 확인했으며 Project/Task·SQLite persistence 교정 PASS는 아직 아니다. 기존 Gate와 원본은 source에 결속해 보존하고 새 source 전체 검증을 다시 수행한다.
+
+## F906-017 실제 guard 테스트 연결
+
+새 실제 `tests/scripts/registry-smoke.test.ts`의5개 양성/음성 case를 F906-017에 연결했다. 독립 qa_docs의 1file/5tests PASS는 WIP 집중 검사이며 Docker/SQLite·새 candidate 전체 Gate PASS가 아니다. 최초 plannedTests는 계획 이력으로 남기고 실제 테스트 경로·case 및 scoped event를 추가했다.

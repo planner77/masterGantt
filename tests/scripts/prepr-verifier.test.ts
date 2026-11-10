@@ -588,6 +588,30 @@ describe("Issue #908 — local-only publication admission", () => {
     expect(result.reasons.join(" ")).toContain("Docker API/SQLite persistence");
     expect(result.reasons.join(" ")).toContain("tests/scripts/prepr-verifier.test.ts");
   });
+  it("accepts a complete synthetic Docker receipt contract but rejects a non-loopback API command", () => {
+    // This is an in-memory schema/command fixture, never runtime or publish evidence.
+    const { report, source, environment, seal } = setup();
+    const changed = { ...source, changed: ["scripts/registry-smoke-core.mjs"] };
+    const selection = selectImpact({ changed: changed.changed, tests, risk: "HIGH" });
+    const consumer = "tests/scripts/registry-smoke.test.ts";
+    const fast = seal({ ...report, sourceStart: changed, sourceEnd: changed, selection, steps: report.steps.map((step) => step.label === "Unit" ? { ...step, caseCount: 1, coveredTests: [consumer], runner: { fileResults: [{ path: consumer, passed: 1, failed: 0, skipped: 0 }] } } : step) });
+    const image = { sourceHead: changed.headSha, sourceContentSha256: changed.contentSha256, platform: "linux/amd64", id: "sha256:" + "a".repeat(64), configDigest: "sha256:" + "a".repeat(64), tag: "mastergantt-prepr-synthetic:check", attestations: ["provenance", "sbom"], ociArchiveSha256: "b".repeat(64), runtimeLoadArchive: ".prepr-reports/synthetic/runtime-load.tar", runtimeLoadArchiveSha256: "c".repeat(64) };
+    const step = (label: string, command: string[]) => ({ label, command, status: "PASS", exitCode: 0, signal: null, caseCount: null, logSha256: "b".repeat(64) });
+    const steps = [
+      step("Docker build", ["docker", "buildx", "build", "--platform=linux/amd64", "--provenance=mode=max", "--attest=type=sbom,generator=synthetic", `org.opencontainers.image.revision=${changed.headSha}`, "deploy/docker/Dockerfile", "--output", "type=oci,dest=/synthetic/.prepr-reports/synthetic/image.oci.tar", "."]),
+      step("Docker OCI evidence", ["python3", "scripts/verified_oci.py"]),
+      step("Docker runtime import", ["docker", "load", "--input", "/synthetic/" + image.runtimeLoadArchive]),
+      step("Docker image policy", ["sh", "scripts/verify-image-policy.sh", image.tag]),
+      step("Docker runtime start", ["docker", "run", "--publish", "127.0.0.1::3000", image.tag]),
+      step("Docker readiness", ["node", "--input-type=module", "-e", "synthetic ready probe"]),
+      step("Docker API/SQLite persistence", ["node", "scripts/verify-registry-api-smoke.mjs", "http://127.0.0.1:32770", "mastergantt-w22-local"]),
+      step("Docker SQLite integrity", ["docker", "exec", "mastergantt-w22-local", "node", "-e", "synthetic SQLite integrity probe"]),
+    ];
+    const receipt = seal({ ...report, mode: "docker", sourceStart: changed, sourceEnd: changed, selection, dockerImage: image, steps });
+    expect(evaluateAdmission({ reports: [fast, receipt], source: changed, environment, selection, issue: 908 }).publishAllowed).toBe(true);
+    const wrongPortOwner = seal({ ...receipt, steps: steps.map((entry) => entry.label === "Docker API/SQLite persistence" ? { ...entry, command: ["node", "scripts/verify-registry-api-smoke.mjs", "http://0.0.0.0:32770", "mastergantt-w22-local"] } : entry) });
+    expect(evaluateAdmission({ reports: [fast, wrongPortOwner], source: changed, environment, selection, issue: 908 }).reasons.join(" ")).toContain("Docker API/SQLite");
+  });
 
   it("derives coverage from actual per-file results and excludes skip-only/missing consumers", () => {
     const unit = runnerCoverage("vitest", { testResults: [

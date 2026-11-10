@@ -272,6 +272,12 @@ const RULES = [
     reason: "Issue 실패 원장·회귀 인덱스의 로컬 schema/출처·누적 이력 검증",
   },
   {
+    id: "registry-runtime-smoke", risk: "HIGH",
+    re: /^(?:scripts\/verify-registry-api-smoke\.mjs|scripts\/registry-smoke-core\.(?:mjs|d\.mts)|tests\/scripts\/registry-smoke\.test\.ts)$/,
+    unitPaths: ["tests/scripts/registry-smoke.test.ts"],
+    reason: "격리 container/image 동일성·loopback published port·재시작 API/SQLite 검증",
+  },
+  {
     id: "prepr-docker-build", risk: "HIGH",
     re: /^(?:scripts\/prepr-docker\.(?:mjs|d\.mts)|tests\/scripts\/prepr-docker\.test\.ts)$/,
     unitPaths: ["tests/scripts/prepr-docker.test.ts", "tests/scripts/prepr-verifier.test.ts"],

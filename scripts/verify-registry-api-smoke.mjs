@@ -1,15 +1,12 @@
 import { spawnSync } from "node:child_process";
+import { inspectSmokeEndpoint, SMOKE_CONTAINERS, validateSmokeBaseUrl } from "./registry-smoke-core.mjs";
 
-const [baseUrl, containerName] = process.argv.slice(2);
-const allowedContainers = new Set([
-  "mastergantt-commit-smoke",
-  "mastergantt-release-smoke",
-  "mastergantt-release-candidate",
-  "mastergantt-w22-local",
-]);
-if (!baseUrl || !allowedContainers.has(containerName)) {
+const [requestedBaseUrl, containerName] = process.argv.slice(2);
+if (!requestedBaseUrl || !SMOKE_CONTAINERS.includes(containerName)) {
   throw new Error("usage: verify-registry-api-smoke.mjs BASE_URL {mastergantt-commit-smoke|mastergantt-release-smoke|mastergantt-release-candidate|mastergantt-w22-local}");
 }
+const initialEndpoint = inspectSmokeEndpoint(containerName);
+let baseUrl = validateSmokeBaseUrl(requestedBaseUrl, initialEndpoint);
 
 const origin = "https://gantt.example.invalid";
 const request = (path, options = {}) => fetch(new URL(path, baseUrl), {
@@ -42,8 +39,11 @@ const snapshotResponse = await fetch(new URL(`/api/projects/${encodeURIComponent
 const snapshot = await snapshotResponse.json();
 if (snapshotResponse.status !== 200 || snapshot.data.project.ownerName !== "Registry smoke owner" || !snapshot.data.tasks.some((task) => task.externalId === "registry-smoke-task")) throw new Error("persisted project owner or task missing from readonly snapshot");
 
-const restart = spawnSync("docker", ["restart", containerName], { encoding: "utf8", timeout: 30_000 });
+const restart = spawnSync("docker", ["restart", initialEndpoint.id], { encoding: "utf8", timeout: 30_000 });
 if (restart.status !== 0) throw new Error(`docker restart failed: ${restart.stderr}`);
+// Docker may choose a new host port for an empty HostPort binding on restart.
+// Keep the original container/image identity and follow only its loopback map.
+baseUrl = inspectSmokeEndpoint(containerName, initialEndpoint).baseUrl;
 
 let ready = false;
 for (let attempt = 0; attempt < 30; attempt += 1) {

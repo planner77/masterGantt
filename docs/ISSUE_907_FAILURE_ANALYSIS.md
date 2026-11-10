@@ -41,3 +41,11 @@ F906-010의 ORAS 세 명령 성공과 후조건 assertion 실패, 동일 copy re
 ## F906-015 진단 재실행 추가
 
 실제 진단 source180288590da650d14489e89b4bde3717a76985a4의 Chromium4PASS/0FAIL/0SKIP, 의존34108files·683162100bytes의5inventory동일, 원본 source/controller 불변 및 정확 Next audit·cleanup PASS를 F906-015 후속 SCOPED event로 보존했다. DIAGNOSTIC_ONLY_NOT_PROJECT_GATE를 명시하고 최종 프로젝트 candidate·registry 결과와 분리한다. 초기 계획3의 정적 오계수도 실제4로 정정하되 최초 실패/미실행 기록은 그대로 유지한다. 기존16개 Failure metadata와 event prefix를 바꾸지 않고 결과만 추가했다.
+
+## F906-017 연결 / Docker 원본과 원인 진단
+
+17번째 실제 실패는 e9 exact source의 Docker API/SQLite restart smoke다. 원본 source/env/report 지문과 exit1을 등록하고, 같은 기존 image/container의 동적 포트 재할당 진단 shell exit0는 SCOPED·DIAGNOSTIC_ONLY로 별도 보존했다. container State.ExitCode와 shell exit는 다른 관측이다. 새 helper/API persistence·새 source 전체 Gate는 미실행이며 진단 readiness 성공을 게시 허용으로 해석하지 않는다.
+
+## F906-017 집중 guard 실제 검증 추가
+
+실제 생성된 registry-smoke 테스트 경로와5개 case를 회귀 인덱스에 연결하고 독립 qa_docs 명령/exit0·268ms를 SCOPED event로 추가했다. source는 e9 위 WIP이며 전체 지문 미수집을 명시한다. 기존 실패·원인 진단을 덮지 않고 새 candidate의 전체 runtime/Gate/게시 판단은 여전히 별도로 둔다.
