@@ -46,3 +46,11 @@ F906-012의 실제 전체 Unit 실패를 추가하여 현재 기계 등록은 12
 ## F906-017 실제 guard 테스트 연결
 
 새 실제 `tests/scripts/registry-smoke.test.ts`의5개 양성/음성 case를 F906-017에 연결했다. 독립 qa_docs의 1file/5tests PASS는 WIP 집중 검사이며 Docker/SQLite·새 candidate 전체 Gate PASS가 아니다. 최초 plannedTests는 계획 이력으로 남기고 실제 테스트 경로·case 및 scoped event를 추가했다.
+
+## smoke allowlist 직접 소비자 원본 추가
+
+현재 실제 실패는18개다. F906-018은 a3b2 exact source 전체 Unit의 낡은 정적 CLI literal 위치 단언이며 실제 승인 allowlist 범위 변경은 아니다. core allowlist·CLI wiring과 기존 직접 소비자를 함께 검사하도록 정합화하고 기존 정확 범위/보안 단언·runtime 의무를 유지한다. 파일 수와 nested suite 수, skipped를 구분하고 교정 후 PASS를 미리 기록하지 않는다.
+
+## F906-018 집중 재작업 누적
+
+동일 F906-018 아래 r1/r2의 실제 focused 실패와 r3의65PASS를 각각 누적했다. in-memory positive receipt가 실제 selected unit 소비자 전체를 구성하도록 고쳤으며 기존 layout/allowlist·외부 URL 음성·runtime 의무를 유지한다. WIP 집중 성공은 새 candidate 전체 Gate 성공이 아니다. 실패 개수는18개이며 새 Failure ID를 만들지 않았다.

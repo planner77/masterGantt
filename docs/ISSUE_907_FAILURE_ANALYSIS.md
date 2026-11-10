@@ -49,3 +49,11 @@ F906-010의 ORAS 세 명령 성공과 후조건 assertion 실패, 동일 copy re
 ## F906-017 집중 guard 실제 검증 추가
 
 실제 생성된 registry-smoke 테스트 경로와5개 case를 회귀 인덱스에 연결하고 독립 qa_docs 명령/exit0·268ms를 SCOPED event로 추가했다. source는 e9 위 WIP이며 전체 지문 미수집을 명시한다. 기존 실패·원인 진단을 덮지 않고 새 candidate의 전체 runtime/Gate/게시 판단은 여전히 별도로 둔다.
+
+## F906-018 연결 / 실제 전체 Unit 직접 소비자 실패
+
+a3b2 exact candidate 전체 Unit3914PASS/1FAIL/기존3SKIP 중 allowlist의 정적 소스 위치에 결속된 기존 소비자 한 case가 실패한 F906-018을 추가했다. 실제 runner 파일316개와 nested describe suite733개를 혼동하지 않는다. 원본 source/env/report 지문과 명령·exit1을 보존하고 core allowlist·CLI wiring 직접 검증으로 교정할 계획만 기록한다. 새 source 재검증 PASS는 아직 없다. F906-017을 포함한 이전 원본/events·Markdown prefix는 변경하지 않는다.
+
+## F906-018 같은 Failure의 집중 교정 이력
+
+최초 전체 Unit 실패와 별개로 같은 재작업의 focused r1/r2 실패·typecheck 오류·r3 65PASS를 기존 Failure에 추가했다. 명령/시각·exit·case 수·로그를 각각 보존했고 working fingerprint 미수집의 SCOPED 근거로 명시했다. 실제 selected 소비자 전체·non-loopback 음성을 유지한 교정이며 final Gate/게시 승인과 분리한다.

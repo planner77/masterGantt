@@ -287,3 +287,22 @@ D906-002의 inventory/필수 소비자 구분을 실제 관측된 범위로 좁�
 - 독립 qa_docs 실제 명령: `npx vitest run --config tests/config/vitest.config.ts tests/scripts/registry-smoke.test.ts --maxWorkers=1`, 작업 worktree cwd. exit0,1file/5tests PASS,268ms. runner Start at08:37:19 KST(2026-11-10T23:37:19Z, 초 단위 표시).
 - 같은 running container ID/image에 한해 변경된 포트를 따르고, 기존 고정 포트 호환·stale/외부 URL·비loopback·잘못된/없는/모호한 매핑·inspect 실패·예상하지 않은 container를 차단하는 계약을 검사했다. Docker runtime 검증 의무도 유지한다.
 - source는 e9 HEAD 위 WIP helper/core/API 변경이다. 전체 working source/env fingerprint는 미수집이며 새 exact candidate의 전체 Gate PASS가 아니다. 실제 수정 helper의 API/SQLite restart persistence·admission·GHCR는 아직 별도 검증이 필요하다. 원본 F906-017 FAIL과 원인 진단은 그대로 보존한다.
+
+## F906-018 · UNIT / smoke allowlist의 기존 직접 소비자 — FAIL
+
+- exact candidate `a3b2c8a3fa46f5c3f46463a3ab3f987478be5ef5`, base `4aad8865972e3446f0d34c7ffcfd2bbab439e366`. fast 2026-11-10T23:40:26.681Z~23:44:09.901Z 최종 FAIL. 선행 공통 검사·typecheck/lint는 성공했지만 전체 Unit exit1로 후속 build/Chromium/candidate Docker/admit/registry는 미실행이다.
+- Unit 실제 시작23:41:38.668Z,150254ms. 316개 runner 파일 중 실제 passed case가 있는314개·실패1개·skip-only1개, 전체3918cases 중3914PASS/1FAIL/기존3SKIP. JSON의 nested describe suite 수733을 파일 수로 사용하지 않는다.
+- 실제 실패는 `tests/scripts/test-config-layout.test.ts`의 `keeps release candidate container aligned with registry API smoke allowlist` 한 case다. 원래 CLI 본문에서 quoted `mastergantt-release-candidate` literal을 찾지만 같은 allowlist가 새 registry-smoke core로 이동해 정적 파일 위치 의존 단언이 낡았다. 실제 allowlist의 승인 container 범위는 바뀌지 않았다.
+- 원본 Unit 명령은 `npm test -- --maxWorkers=2 --reporter=default --reporter=json --outputFile=<final-fast-a3b2c8a3>/vitest-results.json`. source fingerprint `8b5cd6be5cf3f8bbea099730f0a9b2a19ebaa6663a51f3c992f6208a6389e921`, content SHA256 `48750d3687327716c61c42dcf50fcd8bd52b6eca6b7c28bcce883f36805f2ef2`, env `c83364ab178020128d4dd5b4586ac87451e1ee1cafcb4030ea1632743ff57842`; sourceStable/envStable=true.
+- 원본 `.prepr-reports/final-fast-a3b2c8a3/report.json`, integrity `55e03210f2c4e6e60afe71a10f4e4bea9c60ee9e5f336711754f6409ece57659`; runner와 실제 최초 실패를 보존한다. F906-017 원본/진단도 바꾸지 않는다.
+- 교정 계획: 기존 소비자 테스트가 실제 core allowlist와 CLI wiring을 함께 검사하도록 정합화하고 producer→consumer 영향 매핑에 직접 연결한다. 정확 승인 container 범위·외부/잘못된 identity 차단·runtime smoke 의무를 유지하며 문자열 확인 삭제만으로 통과시키지 않는다.
+- 현재 REWORK, Push/Publish/Close BLOCKED. 집중 교정 및 새 candidate 전체 Gate는 실제 실행 전 NOT TESTED다. 첫 전체 Unit 실패를 이후 성공으로 덮지 않는다.
+
+## V906-014 · F906-018 집중 재작업 원본·교정 — SCOPED
+
+- 실제 동일 명령은 `npm test -- tests/scripts/test-config-layout.test.ts tests/scripts/registry-smoke.test.ts tests/scripts/prepr-verifier.test.ts --maxWorkers=2`다. source는 a3b2 HEAD 위 WIP이며 전체 source/env fingerprint는 미수집이다.
+- r1: 2026-11-10T23:46:51Z runner 시작(08:46:51 KST),10.01s,exit1,3files2PASS/1FAIL·65cases64PASS/1FAIL. layout14+registry5는 성공했으나 `accepts a complete synthetic Docker receipt contract but rejects a non-loopback API command`의 positive fixture가 새 selected consumer2개 중 기존1개 coverage만 제공했다. 원본 `/tmp/mastergantt-906-f018-green.log`.
+- r2:23:47:25Z,9.80s,동일 명령 exit1·같은 파일/case 수. 시도한 selectedUnit 속성이 실제 모델에 없어 실패했고 typecheck-r2의 TS2551/TS7006도 보존했다. `/tmp/mastergantt-906-f018-green-r2.log`, `mastergantt-906-f018-typecheck-r2.log`. typecheck 개별 exit는 미수집으로 남긴다.
+- 교정은 실제 `selection.selected.filter(kind===unit).map(path)`를 사용해 모든 직접 소비자의 coverage를 구성하는 것이다. 실제 allowlist/CLI wiring·정확 승인 범위와 non-loopback 음성·mandatory runtime 검사를 유지한다. 합성 receipt를 운영 게시 증거로 사용하지 않는다.
+- r3:23:47:56Z,10.76s,동일 명령 exit0,3files65PASS(prepr46+layout14+registry5). `/tmp/mastergantt-906-f018-green-r3.log`; final typecheck exit0·변경3files ESLint exit0·diff 검사 PASS. r1/r2 실패를 새 성공으로 지우지 않는다.
+- 증거는 집중 교정에 한정된다. 새 candidate의 전체 Gate/실제 Docker/API/SQLite/admission/GHCR는 별도 실행이며 아직 성공을 선기록하지 않는다.

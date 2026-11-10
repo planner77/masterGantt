@@ -2124,6 +2124,298 @@
           }
         }
       ]
+    },
+    {
+      "id": "F906-018",
+      "issue": 906,
+      "ledger": "docs/ISSUE_906_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        907,
+        908
+      ],
+      "domain": "tooling",
+      "layer": "smoke-allowlist-consumer",
+      "keywords": [
+        "allowlist",
+        "release-candidate",
+        "static-consumer",
+        "CLI-wiring",
+        "source-location"
+      ],
+      "cause": "allowlist의 동일 의미가 core로 이동했지만 기존 테스트가 CLI 본문 literal 위치에 결속돼 있음",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/scripts/test-config-layout.test.ts",
+          "case": "keeps release candidate container aligned with registry API smoke allowlist",
+          "historical": false,
+          "coverageArea": "기존 release candidate 호출과 실제 승인 allowlist·CLI wiring 계약"
+        },
+        {
+          "path": "tests/scripts/registry-smoke.test.ts",
+          "case": "maps the helper to real identity regression and keeps Docker runtime verification mandatory",
+          "historical": false,
+          "coverageArea": "정확 producer→consumer 영향 연결·mandatory Docker 검증 보존"
+        },
+        {
+          "path": "tests/scripts/prepr-verifier.test.ts",
+          "case": "accepts a complete synthetic Docker receipt contract but rejects a non-loopback API command",
+          "historical": false,
+          "coverageArea": "합성 positive receipt의 실제 selected unit 소비자 전체 coverage 및 non-loopback 음성 유지"
+        }
+      ],
+      "residualRisk": "기존 직접 소비자 정합화와 새 source 전체 Gate 완료 전 미완료",
+      "events": [
+        {
+          "id": "exact-candidate-static-consumer-failed",
+          "at": "2026-11-10T23:41:38.668Z",
+          "timeNote": "durationMs=150254;fast전체2026-11-10T23:40:26.681Z~2026-11-10T23:44:09.901Z",
+          "stage": "UNIT",
+          "status": "FAIL",
+          "sourceSha": "a3b2c8a3fa46f5c3f46463a3ab3f987478be5ef5",
+          "fixSourceSha": null,
+          "sourceFingerprint": "8b5cd6be5cf3f8bbea099730f0a9b2a19ebaa6663a51f3c992f6208a6389e921",
+          "sourceNote": "base4aad8865972e3446f0d34c7ffcfd2bbab439e366 exact candidate; sourceStable=true",
+          "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+          "environmentVersion": "masterGantt 0.145.1",
+          "command": [
+            "npm",
+            "test",
+            "--",
+            "--maxWorkers=2",
+            "--reporter=default",
+            "--reporter=json",
+            "--outputFile=/home/planner/Dev/masterGantt-worktrees/issue-906-908/.prepr-reports/final-fast-a3b2c8a3/vitest-results.json"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "release candidate 승인 container가 실제 smoke core allowlist와 CLI wiring에 일치하고 전체 Unit 성공",
+          "actual": "316runner파일:314pass/1fail/1skip-only;3918cases:3914PASS/1FAIL/기존3SKIP. test-config-layout의 예전 CLI quoted literal 위치 단언만 실패",
+          "input": "실제 exact candidate 전체 Unit; 기존 smoke allowlist 정적 소비자",
+          "classification": "FIXTURE",
+          "recovery": "실제 core allowlist·CLI wiring·정확 승인 범위 확인으로 기존 소비자 단언을 정합화하고 영향 mapping에 연결; 재실행 전 NOT TESTED",
+          "residualRisk": "의도한 allowlist는 같으나 기존 직접 소비자 누락으로 전체 Unit FAIL. build/Chromium/Docker/admit/registry 미실행, 새 candidate 전체 Gate 필요",
+          "evidenceScope": "EXACT",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_906_FAILURE_ANALYSIS.md"
+            },
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:final-fast-a3b2c8a3/report.json"
+            }
+          ],
+          "sourceContentSha256": "48750d3687327716c61c42dcf50fcd8bd52b6eca6b7c28bcce883f36805f2ef2",
+          "sourceStable": true,
+          "environmentFingerprint": "c83364ab178020128d4dd5b4586ac87451e1ee1cafcb4030ea1632743ff57842",
+          "environmentStable": true,
+          "reportIntegritySha256": "55e03210f2c4e6e60afe71a10f4e4bea9c60ee9e5f336711754f6409ece57659"
+        },
+        {
+          "id": "focused-layout-map-r1-failed",
+          "at": "2026-11-10T23:46:51Z",
+          "timeNote": "runner 초단위 시작; duration 10.01s",
+          "stage": "UNIT",
+          "status": "FAIL",
+          "sourceSha": "a3b2c8a3fa46f5c3f46463a3ab3f987478be5ef5",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "a3b2 HEAD 위 WIP source/fixture/mapping 교정; 전체 working fingerprint 미수집",
+          "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+          "environmentVersion": "masterGantt 0.145.1",
+          "command": [
+            "npm",
+            "test",
+            "--",
+            "tests/scripts/test-config-layout.test.ts",
+            "tests/scripts/registry-smoke.test.ts",
+            "tests/scripts/prepr-verifier.test.ts",
+            "--maxWorkers=2"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "실제 selected 소비자를 전부 실행한 합성 complete receipt만 승인하고 non-loopback은 거부",
+          "actual": "3files2PASS/1FAIL,65cases64PASS/1FAIL. layout14+registry5 성공, prepr positive synthetic receipt만 새 selected consumer2개 대신 기존1개 coverage로 실패",
+          "input": "기존 layout14·registry5 및 prepr의 in-memory synthetic receipt 계약 집중 검증",
+          "classification": "FIXTURE",
+          "recovery": "정적 consumer 정합화는 유지하고 positive synthetic receipt가 실제 selection에서 unit 소비자 전체를 구성하도록 교정",
+          "residualRisk": "이 집중 실패는 기존 F018 재작업 범위이며 실제 Docker/게시 결과가 아님",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_906_FAILURE_ANALYSIS.md"
+            },
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:mastergantt-906-f018-green.log"
+            }
+          ],
+          "sourceContentSha256": null,
+          "sourceStable": null,
+          "environmentFingerprint": null,
+          "environmentStable": null,
+          "environmentNote": "집중 작업 환경, 별도 전체 환경 fingerprint 미수집",
+          "elapsedMs": 10010
+        },
+        {
+          "id": "focused-layout-map-r2-failed",
+          "at": "2026-11-10T23:47:25Z",
+          "timeNote": "runner 초단위 시작; duration 9.8s",
+          "stage": "UNIT",
+          "status": "FAIL",
+          "sourceSha": "a3b2c8a3fa46f5c3f46463a3ab3f987478be5ef5",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "a3b2 HEAD 위 WIP source/fixture/mapping 교정; 전체 working fingerprint 미수집",
+          "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+          "environmentVersion": "masterGantt 0.145.1",
+          "command": [
+            "npm",
+            "test",
+            "--",
+            "tests/scripts/test-config-layout.test.ts",
+            "tests/scripts/registry-smoke.test.ts",
+            "tests/scripts/prepr-verifier.test.ts",
+            "--maxWorkers=2"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "실제 selected 소비자를 전부 실행한 합성 complete receipt만 승인하고 non-loopback은 거부",
+          "actual": "같은3files2PASS/1FAIL·65cases64PASS/1FAIL. 동적 coverage 시도에서 존재하지 않는 selectedUnit 속성을 참조",
+          "input": "기존 layout14·registry5 및 prepr의 in-memory synthetic receipt 계약 집중 검증",
+          "classification": "FIXTURE",
+          "recovery": "실제 selection.selected.filter(kind===unit).map(path)로 모든 unit 소비자 coverage 구성; loopback 음성 단언 유지",
+          "residualRisk": "이 집중 실패는 기존 F018 재작업 범위이며 실제 Docker/게시 결과가 아님",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_906_FAILURE_ANALYSIS.md"
+            },
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:mastergantt-906-f018-green-r2.log"
+            }
+          ],
+          "sourceContentSha256": null,
+          "sourceStable": null,
+          "environmentFingerprint": null,
+          "environmentStable": null,
+          "environmentNote": "집중 작업 환경, 별도 전체 환경 fingerprint 미수집",
+          "elapsedMs": 9800,
+          "relatedObservations": [
+            {
+              "stage": "STATIC",
+              "status": "FAIL",
+              "command": [
+                "npm",
+                "run",
+                "typecheck"
+              ],
+              "exit": null,
+              "exitNote": "개별 exit 미수집; 원본 TS2551/TS7006 타입 오류 보존",
+              "actual": "존재하지 않는 selectedUnit 접근과 callback 타입 오류",
+              "evidence": "LOCAL:mastergantt-906-f018-typecheck-r2.log"
+            }
+          ]
+        },
+        {
+          "id": "focused-layout-map-r3-passed",
+          "at": "2026-11-10T23:47:56Z",
+          "timeNote": "runner 초단위 시작; duration 10.76s",
+          "stage": "UNIT",
+          "status": "PASS",
+          "sourceSha": "a3b2c8a3fa46f5c3f46463a3ab3f987478be5ef5",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "a3b2 HEAD 위 WIP source/fixture/mapping 교정; 전체 working fingerprint 미수집",
+          "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+          "environmentVersion": "masterGantt 0.145.1",
+          "command": [
+            "npm",
+            "test",
+            "--",
+            "tests/scripts/test-config-layout.test.ts",
+            "tests/scripts/registry-smoke.test.ts",
+            "tests/scripts/prepr-verifier.test.ts",
+            "--maxWorkers=2"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "실제 selected 소비자를 전부 실행한 합성 complete receipt만 승인하고 non-loopback은 거부",
+          "actual": "실제 같은 집중 명령3files65PASS: prepr46+layout14+registry5. final typecheck·변경3files lint·diff 검사도 exit0/PASS",
+          "input": "기존 layout14·registry5 및 prepr의 in-memory synthetic receipt 계약 집중 검증",
+          "classification": "FIXTURE",
+          "recovery": "정확 core allowlist/CLI wiring·전체 selected unit coverage·non-loopback 음성 단언을 보존한 scoped 교정 검증 PASS",
+          "residualRisk": "실제 새 candidate 전체 fast/targeted/docker/admit·게시 검증은 아직 별도, WIP 집중 PASS를 최종 Gate로 전용 금지",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_906_FAILURE_ANALYSIS.md"
+            },
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:mastergantt-906-f018-green-r3.log"
+            }
+          ],
+          "sourceContentSha256": null,
+          "sourceStable": null,
+          "environmentFingerprint": null,
+          "environmentStable": null,
+          "environmentNote": "집중 작업 환경, 별도 전체 환경 fingerprint 미수집",
+          "elapsedMs": 10760,
+          "testFileCount": 3,
+          "testCaseCount": 65,
+          "verification": {
+            "sourceSha": "a3b2c8a3fa46f5c3f46463a3ab3f987478be5ef5",
+            "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+            "imageDigest": null,
+            "backupId": null
+          },
+          "relatedObservations": [
+            {
+              "stage": "STATIC",
+              "status": "PASS",
+              "command": [
+                "npm",
+                "run",
+                "typecheck"
+              ],
+              "exit": 0,
+              "evidence": "LOCAL:mastergantt-906-f018-typecheck-r3.log"
+            },
+            {
+              "stage": "STATIC",
+              "status": "PASS",
+              "command": [
+                "NOT CAPTURED"
+              ],
+              "exit": 0,
+              "evidence": "LOCAL:mastergantt-906-f018-lint-r3.log",
+              "commandNote": "변경3files ESLint exit0; 정확 argv는 원본 로컬 log에 보존"
+            }
+          ]
+        }
+      ]
     }
   ]
 }

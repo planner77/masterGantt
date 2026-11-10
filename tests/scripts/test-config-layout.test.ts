@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import { SMOKE_CONTAINERS } from "../../scripts/registry-smoke-core.mjs";
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
 const text = (path: string) => readFileSync(resolve(root, path), "utf8");
@@ -255,7 +256,9 @@ describe("test configuration repository layout", () => {
     expect(release).toContain(
       "verify-registry-api-smoke.mjs http://127.0.0.1:3000 mastergantt-release-candidate",
     );
-    expect(registrySmoke).toContain('"mastergantt-release-candidate"');
+    expect(SMOKE_CONTAINERS).toContain("mastergantt-release-candidate");
+    expect(registrySmoke).toMatch(/import\s*\{[^}]*\bSMOKE_CONTAINERS\b[^}]*\}\s*from\s*"\.\/registry-smoke-core\.mjs"/);
+    expect(registrySmoke).toContain("!SMOKE_CONTAINERS.includes(containerName)");
   });
 
   it("keeps completed Issue #118 evidence manual-only", () => {

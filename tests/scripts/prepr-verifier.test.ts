@@ -593,8 +593,9 @@ describe("Issue #908 — local-only publication admission", () => {
     const { report, source, environment, seal } = setup();
     const changed = { ...source, changed: ["scripts/registry-smoke-core.mjs"] };
     const selection = selectImpact({ changed: changed.changed, tests, risk: "HIGH" });
-    const consumer = "tests/scripts/registry-smoke.test.ts";
-    const fast = seal({ ...report, sourceStart: changed, sourceEnd: changed, selection, steps: report.steps.map((step) => step.label === "Unit" ? { ...step, caseCount: 1, coveredTests: [consumer], runner: { fileResults: [{ path: consumer, passed: 1, failed: 0, skipped: 0 }] } } : step) });
+    const consumers = selection.selected.filter((entry) => entry.kind === "unit").map((entry) => entry.path);
+    expect(consumers).toContain("tests/scripts/test-config-layout.test.ts");
+    const fast = seal({ ...report, sourceStart: changed, sourceEnd: changed, selection, steps: report.steps.map((step) => step.label === "Unit" ? { ...step, caseCount: consumers.length, coveredTests: consumers, runner: { fileResults: consumers.map((path) => ({ path, passed: 1, failed: 0, skipped: 0 })) } } : step) });
     const image = { sourceHead: changed.headSha, sourceContentSha256: changed.contentSha256, platform: "linux/amd64", id: "sha256:" + "a".repeat(64), configDigest: "sha256:" + "a".repeat(64), tag: "mastergantt-prepr-synthetic:check", attestations: ["provenance", "sbom"], ociArchiveSha256: "b".repeat(64), runtimeLoadArchive: ".prepr-reports/synthetic/runtime-load.tar", runtimeLoadArchiveSha256: "c".repeat(64) };
     const step = (label: string, command: string[]) => ({ label, command, status: "PASS", exitCode: 0, signal: null, caseCount: null, logSha256: "b".repeat(64) });
     const steps = [

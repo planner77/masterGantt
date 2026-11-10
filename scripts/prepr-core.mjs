@@ -273,8 +273,8 @@ const RULES = [
   },
   {
     id: "registry-runtime-smoke", risk: "HIGH",
-    re: /^(?:scripts\/verify-registry-api-smoke\.mjs|scripts\/registry-smoke-core\.(?:mjs|d\.mts)|tests\/scripts\/registry-smoke\.test\.ts)$/,
-    unitPaths: ["tests/scripts/registry-smoke.test.ts"],
+    re: /^(?:scripts\/verify-registry-api-smoke\.mjs|scripts\/registry-smoke-core\.(?:mjs|d\.mts)|tests\/scripts\/(?:registry-smoke|test-config-layout)\.test\.ts)$/,
+    unitPaths: ["tests/scripts/registry-smoke.test.ts", "tests/scripts/test-config-layout.test.ts"],
     reason: "격리 container/image 동일성·loopback published port·재시작 API/SQLite 검증",
   },
   {
