@@ -8,7 +8,7 @@
 
 `.env*` 입력 변형·운영 환경변수는 모든 실행 모드에서 거부한다. `fast`의 production build는 표준 `.next`를 사용하며 기존 `.next`/`.runtime-tools`가 있으면 덮어쓰지 않고 BLOCKED한다. `PLAYWRIGHT_BASE_URL`/`APP_BASE_URL`/`DATABASE_PATH` 등 외부·운영 입력과 임의 Chromium executable, localhost:3100 점유를 거부한다. 검증 전에 안전한 새 worktree를 준비한다.
 
-시작/종료의 base SHA·HEAD SHA·tracked diff/untracked bytes·fixture/lock digest·실행 환경을 비교한다. 입력 변경·오염·환경 불일치·취소는 PASS가 아니다. 자신이 만든 생성물만 정리하고 Playwright failure artifact는 로컬 보고에 보존한다. 공개 증거는 합성 fixture와 정제한 결과만 사용한다.
+시작/종료의 base SHA·HEAD SHA·tracked diff/untracked bytes·fixture/lock digest·실행 환경을 비교한다. 호출마다 달라지는 관측 전용 CODEX_TOOL_CALL_ID는 PWD/TERM류 transient로 분리하고 trace hash로만 보존하며, 실제 PATH/버전/설치/동작 환경은 계속 검증한다. 입력 변경·오염·환경 불일치·취소는 PASS가 아니다. 자신이 만든 생성물만 정리하고 Playwright failure artifact는 로컬 보고에 보존한다. 공개 증거는 합성 fixture와 정제한 결과만 사용한다.
 
 브라우저 실행은 clean exact HEAD가 필요하다. 실행기는 `.prepr-reports/<run>/browser-source`에 동일 Head의 일회용 source snapshot을 만들고 입력 bytes가 원본과 같은지 확인한 뒤 기존 Playwright 설정·fixture를 실행한다. 설치된 의존성을 공유하되 운영 URL/DB는 전달하지 않는다. E2E의 `.data/playwright.sqlite3*`, `.next-e2e*`, `test-results`, `playwright-report`는 snapshot 안의 격리 출력이다.
 

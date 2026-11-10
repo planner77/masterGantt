@@ -427,13 +427,20 @@ export function reportChecksum(report) {
 
 export function environmentEvidence(root, env = process.env) {
   // Values can contain credentials; persist only hashes, never raw environment.
-  const transient = new Set(["PWD", "OLDPWD", "SHLVL", "_", "COLUMNS", "LINES", "TERM", "COLORTERM"]);
+  // 호출 추적 ID는 실행마다 바뀌므로 기능 입력에서 제외하고 별도 hash로 보존합니다.
+  const transient = new Set(["PWD", "OLDPWD", "SHLVL", "_", "COLUMNS", "LINES", "TERM", "COLORTERM", "CODEX_TOOL_CALL_ID"]);
   const environmentSha256 = sha256(JSON.stringify(Object.entries(env).filter(([key]) => !transient.has(key)).sort(([a], [b]) => a.localeCompare(b))));
   const files = ["package.json", "package-lock.json", "node_modules/.package-lock.json", "node_modules/@playwright/test/package.json", "node_modules/playwright-core/browsers.json", "node_modules/next/package.json", "node_modules/next/dist/lib/typescript/writeAppTypeDeclarations.js"];
   const inputs = Object.fromEntries(files.map((file) => [file, existsSync(resolve(root, file)) ? sha256(readFileSync(resolve(root, file))) : null]));
   const npm = spawnSync("npm", ["--version"], { cwd: root, encoding: "utf8", timeout: 10000 });
   const evidence = { node: process.version, npm: npm.status === 0 ? npm.stdout.trim() : null, osRelease: release(), abi: process.versions.modules, platform: process.platform, architecture: process.arch, environmentSha256, inputs };
-  return { ...evidence, fingerprint: sha256(JSON.stringify(evidence)) };
+  return { ...evidence, fingerprint: sha256(JSON.stringify(evidence)), invocationTraceSha256: typeof env.CODEX_TOOL_CALL_ID === "string" ? sha256(env.CODEX_TOOL_CALL_ID) : null };
+}
+
+export function standardBuildEnvironment(env = process.env) {
+  const child = { ...env };
+  delete child.NEXT_DIST_DIR;
+  return child;
 }
 
 export function publicationRequirements(source, selection) {

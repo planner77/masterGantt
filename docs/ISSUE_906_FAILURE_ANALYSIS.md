@@ -202,3 +202,32 @@ D906-002의 inventory/필수 소비자 구분을 실제 관측된 범위로 좁�
 - 실제 집중 검증: 2026-11-10T22:39:12Z 시작, 3files/95tests(legacy44+Gate43+snapshot8) PASS, duration7.76s, exit0. typecheck/ESLint/구문/diff 검사 PASS. 이 값은 작업 중 교정 집중 실행이며 새 exact commit의 전체 Unit PASS가 아니다.
 - runner 분기는 일반 전체 Unit inventory/pass를 유지하고 미선정된 기존 benchmark의 정확3SKIP만 NOT TESTED로 보존한다. 잘못된 skip/개수/환경활성/선정/include/보고누락의 음성 회귀를 통과했다. benchmark 자체/skip/timeout은 수정하지 않았다.
 - 다음: 새 commit에서 공통 fast 전체·Chromium·Docker/admit와 독립 QA를 다시 확인한다. 기존 candidate0671bb72의3905중1FAIL은 원본으로 유지한다. 최종 exact SHA/원격 Push·image digest/실행 결과는 Owner Issue 댓글에 append하여 이 원장에 연결한다.
+
+## F906-013 · STATIC / 두 번째 exact candidate production 포장 — FAIL
+
+- candidate `22ceadb1f7278b3a9a5c4bc4896761d3961c0eb2`, 고정 base4aad8865972e3446f0d34c7ffcfd2bbab439e366. fast 2026-11-10T22:41:33.240Z~22:44:51.854Z, exit `1`.
+- 선행 모든 공통 검사·typecheck/lint·전체 Unit은 PASS: 315files/314PASS·1SKIP, 3906tests/3903PASS·기존3SKIP. completion은 모든 inventory 보고·필수 실제 pass를 확인했고 기존 benchmark만 NOT TESTED로 명시했다. Unit89.759s.
+- Production build60.466s exit1. Next compile/prerender는 성공했지만 wrapper가 `NEXT_DIST_DIR:""`을 넘겨 prepare-standalone-runtime의 nullish 기본값이 작동하지 않고 root의 `standalone/server.js`를 찾았다. 실제 산출물은 표준 `.next/standalone`이다. 앱 소스·standalone helper의 계약을 바꾸지 않고 caller가 이 환경키를 실제 unset해야 한다.
+- source fingerprint `0efa8b08a04dd5eb8059b42ad573f9c5e5364eca8800fdfe0565fb13b0db5d26`, content SHA256 `f7f7fbc3c4641361a2ab32b76c2db6330ad3198be44b770ecefc73bfb550e9f0`, environment `1f88acfa9707f2834728ebf0913e9a37acd1faeef08c8d4df90ab0c3b6755f22`, sourceStable/environmentStable 모두 true.
+- 원본 `.prepr-reports/final-fast-22ceadb1/report.json`, integrity SHA256 `04ea77c70733b7261c93317cd4cdb4543f84bd07a4da8d85fa5fc756e11757d9`, `/tmp/mastergantt-906-final-fast-22ceadb1.log`와 실제 runner/log 보존.
+- 교정: 표준 build 자식 환경에서 NEXT_DIST_DIR 키를 삭제하고 원래 caller env는 보존한다. 실제 standalone helper를 실행하는 합성 subprocess 양성/기존 empty-env 음성을 추가한다. source/운영 환경 guard는 유지한다.
+- 다음 상태 REWORK, 새 source의 전체 Gate 전 Push/Publish/Close BLOCKED. Chromium·candidate Docker·GHCR 단계는 아직 NOT TESTED다.
+
+## D906-004 · 환경 입력과 invocation trace 구분
+
+첫 두 report의 실행 버전/설치 입력은 동일했지만 environment hash가 달랐다. Root가 raw 값을 출력하지 않고 두 동일 exec의 환경 키별 hash만 비교해 `CODEX_TOOL_CALL_ID` 한 키가 호출마다 바뀜을 실제 확인했다. 이 키는 repo/build/test 동작에서 사용하지 않는 관측용 invocation ID다.
+
+이 한 키만 기존 PWD/TERM류 transient 분류에 포함하고 별도 trace hash로 보존한다. PATH/Node/npm/lock·실제 환경·운영 입력 검증은 그대로 유지하고 CODEX_* 전체를 제외하지 않는다. trace-only 차이는 기능 환경의 불일치가 아니며 실제 PATH/입력 변화는 계속 fingerprint를 바꿔야 한다. 값은 공개하지 않는다. 이 관측을 실제 실행하지 않은 admit FAIL로 꾸미지 않는다.
+
+## F906-014 · STATIC / build 자식 환경 helper 타입 — FAIL → PASS
+
+- F906-013의 caller 교정 집중52tests는 PASS였으나 첫 `npm run typecheck`가 새 helper의 Record 반환 타입과 Next가 확장한 ProcessEnv(NODE_ENV 필수)의 불일치를 잡았다. 원본 `/tmp/mastergantt-906-build-env-f013-typecheck.log`를 보존한다. 개별 실행 시각/전체 working 지문은 NOT CAPTURED다.
+- source는 후보22ceadb1 위의 작업 중 변경이며 당시 집중 PASS를 최종 exact source의 전체 Gate 결과로 사용하지 않는다. 앱/런타임 helper의 동작 오류가 아니라 새 helper의 타입 선언 계약 오류다.
+- 교정: 입력 키를 보존하는 generic Omit 반환으로 NEXT_DIST_DIR만 제거함을 명시했다. caller 객체를 변경하거나 any/tsconfig 완화로 숨기지 않았다. r2 typecheck exit0를 실제 확인했고 환경 trace 구분까지 포함한 최종 집중 검증을 이어간다.
+- 근거 범위: 집중 테스트·타입 교정만 PASS. F906-013 실제 production 전체는 새 candidate에서 다시 실행하기 전 NOT TESTED다.
+
+## V906-009 · F906-013 caller 교정 집중 검증 — PASS
+
+- 최종 집중 실행은 2026-11-10T22:50:23Z 시작, 2files/53tests(Gate45+snapshot8), duration6.49s, exit0. 실제 standalone helper subprocess에서 old empty-env 실패와 key absent 후 표준 .next·정적 파일·migration copy 성공을 비교했다. 앱/runtime helper는 변경하지 않았다.
+- typecheck/ESLint/diff 검사 PASS, F906-014 최초 타입 오류는 보존했다. CODEX_TOOL_CALL_ID만 기능 지문에서 분리하고 invocationTraceSha256을 별도 기록하는 양성/실제 입력 변화 음성도 통과했다.
+- 위 결과는 작업 중 집중 검증이다. 세 번째 exact candidate를 만든 뒤 같은 launcher로 전체 fast/Chromium/Docker/admit를 순차 실행하기 전 production·게시 PASS를 주장하지 않는다. 이전 두 exact candidate의 실제 FAIL은 그대로 보존한다.

@@ -26,3 +26,7 @@ node scripts/verify-issue-ledger.mjs
 ## 첫 exact candidate 재작업 추가
 
 F906-012의 실제 전체 Unit 실패를 추가하여 현재 기계 등록은 12개다. Head `0671bb72d2ac99cddc31f0ba6ec22e55c8883e76`의 legacy batch/source fingerprint 소비자 불일치이며 [원본](ISSUE_906_FAILURE_ANALYSIS.md)에 정확 source/env/report 지문과 실행 결과를 보존했다. 기존 11개 원본·events를 변경하지 않았다. 교정 후 결과는 실제 실행 시 별도 event로 추가하며 새 source의 전체 Gate 성공을 미리 표시하지 않는다.
+
+## 두 번째 exact candidate 후속 원본
+
+현재 실제 실패는 14개다. F906-012에는 `22ceadb1f7278b3a9a5c4bc4896761d3961c0eb2` 전체 Unit 3903PASS·기존3SKIP를 별도 회복 event로 추가했다. 같은 fast의 production 포장은 F906-013으로 FAIL이며, caller 환경 helper의 WIP 타입 실패·교정은 F906-014다. Unit/집중 타입 PASS를 whole Gate나 게시 성공으로 사용하지 않는다. 이전 원본/Markdown prefix는 그대로 유지한다.

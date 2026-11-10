@@ -33,8 +33,10 @@ export declare const COMMON_CHECKS: Record<string, string[]>;
 export declare function reportChecksum(report: object): string;
 export declare function environmentEvidence(root: string, env?: Record<string, string | undefined>): {
   node: string; npm: string | null; osRelease: string; abi: string; platform: string; architecture: string; environmentSha256: string;
-  inputs: Record<string, string | null>; fingerprint: string;
+  inputs: Record<string, string | null>; fingerprint: string; invocationTraceSha256: string | null;
 };
+export declare function standardBuildEnvironment<T extends Record<string, string | undefined>>(env: T): Omit<T, "NEXT_DIST_DIR">;
+export declare function standardBuildEnvironment(): Omit<NodeJS.ProcessEnv, "NEXT_DIST_DIR">;
 export declare function publicationRequirements(source: ReturnType<typeof sourceEvidence>, selection: ReturnType<typeof selectImpact>): {common: string[]; tests: string[]; docker: boolean};
 export declare function evaluateAdmission(args: {
   reports: unknown[]; source: ReturnType<typeof sourceEvidence>; environment: ReturnType<typeof environmentEvidence>;

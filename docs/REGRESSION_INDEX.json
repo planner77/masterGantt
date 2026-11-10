@@ -1323,6 +1323,255 @@
           "environmentFingerprint": "add634d41fc4e1fe3eef4d091486b028e3f468a95fc02b1d6cd6fa51ee9c2726",
           "environmentStable": true,
           "reportIntegritySha256": "9bd661531476f3c02fdb5438606a66f77d3dbff9ff375f5e7fe15d0d373d7c71"
+        },
+        {
+          "id": "second-candidate-unit-passed",
+          "at": "2026-11-10T22:42:20.887Z",
+          "timeNote": "durationMs=89759; fast범위2026-11-10T22:41:33.240Z~22:44:51.854Z",
+          "stage": "UNIT",
+          "status": "PASS",
+          "sourceSha": "22ceadb1f7278b3a9a5c4bc4896761d3961c0eb2",
+          "fixSourceSha": "22ceadb1f7278b3a9a5c4bc4896761d3961c0eb2",
+          "sourceFingerprint": "0efa8b08a04dd5eb8059b42ad573f9c5e5364eca8800fdfe0565fb13b0db5d26",
+          "sourceNote": "base4aad8865972e3446f0d34c7ffcfd2bbab439e366의 exact candidate; sourceStable=true",
+          "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+          "environmentVersion": "masterGantt 0.145.1",
+          "command": [
+            "npm",
+            "test",
+            "--",
+            "--maxWorkers=2",
+            "--reporter=default",
+            "--reporter=json",
+            "--outputFile=/home/planner/Dev/masterGantt-worktrees/issue-906-908/.prepr-reports/final-fast-22ceadb1/vitest-results.json"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "공유 sourceEvidence와 legacy batch manifest의 동일 provenance 및 전체 Unit 성공",
+          "actual": "315files:314PASS/기존1SKIP,3906tests:3903PASS/기존3SKIP. source/env stable이며 source consumer equality 회복",
+          "input": "새 exact candidate 전체 Unit/Integration",
+          "classification": "PRODUCT",
+          "recovery": "consumer가 공유 sourceEvidence를 사용하도록 교정한 새 candidate 전체 Unit 재검증 PASS",
+          "residualRisk": "이 결과는 Unit만 PASS. 같은 fast의 production packaging은 F906-013 FAIL이며 whole Gate/Chromium/Docker/게시 성공 아님",
+          "evidenceScope": "EXACT",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_906_FAILURE_ANALYSIS.md"
+            },
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:final-fast-22ceadb1/report.json"
+            }
+          ],
+          "sourceContentSha256": "f7f7fbc3c4641361a2ab32b76c2db6330ad3198be44b770ecefc73bfb550e9f0",
+          "environmentFingerprint": "1f88acfa9707f2834728ebf0913e9a37acd1faeef08c8d4df90ab0c3b6755f22",
+          "environmentStable": true,
+          "reportIntegritySha256": "04ea77c70733b7261c93317cd4cdb4543f84bd07a4da8d85fa5fc756e11757d9",
+          "verification": {
+            "sourceSha": "22ceadb1f7278b3a9a5c4bc4896761d3961c0eb2",
+            "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+            "imageDigest": null,
+            "backupId": null,
+            "environmentFingerprint": "1f88acfa9707f2834728ebf0913e9a37acd1faeef08c8d4df90ab0c3b6755f22"
+          }
+        }
+      ]
+    },
+    {
+      "id": "F906-013",
+      "issue": 906,
+      "ledger": "docs/ISSUE_906_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        907,
+        908
+      ],
+      "domain": "tooling",
+      "layer": "production-build-environment",
+      "keywords": [
+        "NEXT_DIST_DIR",
+        "empty-string",
+        "standalone",
+        "nullish-default"
+      ],
+      "cause": "caller가 NEXT_DIST_DIR 빈 문자열을 전달하여 standalone preparer의 nullish 기본값 .next를 차단",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/scripts/prepr-verifier.test.ts",
+          "case": "omits NEXT_DIST_DIR in the actual child so the real standalone preparer uses the standard .next output",
+          "historical": false,
+          "coverageArea": "실제 standalone preparer 합성 subprocess 경계; 최종 production build 성공은 새 candidate fast 별도"
+        }
+      ],
+      "residualRisk": "같은 candidate Unit 성공으로 production packaging FAIL을 덮지 않음",
+      "events": [
+        {
+          "id": "second-candidate-build-failed",
+          "at": "2026-11-10T22:43:50.676Z",
+          "timeNote": "durationMs=60466; fast범위2026-11-10T22:41:33.240Z~22:44:51.854Z",
+          "stage": "STATIC",
+          "status": "FAIL",
+          "sourceSha": "22ceadb1f7278b3a9a5c4bc4896761d3961c0eb2",
+          "fixSourceSha": null,
+          "sourceFingerprint": "0efa8b08a04dd5eb8059b42ad573f9c5e5364eca8800fdfe0565fb13b0db5d26",
+          "sourceNote": "base4aad8865972e3446f0d34c7ffcfd2bbab439e366의 exact candidate; sourceStable=true",
+          "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+          "environmentVersion": "masterGantt 0.145.1",
+          "command": [
+            "npm",
+            "run",
+            "build"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "표준 .next/standalone의 production server/runtime 도구 포장 완료",
+          "actual": "Next compile/prerender 성공 후 prepare-standalone-runtime이 root/standalone/server.js를 찾아 exit1; 실제 산출물은 .next/standalone",
+          "input": "exact candidate production build; caller가 NEXT_DIST_DIR 빈 문자열 전달",
+          "classification": "PRODUCT",
+          "recovery": "caller가 자식 env에서 NEXT_DIST_DIR 키를 실제 삭제; 앱/standalone helper 계약 및 원래 caller env 보존",
+          "residualRisk": "새 source production 전체 재검증 전 NOT TESTED; browser/candidate Docker/registry 미실행",
+          "evidenceScope": "EXACT",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_906_FAILURE_ANALYSIS.md"
+            },
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:final-fast-22ceadb1/report.json"
+            }
+          ],
+          "sourceContentSha256": "f7f7fbc3c4641361a2ab32b76c2db6330ad3198be44b770ecefc73bfb550e9f0",
+          "environmentFingerprint": "1f88acfa9707f2834728ebf0913e9a37acd1faeef08c8d4df90ab0c3b6755f22",
+          "environmentStable": true,
+          "reportIntegritySha256": "04ea77c70733b7261c93317cd4cdb4543f84bd07a4da8d85fa5fc756e11757d9"
+        }
+      ]
+    },
+    {
+      "id": "F906-014",
+      "issue": 906,
+      "ledger": "docs/ISSUE_906_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        907,
+        908
+      ],
+      "domain": "tooling",
+      "layer": "typescript-environment",
+      "keywords": [
+        "ProcessEnv",
+        "NODE_ENV",
+        "generic-Omit",
+        "typecheck"
+      ],
+      "cause": "새 build 환경 helper의 좁은 Record 반환 타입이 Next 확장 ProcessEnv 필수 키를 잃음",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/scripts/prepr-verifier.test.ts",
+          "case": "omits NEXT_DIST_DIR in the actual child so the real standalone preparer uses the standard .next output",
+          "historical": false,
+          "coverageArea": "자식 환경 key 제거·입력 보존·실제 preparer 실행; 타입 계약은 npm run typecheck 별도 event"
+        }
+      ],
+      "residualRisk": "작업 중 source 집중 결과이며 최종 candidate Gate·게시 근거가 아님",
+      "events": [
+        {
+          "id": "typecheck-failed",
+          "at": null,
+          "timeNote": "개별 명령 시각 및 전체 WIP 지문 미수집",
+          "stage": "STATIC",
+          "status": "FAIL",
+          "sourceSha": "22ceadb1f7278b3a9a5c4bc4896761d3961c0eb2",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "22ceadb1 candidate 위 WIP helper 수정; exact working bytes 미수집",
+          "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+          "environmentVersion": "masterGantt 0.145.1",
+          "command": [
+            "npm",
+            "run",
+            "typecheck"
+          ],
+          "exit": null,
+          "exitNote": "원본 log에 TS2345 실패, 개별 exit 값 미수집",
+          "expected": "NEXT_DIST_DIR만 제거하면서 Next 확장 ProcessEnv의 입력 키 타입을 보존",
+          "actual": "Record<string,string|undefined> 반환이 NODE_ENV 필수인 ProcessEnv와 호환되지 않아 새 테스트457:24 TS2345",
+          "input": "F906-013 caller 교정의 새 helper/합성 subprocess 테스트",
+          "classification": "FIXTURE",
+          "recovery": "generic Omit 반환으로 입력 키 보존과 NEXT_DIST_DIR 제거를 타입에 명시; any/tsconfig 약화 없음",
+          "residualRisk": "집중 검사만 해당하며 전체 production Gate는 새 candidate 재검증 필요",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_906_FAILURE_ANALYSIS.md"
+            },
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:mastergantt-906-build-env-f013-typecheck.log"
+            }
+          ]
+        },
+        {
+          "id": "typecheck-corrected",
+          "at": null,
+          "timeNote": "개별 명령 시각 및 전체 WIP 지문 미수집",
+          "stage": "STATIC",
+          "status": "PASS",
+          "sourceSha": "22ceadb1f7278b3a9a5c4bc4896761d3961c0eb2",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "22ceadb1 candidate 위 WIP helper 수정; exact working bytes 미수집",
+          "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+          "environmentVersion": "masterGantt 0.145.1",
+          "command": [
+            "npm",
+            "run",
+            "typecheck"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "NEXT_DIST_DIR만 제거하면서 Next 확장 ProcessEnv의 입력 키 타입을 보존",
+          "actual": "generic Omit 입력 타입 보존 교정 후 r2 typecheck exit0",
+          "input": "F906-013 caller 교정의 새 helper/합성 subprocess 테스트",
+          "classification": "FIXTURE",
+          "recovery": "집중52tests PASS와 타입 교정 PASS를 구분; 최종 exact whole Gate는 미완료",
+          "residualRisk": "집중 검사만 해당하며 전체 production Gate는 새 candidate 재검증 필요",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_906_FAILURE_ANALYSIS.md"
+            },
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:mastergantt-906-build-env-f013-typecheck.log"
+            }
+          ],
+          "verification": {
+            "sourceSha": "22ceadb1f7278b3a9a5c4bc4896761d3961c0eb2",
+            "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+            "imageDigest": null,
+            "backupId": null
+          }
         }
       ]
     }

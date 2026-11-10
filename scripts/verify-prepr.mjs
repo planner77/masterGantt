@@ -6,7 +6,7 @@ import { appendFileSync, existsSync, lstatSync, mkdirSync, readFileSync, readdir
 import { cpus, platform, release } from "node:os";
 import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
-import { COMMON_CHECKS, diagnosticSubset, e2eSafety, environmentEvidence, evaluateAdmission, inferRisk, inventory, isPathWithin, reportChecksum, runnerCompletion, runnerCoverage, selectImpact, sourceEvidence } from "./prepr-core.mjs";
+import { COMMON_CHECKS, diagnosticSubset, e2eSafety, environmentEvidence, evaluateAdmission, inferRisk, inventory, isPathWithin, reportChecksum, runnerCompletion, runnerCoverage, selectImpact, sourceEvidence, standardBuildEnvironment } from "./prepr-core.mjs";
 import { createBrowserSnapshot, inspectBrowserSnapshot, removeBrowserSnapshot, snapshotRunnerRoot, validateSnapshotAudit } from "./prepr-snapshot.mjs";
 import { buildLocalImage, validateLocalImageEvidence } from "./prepr-docker.mjs";
 
@@ -420,7 +420,7 @@ async function main() {
         if (!await run(label, cmd, args, {}, label === "Unit" ? tests.unit : [], label === "Unit" ? result.selection.selected.filter((test) => test.kind === "unit").map((test) => test.path) : [])) throw new Error(`FAILED: ${label}`);
       }
       buildResources = assertBuildSafe();
-      if (!await run("Production build", "npm", ["run", "build"], { NEXT_DIST_DIR: "" })) throw new Error("FAILED: Production build");
+      if (!await execute("Production build", "npm", ["run", "build"], standardBuildEnvironment(env), result.steps, reportDir)) throw new Error("FAILED: Production build");
     }
     if (["targeted", "ci-like", "diagnose"].includes(opt.mode)) {
       if (opt.mode === "targeted" && result.selection.selected.some((x) => x.kind === "unit")) {

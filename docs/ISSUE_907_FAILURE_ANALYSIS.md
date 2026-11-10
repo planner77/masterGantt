@@ -29,3 +29,7 @@ F906-010의 ORAS 세 명령 성공과 후조건 assertion 실패, 동일 copy re
 ## F906-012 연결 / 첫 exact candidate 전체 Unit FAIL
 
 기계 인덱스에 12번째 실제 실패 F906-012를 추가했다. 최초 candidate `0671bb72d2ac99cddc31f0ba6ec22e55c8883e76`의 전체 Unit에서 legacy batch와 강화 source fingerprint 소비자 경계가 실패했으며 source/environment는 실행 중 고정이었다. 이 결과는 새 source 재검증으로 덮지 않고 원본 event에 보존한다. 기존 commit의 모든 원장 bytes와 기존 index records/events는 그대로 prefix로 유지했다. 수정 후 PASS·build/browser/Docker/게시 성공은 아직 등록하지 않는다.
+
+## F906-013/F906-014 및 F906-012 재검증 연결
+
+새 exact candidate `22ceadb1f7278b3a9a5c4bc4896761d3961c0eb2`의 전체 Unit PASS는 F906-012의 후속 event로 추가했다. 같은 fast에서 production packaging이 실패한 F906-013과, 그 caller 교정 helper의 별도 WIP 타입 실패→교정 PASS인 F906-014를 추가하여 실제 원본 14개를 보존한다. source/env/report 지문은 실제 report에서 결속했고 WIP 지문·개별 시각 미수집은 null/사유로 남겼다. 종전 source의 실패를 지우거나 부분 PASS를 전체 Gate PASS로 승격하지 않는다.

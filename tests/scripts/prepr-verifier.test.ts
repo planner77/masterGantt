@@ -4,10 +4,10 @@ import { execFileSync, spawnSync } from "node:child_process";
 import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { assertCapturedInstall } from "../fixtures/gantt-state-consistency/capture-install";
 import {
-  COMMON_CHECKS, environmentEvidence, evaluateAdmission, reportChecksum, runnerCompletion, runnerCoverage, diagnosticSubset, e2eSafety, inferRisk, inventory, isPathWithin, resolveBase, selectImpact, sourceEvidence,
+  COMMON_CHECKS, environmentEvidence, evaluateAdmission, reportChecksum, runnerCompletion, runnerCoverage, diagnosticSubset, e2eSafety, inferRisk, inventory, isPathWithin, resolveBase, selectImpact, sourceEvidence, standardBuildEnvironment,
 } from "../../scripts/prepr-core.mjs";
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
@@ -440,6 +440,28 @@ describe("Issue #699/#752/#762/#556 — immutable historical capture with review
 
 
 describe("Issue #908 — local-only publication admission", () => {
+  it("omits NEXT_DIST_DIR in the actual child so the real standalone preparer uses the standard .next output", () => {
+    const directory = mkdtempSync(resolve(tmpdir(), "mastergantt-standard-build-")); created.push(directory);
+    mkdirSync(resolve(directory, ".next/standalone"), { recursive: true });
+    mkdirSync(resolve(directory, ".next/static/chunks"), { recursive: true });
+    mkdirSync(resolve(directory, "db/migrations"), { recursive: true });
+    writeFileSync(resolve(directory, ".next/standalone/server.js"), "// synthetic Next standalone output\n");
+    writeFileSync(resolve(directory, ".next/static/chunks/synthetic.js"), "// synthetic static output\n");
+    writeFileSync(resolve(directory, "db/migrations/0001.sql"), "-- synthetic migration fixture only\n");
+    const helper = pathToFileURL(resolve(root, "scripts/prepare-standalone-runtime.mjs")).href;
+    const probe = `import { prepareStandaloneRuntime } from ${JSON.stringify(helper)}; const result=prepareStandaloneRuntime({root:process.argv[1]}); console.log(JSON.stringify({hasDistKey:Object.hasOwn(process.env,'NEXT_DIST_DIR'),distDir:result.distDir,serverPath:result.serverPath}));`;
+    const run = (env: NodeJS.ProcessEnv) => spawnSync(process.execPath, ["--input-type=module", "-e", probe, directory], { cwd: directory, env, encoding: "utf8" });
+    // The exact previous caller input reproduces the production failure.
+    const oldInput = { ...process.env, NEXT_DIST_DIR: "" };
+    expect(run(oldInput).status).toBe(1);
+    const actual = run(standardBuildEnvironment(oldInput));
+    expect(actual.status, actual.stderr).toBe(0);
+    expect(JSON.parse(actual.stdout)).toEqual({ hasDistKey: false, distDir: ".next", serverPath: resolve(directory, ".next/standalone/server.js") });
+    expect(readFileSync(resolve(directory, ".next/standalone/.next/static/chunks/synthetic.js"), "utf8")).toContain("synthetic static");
+    expect(readFileSync(resolve(directory, ".next/standalone/db/migrations/0001.sql"), "utf8")).toContain("synthetic migration");
+    expect(oldInput.NEXT_DIST_DIR).toBe("");
+    expect(Object.hasOwn(standardBuildEnvironment({ ...process.env, NEXT_DIST_DIR: ".next-custom" }), "NEXT_DIST_DIR")).toBe(false);
+  });
   function setup() {
     const repo = repository();
     mkdirSync(resolve(repo.dir, "tests/fixtures"), { recursive: true });
@@ -530,6 +552,20 @@ describe("Issue #908 — local-only publication admission", () => {
     mkdirSync(resolve(dir, "node_modules"), { recursive: true });
     writeFileSync(resolve(dir, "node_modules/.package-lock.json"), '{"tampered":true}');
     expect(environmentEvidence(dir, { LANG: "C", FIXTURE_SETTING: "one" }).fingerprint).not.toBe(environment.fingerprint);
+  });
+  it("separates only the per-call tracing ID while binding real environment and credential inputs", () => {
+    const { dir } = setup();
+    const input = { PATH: "/synthetic/bin", NODE_OPTIONS: "", GITHUB_TOKEN: "synthetic-credential", FIXTURE_SETTING: "one" };
+    const first = environmentEvidence(dir, { ...input, CODEX_TOOL_CALL_ID: "synthetic-invocation-one" });
+    const second = environmentEvidence(dir, { ...input, CODEX_TOOL_CALL_ID: "synthetic-invocation-two" });
+    expect(first.fingerprint).toBe(second.fingerprint);
+    expect(first.environmentSha256).toBe(second.environmentSha256);
+    expect(first.invocationTraceSha256).not.toBe(second.invocationTraceSha256);
+    expect(JSON.stringify(first)).not.toContain("synthetic-invocation-one");
+    expect(JSON.stringify(first)).not.toContain("synthetic-credential");
+    for (const [name, value] of Object.entries({ PATH: "/synthetic/other", NODE_OPTIONS: "--trace-warnings", GITHUB_TOKEN: "another-synthetic-credential", FIXTURE_SETTING: "two", CODEX_UNRELATED_INPUT: "must-remain-bound" })) {
+      expect(environmentEvidence(dir, { ...input, CODEX_TOOL_CALL_ID: "synthetic-invocation-one", [name]: value }).fingerprint, name).not.toBe(first.fingerprint);
+    }
   });
   it("blocks unknown build/root inputs and selected exclusions", () => {
     const { report, source, environment } = setup();
