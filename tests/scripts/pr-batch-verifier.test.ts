@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { execFileSync, spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { chmodSync, copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, resolve } from "node:path";
@@ -103,7 +104,11 @@ describe("Issue #679 — committed batch identity and read-only evidence", () =>
     const m = prepared.manifest;
     expect(m.localHead).toBe(r.git("rev-parse", "HEAD"));
     expect(m.localTree).toBe(r.git("rev-parse", "HEAD^{tree}"));
-    expect(m.sourceFingerprint).toBe(sourceEvidence(r.dir, r.options.mainSha).fingerprint);
+    // Retired v1 receipts preserve their published cryptographic protocol;
+    // they must not be mistaken for the strengthened current source evidence.
+    expect(m.schema).toBe("mastergantt-pr-batch-v1");
+    expect(m.sourceFingerprint).toBe(createHash("sha256").update(JSON.stringify({ baseSha: r.options.mainSha, head: m.localHead })).digest("hex"));
+    expect(m.sourceFingerprint).not.toBe(sourceEvidence(r.dir, r.options.mainSha).fingerprint);
     expect(m.changes.map((item) => item.path)).toEqual([
       "docs/guide.md", "docs/new guide.md", "docs/obsolete.md", "src/code.ts", "tests/case.test.ts",
     ]);

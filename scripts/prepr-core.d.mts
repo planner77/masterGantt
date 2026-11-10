@@ -41,4 +41,9 @@ export declare function evaluateAdmission(args: {
   selection: ReturnType<typeof selectImpact>; issue?: number | null; now?: number;
 }): {status: "PASS" | "BLOCKED"; publishAllowed: boolean; reasons: string[]; reportCount: number; notice: string};
 export declare function runnerCoverage(kind: string, payload: unknown, root: string): Array<{path: string; passed: number; failed: number; skipped: number}>;
+export declare function runnerCompletion(files: ReturnType<typeof runnerCoverage>, expectedTests: string[], requiredTests?: string[], options?: {allowDependencyBenchmarkSkip?: boolean}): {
+  status: "PASS" | "BLOCKED"; missingFiles: string[]; requiredNotPassed: string[];
+  notTestedFiles: Array<{path: string; skippedCases: number; status: "NOT TESTED"; reason: string}>; allowDependencyBenchmarkSkip: boolean;
+  counts: {passed: number; failed: number; skipped: number};
+};
 export declare function approvedTestCommand(label: string, command: string[]): boolean;

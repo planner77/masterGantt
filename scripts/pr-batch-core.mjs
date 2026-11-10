@@ -215,9 +215,9 @@ export function prepareBatch(root, options) {
     publishParents = [base];
     if (target.expectedHead !== null && !isAncestor(root, target.mainSha, target.expectedHead)) publishParents.push(target.mainSha);
   }
-  // working diff·untracked가 모두 없는 소스에서 prepr-core가 만드는
-  // fingerprint와 같습니다. 호환성 테스트로 이 좁은 연결을 검증하며
-  // 기존 Pre-PR 동작이나 전체 선정 정책은 변경하지 않습니다.
+  // 퇴역한 v1 manifest의 base+Head 지문 계약을 보존합니다. #908의
+  // content/index를 포함한 sourceEvidence와 다른 역사적 식별자이며,
+  // 현재 로컬 admission의 source 검증 증거로 사용하지 않습니다.
   const sourceFingerprint = createHash("sha256").update(JSON.stringify({ baseSha: target.mainSha, head: localHead })).digest("hex");
   const manifest = {
     schema: SCHEMA, ...target, localHead, localTree, baseTree, publishParents,

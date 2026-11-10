@@ -6,7 +6,7 @@ import { appendFileSync, existsSync, lstatSync, mkdirSync, readFileSync, readdir
 import { cpus, platform, release } from "node:os";
 import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
-import { COMMON_CHECKS, diagnosticSubset, e2eSafety, environmentEvidence, evaluateAdmission, inferRisk, inventory, isPathWithin, reportChecksum, runnerCoverage, selectImpact, sourceEvidence } from "./prepr-core.mjs";
+import { COMMON_CHECKS, diagnosticSubset, e2eSafety, environmentEvidence, evaluateAdmission, inferRisk, inventory, isPathWithin, reportChecksum, runnerCompletion, runnerCoverage, selectImpact, sourceEvidence } from "./prepr-core.mjs";
 import { createBrowserSnapshot, inspectBrowserSnapshot, removeBrowserSnapshot, snapshotRunnerRoot, validateSnapshotAudit } from "./prepr-snapshot.mjs";
 import { buildLocalImage, validateLocalImageEvidence } from "./prepr-docker.mjs";
 
@@ -188,7 +188,7 @@ for (const signal of ["SIGINT", "SIGTERM"]) {
   });
 }
 
-async function execute(label, cmd, args, env, records, reportDir, plannedTests = [], executionRoot = root) {
+async function execute(label, cmd, args, env, records, reportDir, plannedTests = [], executionRoot = root, requiredTests = plannedTests) {
   const runner = ["Unit", "Targeted Unit"].includes(label) ? "vitest" : label === "Chromium E2E" ? "playwright" : null;
   const resultFile = runner === "vitest" ? "vitest-results.json" : "chromium-results.json";
   if (runner === "vitest") args = [...args, ...(args.includes("--") ? [] : ["--"]), "--reporter=default", "--reporter=json", `--outputFile=${join(reportDir, resultFile)}`];
@@ -221,7 +221,7 @@ async function execute(label, cmd, args, env, records, reportDir, plannedTests =
   const record = {
     label, command: [cmd, ...args], startedAt, durationMs: Date.now() - startedMs,
     exitCode: outcome.exitCode, signal: outcome.signal ?? null,
-    plannedTests, coveredTests: [], executionRoot,
+    plannedTests, requiredTests, coveredTests: [], executionRoot,
     logFile,
     logSha256: outputHash.digest("hex"),
     status: outcome.error ? "BLOCKED" : outcome.exitCode === 0 && !interrupted ? "PASS" : "FAIL",
@@ -232,10 +232,11 @@ async function execute(label, cmd, args, env, records, reportDir, plannedTests =
     try {
       const bytes = readFileSync(join(reportDir, resultFile));
       const fileResults = runnerCoverage(runner, JSON.parse(bytes.toString("utf8")), executionRoot);
-      record.runner = { kind: runner, resultFile, resultSha256: createHash("sha256").update(bytes).digest("hex"), fileResults };
+      const completion = runnerCompletion(fileResults, plannedTests, requiredTests, { allowDependencyBenchmarkSkip: label === "Unit" && env.RUN_TASK_DEPENDENCY_BENCHMARK !== "1" });
+      record.runner = { kind: runner, resultFile, resultSha256: createHash("sha256").update(bytes).digest("hex"), fileResults, completion };
       record.coveredTests = fileResults.filter((file) => file.passed > 0 && file.failed === 0).map((file) => file.path);
       record.caseCount = fileResults.reduce((sum, file) => sum + file.passed, 0);
-      if (record.status === "PASS" && plannedTests.some((path) => !record.coveredTests.includes(path))) { record.status = "BLOCKED"; record.reason = "필수 test file이 실제 통과 결과에 없습니다(누락/skip-only)."; }
+      if (record.status === "PASS" && completion.status !== "PASS") { record.status = "BLOCKED"; record.reason = "전체 실행 대상의 보고가 누락됐거나 필수 영향 test file이 통과하지 않았습니다(skip-only 포함)."; }
     } catch (error) {
       if (record.status === "PASS") record.status = "BLOCKED";
       record.reason = `Runner JSON 근거를 읽지 못했습니다: ${error.message}`;
@@ -247,7 +248,7 @@ async function execute(label, cmd, args, env, records, reportDir, plannedTests =
 
 function markdown(report) {
   const table = report.steps.map((step) =>
-    `| ${step.label.replaceAll("|", "/")} | ${step.status} | ${step.exitCode ?? "N/A"} | ${step.caseCount ?? "NOT TESTED"} | ${step.durationMs} |`).join("\n");
+    `| ${step.label.replaceAll("|", "/")} | ${step.status} | ${step.exitCode ?? "N/A"} | ${step.caseCount ?? "NOT TESTED"}${step.runner?.completion ? ` PASS / ${step.runner.completion.counts.failed} FAIL / ${step.runner.completion.counts.skipped} SKIP` : ""} | ${step.durationMs} |`).join("\n");
   return `# 로컬 Issue 검증 — ${report.status}
 
 - Issue: ${report.issue ?? "N/A"}, PR: ${report.pr ?? "N/A"}, mode: ${report.mode}, risk: ${report.risk}
@@ -263,6 +264,9 @@ function markdown(report) {
 | Command | State | Exit | Unique cases (if parsable) | ms |
 | --- | --- | --- | --- | --- |
 ${table || "| (none; NOT TESTED) | NOT TESTED | N/A | N/A | N/A |"}
+
+## 실행되지 않은 테스트
+${report.steps.flatMap((step) => (step.runner?.completion?.notTestedFiles ?? []).map((file) => `- ${file.path}: NOT TESTED (${file.skippedCases} SKIP) — ${file.reason}`)).join("\n") || "- 없음"}
 
 ## 별도 환경/수용 증거
 ${report.deferred.map((x) => `- ${x.check}: ${x.state} — ${x.reason}`).join("\n")}
@@ -355,6 +359,10 @@ async function main() {
               const files = runnerCoverage(runner.kind, JSON.parse(bytes.toString("utf8")), executionRoot);
               const coverage = files.filter((file) => file.passed > 0 && file.failed === 0).map((file) => file.path);
               if (runner.resultSha256 !== createHash("sha256").update(bytes).digest("hex") || JSON.stringify(files) !== JSON.stringify(runner.fileResults) || JSON.stringify(coverage) !== JSON.stringify(step.coveredTests) || step.caseCount !== files.reduce((sum, file) => sum + file.passed, 0)) throw new Error("BLOCKED: 실제 runner 결과/통과 coverage가 보고서와 다릅니다.");
+              const requiredTests = result.selection.selected.filter((test) => test.kind === (step.label === "Chromium E2E" ? "chromium" : "unit")).map((test) => test.path);
+              const expectedTests = step.label === "Unit" ? tests.unit : step.label === "Chromium E2E" && report.mode === "ci-like" ? tests.e2e : requiredTests;
+              const completion = runnerCompletion(files, expectedTests, requiredTests, { allowDependencyBenchmarkSkip: step.label === "Unit" && process.env.RUN_TASK_DEPENDENCY_BENCHMARK !== "1" });
+              if (JSON.stringify(step.plannedTests) !== JSON.stringify(expectedTests) || JSON.stringify(step.requiredTests) !== JSON.stringify(requiredTests) || completion.status !== "PASS" || JSON.stringify(runner.completion) !== JSON.stringify(completion)) throw new Error("BLOCKED: 전체 runner 파일 보고/필수 영향 검사/미실행 근거가 현재 계획과 다릅니다.");
             }
           }
           if ((report.steps ?? []).some((step) => step.label === "Chromium E2E")) {
@@ -405,11 +413,11 @@ async function main() {
       throw new Error("BLOCKED: unknown/missing impacted tests; Manager must map scope before local PASS");
     }
     const env = safeChildEnvironment();
-    const run = (label, cmd, args, additions = {}, coveredTests = []) => execute(label, cmd, args, { ...env, ...additions }, result.steps, reportDir, coveredTests);
+    const run = (label, cmd, args, additions = {}, plannedTests = [], requiredTests = plannedTests) => execute(label, cmd, args, { ...env, ...additions }, result.steps, reportDir, plannedTests, root, requiredTests);
     if (opt.mode === "fast" || opt.mode === "ci-like") {
       for (const [label, [cmd, ...args]] of Object.entries(COMMON_CHECKS)) {
         if (label === "Production build") continue;
-        if (!await run(label, cmd, args, {}, label === "Unit" ? tests.unit : [])) throw new Error(`FAILED: ${label}`);
+        if (!await run(label, cmd, args, {}, label === "Unit" ? tests.unit : [], label === "Unit" ? result.selection.selected.filter((test) => test.kind === "unit").map((test) => test.path) : [])) throw new Error(`FAILED: ${label}`);
       }
       buildResources = assertBuildSafe();
       if (!await run("Production build", "npm", ["run", "build"], { NEXT_DIST_DIR: "" })) throw new Error("FAILED: Production build");
@@ -429,7 +437,8 @@ async function main() {
         browserStarted = true;
         const args = ["run", "test:e2e", "--", "--project=chromium", "--workers=1", "--retries=0",
           ...(opt.mode === "diagnose" ? ["--max-failures=0"] : []), ...e2e];
-        if (!await execute("Chromium E2E", "npm", args, env, result.steps, reportDir, e2e.length ? e2e : tests.e2e, browserSnapshot.snapshotRoot)) throw new Error("FAILED: Chromium E2E");
+        const requiredTests = opt.mode === "diagnose" ? e2e : result.selection.selected.filter((test) => test.kind === "chromium").map((test) => test.path);
+        if (!await execute("Chromium E2E", "npm", args, env, result.steps, reportDir, e2e.length ? e2e : tests.e2e, browserSnapshot.snapshotRoot, requiredTests)) throw new Error("FAILED: Chromium E2E");
       } else {
         result.deferred.push({ check: "Chromium E2E", state: "NOT TESTED", reason: "No browser file selected by mapped changes" });
       }

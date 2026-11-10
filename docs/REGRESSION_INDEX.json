@@ -1246,6 +1246,85 @@
           }
         }
       ]
+    },
+    {
+      "id": "F906-012",
+      "issue": 906,
+      "ledger": "docs/ISSUE_906_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        907,
+        908
+      ],
+      "domain": "tooling",
+      "layer": "source-provenance",
+      "keywords": [
+        "pr-batch",
+        "source-fingerprint",
+        "whole-unit",
+        "consumer"
+      ],
+      "cause": "강화된 sourceEvidence fingerprint와 legacy batch manifest consumer의 지문 계산 계약 불일치",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/scripts/pr-batch-verifier.test.ts",
+          "case": "preserves multiple code/test/docs edits, deletion and exact tree without publishing content",
+          "historical": false,
+          "coverageArea": "공유 sourceEvidence와 committed batch manifest equality·정확 tree/delete/path/read-only 계약"
+        }
+      ],
+      "residualRisk": "실제 전체 Unit FAIL이며 교정·새 exact source 재검증 전 전체 Gate 미완료",
+      "events": [
+        {
+          "id": "exact-candidate-unit-failed",
+          "at": "2026-11-10T22:28:37.492Z",
+          "timeNote": "fast전체2026-11-10T22:27:44.193Z~22:30:05.405Z;Unit87308ms",
+          "stage": "UNIT",
+          "status": "FAIL",
+          "sourceSha": "0671bb72d2ac99cddc31f0ba6ec22e55c8883e76",
+          "fixSourceSha": null,
+          "sourceFingerprint": "af55f00b26fc9ce39e1994eb762f41d8eb8ed105992cc7d370ec5e6a3b99c1c8",
+          "sourceNote": "고정 exact candidate와 base4aad8865972e3446f0d34c7ffcfd2bbab439e366; sourceStable=true",
+          "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+          "environmentVersion": "masterGantt 0.145.1",
+          "command": [
+            "npm",
+            "test",
+            "--",
+            "--maxWorkers=2",
+            "--reporter=default",
+            "--reporter=json",
+            "--outputFile=/home/planner/Dev/masterGantt-worktrees/issue-906-908/.prepr-reports/final-fast-0671bb72/vitest-results.json"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "committed batch manifest.sourceFingerprint가 공유 sourceEvidence와 동일하며 전체 Unit 성공",
+          "actual": "315files:313PASS/1FAIL/1SKIP;3905cases:3901PASS/1FAIL/3SKIP. pr-batch-verifier.test.ts:106 source fingerprint equality만 FAIL",
+          "input": "실제 exact candidate 전체 Unit/Integration; 합성 batch fixture의 공유 fingerprint 경계",
+          "classification": "PRODUCT",
+          "recovery": "공유 source 계약 consumer를 교정하고 기존 tree/delete/path/read-only/equality 단언 유지; 새 Head 전체 재검증 전 NOT TESTED",
+          "residualRisk": "production build/Chromium/candidate Docker/registry는 미실행이며 Push/Publish/Close BLOCKED",
+          "evidenceScope": "EXACT",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_906_FAILURE_ANALYSIS.md"
+            },
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:final-fast-0671bb72/report.json"
+            }
+          ],
+          "sourceContentSha256": "b4638906a9a5ca7ad8f7c41f28fd53a637edd2da713f3d5b2b649a8438c56850",
+          "environmentFingerprint": "add634d41fc4e1fe3eef4d091486b028e3f468a95fc02b1d6cd6fa51ee9c2726",
+          "environmentStable": true,
+          "reportIntegritySha256": "9bd661531476f3c02fdb5438606a66f77d3dbff9ff375f5e7fe15d0d373d7c71"
+        }
+      ]
     }
   ]
 }

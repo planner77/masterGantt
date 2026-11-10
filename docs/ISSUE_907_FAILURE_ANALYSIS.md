@@ -25,3 +25,7 @@ Owner는 처음 요청의 중복 번호를 #906·#907·#908 통합 처리로 명
 ## 최종 commit 전 실제 toolchain 원본 보완
 
 F906-010의 ORAS 세 명령 성공과 후조건 assertion 실패, 동일 copy read-only 재검산 PASS를 각각 보존했다. F906-007/F906-009에는 재빌드하지 않은 동일 R02 OCI의 predicate/runtime child 검증 PASS를 추가했다. 합성 fixture source와 OCI/archive/runtime config digest를 결속하며 제품 후보·API/SQLite·registry Pull 성공으로 확대하지 않는다. source content hash와 전체 source fingerprint는 다른 값이므로 content만 수집된 이번 probe는 fingerprint 미수집으로 남긴다. 실제 argv/개별시각 미수집은 로컬 원본 참조와 함께 명시하고 가짜 명령·시각을 채우지 않는다.
+
+## F906-012 연결 / 첫 exact candidate 전체 Unit FAIL
+
+기계 인덱스에 12번째 실제 실패 F906-012를 추가했다. 최초 candidate `0671bb72d2ac99cddc31f0ba6ec22e55c8883e76`의 전체 Unit에서 legacy batch와 강화 source fingerprint 소비자 경계가 실패했으며 source/environment는 실행 중 고정이었다. 이 결과는 새 source 재검증으로 덮지 않고 원본 event에 보존한다. 기존 commit의 모든 원장 bytes와 기존 index records/events는 그대로 prefix로 유지했다. 수정 후 PASS·build/browser/Docker/게시 성공은 아직 등록하지 않는다.

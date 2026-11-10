@@ -169,3 +169,36 @@
 ## V906-007 · F906-011 교정 재검산 — PASS
 
 `git add --all && git diff --cached --check && node scripts/check-markdown-links.mjs` 재실행 exit `0`, Markdown454파일 검산 PASS. 네 archive의 원문 byte 보존은 주석 footer 추가 전후 prefix/hash 검산으로 확인했다. whitespace 검사 옵션·Gate를 약화하거나 원문을 trim하지 않았다. 이후 final candidate commit과 공통 검증은 별도다.
+
+## F906-012 · UNIT / 첫 exact candidate 전체 회귀 — FAIL
+
+- candidate Head `0671bb72d2ac99cddc31f0ba6ec22e55c8883e76`, base `4aad8865972e3446f0d34c7ffcfd2bbab439e366`, 제품0.145.1. 전체 fast 2026-11-10T22:27:44.193Z~22:30:05.405Z, 최종 exit `1`.
+- 실제 명령: `npm run verify:prepr -- --mode=fast --base=4aad8865972e3446f0d34c7ffcfd2bbab439e366 --issue=906 --risk=HIGH --report-dir=.prepr-reports/final-fast-0671bb72`. Unit 내부는 `npm test -- --maxWorkers=2 --reporter=default --reporter=json --outputFile=<해당 reportDir>/vitest-results.json`.
+- 선행 Version/discovery/Markdown/원장/dependency/typecheck/lint PASS. lint 0errors/21warnings. Unit 315files 중313PASS/1FAIL/1SKIP, 3905tests 중3901PASS/1FAIL/3SKIP. Unit duration87.308s, runner표시86.91s. production build·Chromium·candidate Docker·Publish는 미실행/NOT TESTED다.
+- 실제 실패: `tests/scripts/pr-batch-verifier.test.ts:106`, `Issue #679 — committed batch identity and read-only evidence > preserves multiple code/test/docs edits, deletion and exact tree without publishing content`. 같은 tree의 manifest.sourceFingerprint와 강화된 sourceEvidence의 지문 비교 불일치. 기존 consumer와 source fingerprint 계약 결속을 조사·교정하며 equality나 tree/삭제/path/읽기전용 단언을 삭제·완화하지 않는다.
+- source fingerprint `af55f00b26fc9ce39e1994eb762f41d8eb8ed105992cc7d370ec5e6a3b99c1c8`, content SHA256 `b4638906a9a5ca7ad8f7c41f28fd53a637edd2da713f3d5b2b649a8438c56850`, 환경 fingerprint `add634d41fc4e1fe3eef4d091486b028e3f468a95fc02b1d6cd6fa51ee9c2726`. sourceStable=true/environmentStable=true이므로 실행 중 오염으로 실패한 것이 아니다.
+- 원본 report integrity SHA256 `9bd661531476f3c02fdb5438606a66f77d3dbff9ff375f5e7fe15d0d373d7c71`, raw JSON/runner/log는 ignored reportDir 및 `/tmp/mastergantt-906-final-fast-0671bb72.log`에 보존한다. 최초 FAIL은 이후 새 Head PASS로 덮지 않는다.
+- 판정: REWORK; Push/Publish/Close BLOCKED. legacy batch 도구도 기존 테스트를 보존하고 공유 source 계약과 정합화한다. source 변경 뒤 새 commit으로 공통 전체·영향·Docker/admission/QA를 다시 실행한다.
+
+## D906-001 · F906-012 검토 결정 / 역사적 v1과 현행 v2 분리
+
+별도 qa_docs와 Manager가 원본 코드를 대조했다. 퇴역 batch manifest는 schema v1의 `(baseSha, head)` 지문을 유지하지만 #908 sourceEvidence는 실제 content/index를 포함하는 현행 v2다. 옛 테스트의 두 버전 동치 가정이 깨졌으며, 제품 source 오염이 아니다.
+
+v1의 런타임/기존 영수증/Git 안전 wrapper를 바꾸거나 v2를 약화하지 않는다. 기존 테스트는 v1 schema와 문서화된 v1 hash 계약을 정확히 검증하고 현행 content/index v2와 다름을 음성으로 검사하도록 정합화한다. tree/head/삭제/path/읽기전용 및 나머지43개 보호 검사는 보존한다. sourceEvidence에 새 Git callback/API를 확장하는 안은 구현하지 않는다. 교정의 실제 집중 재실행과 새 candidate 전체 Gate 결과는 후속 증거로 구분한다.
+
+## D906-002 · 필요한 소비자와 기존 opt-in benchmark 구분
+
+첫 전체 Unit JSON에는 기존 `tests/server/projects/task-dependency-performance.test.ts`의 opt-in 5000Task benchmark 3개가 SKIP로 보고됐다. 이 검증기는 전체 파일 inventory와 필수 소비자의 실제 통과를 구분해야 한다. 전체 npm Unit 명령/발견 파일은 유지하고 모든 발견 파일의 runner 결과 존재를 검사한다. 실제 passed>0 요구는 영향/명시 include된 필수 소비자에 적용하며 skip-only는 coveredTests나 PASS로 바꾸지 않는다. 필요한 소비자가 skip-only이거나 보고에서 누락되면 계속 BLOCKED다.
+
+이는 새 skip/제외·timeout 변경이 아니다. 이번 tooling 변경과 무관한 opt-in benchmark는 NOT TESTED로 분리하고 기존3SKIP는 그대로 보고한다. parser 교정·양성/음성 회귀와 새 source의 전체 실행은 실제 결과를 추가한다.
+
+## D906-003 · 기존 opt-in 예외의 범위 고정
+
+D906-002의 inventory/필수 소비자 구분을 실제 관측된 범위로 좁혔다. 공통 Unit의 모든 일반 파일은 실제 pass를 요구한다. 예외는 `tests/server/projects/task-dependency-performance.test.ts`의 기존 default3SKIP이며 `RUN_TASK_DEPENDENCY_BENCHMARK !== "1"`·해당 파일 unselected일 때만 NOT TESTED로 보존한다. selected/명시 include·다른 skip-only·잘못된 skip 개수·파일 누락은 계속 BLOCKED다. 항상 실행되는 correctness fixture `task-dependency-edit.test.ts`는 예외가 아니다. 제품 테스트·opt-in 조건·timeout·skip는 변경하지 않는다.
+
+## V906-008 · F906-012 계약 교정 집중 재실행 — PASS
+
+- legacy v1 manifest/runtime는 그대로 두고 v1 schema/hash와 현행 content/index v2의 구별을 검증했다. 기존44case와 tree/head/삭제/읽기전용 단언을 보존했다.
+- 실제 집중 검증: 2026-11-10T22:39:12Z 시작, 3files/95tests(legacy44+Gate43+snapshot8) PASS, duration7.76s, exit0. typecheck/ESLint/구문/diff 검사 PASS. 이 값은 작업 중 교정 집중 실행이며 새 exact commit의 전체 Unit PASS가 아니다.
+- runner 분기는 일반 전체 Unit inventory/pass를 유지하고 미선정된 기존 benchmark의 정확3SKIP만 NOT TESTED로 보존한다. 잘못된 skip/개수/환경활성/선정/include/보고누락의 음성 회귀를 통과했다. benchmark 자체/skip/timeout은 수정하지 않았다.
+- 다음: 새 commit에서 공통 fast 전체·Chromium·Docker/admit와 독립 QA를 다시 확인한다. 기존 candidate0671bb72의3905중1FAIL은 원본으로 유지한다. 최종 exact SHA/원격 Push·image digest/실행 결과는 Owner Issue 댓글에 append하여 이 원장에 연결한다.

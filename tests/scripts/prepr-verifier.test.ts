@@ -7,7 +7,7 @@ import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { assertCapturedInstall } from "../fixtures/gantt-state-consistency/capture-install";
 import {
-  COMMON_CHECKS, environmentEvidence, evaluateAdmission, reportChecksum, runnerCoverage, diagnosticSubset, e2eSafety, inferRisk, inventory, isPathWithin, resolveBase, selectImpact, sourceEvidence,
+  COMMON_CHECKS, environmentEvidence, evaluateAdmission, reportChecksum, runnerCompletion, runnerCoverage, diagnosticSubset, e2eSafety, inferRisk, inventory, isPathWithin, resolveBase, selectImpact, sourceEvidence,
 } from "../../scripts/prepr-core.mjs";
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
@@ -572,6 +572,28 @@ describe("Issue #908 — local-only publication admission", () => {
     expect(evaluateAdmission({ reports: [report], source, environment, selection }).publishAllowed).toBe(false);
     expect(admit([seal({ ...report, issue: 906 })]).reasons.join(" ")).toContain("Primary Issue");
   });
+  it("preserves the exact unrelated opt-in benchmark as NOT TESTED while every normal file remains mandatory", () => {
+    const correctness = "tests/server/projects/task-dependency-edit.test.ts";
+    const benchmark = "tests/server/projects/task-dependency-performance.test.ts";
+    const files = runnerCoverage("vitest", { testResults: [
+      { name: resolve(root, correctness), assertionResults: [{ status: "passed" }] },
+      { name: resolve(root, benchmark), assertionResults: Array.from({ length: 3 }, () => ({ status: "pending" })) },
+    ] }, root);
+    const expected = [correctness, benchmark];
+    const complete = runnerCompletion(files, expected, [correctness], { allowDependencyBenchmarkSkip: true });
+    expect(complete.status).toBe("PASS");
+    expect(complete.notTestedFiles).toEqual([expect.objectContaining({ path: benchmark, skippedCases: 3, status: "NOT TESTED" })]);
+    expect(complete.counts).toEqual({ passed: 1, failed: 0, skipped: 3 });
+    expect(files.filter((file) => file.passed > 0 && file.failed === 0).map((file) => file.path)).toEqual([correctness]);
+    // Affected/manual include, opt-in enabled, changed benchmark count, a new
+    // skip-only file, and missing inventory evidence all remain blocked.
+    expect(runnerCompletion(files, expected, expected, { allowDependencyBenchmarkSkip: true }).status).toBe("BLOCKED");
+    expect(runnerCompletion(files, expected, [correctness], { allowDependencyBenchmarkSkip: false }).status).toBe("BLOCKED");
+    expect(runnerCompletion(files.map((file) => file.path === benchmark ? { ...file, skipped: 2 } : file), expected, [correctness], { allowDependencyBenchmarkSkip: true }).status).toBe("BLOCKED");
+    const unknown = "tests/server/projects/unknown-opt-in.test.ts";
+    expect(runnerCompletion(files.map((file) => file.path === benchmark ? { ...file, path: unknown } : file), [correctness, unknown], [correctness], { allowDependencyBenchmarkSkip: true }).status).toBe("BLOCKED");
+    expect(runnerCompletion(files.filter((file) => file.path !== benchmark), expected, [correctness], { allowDependencyBenchmarkSkip: true }).missingFiles).toEqual([benchmark]);
+  });
   it("blocks empty or same-head baseline admission", () => {
     const { report, source, admit } = setup();
     expect(admit([report], { ...source, changed: [] }).publishAllowed).toBe(false);
@@ -652,7 +674,8 @@ describe("Issue #908 — local-only publication admission", () => {
     const steps = Object.entries(COMMON_CHECKS).map(([label, command], index) => {
       const logFile = `step-${index + 1}.log`, bytes = `synthetic fixture ${label}\n`;
       writeFileSync(resolve(passedPath, logFile), bytes);
-      return { label, command: label === "Unit" ? [...command, "--reporter=default", "--reporter=json", `--outputFile=${resolve(passedPath, "vitest-results.json")}`] : command, status: "PASS", exitCode: 0, signal: null, logFile, logSha256: digest(bytes), caseCount: label === "Unit" ? 1 : null, coveredTests: label === "Unit" ? ["tests/synthetic.test.ts"] : [], ...(label === "Unit" ? { runner: { kind: "vitest", resultFile: "vitest-results.json", resultSha256: digest(runnerBytes), fileResults: [{ path: "tests/synthetic.test.ts", passed: 1, failed: 0, skipped: 0 }] } } : {}) };
+      const fileResults = [{ path: "tests/synthetic.test.ts", passed: 1, failed: 0, skipped: 0 }];
+      return { label, command: label === "Unit" ? [...command, "--reporter=default", "--reporter=json", `--outputFile=${resolve(passedPath, "vitest-results.json")}`] : command, status: "PASS", exitCode: 0, signal: null, logFile, logSha256: digest(bytes), caseCount: label === "Unit" ? 1 : null, coveredTests: label === "Unit" ? ["tests/synthetic.test.ts"] : [], plannedTests: label === "Unit" ? ["tests/synthetic.test.ts"] : [], requiredTests: label === "Unit" ? ["tests/synthetic.test.ts"] : [], ...(label === "Unit" ? { runner: { kind: "vitest", resultFile: "vitest-results.json", resultSha256: digest(runnerBytes), fileResults, completion: runnerCompletion(fileResults, ["tests/synthetic.test.ts"], ["tests/synthetic.test.ts"], { allowDependencyBenchmarkSkip: process.env.RUN_TASK_DEPENDENCY_BENCHMARK !== "1" }) } } : {}) };
     });
     save(passedPath, { ...common, completedAt: new Date(timestamp + 2_000).toISOString(), status: "PASS", interrupted: false, errors: [], steps });
     const run = () => {

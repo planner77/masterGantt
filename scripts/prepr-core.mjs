@@ -532,6 +532,23 @@ export function runnerCoverage(kind, payload, root) {
   return [...files.values()].sort((a, b) => a.path.localeCompare(b.path));
 }
 
+export function runnerCompletion(files, expectedTests, requiredTests = expectedTests, { allowDependencyBenchmarkSkip = false } = {}) {
+  const byPath = new Map(files.map((file) => [file.path, file]));
+  const expected = new Set(expectedTests);
+  const required = new Set(requiredTests);
+  const benchmark = "tests/server/projects/task-dependency-performance.test.ts";
+  const permittedSkip = (path) => allowDependencyBenchmarkSkip && path === benchmark && expected.has(path) && !required.has(path) && byPath.get(path)?.passed === 0 && byPath.get(path)?.failed === 0 && byPath.get(path)?.skipped === 3;
+  const missingFiles = expectedTests.filter((path) => !byPath.has(path));
+  const requiredNotPassed = [...new Set([...expectedTests, ...requiredTests])].filter((path) => !expected.has(path) || (!(byPath.get(path)?.passed > 0) || byPath.get(path).failed > 0) && !permittedSkip(path));
+  return {
+    status: missingFiles.length || requiredNotPassed.length ? "BLOCKED" : "PASS",
+    missingFiles, requiredNotPassed,
+    notTestedFiles: files.filter((file) => file.passed === 0 && file.failed === 0 && file.skipped > 0).map((file) => ({ path: file.path, skippedCases: file.skipped, status: "NOT TESTED", reason: permittedSkip(file.path) ? "미선정된 기존 5,000 Task opt-in benchmark 3건, RUN_TASK_DEPENDENCY_BENCHMARK!=1" : "필수 실행 대상의 skip-only 결과는 통과 근거가 아닙니다." })),
+    allowDependencyBenchmarkSkip,
+    counts: files.reduce((sum, file) => ({ passed: sum.passed + file.passed, failed: sum.failed + file.failed, skipped: sum.skipped + file.skipped }), { passed: 0, failed: 0, skipped: 0 }),
+  };
+}
+
 export function approvedTestCommand(label, command) {
   if (!Array.isArray(command)) return false;
   const unitPrefix = JSON.stringify(command.slice(0, 4)) === JSON.stringify(["npm", "test", "--", "--maxWorkers=2"]);

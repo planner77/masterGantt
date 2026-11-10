@@ -22,3 +22,7 @@ node scripts/verify-issue-ledger.mjs
 ```
 
 현재 테스트 경로 누락·중복 Failure ID·잘못된 상태/stage/출처·Git 이전 인덱스 event 및 Markdown prefix 변경을 거부한다. 합성 GHCR/운영/복원 실패 fixture는 검증기의 음성 테스트이며 실제 운영·복원 결과가 아니다.
+
+## 첫 exact candidate 재작업 추가
+
+F906-012의 실제 전체 Unit 실패를 추가하여 현재 기계 등록은 12개다. Head `0671bb72d2ac99cddc31f0ba6ec22e55c8883e76`의 legacy batch/source fingerprint 소비자 불일치이며 [원본](ISSUE_906_FAILURE_ANALYSIS.md)에 정확 source/env/report 지문과 실행 결과를 보존했다. 기존 11개 원본·events를 변경하지 않았다. 교정 후 결과는 실제 실행 시 별도 event로 추가하며 새 source의 전체 Gate 성공을 미리 표시하지 않는다.
