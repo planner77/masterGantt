@@ -7,7 +7,7 @@ import { cpus, platform, release } from "node:os";
 import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { COMMON_CHECKS, diagnosticSubset, e2eSafety, environmentEvidence, evaluateAdmission, inferRisk, inventory, isPathWithin, reportChecksum, runnerCompletion, runnerCoverage, selectImpact, sourceEvidence, standardBuildEnvironment } from "./prepr-core.mjs";
-import { createBrowserSnapshot, inspectBrowserSnapshot, removeBrowserSnapshot, snapshotRunnerRoot, validateSnapshotAudit } from "./prepr-snapshot.mjs";
+import { createBrowserSnapshot, removeBrowserSnapshot, snapshotRunnerRoot, validateSnapshotAudit, writeBrowserSnapshotAudit } from "./prepr-snapshot.mjs";
 import { buildLocalImage, validateLocalImageEvidence } from "./prepr-docker.mjs";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
@@ -494,10 +494,8 @@ async function main() {
       try { if (browserStarted) keepE2eArtifacts(reportDir, browserSnapshot.snapshotRoot); } catch (error) { result.errors.push(`Artifact move failed: ${error.message}`); result.status = "BLOCKED"; }
       if (browserSnapshot) {
         try {
-          const { audit, verification } = inspectBrowserSnapshot(browserSnapshot, result.sourceStart);
-          const bytes = JSON.stringify(audit, null, 2) + "\n";
-          writeFileSync(join(reportDir, "browser-source-audit.json"), bytes);
-          result.browserSnapshot = { status: "PASS", auditFile: "browser-source-audit.json", auditSha256: createHash("sha256").update(bytes).digest("hex"), verification };
+          result.browserSnapshot = writeBrowserSnapshotAudit(browserSnapshot, result.sourceStart);
+          if (result.browserSnapshot.status !== "PASS") { result.errors.push(result.browserSnapshot.verification.reason); result.status = "BLOCKED"; }
         } catch (error) { result.errors.push(error.message); result.status = "BLOCKED"; }
         try { removeBrowserSnapshot(browserSnapshot); } catch (error) { result.errors.push(`Snapshot cleanup failed: ${error.message}`); result.status = "BLOCKED"; }
       }

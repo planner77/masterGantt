@@ -30,3 +30,11 @@ F906-012의 실제 전체 Unit 실패를 추가하여 현재 기계 등록은 12
 ## 두 번째 exact candidate 후속 원본
 
 현재 실제 실패는 14개다. F906-012에는 `22ceadb1f7278b3a9a5c4bc4896761d3961c0eb2` 전체 Unit 3903PASS·기존3SKIP를 별도 회복 event로 추가했다. 같은 fast의 production 포장은 F906-013으로 FAIL이며, caller 환경 helper의 WIP 타입 실패·교정은 F906-014다. Unit/집중 타입 PASS를 whole Gate나 게시 성공으로 사용하지 않는다. 이전 원본/Markdown prefix는 그대로 유지한다.
+
+## browser·미게시 메시지 준비 원본 추가
+
+현재 실제 실패는 16개다. F906-013에는 이전 bc44 candidate의 실제 production build/fast 회복을 추가하되 그 뒤 Chromium 준비는 F906-015로 BLOCKED였음을 분리했다. 계획된3UIcase는 NOT TESTED이며3FAIL이 아니다. F906-016은 remote write 전 로컬 미게시 메시지 준비 후조건과 안전 교정이다. 옛 Head를 backup ref로 보존했고 새 Head37a의 전체 Gate는 재검증 전 미완료다.
+
+## F906-015 진단 범위 교정
+
+실패 개수는16개로 유지하고 F906-015에 실제 DIAGNOSTIC_ONLY source의 후속 Chromium4PASS·snapshot/dependency audit PASS를 추가했다. 최초 계획3은 정적 오계수였으며 readonly1+timezone3의 실제4case로 정정한다. 기존 실패 시점의 실행0/root error1·계획3 원문은 삭제하지 않는다. 이 진단 source/controller는 최종 프로젝트 candidate와 다르므로 게시·운영 PASS로 사용하지 않는다.

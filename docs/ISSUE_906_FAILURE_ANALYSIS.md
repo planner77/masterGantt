@@ -231,3 +231,37 @@ D906-002의 inventory/필수 소비자 구분을 실제 관측된 범위로 좁�
 - 최종 집중 실행은 2026-11-10T22:50:23Z 시작, 2files/53tests(Gate45+snapshot8), duration6.49s, exit0. 실제 standalone helper subprocess에서 old empty-env 실패와 key absent 후 표준 .next·정적 파일·migration copy 성공을 비교했다. 앱/runtime helper는 변경하지 않았다.
 - typecheck/ESLint/diff 검사 PASS, F906-014 최초 타입 오류는 보존했다. CODEX_TOOL_CALL_ID만 기능 지문에서 분리하고 invocationTraceSha256을 별도 기록하는 양성/실제 입력 변화 음성도 통과했다.
 - 위 결과는 작업 중 집중 검증이다. 세 번째 exact candidate를 만든 뒤 같은 launcher로 전체 fast/Chromium/Docker/admit를 순차 실행하기 전 production·게시 PASS를 주장하지 않는다. 이전 두 exact candidate의 실제 FAIL은 그대로 보존한다.
+
+## V906-010 · 세 번째 exact 후보 공통 fast — PASS
+
+- Head bc44c26f1ed49e76849f44f3d64803b6241dd235, base4aad8865972e3446f0d34c7ffcfd2bbab439e366. fast 2026-11-10T22:54:00.071Z~22:57:10.828Z exit0, sourceStable/environmentStable 모두 true.
+- Version/discovery/Markdown/원장/dependency/typecheck/lint/전체 Unit/production build PASS. Unit3905PASS·기존3SKIP, Unit87.219s; production build58.757s. F906-013의 빈 환경 caller 문제를 실제 전체 production 포장에서 교정했으며 이후 단계의 PASS로 확대하지 않는다.
+- source fingerprint 71ef3e7e31fe2a291aefac7ee2e24b57c4624975839e92346e4aef7aee8fe222, content 49fd6ccb32d36e0eaf9be3b6bb2f54f5cf0e288d8338f83b5af88332cf421bab, 환경 c83364ab178020128d4dd5b4586ac87451e1ee1cafcb4030ea1632743ff57842, report integrity e99eb2114b1e9aaa197d84e639766c6db813e9d206e69ad0c68dc593d8158e5b.
+
+## F906-015 · PLAYWRIGHT / 실제 hermetic snapshot 준비 — FAIL·BLOCKED
+
+- 같은 bc44 Head의 targeted 2026-11-10T22:57:10.941Z~22:58:27.032Z 전체 BLOCKED. Targeted Unit8files/172tests PASS(9.976s). Chromium 명령22:57:24.554Z부터60.542s, exit1/caseCount0; Playwright root error1(웹서버60초 준비 timeout). 계획된3개 browser case는 NOT TESTED이며 UI assertion3FAIL로 산정하지 않는다.
+- 최초 직접 원인: 외부 source install을 가리키는 node_modules/next symlink를 Turbopack hermetic root가 거부했다(Could not find the Next.js package). 후행 build-manifest ENOENT와 대기 timeout은 파생 오류다. 실제 source app/config·테스트 단언·timeout은 변경하지 않는다.
+- 후속 snapshot audit BLOCKED: Next 관리 AGENTS 블록 heading이 기존 H1에서 설치 generator의 H2로 갱신됐다. 원본 checkout은 sourceStable/envStable=true로 유지됐다. AGENTS mutation을 무시/예외허용하지 않고 canonical block을 설치 generator 출력과 정확히 동기화한다. Owner 정책 prefix와 history 원문은 그대로다.
+- 교정 설계: frozen 설치 의존성을 snapshot 내부로 CoW/실복사해 Next 파일이 hermetic root 안에 있게 한다. 상대 .bin 링크는 보존, 절대/외부/dangling 링크 거부, 설치 파일 bytes/mode/link inventory 동등성과 안정성을 검산한다. npm 재설치나 원본 install 쓰기는 하지 않는다.
+- 증거 보완: 실패한 snapshot audit도 cleanup 전 raw JSON/원인을 저장한다. 첫 실패의 snapshot AGENTS diff 원문은 검증 throw 뒤 cleanup으로 별도 보존되지 않았다는 한계를 기록한다. 설치 generator 재현/원본 hash로 heading 차이를 대조했으며 다음 실제 browser probe가 이를 검증한다.
+- report .prepr-reports/final-targeted-bc44c26f/report.json integrity 63d86024673e698913191c7b0abf1fecaf36a4c9e31a8c38c99ac634761a2795; source/env 지문은 바로 위 fast와 동일하다. raw runner/WebServer 로그 보존. 이 실패로 뒤의 candidate Docker/admit/registry 단계는 실행되지 않았다.
+
+## F906-016 · OPERATION / 미게시 commit 메시지 준비 후조건 — FAIL → PASS
+
+- main/GHCR 전에 정적 검토로 GitHub의 fix closing keyword가 조기 종료를 만들 수 있음을 확인했다([공식 설명](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/linking-a-pull-request-to-an-issue)). 미게시 두 메시지만 chore/Refs 형식으로 정리한다. 원격 main/history를 다시 쓰거나 force push하지 않는다.
+- 최초 로컬 준비 스크립트의 빈 git diff 비교가 공백 한 개를 기대하는 assertion 오타로 exit1이었다. backup ref/새 commit 객체만 생성했고 HEAD update/remote write 이전에 중단됐다. 빈 문자열로 바로잡고 동일 객체를 다시 검산했다. 원장 보완 스크립트의 괄호 누락 SyntaxError도 파일 변경 없이 중단한 후 안전한 literal append로 교정했다.
+- 결과: 원본 bc44/22ce는 refs/heads/backup/issue-906-908-local-evidence에 유지하고 같은 author/date/tree의 메시지·부모만 안전하게 정리했다. bc44와 tree가 같은 새 로컬 Head37a18caaf4392f1e84447695eeaff7334e4e17a5, first0671은 그대로 보존. 실제 file/index 변경0, main4aad unchanged, remote write0, 새 chain의 base ancestry 검산 PASS.
+- ignored commit-message-map.json에 old/new/tree 동등성을 보존한다. old 실패 Head의 실제 테스트/원장은 변경하지 않는다. HEAD identity가 달라지므로 수정된 snapshot source와 함께 새 candidate에서 전체 Gate를 다시 실행한다.
+
+## D906-005 · Chromium 동적 사례 수 정정
+
+초기 계획은 gantt-demo를 3case로 적었지만 실제 파일은 readonly1 + UTC, Asia/Seoul, America/New_York의3으로 총4case다. test 파일/단언은 바꾸지 않았다. 실패 당시 계획3 및 실제 runner0/root error1 기록은 원문으로 보존하고, 현재 계획과 후속 실제 실행은4case 기준으로 정정한다. UI assertion이 실행되지 않은 F906-015를3FAIL 또는4FAIL로 재분류하지 않는다.
+
+## V906-011 · F906-015 실제 진단 source 교정 검증 — PASS
+
+- DIAGNOSTIC_ONLY source180288590da650d14489e89b4bde3717a76985a4 = oldbc44 + 설치 Next 관리 heading 한 줄. controller는 작업 중 copy/audit helper다. 최종 프로젝트 candidate나 registry 증거로 전용하지 않는다.
+- 전체 진단2026-11-10T23:11:24.861Z~23:12:27.740Z PASS. 기존 Chromium4case 실제23:11:56.911Z~23:12:10.636Z exit0, 4PASS/0FAIL/0SKIP, runner12.8s. 같은 config/worker1/retries0·단언/timeout 유지.
+- 설치 의존성34108files/683162100bytes, 원본·복사·실행 전후5 inventory 동등 SHA256 4134b58c51707c51ecbd741b9c92e3efad7fe9fae9506255d00b9c3f8fbacccd. 원본 install/source와 controller 코드 불변, Next 생성 metadata audit PASS(AGENT 불변·next-env만 허용), 내부 snapshot cleanup PASS.
+- 새 helper 집중57case/typecheck/lint PASS. 독립 qa_docs도 snapshot12case를 실제 재실행해 PASS하고 진단 raw 결과를 읽어 source/control/deps/audit 보존을 대조했다.
+- 근거: diagnostic-906-f015-bc44 worktree의 .prepr-reports/f015-copy-preflight/diagnostic-result.json·chromium log/results·browser-source audit·failure artifacts. 새 frozen 프로젝트 commit에서 전체 fast/targeted/docker/admit를 다시 실행한다.

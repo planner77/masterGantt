@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
-import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, symlinkSync } from "node:fs";
-import { join, relative, resolve, sep } from "node:path";
+import { closeSync, constants, cpSync, existsSync, lstatSync, openSync, readFileSync, readSync, readdirSync, readlinkSync, realpathSync, writeFileSync } from "node:fs";
+import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { isPathWithin, sourceEvidence } from "./prepr-core.mjs";
 
 const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
@@ -9,6 +9,51 @@ const git = (root, ...args) => execFileSync("git", args, { cwd: root, encoding: 
 const GENERATED_FILES = new Set(["next-env.d.ts", "tsconfig.json"]);
 const NEXT_BROWSER_DIST = /^\.next-e2e(?:-isolated-[a-z0-9-]+)?(?:\/dev)?$/;
 const NEXT_BROWSER_INCLUDE = /^\.next-e2e(?:-isolated-[a-z0-9-]+)?(?:\/dev)?\/types\/\*\*\/\*\.ts$/;
+
+function fileHash(path) {
+  const hash = createHash("sha256");
+  const descriptor = openSync(path, "r");
+  const buffer = Buffer.allocUnsafe(256 * 1024);
+  try { for (let size; (size = readSync(descriptor, buffer, 0, buffer.length, null)) > 0;) hash.update(buffer.subarray(0, size)); }
+  finally { closeSync(descriptor); }
+  return hash.digest("hex");
+}
+
+export function installedDependenciesEvidence(directory) {
+  if (!existsSync(directory) || !lstatSync(directory).isDirectory() || lstatSync(directory).isSymbolicLink()) throw new Error("BLOCKED: 설치 의존성은 실제 node_modules 디렉터리여야 합니다.");
+  const root = realpathSync(directory);
+  const hash = createHash("sha256");
+  let fileCount = 0, directoryCount = 0, symlinkCount = 0, totalBytes = 0;
+  const walk = (folder) => {
+    for (const name of readdirSync(folder).sort()) {
+      const absolute = resolve(folder, name), path = relative(root, absolute).split(sep).join("/");
+      const stat = lstatSync(absolute);
+      if (stat.isSymbolicLink()) {
+        const target = readlinkSync(absolute);
+        let resolved;
+        try { resolved = realpathSync(absolute); } catch { throw new Error("BLOCKED: 설치 의존성의 dangling/cyclic symlink를 거부합니다."); }
+        if (isAbsolute(target) || !isPathWithin(root, resolved)) throw new Error("BLOCKED: 설치 의존성의 외부/절대 symlink는 snapshot에 반입하지 않습니다.");
+        hash.update(JSON.stringify([path, "symlink", target])); symlinkCount++;
+      } else if (stat.isDirectory()) {
+        hash.update(JSON.stringify([path, "directory", stat.mode & 0o111])); directoryCount++; walk(absolute);
+      } else if (stat.isFile()) {
+        hash.update(JSON.stringify([path, "file", stat.mode & 0o111, stat.size, fileHash(absolute)])); fileCount++; totalBytes += stat.size;
+      } else throw new Error("BLOCKED: 설치 의존성의 특수 파일을 거부합니다.");
+    }
+  };
+  walk(root);
+  if (!fileCount) throw new Error("BLOCKED: 설치 의존성이 비어 있습니다.");
+  return { manifestSha256: hash.digest("hex"), fileCount, directoryCount, symlinkCount, totalBytes };
+}
+
+export function copyInstalledDependencies(source, destination) {
+  const before = installedDependenciesEvidence(source);
+  if (existsSync(destination)) throw new Error("BLOCKED: 기존 snapshot 설치 디렉터리를 덮어쓰지 않습니다.");
+  cpSync(source, destination, { recursive: true, mode: constants.COPYFILE_FICLONE, verbatimSymlinks: true, errorOnExist: true, force: false });
+  const copied = installedDependenciesEvidence(destination), originalAfterCopy = installedDependenciesEvidence(source);
+  if (JSON.stringify(before) !== JSON.stringify(copied) || JSON.stringify(before) !== JSON.stringify(originalAfterCopy)) throw new Error("BLOCKED: 의존성 복사 중 설치 bytes가 변경되었습니다.");
+  return { strategy: "COPYFILE_FICLONE_OR_COPY", before, copied, originalAfterCopy };
+}
 
 function assertRegularAncestors(root, target) {
   if (!isPathWithin(root, target)) throw new Error("BLOCKED: snapshot 경로가 허용 범위를 벗어났습니다.");
@@ -88,8 +133,10 @@ export function validateNextGenerated(before, after) {
 }
 
 export function validateSnapshotAudit(audit, source) {
-  if (audit?.schemaVersion !== 1 || audit.headSha !== source.headSha || audit.inputContentSha256 !== source.contentSha256 || !Array.isArray(audit.before) || !Array.isArray(audit.after) || !Array.isArray(audit.untracked) || audit.untracked.length) throw new Error("BLOCKED: snapshot 입력/Head/파일 목록 근거가 다릅니다.");
+  if (audit?.schemaVersion !== 1 || audit.headSha !== source.headSha || audit.actualHeadSha !== source.headSha || audit.inputContentSha256 !== source.contentSha256 || !Array.isArray(audit.before) || !Array.isArray(audit.after) || !Array.isArray(audit.untracked) || audit.untracked.length) throw new Error("BLOCKED: snapshot 입력/Head/파일 목록 근거가 다릅니다.");
   if (audit.indexBeforeSha256 !== source.indexSha256 || audit.indexAfterSha256 !== audit.indexBeforeSha256) throw new Error("BLOCKED: snapshot Git index가 실행 중 변경되었습니다.");
+  const dependencies = audit.dependencies;
+  if (dependencies?.strategy !== "COPYFILE_FICLONE_OR_COPY" || !/^[a-f0-9]{64}$/.test(dependencies.before?.manifestSha256 ?? "") || !(dependencies.before?.fileCount > 0) || [dependencies.copied, dependencies.originalAfterCopy, dependencies.originalAfterRun, dependencies.snapshotAfterRun].some((value) => JSON.stringify(value) !== JSON.stringify(dependencies.before))) throw new Error("BLOCKED: 원본/복사 설치 의존성의 실행 전후 bytes가 다릅니다.");
   if (!audit.before.length || audit.before.length !== audit.after.length) throw new Error("BLOCKED: snapshot source 파일 수가 변경되었습니다.");
   const digest = createHash("sha256");
   let previous = "";
@@ -109,7 +156,7 @@ export function validateSnapshotAudit(audit, source) {
       if (first.mode !== "100644" || generated?.beforeSha256 !== first.sha256 || generated?.afterSha256 !== last.sha256 || sha256(`file:0:${generated.beforeText}`) !== first.contentSha256 || sha256(`file:0:${generated.afterText}`) !== last.contentSha256) throw new Error(`BLOCKED: snapshot source/fixture 변경을 거부합니다: ${first.path}`);
     }
   }
-  return { status: "PASS", generatedChanges: changes, beforeManifestSha256: sha256(JSON.stringify(audit.before)), afterManifestSha256: sha256(JSON.stringify(audit.after)) };
+  return { status: "PASS", generatedChanges: changes, beforeManifestSha256: sha256(JSON.stringify(audit.before)), afterManifestSha256: sha256(JSON.stringify(audit.after)), dependenciesManifestSha256: dependencies.before.manifestSha256 };
 }
 
 export function createBrowserSnapshot(root, reportDir, source) {
@@ -121,15 +168,15 @@ export function createBrowserSnapshot(root, reportDir, source) {
   if (!existsSync(resolve(root, "node_modules"))) throw new Error("BLOCKED: 설치된 로컬 의존성이 필요합니다.");
   git(root, "worktree", "add", "--detach", snapshotRoot, source.headSha);
   try {
-    // Git's directory-only node_modules/ ignore does not cover a symlink at
-    // that path. Keep a real ignored directory and share only install entries.
-    mkdirSync(resolve(snapshotRoot, "node_modules"));
-    for (const entry of readdirSync(resolve(root, "node_modules"))) symlinkSync(resolve(root, "node_modules", entry), resolve(snapshotRoot, "node_modules", entry), lstatSync(resolve(root, "node_modules", entry)).isDirectory() ? "junction" : "file");
+    // Turbopack requires package realpaths inside its hermetic project root.
+    // CoW/copy keeps relative .bin links and never hardlinks original files.
+    const dependencies = copyInstalledDependencies(resolve(root, "node_modules"), resolve(snapshotRoot, "node_modules"));
     const input = sourceEvidence(snapshotRoot, source.baseSha);
     if (input.dirty || input.headSha !== source.headSha || input.contentSha256 !== source.contentSha256) throw new Error("BLOCKED: snapshot 입력 bytes가 검증 source와 다릅니다.");
     return {
       root, snapshotRoot, headSha: source.headSha, inputContentSha256: input.contentSha256, indexSha256: input.indexSha256,
       before: entries(snapshotRoot), generatedBefore: generatedText(snapshotRoot),
+      dependencies,
       nextGeneratorSha256: sha256(readFileSync(resolve(root, "node_modules/next/dist/lib/typescript/writeAppTypeDeclarations.js"))),
     };
   } catch (error) {
@@ -139,17 +186,40 @@ export function createBrowserSnapshot(root, reportDir, source) {
 }
 
 export function inspectBrowserSnapshot(snapshot, source) {
-  const current = sourceEvidence(snapshot.snapshotRoot, source.baseSha);
-  if (current.headSha !== snapshot.headSha) throw new Error("BLOCKED: snapshot HEAD가 실행 중 변경되었습니다.");
   const audit = {
     schemaVersion: 1, headSha: snapshot.headSha, inputContentSha256: snapshot.inputContentSha256,
-    indexBeforeSha256: snapshot.indexSha256, indexAfterSha256: current.indexSha256,
-    before: snapshot.before, after: entries(snapshot.snapshotRoot),
-    untracked: git(snapshot.snapshotRoot, "ls-files", "--others", "--exclude-standard", "-z").split("\0").filter(Boolean),
-    generatedBefore: snapshot.generatedBefore, generatedAfter: generatedText(snapshot.snapshotRoot),
+    indexBeforeSha256: snapshot.indexSha256,
+    before: snapshot.before, generatedBefore: snapshot.generatedBefore,
     nextGeneratorSha256: snapshot.nextGeneratorSha256,
+    dependencies: { ...snapshot.dependencies },
   };
-  return { audit, verification: validateSnapshotAudit(audit, source) };
+  try {
+    const current = sourceEvidence(snapshot.snapshotRoot, source.baseSha);
+    audit.actualHeadSha = current.headSha;
+    audit.indexAfterSha256 = current.indexSha256;
+    audit.after = entries(snapshot.snapshotRoot);
+    audit.untracked = git(snapshot.snapshotRoot, "ls-files", "--others", "--exclude-standard", "-z").split("\0").filter(Boolean);
+    audit.generatedAfter = generatedText(snapshot.snapshotRoot);
+    audit.dependencies.originalAfterRun = installedDependenciesEvidence(resolve(snapshot.root, "node_modules"));
+    audit.dependencies.snapshotAfterRun = installedDependenciesEvidence(resolve(snapshot.snapshotRoot, "node_modules"));
+    if (current.headSha !== snapshot.headSha) throw new Error("BLOCKED: snapshot HEAD가 실행 중 변경되었습니다.");
+    return { audit, verification: validateSnapshotAudit(audit, source) };
+  } catch (error) { audit.captureError = error.message; error.snapshotAudit = audit; throw error; }
+}
+
+export function writeBrowserSnapshotAudit(snapshot, source) {
+  let audit, verification;
+  try { ({ audit, verification } = inspectBrowserSnapshot(snapshot, source)); }
+  catch (error) {
+    audit = error.snapshotAudit;
+    verification = { status: "BLOCKED", reason: error.message };
+    if (!audit) throw error;
+  }
+  const directory = dirname(snapshot.snapshotRoot);
+  assertRegularAncestors(resolve(snapshot.root, ".prepr-reports"), directory);
+  const bytes = JSON.stringify(audit, null, 2) + "\n";
+  writeFileSync(resolve(directory, "browser-source-audit.json"), bytes, { flag: "wx" });
+  return { status: verification.status, auditFile: "browser-source-audit.json", auditSha256: sha256(bytes), verification };
 }
 
 export function removeBrowserSnapshot(snapshot) {

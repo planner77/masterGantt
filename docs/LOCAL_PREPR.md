@@ -10,7 +10,7 @@
 
 시작/종료의 base SHA·HEAD SHA·tracked diff/untracked bytes·fixture/lock digest·실행 환경을 비교한다. 호출마다 달라지는 관측 전용 CODEX_TOOL_CALL_ID는 PWD/TERM류 transient로 분리하고 trace hash로만 보존하며, 실제 PATH/버전/설치/동작 환경은 계속 검증한다. 입력 변경·오염·환경 불일치·취소는 PASS가 아니다. 자신이 만든 생성물만 정리하고 Playwright failure artifact는 로컬 보고에 보존한다. 공개 증거는 합성 fixture와 정제한 결과만 사용한다.
 
-브라우저 실행은 clean exact HEAD가 필요하다. 실행기는 `.prepr-reports/<run>/browser-source`에 동일 Head의 일회용 source snapshot을 만들고 입력 bytes가 원본과 같은지 확인한 뒤 기존 Playwright 설정·fixture를 실행한다. 설치된 의존성을 공유하되 운영 URL/DB는 전달하지 않는다. E2E의 `.data/playwright.sqlite3*`, `.next-e2e*`, `test-results`, `playwright-report`는 snapshot 안의 격리 출력이다.
+브라우저 실행은 clean exact HEAD가 필요하다. 실행기는 `.prepr-reports/<run>/browser-source`에 동일 Head의 일회용 source snapshot을 만들고 입력 bytes가 원본과 같은지 확인한 뒤 기존 Playwright 설정·fixture를 실행한다. 동일하게 고정된 설치 의존성을 snapshot 내부로 CoW 또는 실제 파일 복사하여 self-contained 실행 root를 만든다. 복사 전후 dependency inventory/hash 일치를 확인하고 내부 상대 `.bin` 링크를 보존하되 snapshot 밖으로 해석되는 의존성·링크는 거부한다. snapshot에서 npm install/ci를 실행하거나 source·설치 입력을 수정하지 않으며 운영 URL/DB를 전달하지 않는다. E2E의 `.data/playwright.sqlite3*`, `.next-e2e*`, `test-results`, `playwright-report`는 snapshot 안의 격리 출력이다.
 
 검사 전후 원본 checkout의 source/index/fixture/환경은 그대로여야 한다. snapshot도 제품·테스트·fixture·설정 bytes가 그대로여야 하며, 설치된 Next가 만드는 정확한 `next-env.d.ts` import/notice와 `tsconfig.json`의 격리 타입 출력 경로 include 추가만 생성 출력으로 검증한다. 다른 옵션·코드·fixture 변경은 BLOCKED다. 허용한 생성 출력의 전후 hash·차이를 보고하고 원본 파일을 복원하거나 source fingerprint에서 제외해 PASS를 만들지 않는다.
 

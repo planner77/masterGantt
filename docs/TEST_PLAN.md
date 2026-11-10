@@ -27,7 +27,7 @@ PLAN/REWORK마다 실제 Issue AC, 변경 producer→직접/인접/음성 consum
 | 실패 재작업 | 기존 Failure ID·원본 명령/exit/source·수정 commit | 최초 FAIL을 그대로 두고 원인 교정, 같은 최종 source에서 최초 실패+영향 소비자 재실행·admission | 옛 PASS 승계/무조건 retry/skip 금지 |
 | unknown | 매핑 없는 신규 producer/fixture/harness | dry-run으로 UNKNOWN 확인, 실제 consumer/fixture·권한/환경 조사 후 매핑 보강, full 관련 검증 | UNKNOWN/누락/임의 exclude는 BLOCKED, Publish 금지 |
 
-위 표는 실제 실행 결과가 아니다. 사용한 정확 경로·케이스·명령/exit/count는 각 Issue 원장에 남긴다. 실행 전 선택 파일이 실재하고 현재 계약을 검사하는지 확인한다. 현재 #906/#908은 제품 UI/API/DB를 변경하지 않으므로 업무 UI 전체의 Chromium/시각 수용은 N/A(reason)로 구분한다. 다만 browser 실행 snapshot 경계 변경의 실제 소비자인 기존 `tests/e2e/gantt-demo.spec.ts`의 세 Chromium 사례는 직접 검증하고, 새 snapshot helper의 입력 일치·정확한 Next 생성 출력·임의 코드/옵션/fixture 변경 거부와 source/env·취소/음성 회귀 및 Docker/runtime 검사는 수행한다. 계획만으로 이 검사를 PASS로 표시하지 않는다.
+위 표는 실제 실행 결과가 아니다. 사용한 정확 경로·케이스·명령/exit/count는 각 Issue 원장에 남긴다. 실행 전 선택 파일이 실재하고 현재 계약을 검사하는지 확인한다. 현재 #906/#908은 제품 UI/API/DB를 변경하지 않으므로 업무 UI 전체의 Chromium/시각 수용은 N/A(reason)로 구분한다. 다만 browser 실행 snapshot 경계 변경의 실제 소비자인 기존 `tests/e2e/gantt-demo.spec.ts`의 네 Chromium 사례는 직접 검증하고, 새 snapshot helper의 입력 일치·정확한 Next 생성 출력·임의 코드/옵션/fixture 변경 거부와 source/env·취소/음성 회귀 및 Docker/runtime 검사는 수행한다. 계획만으로 이 검사를 PASS로 표시하지 않는다.
 
 ## Issue #711 — Test Suite Lifecycle (추가 → 검토 → 유지·통합 → 조건부 폐기)
 

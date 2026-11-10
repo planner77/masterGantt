@@ -1454,6 +1454,58 @@
           "environmentFingerprint": "1f88acfa9707f2834728ebf0913e9a37acd1faeef08c8d4df90ab0c3b6755f22",
           "environmentStable": true,
           "reportIntegritySha256": "04ea77c70733b7261c93317cd4cdb4543f84bd07a4da8d85fa5fc756e11757d9"
+        },
+        {
+          "id": "bc44-production-build-passed",
+          "at": "2026-11-10T22:56:11.356Z",
+          "timeNote": "durationMs=58757; 완료 2026-11-10T22:57:10.828Z",
+          "stage": "STATIC",
+          "status": "PASS",
+          "sourceSha": "bc44c26f1ed49e76849f44f3d64803b6241dd235",
+          "fixSourceSha": "bc44c26f1ed49e76849f44f3d64803b6241dd235",
+          "sourceFingerprint": "71ef3e7e31fe2a291aefac7ee2e24b57c4624975839e92346e4aef7aee8fe222",
+          "sourceNote": "고정 base4aad8865972e3446f0d34c7ffcfd2bbab439e366; sourceStable=true",
+          "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+          "environmentVersion": "masterGantt 0.145.1",
+          "command": [
+            "npm",
+            "run",
+            "build"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "NEXT_DIST_DIR 실제 unset으로 표준 .next standalone production 포장 성공",
+          "actual": "bc44 exact candidate의 전체 fast 공통·Unit3905PASS/기존3SKIP·production build 모두 exit0; source/env stable",
+          "input": "bc44 이전 exact candidate production build",
+          "classification": "PRODUCT",
+          "recovery": "실제 자식 환경 키 unset 교정 후 해당 candidate production build 회복",
+          "residualRisk": "이 결과는 bc44 source에만 유효. 후속 targeted F906-015 BLOCKED 및 현재 새 Head37a의 전체 Gate를 대신하지 않음",
+          "evidenceScope": "EXACT",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_906_FAILURE_ANALYSIS.md"
+            },
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:final-fast-bc44c26f/report.json"
+            }
+          ],
+          "sourceContentSha256": "49fd6ccb32d36e0eaf9be3b6bb2f54f5cf0e288d8338f83b5af88332cf421bab",
+          "environmentFingerprint": "c83364ab178020128d4dd5b4586ac87451e1ee1cafcb4030ea1632743ff57842",
+          "environmentStable": true,
+          "reportIntegritySha256": "e99eb2114b1e9aaa197d84e639766c6db813e9d206e69ad0c68dc593d8158e5b",
+          "verification": {
+            "sourceSha": "bc44c26f1ed49e76849f44f3d64803b6241dd235",
+            "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+            "imageDigest": null,
+            "backupId": null,
+            "environmentFingerprint": "c83364ab178020128d4dd5b4586ac87451e1ee1cafcb4030ea1632743ff57842"
+          }
         }
       ]
     },
@@ -1568,6 +1620,292 @@
           ],
           "verification": {
             "sourceSha": "22ceadb1f7278b3a9a5c4bc4896761d3961c0eb2",
+            "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F906-015",
+      "issue": 906,
+      "ledger": "docs/ISSUE_906_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        907,
+        908
+      ],
+      "domain": "tooling",
+      "layer": "browser-snapshot-runtime",
+      "keywords": [
+        "Turbopack",
+        "hermetic-root",
+        "dependency-symlink",
+        "AGENTS-generator",
+        "webServer"
+      ],
+      "cause": "snapshot dependency symlink가 Next hermetic root 밖을 가리킴; 후속 audit에서 Next 관리 heading 변경도 감지",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/scripts/prepr-snapshot.test.ts",
+          "case": "runs from identical exact-head bytes while strict Next metadata generation leaves the original unchanged",
+          "historical": false,
+          "coverageArea": "snapshot 원본/의존 입력 동등성 guard; 실제 Chromium3case 실행은 event의 명령으로 별도 판정"
+        },
+        {
+          "path": "tests/e2e/gantt-demo.spec.ts",
+          "case": "renders the SVAR fixture readonly by default and exposes the local preview toggle",
+          "historical": false,
+          "coverageArea": "계획된 실제 UI case이며 최초 실행에서는 server준비 실패로 NOT TESTED"
+        }
+      ],
+      "residualRisk": "초기3UIcase 미실행·후속 source 변경으로 새 exact candidate 전체 Gate 필요",
+      "events": [
+        {
+          "id": "actual-browser-preparation-blocked",
+          "at": "2026-11-10T22:57:24.554Z",
+          "timeNote": "durationMs=60542; 완료 2026-11-10T22:58:27.032Z",
+          "stage": "PLAYWRIGHT",
+          "status": "BLOCKED",
+          "sourceSha": "bc44c26f1ed49e76849f44f3d64803b6241dd235",
+          "fixSourceSha": null,
+          "sourceFingerprint": "71ef3e7e31fe2a291aefac7ee2e24b57c4624975839e92346e4aef7aee8fe222",
+          "sourceNote": "고정 base4aad8865972e3446f0d34c7ffcfd2bbab439e366; sourceStable=true",
+          "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+          "environmentVersion": "masterGantt 0.145.1",
+          "command": [
+            "npm",
+            "run",
+            "test:e2e",
+            "--",
+            "--project=chromium",
+            "--workers=1",
+            "--retries=0",
+            "--reporter=list,json,html",
+            "tests/e2e/gantt-demo.spec.ts"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "실제 Chromium shared server 준비 후 기존 gantt-demo3case 실행·snapshot audit 성공",
+          "actual": "Targeted Unit172PASS; Chromium exit1/caseCount0·webServer60초 timeout/root error1. 최초원인은 외부 node_modules/next symlink를 Turbopack hermetic root가 거부. 계획된3UIcase는 NOT TESTED",
+          "input": "bc44 exact candidate browser-source snapshot; 기존 gantt-demo fixture",
+          "classification": "ENVIRONMENT",
+          "recovery": "설치 파일의 bytes/mode/link 동등성을 유지해 snapshot 내부 CoW/실복사; Next 관리 AGENTS block도 정확 generator와 동기화. 실제 재검증 전 NOT TESTED",
+          "residualRisk": "원본 source/env는 안정. 실패 snapshot AGENTS diff는 cleanup 전에 별도 보존되지 않은 한계가 있으며 root log/설치 generator 근거와 교정 audit 추가 필요; candidate Docker/admit/registry 미실행",
+          "evidenceScope": "EXACT",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_906_FAILURE_ANALYSIS.md"
+            },
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:final-targeted-bc44c26f/report.json"
+            }
+          ],
+          "sourceContentSha256": "49fd6ccb32d36e0eaf9be3b6bb2f54f5cf0e288d8338f83b5af88332cf421bab",
+          "environmentFingerprint": "c83364ab178020128d4dd5b4586ac87451e1ee1cafcb4030ea1632743ff57842",
+          "environmentStable": true,
+          "reportIntegritySha256": "63d86024673e698913191c7b0abf1fecaf36a4c9e31a8c38c99ac634761a2795"
+        },
+        {
+          "id": "diagnostic-copy-and-audit-passed",
+          "at": "2026-11-10T23:11:56.911Z",
+          "timeNote": "Chromium완료2026-11-10T23:12:10.636Z; 전체진단2026-11-10T23:11:24.861Z~2026-11-10T23:12:27.739Z",
+          "stage": "PLAYWRIGHT",
+          "status": "PASS",
+          "sourceSha": "180288590da650d14489e89b4bde3717a76985a4",
+          "fixSourceSha": null,
+          "sourceFingerprint": "9bcb00ff6315c9ed0372346311160a1a0cfe39b830c7db6ba2ec3e026771a039",
+          "sourceNote": "DIAGNOSTIC_ONLY: oldbc44+설치Next관리heading 한 줄의 진단 source. WIP copy/audit controller는 별도 hash로 확인; 최종 프로젝트candidate가 아님",
+          "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+          "environmentVersion": "masterGantt0.145.1; DIAGNOSTIC_ONLY source/controller",
+          "command": [
+            "npm",
+            "run",
+            "test:e2e",
+            "--",
+            "--project=chromium",
+            "--workers=1",
+            "--retries=0",
+            "--reporter=list,json,html",
+            "tests/e2e/gantt-demo.spec.ts"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "내부 복사된 의존성으로 hermetic Next 서버 준비 및 실제 gantt-demo4case 실행·엄격 snapshot audit 성공",
+          "actual": "실제 Chromium4PASS/0FAIL/0SKIP(12.8s), source/controlstable, dependency5inventory동일, AGENTS불변·next-env만정확허용, audit/cleanupPASS",
+          "input": "진단 source180288590da650d14489e89b4bde3717a76985a4와 실제 기존 gantt-demo fixture; 최종프로젝트Gate가아님",
+          "classification": "ENVIRONMENT",
+          "recovery": "외부 dependency symlink 대신 CoW/실복사·inventory검산과 설치Next관리heading동기화의 실제 진단 검증",
+          "residualRisk": "프로젝트의 새 frozen Head 전체 fast/targeted/docker/admit·GHCR 검증은 별도. 진단 PASS를 게시 근거로 전용 금지",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_906_FAILURE_ANALYSIS.md"
+            },
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:diagnostic-906-f015-bc44/f015-copy-preflight/diagnostic-result.json"
+            }
+          ],
+          "sourceContentSha256": "cc69f5dc19fa9f612ad45167bc3f0e4cc47bfab73a012875f9804374150014ee",
+          "environmentFingerprint": null,
+          "environmentStable": null,
+          "environmentNote": "진단은 source/control/dependency동등성을 확인. 별도 환경 fingerprint 미수집",
+          "diagnosticScope": "DIAGNOSTIC_ONLY_NOT_PROJECT_GATE",
+          "controls": [
+            {
+              "path": "scripts/prepr-snapshot.mjs",
+              "sha256": "1cefab5f949e9bcc73aed8038d33d95594ca86a1c2b6fcf6e5f206c95927737b"
+            },
+            {
+              "path": "scripts/prepr-core.mjs",
+              "sha256": "fa314f5bdb6b9e45dbb03a51bd3404e315fe68555de832c8802171c957f4c3a4"
+            }
+          ],
+          "dependencyManifestSha256": "4134b58c51707c51ecbd741b9c92e3efad7fe9fae9506255d00b9c3f8fbacccd",
+          "dependencyFileCount": 34108,
+          "dependencyTotalBytes": 683162100,
+          "snapshotAuditSha256": "e671f5927058b813b6b825ec4ed55ce70333b54cf4cf06be6131ab4b8468fbf2",
+          "snapshotCleaned": true,
+          "planCountCorrection": {
+            "previousPlan": 3,
+            "actualCases": 4,
+            "reason": "readonly1+UTC/AsiaSeoul/NewYork3; 초기계획은정적오계수이며 당시실행0/rooterror1은그대로보존"
+          },
+          "verification": {
+            "sourceSha": "180288590da650d14489e89b4bde3717a76985a4",
+            "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+            "imageDigest": null,
+            "backupId": null
+          },
+          "sourceStable": true,
+          "controlsStable": true
+        }
+      ]
+    },
+    {
+      "id": "F906-016",
+      "issue": 906,
+      "ledger": "docs/ISSUE_906_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        907,
+        908
+      ],
+      "domain": "operations",
+      "layer": "unpublished-commit-preparation",
+      "keywords": [
+        "empty-diff",
+        "commit-message",
+        "backup-ref",
+        "tree-identity"
+      ],
+      "cause": "미게시 메시지 준비의 빈 diff 후조건이 빈 문자열 대신 공백을 기대함",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/scripts/pr-batch-verifier.test.ts",
+          "case": "preserves multiple code/test/docs edits, deletion and exact tree without publishing content",
+          "historical": false,
+          "coverageArea": "정확 tree/read-only evidence 계약; 메시지 준비의 실제 후조건은 local mapping·git 검산 event"
+        }
+      ],
+      "residualRisk": "로컬 미게시 객체만 정리했으며 새 HEAD identity 검증은 새 candidate에서 수행",
+      "events": [
+        {
+          "id": "local-message-precheck-failed",
+          "at": null,
+          "timeNote": "개별 실행 시각 미수집",
+          "stage": "OPERATION",
+          "status": "FAIL",
+          "sourceSha": "bc44c26f1ed49e76849f44f3d64803b6241dd235",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "HEAD 갱신/remote write 이전 local bc44 message 준비; 전체 WIP 지문 미수집",
+          "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+          "environmentVersion": "masterGantt 0.145.1",
+          "command": [
+            "python3",
+            "-"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "빈 git diff와 동등한 tree/author/date를 확인한 뒤 로컬 Head만 안전 갱신",
+          "actual": "빈 git diff에 공백 한 개를 기대한 assertion 오류로 exit1; backup ref/새 객체만 생성, HEAD update와 remote write 전에 중단",
+          "input": "아직 게시하지 않은 두 commit의 chore/Refs 메시지 준비",
+          "classification": "POLICY",
+          "recovery": "빈 문자열 비교로 교정해 동일 객체를 재검산; 기존 실패 Head를 backup ref로 보존",
+          "residualRisk": "새 Head는 identity가 달라 전체 Gate 재검증 필요; main/remote history rewrite 또는 force push 없음",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_906_FAILURE_ANALYSIS.md"
+            },
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:commit-message-map.json"
+            }
+          ],
+          "commandNote": "미게시 commit-message 준비·후조건 검사 stdin script; 실제 세부 mapping은 ignored commit-message-map.json"
+        },
+        {
+          "id": "local-message-preparation-corrected",
+          "at": null,
+          "timeNote": "개별 실행 시각 미수집",
+          "stage": "OPERATION",
+          "status": "PASS",
+          "sourceSha": "37a18caaf4392f1e84447695eeaff7334e4e17a5",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "새 로컬 Head37a와 구 bc44의 tree/author/date 동등성 검산; 실제 working fingerprint는 미수집",
+          "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+          "environmentVersion": "masterGantt 0.145.1",
+          "command": [
+            "python3",
+            "-"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "빈 git diff와 동등한 tree/author/date를 확인한 뒤 로컬 Head만 안전 갱신",
+          "actual": "동일 tree/author/date를 검산하고 로컬 Head37a로 갱신. bc44/22ce 원본은 backup ref 보존, main4aad unchanged/remote write0/force push없음. 원장 보완 괄호 SyntaxError도 파일 변경 없이 중단·literal append로 교정",
+          "input": "아직 게시하지 않은 두 commit의 chore/Refs 메시지 준비",
+          "classification": "POLICY",
+          "recovery": "old/new/tree map 보존; 새 source 전체 Gate 실행 전 기존 Head PASS 재사용 금지",
+          "residualRisk": "새 Head는 identity가 달라 전체 Gate 재검증 필요; main/remote history rewrite 또는 force push 없음",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_906_FAILURE_ANALYSIS.md"
+            },
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:commit-message-map.json"
+            }
+          ],
+          "commandNote": "미게시 commit-message 준비·후조건 검사 stdin script; 실제 세부 mapping은 ignored commit-message-map.json",
+          "verification": {
+            "sourceSha": "37a18caaf4392f1e84447695eeaff7334e4e17a5",
             "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
             "imageDigest": null,
             "backupId": null

@@ -33,3 +33,11 @@ F906-010의 ORAS 세 명령 성공과 후조건 assertion 실패, 동일 copy re
 ## F906-013/F906-014 및 F906-012 재검증 연결
 
 새 exact candidate `22ceadb1f7278b3a9a5c4bc4896761d3961c0eb2`의 전체 Unit PASS는 F906-012의 후속 event로 추가했다. 같은 fast에서 production packaging이 실패한 F906-013과, 그 caller 교정 helper의 별도 WIP 타입 실패→교정 PASS인 F906-014를 추가하여 실제 원본 14개를 보존한다. source/env/report 지문은 실제 report에서 결속했고 WIP 지문·개별 시각 미수집은 null/사유로 남겼다. 종전 source의 실패를 지우거나 부분 PASS를 전체 Gate PASS로 승격하지 않는다.
+
+## F906-015/F906-016 연결
+
+이전 bc44 exact candidate의 fast/production 회복은 F906-013의 후속 event로 보존했다. 이어진 실제 browser 준비의 dependency hermetic-root 및 Next 관리 블록 문제를 F906-015로 분리하여 UI3case 미실행을 NOT TESTED로 기록했다. remote write 전 로컬 미게시 commit 메시지 준비 후조건 실패·교정은 F906-016이다. 총16개 실제 원본과 기존 index/events·원장 prefix를 유지한다. 새 Head37a는 bc44와 tree가 같아도 identity가 달라 옛 PASS를 최종 source에 전용하지 않는다.
+
+## F906-015 진단 재실행 추가
+
+실제 진단 source180288590da650d14489e89b4bde3717a76985a4의 Chromium4PASS/0FAIL/0SKIP, 의존34108files·683162100bytes의5inventory동일, 원본 source/controller 불변 및 정확 Next audit·cleanup PASS를 F906-015 후속 SCOPED event로 보존했다. DIAGNOSTIC_ONLY_NOT_PROJECT_GATE를 명시하고 최종 프로젝트 candidate·registry 결과와 분리한다. 초기 계획3의 정적 오계수도 실제4로 정정하되 최초 실패/미실행 기록은 그대로 유지한다. 기존16개 Failure metadata와 event prefix를 바꾸지 않고 결과만 추가했다.
