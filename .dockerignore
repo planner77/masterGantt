@@ -27,3 +27,7 @@ CHANGELOG.md
 # Test configuration is under tests/ and remains excluded above.
 *.log
 *.tsbuildinfo
+
+# 로컬 검증 로그/실패 artifact/관리자 snapshot은 이미지 context에서 제외합니다.
+.prepr-reports
+.next-prepr

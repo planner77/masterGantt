@@ -1,0 +1,105 @@
+{
+  "baseline_sha": "4aad8865972e3446f0d34c7ffcfd2bbab439e366",
+  "files": [
+    {
+      "original_path": "AGENTS.md",
+      "original_sha256": "31df5ee2d9060189604f2c4d65ea8ba8771c67f1b122de538a6a24cda28a65c0",
+      "archive_path": "docs/history/owner-ci-retired-20261110/AGENTS.md"
+    },
+    {
+      "original_path": "README.md",
+      "original_sha256": "6b41b318526fb5866b05a4565df47568a47eecf2a9ca9a49cfc0d85cdcacb563",
+      "archive_path": "docs/history/owner-ci-retired-20261110/ROOT_README.md"
+    },
+    {
+      "original_path": "docs/ISSUE_LIFECYCLE.md",
+      "original_sha256": "99632f8d29b1e1c68b727665d01bb7d3172d23c3f13b83348bb7fb9848051f02",
+      "archive_path": "docs/history/owner-ci-retired-20261110/ISSUE_LIFECYCLE.md"
+    },
+    {
+      "original_path": "docs/QA_REVIEW_POLICY.md",
+      "original_sha256": "7fd431a8a93c4fe55a9dc3b8ed9189c25a02f04c293c0634e346d774737dfe6d",
+      "archive_path": "docs/history/owner-ci-retired-20261110/QA_REVIEW_POLICY.md"
+    },
+    {
+      "original_path": "docs/GITHUB_OPERATIONS.md",
+      "original_sha256": "d6183fe0f83ee722b1dcb05293da261a899c9cff5d79e83d47c38292e15bb71f",
+      "archive_path": "docs/history/owner-ci-retired-20261110/GITHUB_OPERATIONS.md"
+    },
+    {
+      "original_path": "docs/CI_CD.md",
+      "original_sha256": "39025a5d8a2c32bdb0c96aefdcea05e911da06fe3bf8d35993775deb3530b910",
+      "archive_path": "docs/history/owner-ci-retired-20261110/CI_CD.md"
+    },
+    {
+      "original_path": "docs/LOCAL_PREPR.md",
+      "original_sha256": "806aac5590dc1dcdbc4aeae12806cfb7fc363aca60e1f0d6363d5570914faa9d",
+      "archive_path": "docs/history/owner-ci-retired-20261110/LOCAL_PREPR.md"
+    },
+    {
+      "original_path": "docs/REMOTE_VALIDATION.md",
+      "original_sha256": "1775379e7bb563a8f1f5f7eac2a05b2d17359be7cfdff9c188d0274bc3a342ca",
+      "archive_path": "docs/history/owner-ci-retired-20261110/REMOTE_VALIDATION.md"
+    },
+    {
+      "original_path": "docs/TEST_PLAN.md",
+      "original_sha256": "d5db039181ac1ee2bd9bb5141a699161a504f115f2de7fc9ae030bd0c3f30050",
+      "archive_path": "docs/history/owner-ci-retired-20261110/TEST_PLAN.md"
+    },
+    {
+      "original_path": "docs/DEPLOYMENT.md",
+      "original_sha256": "0054beb2839a51722b185b2887f5c8bd6e61a27e12eb7ab4e71ee120eb3cd1ce",
+      "archive_path": "docs/history/owner-ci-retired-20261110/DEPLOYMENT.md"
+    },
+    {
+      "original_path": "docs/AGENT_PROMPTS.md",
+      "original_sha256": "f8e669192eb3e9153bec396d52ced318de70291f60147310f4b5591b0b727480",
+      "archive_path": "docs/history/owner-ci-retired-20261110/AGENT_PROMPTS.md"
+    },
+    {
+      "original_path": "docs/PREVIEW_PUBLISH.md",
+      "original_sha256": "3beffc3f2e972147b00997370e342bb93a2daa01c77245fe5eb0442e65104af8",
+      "archive_path": "docs/history/owner-ci-retired-20261110/PREVIEW_PUBLISH.md"
+    },
+    {
+      "original_path": "docs/GENERIC_RELEASE_FINALIZER.md",
+      "original_sha256": "cbc8908bf4aa8cb814c7ecebfb5d0cb58c3936bdba8cba35513166ea12265d3e",
+      "archive_path": "docs/history/owner-ci-retired-20261110/GENERIC_RELEASE_FINALIZER.md"
+    },
+    {
+      "original_path": "docs/ISSUE_LIFECYCLE_AUTOMATION.md",
+      "original_sha256": "3e43a1817246687ce20a34a5d857d354b7f3a8b347f740246a4ff973a09f2eb4",
+      "archive_path": "docs/history/owner-ci-retired-20261110/ISSUE_LIFECYCLE_AUTOMATION.md"
+    },
+    {
+      "original_path": "docs/AGENT_CONFIGURATION.md",
+      "original_sha256": "f89f18ed23b4a4b6e5f7b5feef03868c24f3aaf0b195fdab627b2f539bbc9254",
+      "archive_path": "docs/history/owner-ci-retired-20261110/AGENT_CONFIGURATION.md"
+    },
+    {
+      "original_path": "docs/exec-plans/active/PLAN.md",
+      "original_sha256": "b1e966afeee1f52973a7421f4b0164dc9f39f6e2633eac8ee4f26968eb81ca06",
+      "archive_path": "docs/history/owner-ci-retired-20261110/ACTIVE_PLAN.md"
+    },
+    {
+      "original_path": ".github/pull_request_template.md",
+      "original_sha256": "5dc2edfbfd952eeb2eeaac812f5b34f8d11b5bd2aacc6a9c5de889410cf90073",
+      "archive_path": "docs/history/owner-ci-retired-20261110/PULL_REQUEST_TEMPLATE.md"
+    },
+    {
+      "original_path": "docs/PR_CI_FAILURE_TRIAGE.md",
+      "original_sha256": "cc7b1d6ae386c6bafc46bd2877e2793578a0caa8984d74e8876bff0cb65a0b39",
+      "archive_path": "docs/history/owner-ci-retired-20261110/PR_CI_FAILURE_TRIAGE.md"
+    },
+    {
+      "original_path": "docs/TEST_LIFECYCLE_INVENTORY_711.md",
+      "original_sha256": "3e342087b24fd3dec3706f961b58af94f76e4a766903d2f3d664fe869326c121",
+      "archive_path": "docs/history/owner-ci-retired-20261110/TEST_LIFECYCLE_INVENTORY_711.md"
+    },
+    {
+      "original_path": "docs/TEST_PLAN_895_897.md",
+      "original_sha256": "5ccda33402f09bb06465c5f7a1cee32465d470c4c0d0909632576ed65cdd9920",
+      "archive_path": "docs/history/owner-ci-retired-20261110/TEST_PLAN_895_897.md"
+    }
+  ]
+}

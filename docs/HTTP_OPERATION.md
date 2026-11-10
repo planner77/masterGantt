@@ -89,9 +89,9 @@ HTTP에서 비밀번호·세션·일정 데이터는 전송 구간에서 암호�
 
 검증 범위는 실제 브라우저 프로젝트 생성·작업 추가/정보 편집·재조회·암호 변경·로그아웃, HTTP/HTTPS 쿠키 저장·전송, **plain HTTP의 실제 legacy 프로젝트 링크 자동 복사**, 다른 Origin/프로젝트/만료 세션 거부, 컨테이너 재시작 후 데이터 보존이다. HTTPS 컨테이너에도 ALLOW_INSECURE_HTTP=true를 지정하여 쿠키가 약화되지 않음을 확인한다. 잘못된 flag/URL/DB 경로는 실제 entrypoint가 exit 1로 거부하고 migration DB를 만들지 않는지 확인한다.
 
-CI의 Docker gate, main 게시 이미지의 exact digest 검사, 릴리스 후보 이미지의 pre-publish 검사에서 실행한다. PR은 registry에 쓰지 않는다. CI 임시 CA·키·볼륨은 정리하며 브라우저 trace에는 인증 정보를 남기지 않는다. 기존 development E2E와 단위 검사·Compose smoke는 별도로 유지된다. 실제 테스트 수/결과는 해당 PR의 최신 head와 Actions run/job을 근거로 기록한다.
+[LOCAL_PREPR](LOCAL_PREPR.md)·[TEST_PLAN](TEST_PLAN.md)의 동일 source 로컬 Docker/transport·Compose smoke와 승인된 게시 이미지의 exact digest 검사에서 실행한다. 운영 인증·DB를 전달하지 않고 자신의 임시 CA·키·볼륨만 정리하며 브라우저 trace에는 인증 정보를 남기지 않는다. 기존 development E2E와 단위 검사·Compose smoke의 고유 검증 경계는 유지한다. 실제 source SHA·환경·명령/exit·테스트 수/결과를 Issue 원장에 기록한다. 과거 PR/Actions 실행은 해당 source의 보존 이력이며 현재 원격 실행 요구가 아니다.
 
-실제 조직 Windows/WSL2·프록시·클라이언트 정책·운영 데이터 전환·백업 복원은 이 GitHub Linux 검증으로 대체되지 않는다. 구현 문서가 존재하는 것만으로 해당 환경 PASS라고 하지 않는다. release tag나 실제 운영 배포는 별도 승인이다.
+실제 조직 Windows/WSL2·프록시·클라이언트 정책·운영 데이터 전환·백업 복원은 로컬 Linux의 격리 검증이나 과거 GitHub Linux 실행으로 대체되지 않는다. 구현 문서가 존재하는 것만으로 해당 환경 PASS라고 하지 않는다. release tag나 실제 운영 배포는 별도 승인이다.
 
 ## 공식 근거
 

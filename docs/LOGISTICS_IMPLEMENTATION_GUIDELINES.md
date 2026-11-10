@@ -24,12 +24,12 @@ primary_agent / collaborators / file_ownership
 api_contract / migration_scope / calculation_scope
 version_decision / release_required / release_authorized
 required_docs / documentation_writer
-local_checks / remote_checks / environment_checks
+local_checks / same_source_admission / environment_checks
 issue_comment_writer / allowed_types
 known_risks / next_handoff
 ```
 
-이번 설계 등록은 제품 구현 착수/병합/정식 게시 승인이 아니다. 구현 이슈별 release_required를 Manager가 판단하고 release_authorized는 명시 승인 전 false다. 문서-only PR은 application version 유지, 정식 release N/A다. 필요한 main 임시 artifact 검증은 기존 Lifecycle대로 별도 판정한다.
+설계 등록 자체가 제품 구현/게시/운영 배포 승인은 아니다. 구현 Issue별 실제 요청 범위·게시 승인과 exact source를 확인한다. 일반 문서 전용은 application version 유지·이미지 N/A 근거를 기록하며 실행 정책 변경은 로컬 도구 검사 범위를 확대한다. 현행 Issue Lifecycle과 같은 source admission을 따른다.
 
 ## 2. 역할별 책임
 
@@ -85,13 +85,13 @@ LG-01에서 copy guard를 먼저 둔다. LG-06에서 모든 local ID remap/role/
 
 ## 6. 검증·보고 Gate
 
-Local Fast Feedback은 직접 영향 Unit/SQLite/타입 검증 위주이며 같은 PR head의 원격 quality/e2e/docker를 대신하지 않는다. 필수 회귀에는 cross-project FK, role primary 중복, Resource inactive/사용 중 삭제, stale revision/rollback, Task self/subtree/이동/타입변환, 중복 집계, copy/remap/delete, canonical 응답 보존, readonly 및 Gantt mount/state가 포함된다.
+현행 검증은 [TEST_PLAN](TEST_PLAN.md)·[LOCAL_PREPR](LOCAL_PREPR.md)의 공통+영향+위험별 로컬 Gate다. 모든 위험도에서 PR·원격 CI·Trusted QA·자동 Finalizer를 사용하지 않는다. 필수 회귀에는 cross-project FK, role primary 중복, Resource inactive/사용 중 삭제, stale revision/rollback, Task self/subtree/이동/타입변환, 중복 집계, copy/remap/delete, canonical 응답 보존, readonly 및 Gantt mount/state가 포함된다.
 
 합성 fixture의 기대값은 Project50%, E1 66.666…%, 지연 Task1, 지연 Milestone1, 계획4MD/미설정1이다. 실제 제품의 calendar/assignment/query 함수를 통해 재현하고 문서 예제 수식만 계산한 것을 integration PASS로 표시하지 않는다.
 
-최신 head가 바뀌면 기존 head의 원격 gate/QA 결과는 stale다. 독립 QA, 실제 Windows Excel/DRM, 운영 proxy, backup-restore 결과가 없으면 각각 BLOCKED 또는 NOT TESTED로 남긴다. UI는 실제 Chromium keyboard/focus/반응형/상태 보존 증거가 필요하다.
+source/fixture/환경이 바뀌면 관련 로컬 테스트·admission/QA를 재검증한다. 독립 QA, 실제 Windows Excel/DRM, 운영 proxy, backup-restore 결과가 없으면 각각 BLOCKED 또는 NOT TESTED로 남긴다. UI는 실제 Chromium keyboard/focus/반응형/상태 보존 증거가 필요하다.
 
-Issue 기록은 PLAN/STATUS/EXCEPTION/DECISION_REQUIRED/RESUME/FINAL의 기존 정책을 따른다. PR은 Refs로 연결하며 docs PR 병합으로 Epic이나 구현 이슈를 자동 종료하지 않는다. 기능 전체와 승인 범위의 Lifecycle이 끝난 뒤에만 종료 판단을 한다.
+Issue 기록은 PLAN/STATUS/EXCEPTION/DECISION_REQUIRED/RESUME/FINAL의 기존 정책을 따른다. 여러 Issue는 Primary 원본과 링크로 연결하며 문서 구현만으로 Epic이나 기능 이슈를 자동 종료하지 않는다. 기능 전체와 승인 범위의 Lifecycle이 끝난 뒤에만 종료 판단을 한다.
 
 ## 물류 유형 변경 계약 (Issue #280)
 

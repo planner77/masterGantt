@@ -1,3 +1,9 @@
+## 현행 검증 권한과 과거 실행 이력
+
+아래 인증·권한·API·데이터 보안 경계는 현행 제품 계약이다. 실행·게시 검증은 [LOCAL_PREPR](LOCAL_PREPR.md)·[TEST_PLAN](TEST_PLAN.md)과 [로컬 공급망 계약](#로컬-게시와-image-supply-chain)을 따른다. Owner 2026-11-10 정책으로 모든 위험도에서 PR·원격 CI·Trusted QA·자동 Finalizer를 사용하지 않는다.
+
+개별 Issue·PR·Run·SHA에 결속된 기존 CI/Required/Trusted/MERGE_READY 문구는 당시 검증 절차와 판정의 보존 이력이다. 해당 원본의 PASS/FAIL/NOT TESTED와 승인 범위를 유지하며 신규 source의 실행 요구나 성공 근거로 사용하지 않는다. 그 기록이 보호하는 보안·회귀 테스트 경계는 새 source에서 현재 로컬 Gate로 검증한다. 이 구분은 아래 인증·데이터 계약을 과거화하거나 테스트를 면제하지 않는다.
+
 ## Issue #881 — Project workspace 표시/권한 경계 (2026-11-07)
 
 설정의 조회는 #479 Project read gate, 변경은 유효한 해당 Project edit session + exact Origin + strong If-Match + revision transaction 내 auth 재검증을 요구한다. 타 Project·조회 세션만 있음·만료·위조 owner_name·전역 관리자 credential·Issue 비밀번호로는 저장할 수 없다. 탭 숨김/URL fallback은 사용자 화면 탐색일 뿐 API ACL을 변경하지 않는다. Owner-only 인증은 #882 별도 과제이며 이번 버전의 보안 보장은 '프로젝트 편집 세션'이다.
@@ -383,19 +389,19 @@ HSTS는 HTTPS 운영과 subdomain 영향 범위를 검토한 deployment owner가
 - Restore 후 만료 session 정리를 수행하며, 보안 사고 복구라면 `auth_version` 증가 또는 session table 정리로 모두 revoke한다.
 - `PRAGMA foreign_keys=ON`, integrity/foreign-key check, parameter-bound query를 검증한다.
 
-### CI/CD와 image supply chain
+### 로컬 게시와 image supply chain
 
-- Pull Request Actions는 `contents: read`만 사용하고 registry login, package write, personal token을 제공하지 않는다. `pull_request_target`에서 PR code를 실행하지 않는다.
-- PR과 수동 CI는 `contents: read`만 사용한다. 모든 upstream gate를 통과한 `main` commit publish와 SemVer release publish job만 job-scoped `GITHUB_TOKEN`과 최소 `packages: write`를 사용한다.
-- 외부 Action은 reviewed full commit SHA, Node base image는 reviewed digest로 고정한다. Dependabot update도 permissions·release notes·runtime smoke를 검토한 뒤 merge한다.
-- `.env*`, SQLite/WAL/SHM, backup, log, test artifact, `.git`은 Docker build context와 image layer에서 제외한다.
-- Password, token, Cookie, 환경값을 build arg, OCI label, cache key, artifact, workflow summary에 전달하지 않는다.
-- Main commit 검증용 `ci-<full SHA>`는 exact digest smoke 직후 package version을 삭제한다. Semantic release는 GHCR `sha-*` candidate를 만들지 않고 exact/rolling SemVer tag만 보관한다. Test/deployment는 mutable `latest`가 아닌 workflow가 검증한 exact digest 또는 exact SemVer를 사용한다.
-- Release는 repository 단위로 직렬화하고 이전 tag보다 큰 annotated SemVer만 허용한다. Local candidate를 먼저 검증한 뒤 GHCR exact SemVer를 직접 게시하고 그 build output digest의 runtime smoke와, 활성화된 경우 GitHub Attestation이 성공해야 stable rolling alias를 같은 digest로 승격한다. Release commit 고정 `sha-*` image는 보관하지 않는다.
-- Production runtime configuration은 migration 전에 canonical URL/path를 검사하고 readiness도 DB open 전 fail closed한다.
-- Commit과 release가 publish한 GHCR digest를 각각 새로 pull하여 image policy, readiness와 Project/Task authorization 저장·restart persistence를 검증하며 BuildKit SBOM/provenance를 생성한다. 세부 계약은 [CI_CD.md](CI_CD.md)를 따른다.
-- Private repository의 GitHub Artifact Attestation은 Enterprise Cloud에서만 지원된다. `ENABLE_GITHUB_ATTESTATIONS=true`가 명시된 지원 환경에서만 GitHub Attestation step을 실행하며, 그 외에는 BuildKit SBOM/provenance를 필수 증거로 유지하고 attestation 성공을 주장하지 않는다. 현재 optional step이 publish job 안에 있어 attestation/OIDC job 권한은 flag가 꺼진 run에도 선언되는 잔여 범위가 있으며, 엄격한 조건부 권한이 필요하면 별도 gated job으로 분리한다.
-- 과거 도구 출력에 노출된 repository credential은 교체가 권고된다. 사용자는 2026-09-12 기존 값 재사용의 잔여 위험을 명시적으로 수용했으며, 이는 안전 판정이나 일반적인 secret rotation 원칙의 완화가 아니다. Credential 평문을 사람이나 모델이 화면에서 열람하거나 출력·문서화·복사하지 않는다. 사용자가 승인한 helper가 값을 process memory로 불러와 HTTPS API 인증에 사용하는 것은 허용하되 값·Authorization header·파생 secret을 stdout/stderr, shell history, artifact 또는 workflow input에 남기지 않는다.
+Owner 2026-11-10 정책에 따라 모든 위험도에서 PR·GitHub Actions·원격 CI·Trusted QA·자동 Finalizer를 실행하지 않는다. 과거 공급망 절의 전체 원문은 [보존 기록](history/owner-ci-retired-20261110/SECURITY_SUPPLY_CHAIN.md)이다. 당시 특정 credential 재사용 수용이나 remote job 권한은 신규 작업에 대한 포괄 승인·인증 근거가 아니다.
+
+- [LOCAL_PREPR](LOCAL_PREPR.md)의 clean exact source/head/base·fixture/lock·환경·실제 공통/영향/위험별 검사와 admission을 확인한 뒤 승인된 범위만 게시한다. 필수 FAIL/BLOCKED/NOT TESTED·source drift·입력 오염은 Push/Publish/Close를 차단한다. 로컬 JSON이나 OCI label 자기신고는 인증된 서버 gate가 아니다.
+- registry 인증은 로컬 credential store의 최소 package read/write 권한을 사용한다. 토큰·Cookie·환경값을 Git/Issue·build arg·OCI label·cache key·보고/원시 로그에 전달하지 않는다. 승인된 helper가 process memory로 인증하더라도 값·Authorization header·파생 secret을 출력하지 않는다.
+- Node base image는 검토한 digest로 고정하고 builder/runtime의 ABI·distribution/libc·architecture를 일치시킨다. 의존성 갱신은 lock·release notes·해당 로컬 회귀와 실제 native SQLite/runtime smoke로 검토한다. 보존한 외부 Action 참조의 full SHA는 과거 자산의 불변성 기준이며 현재 실행 gate가 아니다.
+- `.env*`, SQLite/WAL/SHM, backup, log, test artifact, `.git`, `.prepr-reports`의 복제 source/원시 보고/관리자 snapshot을 Docker build context와 image layer에서 제외한다.
+- exact source에서 한 번 build한 OCI 산출물과 실제 smoke한 runtime image의 identity를 대조한다. BuildKit SBOM/provenance의 실제 생성·보존·게시 여부를 검증하고 로컬 Docker store에서 유실된 attestation을 보존한 것으로 주장하지 않는다. 세부 build/receipt·게시 계약은 [CI_CD](CI_CD.md)를 따른다.
+- Owner가 승인한 고유 `sha-<full SHA>` 또는 별도 승인된 exact version만 게시하고 tag collision을 차단한다. 기존 immutable tag를 덮지 않는다. 정상 및 직전 정상 rollback digest는 보존하며 자동 Finalizer/cleanup으로 삭제하지 않는다. rolling alias는 별도 승인·검증 범위다.
+- 게시한 registry manifest digest를 대조한 뒤 exact digest로 새로 pull한다. image policy·source revision·architecture·entrypoint·readiness·Project/Task authorization/쓰기·native SQLite·restart persistence를 운영과 분리한 합성 환경에서 실제 검증한다. mutable latest만의 Pull은 검증 근거가 아니다.
+- Production runtime configuration은 migration 전에 canonical URL/path를 검사하고 readiness도 DB open 전 fail closed한다. 데이터 위험 배포는 호환 backup+image digest의 복원 준비를 별도로 확인한다. 이미지 교체만으로 forward-only schema migration을 취소하지 않는다.
+- credential 노출 이력과 원본 판정은 보존하고 원문 credential을 열람·문서화·복사하지 않는다. 재사용의 과거 범위별 위험 수용을 신규 source·다른 credential의 일반적 안전 판정으로 확대하지 않는다.
 
 ## 13. 주요 Threat와 대응
 
@@ -413,11 +419,11 @@ HSTS는 HTTPS 운영과 subdomain 영향 범위를 검토한 deployment owner가
 | Excel formula/link injection | user value를 text로 강제, hyperlink allowlist, XML/Excel QA |
 | Host header poisoning | trusted APP_BASE_URL만 사용 |
 | Public data overexposure | direct links가 비밀이 아님을 명시, list route 미확정/비활성화 |
-| Malicious PR의 token/package 탈취 | PR read-only, publish workflow 분리, `pull_request_target` 금지, 개인 PAT 미사용 |
-| Action/base image 공급망 변조 | full Action SHA와 base digest pin, reviewed automated update, SBOM/provenance |
-| Mutable image로 인한 재현 불가 | exact Semantic Version/digest 사용, stable/prerelease alias 정책, tag force-update 제한 |
-| PR 또는 manual run의 package 오염 | registry login/write 없음, `main` push publish job의 upstream gate 의존성 |
-| Commit image를 release로 오인 | `ci-<SHA>`와 `sha-<SHA>`/SemVer tag 공간 분리, commit image는 rolling alias 금지 |
+| 비신뢰 source의 token/package 탈취 | clean source·lock/입력 검증, 로컬 최소 registry 권한, credential 출력/이미지 반입 금지 |
+| base image/의존성 공급망 변조 | base digest pin, lock/변경 검토·실제 로컬 runtime/native 검증, 보존한 SBOM/provenance |
+| Mutable image로 인한 재현 불가 | 고유 SHA/승인된 exact version·digest 사용, collision/overwrite 차단, 정상·직전 digest 보존 |
+| 검증 누락/다른 source의 package 게시 | 같은 source의 로컬 필수 검사·admission·build/runtime identity 대조, 실패/미검증 차단 |
+| SHA 게시를 운영 반영·version 승인으로 오인 | 고유 SHA 게시·exact version/rolling 승인·운영 배포와 복원 검증을 구분 |
 | 유료 기능 미지원인데 보호·attestation이 적용됐다고 오인 | remote API/run 증거와 plan 확인, GitHub Attestation opt-in, BuildKit SBOM/provenance와 구분 |
 
 ## 14. Security 검증 목록

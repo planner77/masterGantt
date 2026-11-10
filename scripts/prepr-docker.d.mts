@@ -1,0 +1,13 @@
+import type { sourceEvidence } from "./prepr-core.mjs";
+type Source = ReturnType<typeof sourceEvidence>;
+export declare const BUILDKIT_IMAGE: string;
+export declare const SBOM_GENERATOR: string;
+export type DockerImageEvidence = { tag: string; id: string; sourceHead: string; sourceContentSha256: string; platform: string; version: string; builder: string; registryPublished: boolean; ociArchive: string; ociArchiveSha256: string; ociIndexDigest: string; ociLayoutIndexDigest: string; imageManifestDigest: string; configDigest: string; attestations: string[]; predicateEvidence: Array<{predicate_type: string; blob_digest: string}>; buildMetadata: string; buildMetadataSha256: string; builderImage: string; sbomGenerator: string; runtimeLoadArchive: string; runtimeLoadArchiveSha256: string };
+export type OciEvidence = { archive_sha256: string; index_digest: string; layout_index_digest: string; image_manifest_digest: string; config_digest: string; configuration: {config: {Labels: Record<string,string>}; rootfs?: {diff_ids?: string[]}}; attestations: string[]; predicate_evidence: Array<{predicate_type: string; blob_digest: string}> };
+export declare function checkedArtifactPath(root: string, path: string, options?: {mustExist?: boolean}): string;
+export declare function validateOciArchive(args: {root: string; archive: string; revision: string; version: string}): OciEvidence;
+export declare function validateImageIdentity(image: unknown, oci: OciEvidence, expected: {revision: string; version: string}): boolean;
+export declare function createDockerLoadArchive(args: {root: string; archive: string; output: string; tag: string; oci: OciEvidence; maxLayerBytes?: number; maxTotalBytes?: number}): {archive_sha256: string; archive_bytes: number; config_digest: string; diff_ids: string[]; layers: number; original_oci_unchanged: boolean};
+export declare function createBuildPlan(args: {root: string; reportDir: string; source: Source; version: string; nonce?: string}): {builder: string; tag: string; archive: string; metadata: string; loadArchive: string; ociReport: string; create: string[]; build: string[]; cleanup: string[]};
+export declare function buildLocalImage(args: {root: string; reportDir: string; source: Source; version: string; run: (label: string, command: string, args: string[]) => Promise<boolean>}): Promise<DockerImageEvidence>;
+export declare function validateLocalImageEvidence(args: {root: string; image: DockerImageEvidence; source: Source; version: string}): OciEvidence;

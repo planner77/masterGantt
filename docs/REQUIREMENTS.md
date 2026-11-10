@@ -1,3 +1,7 @@
+## 개발·게시 운영의 현행 적용 범위 (#905/#906, 2026-11-10)
+
+제품 기능·보안·데이터 요구는 이 문서를 유지한다. 아래 과거 D04/D05 및 PR·CI·Main/Release·Finalizer 관련 결정/실행 설명은 당시 이력이며 신규 운영 요구는 [Issue Lifecycle](ISSUE_LIFECYCLE.md)과 [CI_CD](CI_CD.md)로 대체한다. 모든 위험도에서 로컬 검증·main 직접 fast-forward Push·승인된 수동 GHCR을 사용하며 PR·원격 CI를 실행하지 않는다. 문서 변경은 live 관리자 전환이나 운영 배포 완료가 아니다.
+
 ## Issue #881 — Project workspace tabs visibility
 
 프로젝트 편집 권한자는 Issue, 대시보드, 기준정보 상위 탭을 프로젝트별로 독립 표시·숨김 설정할 수 있다. 일정은 항상 표시, 기본은 모두 ON. 설정은 모든 조회자에게 공통으로 DB 저장되고 Project Copy 시 승계된다. 숨겨진 탭의 직접 URL/저장 화면/내부 navigation은 일정으로 복귀하며 프로젝트 업무 데이터/API 권한을 변경하지 않는다. Owner 전용 인증은 #882 범위이다.

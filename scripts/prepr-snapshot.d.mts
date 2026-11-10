@@ -1,0 +1,11 @@
+import type { sourceEvidence } from "./prepr-core.mjs";
+type Source = ReturnType<typeof sourceEvidence>;
+type Entry = { path: string; mode: string; sha256: string | null; contentSha256: string | null };
+type Generated = Record<string, string | null>;
+export type BrowserSnapshot = { root: string; snapshotRoot: string; headSha: string; inputContentSha256: string; indexSha256: string; before: Entry[]; generatedBefore: Generated; nextGeneratorSha256: string };
+export declare function validateNextGenerated(before: Generated, after: Generated): Array<{path: string; beforeSha256: string; afterSha256: string; beforeText: string; afterText: string}>;
+export declare function validateSnapshotAudit(audit: unknown, source: Source): {status: "PASS"; generatedChanges: ReturnType<typeof validateNextGenerated>; beforeManifestSha256: string; afterManifestSha256: string};
+export declare function createBrowserSnapshot(root: string, reportDir: string, source: Source): BrowserSnapshot;
+export declare function inspectBrowserSnapshot(snapshot: BrowserSnapshot, source: Source): {audit: object; verification: ReturnType<typeof validateSnapshotAudit>};
+export declare function removeBrowserSnapshot(snapshot: BrowserSnapshot): void;
+export declare function snapshotRunnerRoot(reportDirectory: string, runnerRoot: string): string;

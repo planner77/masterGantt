@@ -1,44 +1,10 @@
 # Deployment
 
-## Issue #865 — LLM runtime 설정 전달 (2026-11-04)
-
-`.env.example`의 `LLM_ENABLED`, `LLM_PROVIDERS_JSON`, `LLM_DEFAULT_PROVIDER`, `LLM_DEFAULT_MODEL`, `LLM_API_KEYS_JSON`, `LLM_ALLOW_INSECURE_HTTP`, `LLM_ALLOW_UNAUTHENTICATED`를 서버에서만 사용한다. `deploy/compose.yml`의 environment에 각각 명시적으로 전달하므로 `docker compose --env-file .env -f deploy/compose.yml config --quiet`로 비밀값 출력 없이 설정 유효성만 점검한다. 설정 변경은 app 컨테이너 재생성이 필요하며 기존 Compose project·SQLite volume·healthcheck/DB readiness는 유지한다. 토큰 포함 `compose config` 원문/로그·이미지는 게시하지 않는다. [운영 가이드](LLM_CONFIGURATION.md).
-
-
-## Issue #737 — 직접 문맥·다관점 운영 인계
-
-현재 #762의 Project 소유 공정/WorkArea·다중 관계·Template v5까지 포함한 복원 확인 항목은 [WBS 통합 수용표](WBS_CROSS_FEATURE_ACCEPTANCE.md)와 [운영 절차](TARGET_RESOURCE_OPERATIONS.md#issue-737--wbs-다관점직접-workarea-복원-범위)에 있다. 합성 파일 SQLite backup/restore/restart와 운영/off-host 검증을 구분한다. UI view fallback은 DB schema rollback이 아니며, 새 schema에 구 image를 연결하는 대신 검증된 backup+대응 exact release digest의 격리 복원 절차를 따른다. 배포 파일·Compose project/volume·운영 DB·UID/GID·entrypoint·릴리스 권한은 변경하지 않는다.
-
-## Issue #623 — Target 이관·복구 인계
-
-Target 관련0025→0026→0027의 실제 형태 legacy 이관·checksum/order·pending batch rollback·합성 backup/restore/restart를 [운영 절차](TARGET_RESOURCE_OPERATIONS.md)에 정리했다. 기존 app single instance·Compose project/volume·UID:GID1001:1001·absolute /data·readiness/entrypoint 계약은 불변이다.
-
-운영 backup CLI는 추가하지 않는다. 기존§8의 clean stop 후 /data 전체 일관 snapshot·새 격리 volume·대응 exact image 복원을 따른다. 구 binary만의 rollback/ledger 편집/volume 삭제는 복구 절차가 아니다. 합성 SQLite backup API 테스트 성공은 off-host/운영 restore PASS가 아니며 실제 환경 수용과 정식 release 권한은 별도다. [수용표](TARGET_RESOURCE_ACCEPTANCE.md)의 NOT TESTED를 유지한다.
-
-## Issue #283 standalone production runtime
-
-production container는 Next.js Output File Tracing의 `output: "standalone"` 산출물을 실행한다. build stage는 full dependency와 native build toolchain으로 application을 build한 뒤 `scripts/prepare-standalone-runtime.mjs`가 `.next/static`, optional `public/`, `db/migrations`를 `.next/standalone` tree에 stage한다. final runtime stage에는 이 prepared standalone tree와 build-time compiled startup JavaScript만 복사한다. 전체 production `node_modules`, 전체 `.next`, application `src`, `.next/cache`, TypeScript source/loader는 final image에 복사하지 않는다.
-
-startup 순서는 기존 fail-fast 계약을 유지한다.
-
-```text
-compiled runtime config validation
-→ compiled SQLite migration
-→ node server.js
-```
-
-startup 도구는 `tsconfig.runtime-tools.json`으로 build stage에서 CommonJS JavaScript로 컴파일한다. repository의 `npm run db:migrate`는 source checkout에서의 개발·관리용 CLI로 `devDependency`인 `tsx`를 사용하지만, production dependency/runtime 계약에는 `tsx`가 없다. source production 확인용 `npm run start`는 `scripts/start-standalone.mjs`가 `@next/env`로 repository-root production env files를 먼저 로딩한 뒤 prepared standalone tree를 실행하며 `--hostname`/`--port` 인자를 유지한다. generated server가 standalone directory를 working directory로 사용하더라도 필요한 설정은 이미 `process.env`에 있고 같은 tree 안에 staged된 `db/migrations`를 조회하므로 readiness/DB migration 경로 계약을 유지한다. container는 compiled startup JavaScript와 root `server.js`만 실행하며 final image의 `/app/node_modules/tsx` 부재는 image policy에서 검증한다.
-
-base image digest, Debian/glibc 계열, numeric UID/GID 1001:1001, `/data` volume, healthcheck, single-instance SQLite/WAL 계약은 변경하지 않는다. `better-sqlite3`는 standalone trace에 포함된 native addon을 사용하며 PR Docker smoke에서 실제 load/write/restart persistence로 검증한다. Alpine/musl·distroless 전환은 이 변경의 범위가 아니다.
-
-PR의 Docker gate는 PR base SHA의 기존 image와 candidate를 동일 runner에서 build하고 `docker image inspect`의 uncompressed size를 비교한다. Issue #283의 non-standalone → standalone migration에서는 acceptance 기준에 따라 candidate가 baseline 대비 최소 25% 감소해야 한다. 이 one-time migration gate가 main에 반영된 뒤의 일반 PR에는 추가 25% 감소를 요구하지 않고 비교 결과만 관찰용으로 기록한다. Workflow summary에는 baseline/candidate size, 주요 `/app` directory footprint와 상위 image layer를 남긴다. 실제 registry compressed transfer size는 main/release publish에서 별도 관찰할 수 있으며 이 PR gate의 수치와 혼동하지 않는다.
-
-> **Issue #8 전송 정책:** production 기본값은 HTTPS다. `ALLOW_INSECURE_HTTP=true`와 canonical HTTP `APP_BASE_URL`을 함께 설정한 내부망은 production HTTP도 지원한다. 시작·readiness·공유 URL·모든 인증 경로는 같은 정책을 사용한다. `SESSION_COOKIE_SECURE`는 미사용 예약값이며 제거했다. HTTP에서는 `mastergantt_edit`, HTTPS production에서는 `__Host-mastergantt_edit; Secure`를 사용하고 HttpOnly·SameSite=Strict·Path=/·TTL 및 Domain 미설정을 유지한다. 아래 과거 검증 이력의 HTTPS-only 표현은 당시 기준이다. 현재 운영·전환 절차는 [HTTP_OPERATION](HTTP_OPERATION.md)을 따른다.
-
+Owner 2026-11-10 결정에 따라 PR·GitHub Actions·원격 CI·Trusted QA·자동 Finalizer 없이 로컬 검증·수동 GHCR·승인된 운영 배포를 수행한다. [Issue Lifecycle](ISSUE_LIFECYCLE.md), [CI_CD](CI_CD.md), [GITHUB_OPERATIONS](GITHUB_OPERATIONS.md)를 따른다. GHCR 게시 성공은 운영 배포 성공이 아니다. 이전 전체 운영·실행 결과는 [보존 기록](history/owner-ci-retired-20261110/DEPLOYMENT.md)이다.
 
 ## 1. 상태와 범위
 
-이 문서는 단일 SQLite 운영 환경의 배포·CI/CD 계약이다. W01에서 `.env.example`과 liveness route를, W02에서 SQLite 연결·SQL migration runner와 `npm run db:migrate`를 추가했고, CI/CD 단계에서 `deploy/docker/Dockerfile`, `deploy/compose.yml`, `.dockerignore`, non-root startup migration 및 GitHub Actions를 구현했다. container healthcheck는 migration·SQLite·foreign key·migration ledger를 검증하는 readiness endpoint를 사용한다.
+이 문서는 단일 SQLite 운영 환경의 로컬 배포·복원 계약이다. `deploy/docker/Dockerfile`, `deploy/compose.yml`, `.dockerignore`와 non-root startup migration을 사용한다. container healthcheck는 migration·SQLite·foreign key·migration ledger를 검증하는 readiness endpoint를 사용한다.
 
 대상은 하나의 Next.js Node.js application과 하나의 SQLite database를 사용하는 소규모 운영 환경이다. SQLite 단계에서는 **application replica를 정확히 하나만** 실행한다. Redis, 별도 DB, Kubernetes, network filesystem을 이 설계에 추가하지 않는다.
 
@@ -88,7 +54,7 @@ docker compose --env-file .env -f deploy/compose.yml ps
 - `--force-recreate`: 기존 container가 이전 image ID를 계속 사용하는 경우를 방지한다.
 - named volume `mastergantt-data` 및 single-instance SQLite 계약은 container 재생성 뒤에도 유지한다.
 
-local/CI source build는 별도 override를 명시한다.
+local source build는 별도 override를 명시한다.
 
 ```sh
 IMAGE_NAME=mastergantt:local IMAGE_VERSION=local \
@@ -110,26 +76,21 @@ docker image inspect "$(docker inspect "$container_id" --format '{{.Image}}')" \
 
 forward-only migration 때문에 DB ledger가 실행 image보다 앞서 있으면 startup은 계속 fail-closed해야 한다. image를 임의 rollback하지 말고 compatible DB backup/restore와 검증된 image identity를 먼저 확인한다.
 
-> 보안: `docker compose config`는 환경변수 치환 결과를 출력할 수 있다. 실제 비밀번호/token이 포함된 전체 출력을 Issue/CI log/문서에 붙이지 말고, 공유 전 secret을 마스킹한다. 정상 확인에는 가능한 `config --quiet`를 사용한다.
+> 보안: `docker compose config`는 환경변수 치환 결과를 출력할 수 있다. 실제 비밀번호/token이 포함된 전체 출력을 Issue/공개 log/문서에 붙이지 말고, 공유 전 secret을 마스킹한다. 정상 확인에는 가능한 `config --quiet`를 사용한다.
 
 ## 3. Node, Next.js, native module 원칙
 
 ### 지원 버전 선택
 
-현재 공식 Node release 표에서 Node 24는 LTS이며, production application에는 Active 또는 Maintenance LTS만 사용하도록 권고한다. [Node.js releases](https://nodejs.org/en/about/previous-releases) Next.js 최신 설치 문서는 최소 Node `20.9`를 요구한다. [Next.js installation](https://nextjs.org/docs/app/getting-started/installation)
+production application에는 지원되는 LTS만 사용한다. Node 지원 상태는 build 시점의 공식 자료로 확인한다. [Node.js releases](https://nodejs.org/en/about/previous-releases) 프로젝트의 실제 Node/Next 요구는 package/lock과 설치 버전 문서로 확인한다. [Next.js installation](https://nextjs.org/docs/app/getting-started/installation)
 
-W20 container baseline은 lockfile/native module 검증을 통과한 **Node 22 Bookworm image를 digest로 고정**했다. Node 24 전환은 Action/base image update와 마찬가지로 별도 변경에서 clean build, native SQLite 및 restart persistence를 다시 검증한다.
-
-| 후보 | 채택 조건 | 제외 조건 |
-|---|---|---|
-| Node 22 LTS | W20의 builder/runtime baseline; pinned Bookworm digest와 `linux/amd64` native/runtime smoke 통과 | 지원 종료 또는 reviewed upgrade 완료 |
-| Node 24 LTS | 후속 upgrade 후보; lockfile install, Next build, native SQLite와 container persistence 재검증 필요 | ABI 또는 dependency 호환 실패 |
+현재 build/runtime base의 원본은 `deploy/docker/Dockerfile`의 digest-pinned `node:26-bookworm-slim`이다. 로컬 CLI 지원은 package.json engines의 Node >=22이며 실제 source/lock·Node/npm·native ABI·Docker/Buildx·platform을 보고서에 고정한다. 서로 다른 로컬 호스트와 컨테이너 환경의 검증을 같은 환경으로 주장하지 않는다. W20의 Node22와 당시 Node24 후보 설명은 [과거 기록](history/owner-ci-retired-20261110/DEPLOYMENT.md)이며 현재 이미지 버전이 아니다.
 
 이미지 구현 담당자는 build 직전에 Node 공식 release 상태, project lockfile, Next.js release requirement를 확인하고, 선택한 **동일 Node major와 동일 Linux distribution family/libc 및 target architecture**를 builder와 runtime에 사용한다. multi-stage build는 final image에 build tool을 남기지 않고 필요한 artifact만 copy할 수 있다. [Docker multi-stage builds](https://docs.docker.com/build/building/multi-stage/)
 
 ### `better-sqlite3` 호환성
 
-W02에 설치한 `better-sqlite3` 13.0.3은 Node >=22와 bundled prebuilds를 사용하는 artifact다. 현재 Linux x64 / Node 22.14.0에서 native query를 확인했다. Package 설치·source build 절차는 버전별 manifest에 맞춰 검토해야 한다. [better-sqlite3 README](https://github.com/WiseLibs/better-sqlite3), [설치 검증](RESEARCH.md) Next.js는 `better-sqlite3`를 server external package로 자동 처리하는 목록에 포함한다. [serverExternalPackages](https://nextjs.org/docs/app/api-reference/config/next-config-js/serverExternalPackages)
+W02에 설치한 `better-sqlite3` 13.0.3은 Node >=22와 bundled prebuilds를 사용하는 artifact다. 과거 Linux x64 / Node 22.14.0의 native query 기록은 현재 Node26 컨테이너 성공을 대체하지 않는다. 현재 build/runtime의 실제 native load/write/restart를 다시 실행해 기록한다. Package 설치·source build 절차는 버전별 manifest에 맞춰 검토해야 한다. [better-sqlite3 README](https://github.com/WiseLibs/better-sqlite3), [설치 검증](RESEARCH.md) Next.js는 `better-sqlite3`를 server external package로 자동 처리하는 목록에 포함한다. [serverExternalPackages](https://nextjs.org/docs/app/api-reference/config/next-config-js/serverExternalPackages)
 
 그러므로 다음을 지킨다.
 
@@ -193,8 +154,10 @@ Docker `HEALTHCHECK`와 Compose healthcheck는 `ready`를 호출한다. interval
 |---|---|---|
 | `deploy/docker/Dockerfile` | pinned-at-build approved Node LTS candidate, same native builder/runtime platform, production dependency/build artifact, non-root user, `/data` declaration, application start | DB data, `.env`, secrets/PAT, host `node_modules` |
 | `deploy/compose.yml` | single `app` service, named `/data` volume, port/proxy boundary, runtime env references, restart/healthcheck | second app replica, database service, source DB bind mount 기본값 |
-| `.dockerignore` | `.git`, 모든 `.env*`, `node_modules`, `.next`, DB/WAL/SHM, backups, logs, coverage/test output 제외 | required source, lockfile, migrations |
+| `.dockerignore` | `.git`, 모든 `.env*`, `node_modules`, `.next`, `.prepr-reports`, DB/WAL/SHM, backups, logs, coverage/test output 제외 | required source, lockfile, migrations |
 | `.env.example` | 환경변수 names와 개발용 예시; secret injection 위치 안내 | 실제 secret, 운영 domain, password, token |
+
+게시 전 source 검증은 [LOCAL_PREPR](LOCAL_PREPR.md)의 원본 불변 계약을 따른다. 로컬 `fast`의 표준 `.next`와 browser source snapshot은 검증용 격리 출력이며, `.prepr-reports`의 복제 source·원시 로그·실패 artifact·관리자 snapshot을 Docker build context나 이미지에 넣지 않는다. GHCR에 인계할 이미지는 검증한 exact source와 실제 Docker image ID/digest를 다시 대조한다. 로컬 Docker Gate는 한 번의 격리 Buildx build에서 OCI archive(SBOM/provenance 포함) 하나를 출력한다. offline에서 검증한 runtime child/config/layer를 Docker-load archive로 안전하게 재포장하며 재빌드나 layer 의미 변경을 하지 않는다. `report.dockerImage`는 원본 OCI와 load한 runtime의 source·config ID·비압축 diffID/순서를 연결한다. classic store의 runtime load와 게시용 원본 attested OCI index 보존은 구분한다. 수동 게시에는 재빌드 없이 검증한 동일 OCI를 인계하고 실제 registry index digest·exact digest Pull/Smoke를 확인한다([CI_CD](CI_CD.md)).
 
 Application package와 lockfile은 존재하며 source checkout의 frozen install은 `npm ci`, 빌드는 `npm run build`, 개발·관리용 migration CLI는 `npm run db:migrate`다. 이 source CLI는 repository root에서 환경변수를 명시적으로 주입하고 devDependency `tsx`를 사용한다. production image는 source CLI를 포함하지 않으며 build-time compiled runtime validation/migration JavaScript와 `db/migrations`만 복사해 entrypoint에서 Next.js standalone server 시작 전에 migration gate를 실행한다.
 
@@ -207,155 +170,30 @@ WAL DB는 DB 파일만 임의 copy하지 않는다. SQLite backup API는 concurr
 - schema migration rollback은 DB file를 직접 역방향 편집하지 않는다. deploy 전 compatible backup을 확인하고, failed migration은 application을 ready로 만들지 않는다. restore rehearsal 성공 전 destructive migration release를 승인하지 않는다.
 - upgrade/restore/rehearsal 시 DB, WAL, SHM, migration ledger, representative project read/write, export URL, restart persistence를 모두 검사한다.
 
-## 9. 검증 결과와 남은 운영 검증
+## 9. 배포 전후 확인과 복구 분기 (#912)
 
-W20 로컬 `linux/amd64` 검증은 다음을 PASS했다.
+운영 배포는 Owner의 명시 요청 또는 동일 범위 위임이 있을 때만 수행한다. 격리 합성 환경에서 로컬 Docker/readiness/API/auth·revision/native SQLite/restart persistence를 먼저 검증하고 실제 운영 host·proxy/TLS·storage·backup/restore 결과를 구분한다. 실제 환경 미실행은 NOT TESTED이며 합성 DB PASS로 대체하지 않는다.
 
-- frozen lockfile 설치, production build, Node 22 Bookworm digest 기반 clean multi-stage image build
-- UID/GID 1001 non-root runtime과 image 내 `.env*`·`.git`·SQLite·test artifact 부재 정책
-- missing/insecure production `APP_BASE_URL`의 migration 전 exit 1과 readiness fail-closed
-- startup migration 뒤 live/readiness, `better-sqlite3` native `SELECT 1`·write
-- 격리 named volume의 container restart 뒤 representative SQLite row 영속성
-- Compose configuration, Action workflow lint, strict SemVer/package-lock 일치와 version validator 회귀 테스트
+배포 전에 source SHA·verified image digest·DB schema/migration ledger·WAL 상태·backup ID·직전 정상 digest와 호환성을 기록한다. 백업은 SQLite Online Backup API(또는 sqlite3 `.backup`) 또는 clean stop 후 `/data` 전체의 일관 snapshot으로 만든다. 쓰기 중인 DB 본체 하나만 복사하지 않는다. 접근 통제·암호화·오프호스트 보관·retention·RPO/RTO와 복원 주기는 Owner가 결정한다. 초기 제안은 매일+배포/migration 직전 백업과 월간 격리 복원이며 확정/실제 수행 전 NOT TESTED다.
 
-아래 항목은 W16 또는 첫 원격 release에서 아직 수행해야 한다.
+새 격리 volume 복원 후 `PRAGMA integrity_check`, `foreign_key_check`, migration ledger/checksum, 대표 Project/Task 읽기·쓰기/권한·export/readiness·restart persistence를 **호환 exact digest**로 확인한다. WAL 활성·손상/누락/오래된 백업·migration 중 실패·구 이미지 비호환도 음성 테스트한다. 파괴적 migration은 백업·복원 준비 없이는 배포하지 않는다. 기존 운영 파일을 자동 overwrite하거나 ledger를 편집하지 않는다.
 
-- GitHub-hosted Actions 전체 run, GHCR publish·attestation·digest pull smoke
-- 실제 배포 architecture가 `linux/amd64`와 다를 경우 해당 platform의 clean native build/runtime 검증
-- pre-provisioned host bind mount의 numeric UID:GID와 DB/WAL/SHM write 검증
-- named volume을 유지한 image upgrade, failed migration과 previous image rollback을 isolated copy에서 검증
-- backup 생성→new volume restore→integrity check→representative read/write→restart restore rehearsal
-- 실제 reverse proxy/TLS 환경의 canonical URL, secure Cookie와 healthcheck timing 검증
+| 오류 | 복구 경로 | 완료 증거 |
+| --- | --- | --- |
+| 데이터 변경 없는 화면/코드 오류 | 새 Git revert/교정 commit 또는 DB 호환이 확인된 직전 digest로 교체 | 새 source 로컬 검사·실제 운영 smoke |
+| schema migration 후 오류 | 새 volume의 호환 DB snapshot + 대응 이전 exact digest를 쌍으로 복원 | ledger/integrity/FK·대표 read/write·restart·손실 범위 확인 |
+| 데이터 손상/host 장애 | 접근 통제된 off-host 백업을 새 격리 volume에 복원 | backup 시점·예상 RPO 손실·실측 RTO·Owner 결정·운영 검증 |
 
-## 10. Deployment owner 결정과 실제 위험
+Git revert와 이미지 교체는 forward-only DB migration을 취소하지 않는다. 운영 rollback 승인 전에 백업 시점 이후 데이터 손실을 명시한다. source/digest/backup ID·명령/exit·실제 결과를 Issue 실패 원장과 [Regression Index](REGRESSION_INDEX.md)에 연결한다. 운영 DB·백업·사내 주소·실화면·비밀값은 PUBLIC 저장소/Issue에 올리지 않는다.
 
-**Deployment owner 결정 필요**
+## 10. runtime 설정과 로그
 
-- canonical public HTTPS hostname 및 reverse proxy/TLS certificate 운영자
-- pinned Node 22 baseline의 유지 기간과 Node 24 upgrade 승인 시점
-- CPU architecture, named volume 또는 host bind mount 선택, bind mount의 numeric UID:GID provisioning 책임
-- backup destination, encryption, retention, RPO/RTO, restore 승인자와 rehearsal cadence
-- public project read model이 조직의 기밀성 요구에 적합한지; 부적합하면 proxy/SSO read authorization 추가
-- resource limits와 healthcheck timing(실측 후)
+production container는 prepared Next standalone tree와 build-time compiled runtime validation/migration JavaScript를 실행한다. `npm run build`의 standalone 준비·`build:runtime-tools`를 사용하며 final image에 source·전체 dev dependencies·tsx·실데이터/비밀값을 복사하지 않는다. native module과 UID:GID1001:1001·absolute `/data`·single instance/WAL·entrypoint/health 계약을 유지한다.
 
-**실제 위험**
+Compose runtime 변수는 `.env.example`과 `deploy/compose.yml`의 명시 전달을 확인한다. `.env`는 Compose 치환용이며 모든 값이 자동 전달되는 것은 아니다. `RESOURCE_CATALOG_ADMIN_PASSWORD`, `LOGISTICS_CATALOG_ADMIN_PASSWORD`, `PROJECT_MASTER_ADMIN_PASSWORD`는 신규 credential seed이며 이후 DB credential을 덮지 않는다. LLM 설정은 [LLM_CONFIGURATION](LLM_CONFIGURATION.md), 전송은 [HTTP_OPERATION](HTTP_OPERATION.md)을 따른다. production 기본 HTTPS, 명시적 `ALLOW_INSECURE_HTTP=true` 내부망 HTTP에서도 Origin/session/revision·Cookie 정책을 유지한다.
 
-- SQLite single-writer와 volume file locking 때문에 horizontal scale 또는 network storage를 이 설계에 추가하면 데이터 손상/lock risk가 생긴다.
-- native module은 Node ABI, libc, architecture mismatch 시 container startup에서 실패할 수 있으므로 builder/runtime parity 검증이 release gate다.
-- named volume은 Docker host 장애/삭제로부터 보호하지 못한다. off-host tested backup과 restore rehearsal이 없으면 persistence 요구를 충족하지 못한다.
-- `APP_BASE_URL` 또는 trusted proxy 설정 오류는 잘못된 export link, insecure cookie, host-header 기반 URL 문제를 만들 수 있다.
+정상 구성 확인에는 `docker compose --env-file .env -f deploy/compose.yml config --quiet`를 사용한다. 전체 config·환경값·raw 운영 로그는 게시하지 않는다. JSON stdout/stderr 로그·requestId·TRUST_PROXY 경계·보존/회전 정책은 [LOGGING](LOGGING.md)을 따른다. 기존 Compose project/volume·운영 데이터·루트 진입점을 변경하지 않는다. 배포 경로는 [REPOSITORY_STRUCTURE](REPOSITORY_STRUCTURE.md)다.
 
-## 11. CI/CD와 SemVer release (현재 구현)
+## 11. 미검증·Owner 결정
 
-### CI로 대체한 반복 검증
-
-GitHub Actions [CI workflow](../.github/workflows/ci.yml)는 PR, `main` push와 수동 실행에서 아래를 자동으로 수행한다.
-
-1. Node 22 dependency cache를 복원한 뒤 `npm ci`와 package/lock SemVer 일치 검사를 실행한다.
-2. `typecheck`, `lint`, Vitest, production `build`를 실행한다.
-3. 별도 Chromium job에서 Playwright browser와 OS dependency를 설치하고 E2E를 실행한다. 실패 시에만 report artifact를 7일 보관한다.
-4. Docker image를 빌드하고, non-root image가 migration을 적용한 뒤 readiness를 응답하는지, native SQLite write가 restart 후에도 남는지 smoke test를 실행한다.
-
-PR과 수동 CI token은 `contents: read`뿐이며 모든 checkout은 `persist-credentials: false`로 token을 작업 디렉터리에 남기지 않는다. ref별 concurrency는 오래된 PR/main 검증을 취소한다. 성공한 `main` push의 commit publish job과 SemVer release publish job만 별도 최소 package write 권한을 가진다. Docker Buildx cache와 Node dependency cache는 GitHub Actions cache일 뿐 release artifact나 secret을 포함하지 않는다.
-
-### Main commit 테스트 image
-
-`main` push의 application, Chromium과 local container job이 모두 성공하면 `.github/workflows/ci.yml`의 publish job이 `ghcr.io/planner77/mastergantt:ci-<full SHA>`를 게시한다. 기존 commit tag가 있으면 overwrite하지 않는다. PR과 수동 CI는 image를 게시하지 않는다. digest 검증을 통과한 successful non-docs `ci-*`는 Main CI에서 즉시 삭제하지 않고 Generic Release Finalizer에 인계한다. no-release finalize는 exact temporary candidate를 삭제하며, release-required candidate는 formal release에서 동일 digest를 재사용하기 위해 보존한다.
-
-Workflow는 build output digest를 다시 pull해 image policy와 readiness를 확인하고, 실제 HTTP API로 Project를 생성해 edit session을 받은 뒤 root Task를 저장한다. Session 없는 mutation 거부를 확인하고 container를 restart한 후 동일 Project와 Task가 남는지 재조회한다. 이 검증은 격리 volume에서 수행하며 사용자 data를 사용하지 않는다. Workflow summary의 exact digest가 사용자·통합 테스트 입력이다.
-
-```sh
-docker pull ghcr.io/planner77/mastergantt@sha256:<commit-image-digest>
-```
-
-Commit image 자체는 release authority가 아니며 `latest`, major/minor 또는 SemVer exact tag를 만들지 않는다. successful non-docs main merge의 verified `ci-<SHA>`는 Finalizer가 release/cleanup을 결정할 때까지 build-once candidate로 보존된다. 아래 release workflow는 annotated tag target SHA에 해당하는 candidate exact digest를 재검증한 뒤 새 build 없이 exact SemVer/rolling alias로 동일 digest를 promotion한다.
-
-### 안정 SemVer와 GHCR publish
-
-릴리스 기준은 `package.json.version`과 `package-lock.json` root version에 정확히 일치하는 SemVer tag다. 현재 소스 version `0.6.0`의 tag는 `v0.6.0`이며 아래는 검증 후 실행할 릴리스 절차다(게시 완료를 뜻하지 않는다). 이미 게시된 `v0.4.0` tag는 재사용하지 않는다. build metadata(`+...`)는 허용하지 않는다.
-
-```sh
-node scripts/verify-release-version.mjs v0.6.0
-git tag -a v0.6.0 -m "Release v0.6.0"
-git push origin v0.6.0
-```
-
-tag push는 [release image workflow](../.github/workflows/release-image.yml)를 실행한다. workflow는 이전 tag보다 큰 version과 annotated tag를 확인하고 전체 quality gate를 통과한 뒤, tag가 가리키는 exact commit의 Main verified `ci-<SHA>` candidate를 찾는다. source/revision/version label과 candidate digest를 확인하고 candidate runtime/transport/persistence를 재검증한 후 **container를 다시 build하지 않고** 같은 digest를 lowercase GHCR exact SemVer tag로 promotion한다. exact digest smoke와 활성화된 GitHub Attestation을 통과한 뒤 stable release의 `major.minor`, `major`, `latest`만 같은 digest로 이동한다. Prerelease는 exact SemVer tag만 추가한다. Repository 단위 직렬화와 monotonic gate가 낮은 version의 alias rollback을 막으며 기존 exact image는 다른 digest로 overwrite하지 않는다. candidate 검증은 `packages: read`, promotion은 `packages: write`, optional attestation은 `attestations: write`/`id-token: write`로 한정된다. Release run은 취소하지 않는다.
-
-BuildKit SBOM/provenance는 항상 publish한다. GitHub Artifact Attestation은 private repository에서 Enterprise Cloud가 필요하므로 `ENABLE_GITHUB_ATTESTATIONS=true`인 지원 환경에서만 실행한다. Push 결과 digest를 다시 pull하여 실제 GHCR image가 migration/readiness와 HTTP Project/Task authorization·restart persistence smoke를 통과하는지도 확인한다. [GitHub Docs](https://docs.github.com/en/actions/tutorials/publish-packages/publish-docker-images), [GitHub Attestation 지원 조건](https://docs.github.com/en/enterprise-cloud@latest/actions/how-tos/secure-your-work/use-artifact-attestations/use-artifact-attestations), [Docker Docs](https://docs.docker.com/build/ci/github-actions/attestations/)를 따른다. 모든 third-party action은 review 가능한 full commit SHA로 pin하며, [Dependabot](../.github/dependabot.yml)가 주간 update PR을 제안한다.
-
-GHCR package visibility는 D04에 따라 private으로 설정하고 첫 성공 publish 뒤 실제 visibility와 repository linkage를 확인한다. private package의 소비자는 필요한 대상에만 최소 `read:packages` 권한을 가진 별도 token으로 authenticate해야 하며, token을 image, Compose, app `.env` 또는 workflow source에 넣으면 안 된다.
-
-### 사용자 테스트 image 실행
-
-고정 tag 또는 workflow가 표시한 immutable digest를 우선한다. 테스트 data가 운영 data와 섞이지 않도록 별도 volume을 사용한다. 아래 `0.4.0`은 게시가 검증된 이전 릴리스이며 W23 목록과 W24 Grid/삭제/계층 기능은 포함하지 않는다. 새 기능 테스트에는 새 소스 또는 해당 main commit CI가 게시한 image/digest를 사용하고, `0.6.0` 정식 tag는 실제 게시 성공 후 사용한다.
-
-```sh
-docker pull ghcr.io/planner77/mastergantt:0.4.0
-docker run --detach --name mastergantt-test \
-  --publish 127.0.0.1:3000:3000 \
-  --volume mastergantt-test-data:/data \
-  --env APP_BASE_URL=https://gantt-test.company.local \
-  --env SESSION_COOKIE_SECURE=true \
-  ghcr.io/planner77/mastergantt:0.4.0
-curl -fsS http://127.0.0.1:3000/api/health/ready
-```
-
-Compose run은 `APP_BASE_URL`를 shell 또는 access-controlled Compose environment file로 제공해야 하며, default port는 loopback만 publish한다.
-
-```sh
-export APP_BASE_URL=https://gantt.company.local
-docker compose --env-file .env -f deploy/compose.yml up --build -d
-docker compose --env-file .env -f deploy/compose.yml restart
-docker compose --env-file .env -f deploy/compose.yml ps
-```
-
-`docker compose --env-file .env -f deploy/compose.yml down`은 named volume을 삭제하지 않아 restart/replace 뒤 data가 남는다. `docker volume rm mastergantt-data`는 backup 확인 전 실행하면 안 되는 destructive operation이다. Host bind mount를 택하면 사전에 UID:GID `1001:1001`이 쓸 수 있게 준비한다.
-
-### 현재 한계와 release owner 확인 사항
-
-- Healthcheck는 readiness API로 canonical runtime URL/path, migration, SQLite query, foreign key 및 latest migration ledger를 확인한다. HTTP process만 별도로 확인할 때는 `/api/health/live`를 사용한다.
-- native addon과 CPU architecture를 실제로 검증하기 전에는 multi-architecture manifest를 publish하지 않는다.
-- Docker named volume은 off-host backup을 대체하지 않는다. WAL 중 main DB 파일만 copy하지 말고 clean stop 후 `/data` 전체를 backup하고 fresh volume restore rehearsal을 수행한다.
-- GHCR `mastergantt` package는 private이며 `planner77/masterGantt` repository와 연결된 것을 API 200으로 확인했다. Downstream consumer는 최소 `packages: read`를 유지한다.
-- Private repository의 main/tag ruleset은 현재 plan의 API 403으로 미강제다. D05에서 사용자가 이 위험을 명시적으로 수용했으며 보호 적용을 PASS로 표시하지 않는다. 지정 maintainer와 문서화된 release 절차를 운영 통제로 유지한다.
-- D05에 따라 Private GitHub Artifact Attestation은 비활성으로 두고 `ENABLE_GITHUB_ATTESTATIONS`를 설정하지 않는다. BuildKit SBOM/provenance는 모든 publish에서 필수다.
-- release owner는 canonical hostname, TLS reverse proxy, backup destination/retention 및 action SHA pin maintenance policy를 결정한다.
-- Main commit workflow와 GHCR `ci-<SHA>` publish/digest pull, `v0.4.0` release publish/digest pull은 원격·로컬 PASS했다. 양쪽 BuildKit SPDX 2.3 SBOM과 SLSA provenance도 registry에서 조회했다.
-
-## Repository layout relocation (#12)
-
-현재 배포 경로와 기존 Compose 프로젝트/volume을 유지하는 전환 절차는 [REPOSITORY_STRUCTURE](REPOSITORY_STRUCTURE.md)를 따른다. CI의 Docker build 4개 참조와 Dependabot 경로를 함께 갱신하고 Docker gate에 `scripts/verify-compose-smoke.sh`를 추가했다. 새 Compose 경로의 config, startup/readiness, restart 및 강제 recreate 후 SQLite 보존을 격리된 CI 리소스로 검사한다. 기존 quality/E2E/runtime/registry 권한·검증 gate는 유지한다. 결과는 해당 PR/run/head의 실제 증거로 판정하며 과거 Wxx 기록을 이번 이동의 PASS로 전용하지 않는다.
-
-## 구조화 로그와 Docker 운영 (Issue #64)
-
-애플리케이션, runtime configuration 검사와 DB migration은 컨테이너 내부 파일이 아니라 `stdout/stderr`에 JSON 한 줄 로그를 남긴다. 주요 운영 이벤트는 `application_started`, `runtime_configuration_validated|invalid`, `database_migration_started|completed|failed`, `http_request_completed`, `readiness_unavailable|recovered`다. 비밀번호, Cookie, Authorization, session token, hash/digest, 전체 request body 및 DB record는 기록하지 않는다.
-
-```bash
-docker logs <container>
-docker compose --env-file .env -f deploy/compose.yml logs -f app
-```
-
-Docker daemon의 `json-file` 또는 `local` logging driver와 `max-size`/`max-file` 보존 정책은 호스트 운영 기준에 맞춰 별도로 설정한다. daemon 전역 변경은 다른 컨테이너 영향을 먼저 검토한다. Windows Nginx는 `proxy_set_header X-Request-ID $request_id;`를 사용하고 access log에도 `$request_id`를 포함하여 응답 헤더와 Docker 로그를 같은 ID로 조회한다. 상세 기준은 [LOGGING.md](LOGGING.md)를 따른다.
-
-## Logistics Catalog bootstrap secret (Issue #280)
-
-Docker Compose 배포는 `LOGISTICS_CATALOG_ADMIN_PASSWORD`를 app container에 명시적으로 전달하며 값 누락 시 Compose config 단계에서 실패한다. 이 값은 신규 DB의 최초 credential seed 용도이며, 관리자 화면에서 비밀번호를 변경한 뒤에는 SQLite credential이 우선한다. 실제 운영 secret은 저장소에 커밋하지 않는다.
-
-
-
-## Issue #289 project-master bootstrap
-
-신규 DB에서 프로젝트 기준정보 관리자를 bootstrap하려면 `PROJECT_MASTER_ADMIN_PASSWORD`를 runtime 환경에 제공한다. `deploy/compose.yml`이 이 값을 application container에 명시적으로 전달하고 누락 시 Compose config 단계에서 fail-fast한다. 값은 최초 credential 생성에만 사용되며 DB credential 생성 이후 환경변수 변경으로 현재 관리자 비밀번호를 덮어쓰지 않는다. 운영 secret은 이미지·소스·로그에 포함하지 않는다.
-
-## Issue #345: SQLite 일정 schema 업그레이드
-
-0.59.0의 `0018_empty_summary_schedule.sql`은 기존 tasks ID/parent/order/일정·Baseline·속성 및 참조를 보존하며 Summary에 한정한 일정 all-null 저장을 추가한다. 기존 migration 파일은 수정하지 않는다. 최초 연결의 migration runner가 참조 table 재생성에 필요한 FK OFF를 transaction 밖에서 한정 적용하고 commit 전 FK 무결성을 검사한다. 실패 시 schema·rows·ledger 모두 rollback하고 FK 설정을 복원하므로 준비 상태를 성공으로 보고하지 않는다.
-
-운영 upgrade 전 기존 backup 절차를 수행하고 새 버전의 migrations 전체를 함께 배포한다. 변경된 schema의 null Summary를 이전 application binary가 처리할 수 있다고 가정하지 않는다. rollback은 이전 이미지로의 단순 교체가 아닌 검증된 backup/schema 복구 절차를 따른다. 실제 production upgrade/backup 복구는 NOT TESTED이며 파일 SQLite upgrade/reopen/참조·실패 rollback은 로컬 자동 테스트로 구분한다. Docker/Compose/volume/security 정책 변경은 없다.
-
-## Issue #552 — Milestone WBS 표시의 비상 복구
-
-기본 빌드는 Summary/Task만 native WBS에 표시하고 Milestone 상단 marker는 OFF다. #552 자체 회귀를 조사할 때의 명시적 legacy 프로파일은 `NEXT_PUBLIC_GANTT_WBS_MODE=legacy`를 **Next.js 빌드 전에** 지정한다. `NEXT_PUBLIC_*`는 클라이언트 번들에 고정되므로 실행 중 환경변수 변경이나 컨테이너 재시작만으로 기존 번들을 바꾸지 않는다. 별도 환경에서 `NEXT_PUBLIC_GANTT_WBS_MODE=legacy npm run build`로 생성한 후보와 canonical/selection/filter/viewport·marker OFF를 검증한 뒤 새 CI와 Owner 승인 절차를 따른다. 사용자 화면의 표시 토글이나 marker 기능의 rollback과 혼용하지 않는다.
-
-이번 변경은 Dockerfile의 새 build arg나 Compose runtime 설정을 추가하지 않는다. 기존 정식 Docker 이미지에 위 환경변수를 주입해서 legacy로 바뀐다고 가정하지 않는다. 컨테이너 운영의 코드 rollback은 검토된 revert PR·새 Required CI·정식 이미지/digest 승인·배포 절차를 사용한다. tag/digest/DB를 강제 변경하지 않으며 서버 canonical ID·Milestone/Link/Membership/Resource 데이터 migration은 없다. 이번 legacy probe와 실제 운영 이미지 재빌드/배포·복구 검증은 [Work Packet](exec-plans/active/ISSUE_552.md)에서 환경별로 구분한다.
+실제 architecture/native parity, bind mount 권한, 운영 upgrade/rollback, off-host backup/restore, reverse proxy/TLS, 수동 UX는 해당 환경 증거 전 NOT TESTED다. canonical hostname·인증서 담당·storage·retention/RPO/RTO·rehearsal 주기·자원/healthcheck 값은 Owner의 환경별 결정이다. #912는 실제 복원, #909는 수동 GHCR, #911은 관리자 전환을 담당한다. 문서 작성으로 그 실행 완료를 주장하지 않는다.

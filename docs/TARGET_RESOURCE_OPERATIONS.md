@@ -42,7 +42,7 @@
 
 신규 #737 합성 테스트는 이미 이관된 파일 DB의 backup→새 파일 열기→두 번 재시작에서 전체 table/ID와5root report를 비교한다. 과거 schema의 upgrade/transaction rollback/Copy·Template는 별도 기존 테스트로 확인한다. 이 증거는 실제 운영/off-host restore PASS가 아니다. [수용표](WBS_CROSS_FEATURE_ACCEPTANCE.md)와 [실행 원장](exec-plans/active/ISSUE_737.md)을 따른다.
 
-동적 view spec이 지원되지 않거나 저장 설정이 오래됐으면 화면의 기본/단독 보기 복구 경로를 사용한다. 이는 UI 조회 설정 fallback이며 DB downmigration이 아니다. DB rollback은 편집 중지 후 검증한 backup과 대응하는 승인된 exact version/digest를 새 격리 volume에 복원·검증한 뒤 결정한다. 기존 volume/backup·Compose project를 보존하며 새 데이터 손실 범위를 운영자가 확인한다. 임시 `ci-*`를 정식 rollback 이미지로 추정하거나 구 binary를 새 schema에 바로 연결하지 않는다. 운영 실행·배포/릴리스 권한은 이번 테스트 PR 범위 밖이다.
+동적 view spec이 지원되지 않거나 저장 설정이 오래됐으면 화면의 기본/단독 보기 복구 경로를 사용한다. 이는 UI 조회 설정 fallback이며 DB downmigration이 아니다. DB rollback은 편집 중지 후 검증한 backup과 대응하는 승인된 exact version/digest를 새 격리 volume에 복원·검증한 뒤 결정한다. 기존 volume/backup·Compose project를 보존하며 새 데이터 손실 범위를 운영자가 확인한다. 과거 임시 `ci-*`를 정식 rollback 이미지로 추정하거나 구 binary를 새 schema에 바로 연결하지 않는다. 현행 rollback 후보는 [CI_CD](CI_CD.md)의 실제 검증·보존한 정상/직전 정상 exact digest이며 DB snapshot과의 호환성을 별도로 확인한다. 당시 테스트 PR은 운영 배포 권한을 포함하지 않았다. 현재 운영 실행·게시/배포는 [Issue Lifecycle](ISSUE_LIFECYCLE.md)의 별도 명시 범위 승인을 따른다.
 
 Issue #623의 운영 인계 문서다. [DEPLOYMENT](DEPLOYMENT.md#8-backup-restore-rollback), [DB_SCHEMA](DB_SCHEMA.md), [수용표](TARGET_RESOURCE_ACCEPTANCE.md)가 기준이다. 아래 운영 절차의 작성과 격리 합성 SQLite 검증은 실제 운영/off-host 복원 PASS가 아니다.
 

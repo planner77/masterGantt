@@ -36,7 +36,7 @@ docker inspect CONTAINER_ID --format '{{index .Config.Labels "com.docker.compose
 docker inspect CONTAINER_ID --format '{{range .Mounts}}{{if eq .Destination "/data"}}{{.Name}}{{end}}{{end}}'
 ```
 
-확인한 기존 프로젝트명은 `.env`의 `COMPOSE_PROJECT_NAME`, 기존 `/data` 볼륨명은 `MASTERGANTT_VOLUME_NAME`에 지정한다. 운영 `deploy/compose.yml`은 image-only이며 registry pull을 우선하고, local/CI build는 `deploy/compose.build.yml` override에서만 제공한다. Compose 파일은 프로젝트명을 미설정하면 오류로 중단하여 디렉터리 이름 `deploy`로 새 프로젝트가 생기지 않게 한다. override 파일·자동화 명령에 남은 옛 경로도 함께 수정한다.
+확인한 기존 프로젝트명은 `.env`의 `COMPOSE_PROJECT_NAME`, 기존 `/data` 볼륨명은 `MASTERGANTT_VOLUME_NAME`에 지정한다. 운영 `deploy/compose.yml`은 image-only이며 registry pull을 우선하고, local build는 `deploy/compose.build.yml` override에서만 제공한다. Compose 파일은 프로젝트명을 미설정하면 오류로 중단하여 디렉터리 이름 `deploy`로 새 프로젝트가 생기지 않게 한다. override 파일·자동화 명령에 남은 옛 경로도 함께 수정한다.
 
 ```sh
 docker compose --env-file .env -f deploy/compose.yml config --quiet
@@ -57,7 +57,7 @@ docker build -f deploy/docker/Dockerfile -t mastergantt:local .
 
 ## 실행 검증
 
-기존 GitHub Actions quality/E2E/docker gate를 유지한다. Docker gate에서 `scripts/verify-compose-smoke.sh`가 새 Compose 파일의 해석, 앱 기동, restart, 강제 recreate, 같은 SQLite volume의 데이터 보존을 검증한다. 이 스크립트는 GitHub Actions의 고유 run/attempt 이름으로 새 격리 리소스만 만들고 정리하며 운영에서 실행하지 않는다. `tests/scripts/deployment-layout.test.ts`는 배치·실행 비트·컨텍스트·CI/Dependabot 참조·ignore 경계를 검사한다. CI 결과는 PR의 head SHA/run/job으로 기록하며 이 문서가 존재한다고 PASS는 아니다.
+현행 검증은 [TEST_PLAN](TEST_PLAN.md)·[LOCAL_PREPR](LOCAL_PREPR.md)의 로컬 Gate다. PR·원격 CI·Trusted QA·Finalizer를 실행하지 않는다. `scripts/verify-compose-smoke.sh`는 Compose 해석·앱 기동·restart/강제 recreate·동일 SQLite volume 보존의 기술 자산이며 로컬 격리 리소스에서만 검증한다. `tests/scripts/deployment-layout.test.ts`는 배치·실행 비트·컨텍스트·과거 workflow/Dependabot 참조·ignore 경계를 보존한다. 실제 명령/exit·source·환경 없이 문서 존재만으로 PASS가 아니다.
 
 ## 제외 및 후속
 
@@ -78,7 +78,7 @@ docker build -f deploy/docker/Dockerfile -t mastergantt:local .
 
 `npm test`와 `npm run test:e2e`는 --config로 새 설정을 선택한다. 두 설정 모두 **설정 파일 위치**에서 저장소 루트를 구하므로 호출 cwd에 의존하지 않는다. Vitest 설정은 해당 loader가 처리하는 `import.meta.url`을 사용하고, Playwright 설정은 현재 package가 CommonJS로 로딩되므로 `resolve(__dirname, "../..")`을 사용한다. TypeScript의 `module` 옵션만 바꾸거나 `.ts`에서 `import.meta.url`을 사용한다고 Playwright 설정이 ES module로 전환되지는 않는다. 이 수정은 root `package.json`의 모듈 유형이나 의존성을 바꾸지 않는다.
 
-Vitest root/include, Playwright testDir/webServer.cwd/outputDir/DB 경로와 기존 외부 URL·Chromium override를 유지한다. 브라우저 수·테스트 시나리오·worker 1개·포트 3100·날짜/권한 계약을 바꾸지 않는다. 실제 loader 호환성과 전체 테스트 발견은 `scripts/verify-test-discovery.mjs`를 루트/외부 cwd에서 실행하는 [필수 CI gate](CI_CD.md)로 검증한다. 구문 검사나 타입 검사만 통과한 것을 실제 설정 로딩 PASS로 해석하지 않는다.
+Vitest root/include, Playwright testDir/webServer.cwd/outputDir/DB 경로와 기존 외부 URL·Chromium override를 유지한다. 브라우저 수·테스트 시나리오·worker 1개·포트 3100·날짜/권한 계약을 바꾸지 않는다. `verify:prepr`의 browser 모드는 clean exact HEAD의 입력 일치 snapshot을 실행 root로 사용한다. 기존 설정·fixture 경로는 그대로이며 원본 source 불변과 Next 생성 출력의 허용 범위는 [LOCAL_PREPR](LOCAL_PREPR.md)을 따른다. 실제 loader 호환성과 전체 테스트 발견은 `scripts/verify-test-discovery.mjs`를 루트/외부 cwd에서 실행하는 [필수 로컬 검사](LOCAL_PREPR.md)로 검증한다. 구문 검사나 타입 검사만 통과한 것을 실제 설정 로딩 PASS로 해석하지 않는다.
 
 직접 실행 및 편집기 설정:
 
@@ -89,6 +89,6 @@ npx playwright test --config tests/config/playwright.config.ts --list
 node scripts/verify-test-discovery.mjs
 ```
 
-VS Code의 Vitest/Playwright 확장에서 자동 발견되지 않으면 해당 설정 파일을 선택한다. 확장 기능의 실제 UI 동작은 이번 GitHub Linux CLI 검증과 별개다. `.dockerignore`는 tests 전체를 계속 제외한다. Playwright HTML reporter 도입이나 산출물의 추가 이동은 별도 범위이며 CI의 기존 artifact 정책은 변경하지 않았다.
+VS Code의 Vitest/Playwright 확장에서 자동 발견되지 않으면 해당 설정 파일을 선택한다. 확장 기능의 실제 UI 동작은 로컬 Linux CLI 검증과 별개다. `.dockerignore`는 tests 전체를 계속 제외한다. Playwright HTML reporter 도입이나 산출물의 추가 이동은 별도 범위이며 과거 CI artifact 이력은 보존한다.
 
 [Vitest root](https://vitest.dev/config/root), [Playwright test configuration](https://playwright.dev/docs/api/class-testconfig), [Playwright TypeScript](https://playwright.dev/docs/test-typescript), [Node.js CommonJS 경로](https://nodejs.org/api/modules.html#dirname).

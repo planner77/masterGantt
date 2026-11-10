@@ -3,7 +3,7 @@ export declare function git(root: string, ...args: string[]): string;
 export declare function resolveBase(root: string, requested?: string): { ref: string; sha: string };
 export declare function sourceEvidence(root: string, base?: string): {
   baseRef: string; baseSha: string; headSha: string; workingDiffSha256: string;
-  fingerprint: string; dirty: boolean; changed: string[];
+  fingerprint: string; dirty: boolean; changed: string[]; contentSha256: string; indexSha256: string; fixtureSha256: string; packageLockSha256: string | null; actualMatchesHead: boolean;
 };
 export declare function isPathWithin(root: string, target: string): boolean;
 export declare function inventory(root: string): { unit: string[]; e2e: string[]; directBySource: Record<string, string[]> };
@@ -29,3 +29,16 @@ export declare function diagnosticSubset(history: {
     status: string; file: string; classification: string}>;
   status: "READY"; attempts: number;
 };
+export declare const COMMON_CHECKS: Record<string, string[]>;
+export declare function reportChecksum(report: object): string;
+export declare function environmentEvidence(root: string, env?: Record<string, string | undefined>): {
+  node: string; npm: string | null; osRelease: string; abi: string; platform: string; architecture: string; environmentSha256: string;
+  inputs: Record<string, string | null>; fingerprint: string;
+};
+export declare function publicationRequirements(source: ReturnType<typeof sourceEvidence>, selection: ReturnType<typeof selectImpact>): {common: string[]; tests: string[]; docker: boolean};
+export declare function evaluateAdmission(args: {
+  reports: unknown[]; source: ReturnType<typeof sourceEvidence>; environment: ReturnType<typeof environmentEvidence>;
+  selection: ReturnType<typeof selectImpact>; issue?: number | null; now?: number;
+}): {status: "PASS" | "BLOCKED"; publishAllowed: boolean; reasons: string[]; reportCount: number; notice: string};
+export declare function runnerCoverage(kind: string, payload: unknown, root: string): Array<{path: string; passed: number; failed: number; skipped: number}>;
+export declare function approvedTestCommand(label: string, command: string[]): boolean;

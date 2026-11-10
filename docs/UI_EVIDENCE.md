@@ -4,7 +4,7 @@ PR #902 최초 Full에서 기존 #880 흐름의 작업 diff를 동기 버퍼에 
 
 # UI 시각 증거 운영 계약 — Issue #896
 
-이 계약은 기존 Playwright 결과의 Stage A advisory 증거를 연결한다. 파일 무결성·수치 비교와 실제 사용자 UI 수용은 별도 판정이다. 제품 화면·버전·권한·API·DB·Required3·Chromium8·Trusted QA·OCI·Release·Finalizer 정책은 바꾸지 않는다.
+이 계약은 기존 Playwright 결과의 Stage A advisory 증거를 연결한다. 파일 무결성·수치 비교와 실제 사용자 UI 수용은 별도 판정이다. 제품 화면·버전·권한·API·DB 계약은 보존한다. 현행 운영은 [Issue Lifecycle](ISSUE_LIFECYCLE.md)로 전환하며 PR·원격 CI·Trusted QA·자동 Finalizer는 실행하지 않는다.
 
 ## 재사용과 추적
 
@@ -16,10 +16,10 @@ PR #902 최초 Full에서 기존 #880 흐름의 작업 diff를 동기 버퍼에 
 
 기존 테스트의 합성 fixture에서 canonical `ui-evidence-<state>.json`과 PNG를 같은 test output에 쓴다. v2는 다음을 기록한다.
 
-- Issue/AC·source Head·비교 baseline·checkout/test-merge SHA와 PR/repository/run/attempt. non-PR의 baseline은 동일 checkout 관찰 기준이며 과거 화면과 비교했다는 뜻이 아니다.
-- 실제 Playwright test ID/제목/project와 수집 시점 결과 `CAPTURED_BEFORE_TEST_COMPLETION`. 테스트 최종 PASS/FAIL은 원래 Playwright report/Job으로 판단한다.
+- Issue/AC·source Head·비교 baseline·실제 checkout SHA를 기록한다. 로컬 수집은 PR/run/attempt/test-merge를 만들어 넣지 않으며 non-PR baseline은 동일 checkout 관찰 기준으로 과거 화면 비교를 뜻하지 않는다. 과거 manifest의 원격 필드는 역사적 출처로 보존한다.
+- 실제 Playwright test ID/제목/project와 수집 시점 결과 `CAPTURED_BEFORE_TEST_COMPLETION`. 테스트 최종 PASS/FAIL은 실제 로컬 Playwright 실행 보고/exit로 판단한다.
 - Chromium/Playwright/OS/release·viewport·locale/document locale·font family·theme·DPR/CSS zoom·timezone·관측 시각. DPR 또는 CSS zoom을 native125% 확대 검증으로 대체하지 않는다. font는 computed family 관측이며 실제 설치 font 파일·fallback 버전 동일성을 인증하지 않는다. 이 환경 차이 가능성이 있으면 별도 확인 전 비교 수용은 BLOCKED다.
-- tracked working diff·test/helper SHA256와 dirty 여부. 로컬 dirty capture를 clean exact-commit Preview와 동일하다고 수용하지 않는다. 지문은 재현 보조 자료이며 PR 작성자 metadata를 trusted 승인으로 승격하지 않는다.
+- tracked working diff·test/helper SHA256와 dirty 여부. 로컬 dirty capture를 clean exact-commit Preview와 동일하다고 수용하지 않는다. 지문은 재현 보조 자료이며 로컬 metadata를 Owner 승인으로 승격하지 않는다.
 - 원본 PNG·별도 `geometry-<state>.json` 및 안전한 `fixture-<state>.json`의 SHA256. embedded geometry와 별도 파일 내용도 일치해야 한다. fixture 지문은 호출자가 제공한 안전한 합성 subset의 동일성만 확인하며 전체 DB·모든 fixture 필드의 동일성을 인증하지 않는다. fixture payload가 없는 선언 전용 수집은 `DECLARATION_ONLY`로 표시하며 비교 baseline으로 사용하지 않는다.
 - 실제 완료된 단계만 포함한 flow ID/steps/outcome, DESIGN 측정 참조·expected/actual/tolerance/outcome, 제외 범위/사유와 Owner 수용 `NOT TESTED`.
 
@@ -37,16 +37,15 @@ Playwright `attachments/`의 hash 이름 사본은 원본 manifest가 아니다.
 
 ## 검증과 비교 명령
 
-먼저 파일 무결성과 정확 출처를 확인한다. 실제 PR 이벤트에서 확보한 값을 사용한다.
+먼저 파일 무결성과 정확 출처를 확인한다. 로컬 실행의 실제 source/baseline 값을 사용하고 PR·test-merge를 요구하거나 원격 API를 호출하지 않는다.
 
 ```sh
 python3 scripts/ui_evidence.py test-results --require-v2 \
-  --source-sha "$PR_HEAD_SHA" --baseline-sha "$PR_BASE_SHA" \
-  --test-merge-sha "$TEST_MERGE_SHA" --pr "$PR_NUMBER" \
+  --source-sha "$SOURCE_SHA" --baseline-sha "$BASELINE_SHA" \
   --summary test-results/UI_EVIDENCE_SUMMARY.md
 ```
 
-v1은 과거 봉투 무결성 호환만 유지한다. v2 요구 또는 확장 출처 비교에는 v1을 거부한다. 없는 자료는 NOT TESTED/BLOCKED이고 checksum 위반은 FAIL이다. shard에 대표 수집 사례가 없는 경우 CI의 `--allow-empty`는 NOT TESTED를 유지하며 E2E PASS로 바꾸지 않는다. 기존 E2E 실패는 원래 필수 aggregate가 차단한다.
+v1은 과거 봉투 무결성 호환만 유지한다. v2 요구 또는 확장 출처 비교에는 v1을 거부한다. 없는 자료는 NOT TESTED/BLOCKED이고 checksum 위반은 FAIL이다. 대표 수집 사례가 없는 경우 NOT TESTED이며 `--allow-empty`를 필요한 시각 검증의 PASS로 사용하지 않는다. 필요한 E2E 실패는 로컬 admission을 차단한다.
 
 전후 양쪽의 실제 무결성을 확인한 뒤 기존 비교기 v2 모드를 실행한다. 기준 이미지는 자동 생성·승인·덮어쓰지 않는다. 다음은 계약 형식 예시이며 실제 baseline 승인 기록이 아니다.
 
@@ -69,14 +68,12 @@ node scripts/compare-issue-118-layout.mjs --ui-evidence \
 
 양쪽 Issue/state/viewport·환경/시각·DATA_CAPTURED fixture fingerprint가 같아야 비교 가능하다. baseline 변경·폰트/OS/browser drift·동적 fixture 변경·누락은 BLOCKED, 명시 수치 위반은 FAIL, 일치는 `GEOMETRY_MATCH_NOT_UAT`다. 이는 PNG 픽셀 일치나 DESIGN 전체 적합 판정이 아니다. CSS/헤더/밀도·반올림 경계·drift 음성 unit과 실제 controlled CSS 주입을 구분한다.
 
-## CI 인계·수용·비용
+## 로컬 인계·수용·비용
 
-기존 Chromium8 실행에 source/base/test-merge/PR 환경변수만 추가한다. 기존 7일 `ui-evidence-ci-<run>-<attempt>-shard-<n>` artifact에 Manifest·PNG·Geometry·Fixture·요약을 함께 올리고 Job Summary에서 다운로드 링크를 제공한다. 상대 파일 링크는 다운로드된 artifact 내부에서 확인한다. 추가 전체 브라우저 실행·Required Check·write 권한은 없다.
+canonical Manifest·PNG·Geometry·Fixture와 로컬 보고를 같은 source/fixture·환경에 연결한다. 운영/실데이터·비밀값은 공개하지 않는다. 원본 test 최종 결과, 실제 flow, 무결성, geometry 판정을 따로 읽는다. 의도적 CSS 음성 화면은 통제된 테스트 자료이며 제품 회귀 실패를 숨기는 용도가 아니다. 성공 문자열만으로 UI/UX ACCEPTED를 기록하지 않는다.
 
-원본 test 최종 결과, flow 관측, 무결성, geometry 판정을 따로 읽는다. 의도적 CSS 음성 화면의 FAIL 측정은 통제된 테스트 자료이며 제품 회귀 실패를 숨기는 용도가 아니다. 성공 문자열만으로 UI/UX ACCEPTED를 기록하지 않는다.
+#897의 실제 Owner 로컬 UAT·최종 범위 수용은 별도다. source·fixture/image·manifest drift나 REWORK 후 관련 관찰/수용은 다시 확인한다. 기존 PR/CI artifact 전송·Required check·Trusted/Finalizer 지침은 이전 구현 이력이며 신규 경로에서 호출하지 않는다. 과거 실행·오류는 단일 원장과 Git 원본에 보존한다.
 
-Stage B의 `UI_EVIDENCE_VERIFIED` 수용 활성·golden 승인·#897 Preview Owner UAT·최신 Head Manager ACCEPT는 별도 Owner 결정이다. 현재 자동 Required/Ruleset Gate를 새로 등록하지 않는다. protected 검증기 변경 PR 자체는 기존 main 정책으로 검증한다.
-
-수집 시간은 manifest `captureDurationMs`, 파일 크기·검증 시간은 summary로 관찰한다. Actions runner-minutes·artifact 전후 크기·UI 결함 재오픈 수의 개선은 실제 동등 표본을 확보하기 전 NOT TESTED다. 기존 timing/setup artifact를 재사용하며 전체 suite 비용 절감 수치를 추정해 PASS로 보고하지 않는다.
+수집 시간은 manifest `captureDurationMs`, 파일 크기·검증 시간은 실제 summary로 관찰한다. 로컬 비용·UI 결함 재오픈의 개선은 실제 동등 표본 전 NOT TESTED다. 과거 Actions 측정을 현재 비용 절감 PASS로 쓰지 않는다.
 
 공식 근거: [Playwright Visual Comparisons](https://playwright.dev/docs/test-snapshots)는 동일 렌더링 환경을 요구하고, [Clock](https://playwright.dev/docs/clock)의 setFixedTime은 날짜를 고정하면서 timer를 유지한다. 이번에는 승인 golden이 없어 픽셀 비교를 도입하지 않는다.

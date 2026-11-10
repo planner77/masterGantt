@@ -1,0 +1,1251 @@
+{
+  "schemaVersion": 1,
+  "issues": [
+    {
+      "issue": 906,
+      "primaryIssue": 906,
+      "ledger": "docs/ISSUE_906_FAILURE_ANALYSIS.md"
+    },
+    {
+      "issue": 907,
+      "primaryIssue": 906,
+      "ledger": "docs/ISSUE_907_FAILURE_ANALYSIS.md"
+    },
+    {
+      "issue": 908,
+      "primaryIssue": 906,
+      "ledger": "docs/ISSUE_908_FAILURE_ANALYSIS.md"
+    }
+  ],
+  "failures": [
+    {
+      "id": "F906-001",
+      "issue": 906,
+      "ledger": "docs/ISSUE_906_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        907,
+        908
+      ],
+      "domain": "delivery",
+      "layer": "operation",
+      "keywords": [
+        "direct-push",
+        "ruleset",
+        "actions"
+      ],
+      "cause": "Owner 정책은 등록됐지만 LIVE PR/Required Check와 Actions는 전환 전",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/scripts/issue-ledger-verifier.test.ts",
+          "case": "단일 Primary 연결을 유지하고 중복 Failure/Issue/event ID를 거부한다",
+          "historical": false,
+          "coverageArea": "ledger-contract-only; actual CLI/LIVE/runner replay는 원본 event command/근거 참조"
+        }
+      ],
+      "residualRisk": "최종 exact commit/로컬 admission/게시·복원 근거는 독립적으로 확인",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "개별 시각 미수집; 원본 원장 구간 참조",
+          "stage": "LOCAL_PREP",
+          "status": "BLOCKED",
+          "sourceSha": "4aad8865972e3446f0d34c7ffcfd2bbab439e366",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "당시 HEAD는 기준 main이며 작업 중 diff fingerprint는 미수집; 최종 exact source 결과가 아님",
+          "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+          "environmentVersion": "masterGantt 0.145.1",
+          "command": [
+            "gh",
+            "api",
+            "repos/planner77/masterGantt/rulesets/24043042"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "해당 단계 계약 충족",
+          "actual": "Ruleset active+PR/Required3, Actions enabled=true. Push 중단",
+          "input": "실제 운영 업무 데이터 없는 정제된 개발·설정 검사",
+          "classification": "ENVIRONMENT",
+          "recovery": "원본 보존; 후속 event/원장에 교정 결과 추가",
+          "residualRisk": "구조 검산은 최종 검증·게시·운영 수용을 대신하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_906_FAILURE_ANALYSIS.md"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "F906-002",
+      "issue": 906,
+      "ledger": "docs/ISSUE_906_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        907,
+        908
+      ],
+      "domain": "tooling",
+      "layer": "cli",
+      "keywords": [
+        "pagination",
+        "gh",
+        "version"
+      ],
+      "cause": "설치 gh 2.45에서 --slurp 미지원",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/scripts/issue-ledger-verifier.test.ts",
+          "case": "FAIL→수정 source PASS를 추가해도 원본 source/오류/시각을 그대로 보존한다",
+          "historical": false,
+          "coverageArea": "ledger-contract-only; actual CLI/LIVE/runner replay는 원본 event command/근거 참조"
+        }
+      ],
+      "residualRisk": "최종 exact commit/로컬 admission/게시·복원 근거는 독립적으로 확인",
+      "events": [
+        {
+          "id": "failed",
+          "at": null,
+          "timeNote": "개별 시각 미수집; 원본 원장 구간 참조",
+          "stage": "LOCAL_PREP",
+          "status": "FAIL",
+          "sourceSha": "4aad8865972e3446f0d34c7ffcfd2bbab439e366",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "당시 HEAD는 기준 main이며 작업 중 diff fingerprint는 미수집; 최종 exact source 결과가 아님",
+          "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+          "environmentVersion": "masterGantt 0.145.1",
+          "command": [
+            "gh",
+            "api",
+            "<sanitized-endpoint>",
+            "--paginate",
+            "--slurp"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "해당 단계 계약 충족",
+          "actual": "배치 범위 2026-11-10T21:37:47.951341Z~21:37:56.623269Z; 옵션 미지원",
+          "input": "실제 운영 업무 데이터 없는 정제된 개발·설정 검사",
+          "classification": "ENVIRONMENT",
+          "recovery": "원본 보존; 후속 event/원장에 교정 결과 추가",
+          "residualRisk": "구조 검산은 최종 검증·게시·운영 수용을 대신하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_906_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "corrected",
+          "at": null,
+          "timeNote": "개별 시각 미수집; 원본 원장 구간 참조",
+          "stage": "LOCAL_PREP",
+          "status": "PASS",
+          "sourceSha": "4aad8865972e3446f0d34c7ffcfd2bbab439e366",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "당시 HEAD는 기준 main이며 작업 중 diff fingerprint는 미수집; 최종 exact source 결과가 아님",
+          "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+          "environmentVersion": "masterGantt 0.145.1",
+          "command": [
+            "gh",
+            "api",
+            "<same-sanitized-endpoint>",
+            "--paginate"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "해당 단계 계약 충족",
+          "actual": "연속 JSON을 JSONDecoder로 수집하여 조회 완료",
+          "input": "실제 운영 업무 데이터 없는 정제된 개발·설정 검사",
+          "classification": "ENVIRONMENT",
+          "recovery": "원본 보존; 후속 event/원장에 교정 결과 추가",
+          "residualRisk": "구조 검산은 최종 검증·게시·운영 수용을 대신하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_906_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "4aad8865972e3446f0d34c7ffcfd2bbab439e366",
+            "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F906-003",
+      "issue": 906,
+      "ledger": "docs/ISSUE_906_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        907,
+        908
+      ],
+      "domain": "tooling",
+      "layer": "docker",
+      "keywords": [
+        "buildx",
+        "template"
+      ],
+      "cause": "현재 buildx 표시 template은 .Driver field 미지원",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/scripts/issue-ledger-verifier.test.ts",
+          "case": "모든 새 로컬/게시/복구 stage를 지원하고 알 수 없는 상태는 거부한다",
+          "historical": false,
+          "coverageArea": "ledger-contract-only; actual CLI/LIVE/runner replay는 원본 event command/근거 참조"
+        }
+      ],
+      "residualRisk": "최종 exact commit/로컬 admission/게시·복원 근거는 독립적으로 확인",
+      "events": [
+        {
+          "id": "failed",
+          "at": null,
+          "timeNote": "개별 시각 미수집; 원본 원장 구간 참조",
+          "stage": "LOCAL_PREP",
+          "status": "FAIL",
+          "sourceSha": "4aad8865972e3446f0d34c7ffcfd2bbab439e366",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "당시 HEAD는 기준 main이며 작업 중 diff fingerprint는 미수집; 최종 exact source 결과가 아님",
+          "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+          "environmentVersion": "masterGantt 0.145.1",
+          "command": [
+            "docker",
+            "buildx",
+            "ls",
+            "--format",
+            "{{.Name}} {{.Driver}} {{.Status}}"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "해당 단계 계약 충족",
+          "actual": ".Driver field 미지원",
+          "input": "실제 운영 업무 데이터 없는 정제된 개발·설정 검사",
+          "classification": "ENVIRONMENT",
+          "recovery": "원본 보존; 후속 event/원장에 교정 결과 추가",
+          "residualRisk": "구조 검산은 최종 검증·게시·운영 수용을 대신하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_906_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "corrected",
+          "at": null,
+          "timeNote": "개별 시각 미수집; 원본 원장 구간 참조",
+          "stage": "LOCAL_PREP",
+          "status": "PASS",
+          "sourceSha": "4aad8865972e3446f0d34c7ffcfd2bbab439e366",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "당시 HEAD는 기준 main이며 작업 중 diff fingerprint는 미수집; 최종 exact source 결과가 아님",
+          "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+          "environmentVersion": "masterGantt 0.145.1",
+          "command": [
+            "docker",
+            "buildx",
+            "ls"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "해당 단계 계약 충족",
+          "actual": "active default builder running/linux/amd64 확인",
+          "input": "실제 운영 업무 데이터 없는 정제된 개발·설정 검사",
+          "classification": "ENVIRONMENT",
+          "recovery": "원본 보존; 후속 event/원장에 교정 결과 추가",
+          "residualRisk": "구조 검산은 최종 검증·게시·운영 수용을 대신하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_906_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "4aad8865972e3446f0d34c7ffcfd2bbab439e366",
+            "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F906-004",
+      "issue": 906,
+      "ledger": "docs/ISSUE_906_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        907,
+        908
+      ],
+      "domain": "delivery",
+      "layer": "operation",
+      "keywords": [
+        "issue-comment",
+        "finalizer",
+        "skipped"
+      ],
+      "cause": "Actions 비활성 전에 진행 댓글 작성: legacy issue_comment trigger 미확인",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/scripts/issue-ledger-verifier.test.ts",
+          "case": "원격 CI stage는 역사로만 허용하고 신규 가짜 PR/CI authority를 거부한다",
+          "historical": false,
+          "coverageArea": "ledger-contract-only; actual CLI/LIVE/runner replay는 원본 event command/근거 참조"
+        }
+      ],
+      "residualRisk": "최종 exact commit/로컬 admission/게시·복원 근거는 독립적으로 확인",
+      "events": [
+        {
+          "id": "observed",
+          "at": "2026-11-10T21:35:35Z",
+          "timeNote": "개별 시각 미수집; 원본 원장 구간 참조",
+          "stage": "OPERATION",
+          "status": "FAIL",
+          "sourceSha": "4aad8865972e3446f0d34c7ffcfd2bbab439e366",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "당시 HEAD는 기준 main이며 작업 중 diff fingerprint는 미수집; 최종 exact source 결과가 아님",
+          "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+          "environmentVersion": "masterGantt 0.145.1",
+          "command": [
+            "GitHub Issue comment",
+            "PLAN/STATUS"
+          ],
+          "exit": null,
+          "exitNote": "수집되지 않음/이벤트 기반 판정",
+          "expected": "해당 단계 계약 충족",
+          "actual": "최초21:35:35Z 두 Run, 후속21:43:47Z/21:43:48Z 두 Run으로 총4개 생성. 모두 completed/skipped; 실제 테스트·게시 미실행",
+          "input": "실제 운영 업무 데이터 없는 정제된 개발·설정 검사",
+          "classification": "POLICY",
+          "recovery": "원본 보존; 후속 event/원장에 교정 결과 추가",
+          "residualRisk": "구조 검산은 최종 검증·게시·운영 수용을 대신하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_906_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "corrected",
+          "at": "2026-11-10T21:48:42Z",
+          "timeNote": "개별 시각 미수집; 원본 원장 구간 참조",
+          "stage": "OPERATION",
+          "status": "PASS",
+          "sourceSha": "4aad8865972e3446f0d34c7ffcfd2bbab439e366",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "당시 HEAD는 기준 main이며 작업 중 diff fingerprint는 미수집; 최종 exact source 결과가 아님",
+          "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+          "environmentVersion": "masterGantt 0.145.1",
+          "command": [
+            "gh",
+            "api",
+            "--method",
+            "PUT",
+            "repos/planner77/masterGantt/actions/permissions",
+            "enabled=false"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "해당 단계 계약 충족",
+          "actual": "HTTP204/readback enabled=false; running0/queued0/비활성 이후 신규0. 최초4개 skipped는 보존",
+          "input": "실제 운영 업무 데이터 없는 정제된 개발·설정 검사",
+          "classification": "POLICY",
+          "recovery": "원본 보존; 후속 event/원장에 교정 결과 추가",
+          "residualRisk": "구조 검산은 최종 검증·게시·운영 수용을 대신하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_906_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "4aad8865972e3446f0d34c7ffcfd2bbab439e366",
+            "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F906-005",
+      "issue": 906,
+      "ledger": "docs/ISSUE_906_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        907,
+        908
+      ],
+      "domain": "delivery",
+      "layer": "assertion",
+      "keywords": [
+        "actions",
+        "response",
+        "optional-field"
+      ],
+      "cause": "disabled 응답의 allowed_actions 생략을 all과 동일 필드 비교하여 assertion 실패",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/scripts/issue-ledger-verifier.test.ts",
+          "case": "source/환경/image/backup 결속이 바뀐 PASS를 거부한다",
+          "historical": false,
+          "coverageArea": "ledger-contract-only; actual CLI/LIVE/runner replay는 원본 event command/근거 참조"
+        }
+      ],
+      "residualRisk": "최종 exact commit/로컬 admission/게시·복원 근거는 독립적으로 확인",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "개별 시각 미수집; 원본 원장 구간 참조",
+          "stage": "OPERATION",
+          "status": "FAIL",
+          "sourceSha": "4aad8865972e3446f0d34c7ffcfd2bbab439e366",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "당시 HEAD는 기준 main이며 작업 중 diff fingerprint는 미수집; 최종 exact source 결과가 아님",
+          "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+          "environmentVersion": "masterGantt 0.145.1",
+          "command": [
+            "Actions disabled postcondition assertion"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "해당 단계 계약 충족",
+          "actual": "PUT 성공/실제 enabled=false이나 응답 omission 비교 오류",
+          "input": "실제 운영 업무 데이터 없는 정제된 개발·설정 검사",
+          "classification": "POLICY",
+          "recovery": "원본 보존; 후속 event/원장에 교정 결과 추가",
+          "residualRisk": "구조 검산은 최종 검증·게시·운영 수용을 대신하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_906_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "corrected",
+          "at": "2026-11-10T21:48:42Z",
+          "timeNote": "개별 시각 미수집; 원본 원장 구간 참조",
+          "stage": "OPERATION",
+          "status": "PASS",
+          "sourceSha": "4aad8865972e3446f0d34c7ffcfd2bbab439e366",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "당시 HEAD는 기준 main이며 작업 중 diff fingerprint는 미수집; 최종 exact source 결과가 아님",
+          "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+          "environmentVersion": "masterGantt 0.145.1",
+          "command": [
+            "gh",
+            "api",
+            "repos/planner77/masterGantt/actions/permissions"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "해당 단계 계약 충족",
+          "actual": "재활성화 없이 readback disabled·sha pin 보존 확인",
+          "input": "실제 운영 업무 데이터 없는 정제된 개발·설정 검사",
+          "classification": "POLICY",
+          "recovery": "원본 보존; 후속 event/원장에 교정 결과 추가",
+          "residualRisk": "구조 검산은 최종 검증·게시·운영 수용을 대신하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_906_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "4aad8865972e3446f0d34c7ffcfd2bbab439e366",
+            "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F906-006",
+      "issue": 906,
+      "ledger": "docs/ISSUE_906_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        907,
+        908
+      ],
+      "domain": "tooling",
+      "layer": "browser-snapshot",
+      "keywords": [
+        "snapshot",
+        "symlink",
+        "source-equality"
+      ],
+      "cause": "node_modules/ directory ignore 규칙이 root node_modules symlink에 적용되지 않아 입력 동등성 거부",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/scripts/issue-ledger-verifier.test.ts",
+          "case": "FAIL→수정 source PASS를 추가해도 원본 source/오류/시각을 그대로 보존한다",
+          "historical": false,
+          "coverageArea": "ledger-contract-only; actual CLI/LIVE/runner replay는 원본 event command/근거 참조"
+        },
+        {
+          "path": "tests/scripts/prepr-snapshot.test.ts",
+          "case": "runs from identical exact-head bytes while strict Next metadata generation leaves the original unchanged",
+          "historical": false
+        }
+      ],
+      "residualRisk": "최종 exact commit/로컬 admission/게시·복원 근거는 독립적으로 확인",
+      "events": [
+        {
+          "id": "failed",
+          "at": "2026-11-10T21:59:07Z",
+          "timeNote": "개별 시각 미수집; 원본 원장 구간 참조",
+          "stage": "UNIT",
+          "status": "FAIL",
+          "sourceSha": "4aad8865972e3446f0d34c7ffcfd2bbab439e366",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "당시 HEAD는 기준 main이며 작업 중 diff fingerprint는 미수집; 최종 exact source 결과가 아님",
+          "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+          "environmentVersion": "masterGantt 0.145.1",
+          "command": [
+            "npm",
+            "test",
+            "--",
+            "tests/scripts/prepr-verifier.test.ts",
+            "tests/scripts/prepr-snapshot.test.ts"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "해당 단계 계약 충족",
+          "actual": "48 tests 중42 PASS/6 FAIL, 7.71s; snapshot6cases가 symlink 입력을 거부",
+          "input": "실제 운영 업무 데이터 없는 정제된 개발·설정 검사",
+          "classification": "POLICY",
+          "recovery": "원본 보존; 후속 event/원장에 교정 결과 추가",
+          "residualRisk": "구조 검산은 최종 검증·게시·운영 수용을 대신하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_906_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "corrected",
+          "at": "2026-11-10T22:00:33Z",
+          "timeNote": "개별 시각 미수집; 원본 원장 구간 참조",
+          "stage": "UNIT",
+          "status": "PASS",
+          "sourceSha": "4aad8865972e3446f0d34c7ffcfd2bbab439e366",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "당시 HEAD는 기준 main이며 작업 중 diff fingerprint는 미수집; 최종 exact source 결과가 아님",
+          "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+          "environmentVersion": "masterGantt 0.145.1",
+          "command": [
+            "npm",
+            "test",
+            "--",
+            "tests/scripts/prepr-verifier.test.ts",
+            "tests/scripts/prepr-snapshot.test.ts"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "해당 단계 계약 충족",
+          "actual": "실제 node_modules directory 아래 설치 entry link로 교정 후48 PASS, 7.74s; WIP scoped 결과",
+          "input": "실제 운영 업무 데이터 없는 정제된 개발·설정 검사",
+          "classification": "POLICY",
+          "recovery": "원본 보존; 후속 event/원장에 교정 결과 추가",
+          "residualRisk": "구조 검산은 최종 검증·게시·운영 수용을 대신하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_906_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "4aad8865972e3446f0d34c7ffcfd2bbab439e366",
+            "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F906-007",
+      "issue": 906,
+      "ledger": "docs/ISSUE_906_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        907,
+        908
+      ],
+      "domain": "supply-chain",
+      "layer": "docker",
+      "keywords": [
+        "OCI",
+        "attestation",
+        "exporter",
+        "manifest-list"
+      ],
+      "cause": "현재 Docker exporter가 attestation manifest list 복수 exporter 조합을 지원하지 않음",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/scripts/prepr-docker.test.ts",
+          "case": "고정 builder/scanner로 OCI를 한 번 build하며 Docker/registry exporter를 만들지 않는다",
+          "historical": false,
+          "coverageArea": "OCI parser/toolchain contract; 실제 exporter 호환성은 event의 합성 Docker probe 결과"
+        }
+      ],
+      "residualRisk": "교정 방식의 실제 호환 실행 전 NOT TESTED; 제품 빌드/게시 증거 아님",
+      "events": [
+        {
+          "id": "failed",
+          "at": "2026-11-10T22:10:50.398Z",
+          "timeNote": "완료2026-11-10T22:11:27.869Z",
+          "stage": "DOCKER",
+          "status": "FAIL",
+          "sourceSha": "20dcb599745261dbcf5e27f227cb2d25ed3a578a",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "프로젝트 제품 source가 아니라 격리된 합성 toolchain probe fixture",
+          "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+          "environmentVersion": "masterGantt 0.145.1",
+          "command": [
+            "node",
+            ".prepr-reports/operations-906-908/run-oci-probe.mjs"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "동일 build의 OCI attestation과 Docker runtime export 호환",
+          "actual": "builder create0/build1/cleanup0; docker exporter does not currently support exporting manifest lists",
+          "input": "합성 toolchain probe, 실제 제품 이미지 빌드/게시 아님",
+          "classification": "ENVIRONMENT",
+          "recovery": "단일 OCI build→runtime child offline load로 교정 예정; 재실행 전 NOT TESTED",
+          "residualRisk": "구조 검산은 최종 검증·게시·운영 수용을 대신하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_906_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "sourceContentSha256": "471f530027fafa82feb66f61c9e6c619fd58af8225fc23162a7bba7d0029fe4f"
+        },
+        {
+          "id": "same-oci-corrected",
+          "at": null,
+          "timeNote": "세부 명령 시각 미수집; 자기 image cleanup은2026-11-10T22:20:56Z exit0",
+          "stage": "DOCKER",
+          "status": "PASS",
+          "sourceSha": "20dcb599745261dbcf5e27f227cb2d25ed3a578a",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "동일 합성R02fixture/OCI만 검증; 전체프로젝트candidate나registry검증 아님",
+          "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+          "environmentVersion": "합성 toolchain fixture; runtime Node26.8.2",
+          "command": [
+            "NOT CAPTURED"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "재빌드 없이 동일 OCI/attestation graph와 runtime identity 보존",
+          "actual": "동일 R02 OCI의 version별predicate 검산/offline pack+load/configID·diffID·순서/nonrootNode26.8.2 PASS; registrywrite0",
+          "input": "합성 fixture; 제품 API/SQLite/registryPull미검증",
+          "classification": "ENVIRONMENT",
+          "recovery": "단일 OCI를 보존하고 그 runtime child만 offline load, 재빌드 없음",
+          "residualRisk": "로컬 합성 toolchain 재검산만 PASS; 실제 제품 candidate/API/SQLite/GHCR digest Pull은 별도",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": "sha256:70d0d82fe573ba17b6c167aea4be5920a4199c9d5f0cbfad276531739d60ab25",
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_906_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "sourceContentSha256": "471f530027fafa82feb66f61c9e6c619fd58af8225fc23162a7bba7d0029fe4f",
+          "commandNote": "동일R02OCI version별predicate검산→bounded offline runtime포장→dockerload→config/diffID/order/nonrootNode검증의 실제argv는 ignored operations receipt에보관",
+          "archiveSha256": "23774ebd4daf6192ba324968f7b6f3829dd17503a207939611d794b9ac693588",
+          "runtimeConfigDigest": "sha256:38fe6d084540d6f1284ba56cdc36d68ee073f8a5e2c2aadc1d715c874212b644",
+          "verification": {
+            "sourceSha": "20dcb599745261dbcf5e27f227cb2d25ed3a578a",
+            "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+            "imageDigest": "sha256:70d0d82fe573ba17b6c167aea4be5920a4199c9d5f0cbfad276531739d60ab25",
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F906-008",
+      "issue": 906,
+      "ledger": "docs/ISSUE_906_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        907,
+        908
+      ],
+      "domain": "tooling",
+      "layer": "typescript",
+      "keywords": [
+        "fixture",
+        "nullable",
+        "typecheck"
+      ],
+      "cause": "합성 TypeScript event fixture의 null-only inference",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/scripts/issue-ledger-verifier.test.ts",
+          "case": "FAIL→수정 source PASS를 추가해도 원본 source/오류/시각을 그대로 보존한다",
+          "historical": false,
+          "coverageArea": "nullable event fixture 및 원장 보존; 실제 컴파일 결과는 npm run typecheck 별도 event"
+        }
+      ],
+      "residualRisk": "작업 중 범위 검증이며 최종 exact source Gate는 별도",
+      "events": [
+        {
+          "id": "failed",
+          "at": null,
+          "timeNote": "개별 시각 미수집; 원본 원장 구간 참조",
+          "stage": "STATIC",
+          "status": "FAIL",
+          "sourceSha": "4aad8865972e3446f0d34c7ffcfd2bbab439e366",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "당시 HEAD는 기준 main이며 작업 중 diff fingerprint는 미수집; 최종 exact source 결과가 아님",
+          "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+          "environmentVersion": "masterGantt 0.145.1",
+          "command": [
+            "npm",
+            "run",
+            "typecheck"
+          ],
+          "exit": 2,
+          "exitNote": null,
+          "expected": "합성 실패→수정 event fixture가 TypeScript nullable 계약을 만족",
+          "actual": "TS2345: fixSourceSha:null 추론이 수정 event의 string과 충돌",
+          "input": "issue-ledger-verifier의 합성 event 데이터",
+          "classification": "FIXTURE",
+          "recovery": "fixture의 fixSourceSha를 string|null로 정확 표기",
+          "residualRisk": "구조 검산은 최종 검증·게시·운영 수용을 대신하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_906_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "corrected",
+          "at": null,
+          "timeNote": "개별 시각 미수집; 원본 원장 구간 참조",
+          "stage": "STATIC",
+          "status": "PASS",
+          "sourceSha": "4aad8865972e3446f0d34c7ffcfd2bbab439e366",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "당시 HEAD는 기준 main이며 작업 중 diff fingerprint는 미수집; 최종 exact source 결과가 아님",
+          "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+          "environmentVersion": "masterGantt 0.145.1",
+          "command": [
+            "npm",
+            "run",
+            "typecheck"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "합성 실패→수정 event fixture가 TypeScript nullable 계약을 만족",
+          "actual": "nullable fixture 교정 후 typecheck exit0",
+          "input": "issue-ledger-verifier의 합성 event 데이터",
+          "classification": "FIXTURE",
+          "recovery": "실제 오류와 교정 후 결과를 각각 보존",
+          "residualRisk": "구조 검산은 최종 검증·게시·운영 수용을 대신하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_906_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "4aad8865972e3446f0d34c7ffcfd2bbab439e366",
+            "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F906-009",
+      "issue": 906,
+      "ledger": "docs/ISSUE_906_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        907,
+        908
+      ],
+      "domain": "supply-chain",
+      "layer": "provenance",
+      "keywords": [
+        "SLSA",
+        "provenance-v1",
+        "buildType",
+        "predicate"
+      ],
+      "cause": "실제 v1 BuildKit buildType URI를 legacy v0.2와 혼동한 검증기 호환 결함",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/scripts/prepr-docker.test.ts",
+          "case": "BuildKit v1의 정확 공식 buildType URI를 v0.2와 구분하고 임의 대체는 거부한다",
+          "historical": false,
+          "coverageArea": "predicate parser 양음성; 실제 동일 OCI toolchain 재검산 결과는 event/원장 참조"
+        }
+      ],
+      "residualRisk": "동일 생성 OCI 재검산과 runtime import/Pull 검증은 실제 수행 후 추가",
+      "events": [
+        {
+          "id": "wrapper-blocked",
+          "at": "2026-11-10T22:17:04.141Z",
+          "timeNote": "R02구간2026-11-10T22:16:09.724Z~22:17:04.141Z",
+          "stage": "DOCKER",
+          "status": "BLOCKED",
+          "sourceSha": "20dcb599745261dbcf5e27f227cb2d25ed3a578a",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "제품 source가 아닌 합성 OCI toolchain fixture",
+          "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+          "environmentVersion": "masterGantt 0.145.1",
+          "command": [
+            "NOT CAPTURED"
+          ],
+          "exit": null,
+          "exitNote": "wrapper 개별 exit 미수집; 실제 단일 OCI build exit0·기존 verifier0와 구분",
+          "expected": "실제 provenance v1 predicate/buildType의 정확한 버전별 검증",
+          "actual": "OCI build+기존 verifier 성공 후 추가 wrapper가 알려진 v1 URI를 v0.2 URI와 비교해 BLOCKED",
+          "input": "합성 toolchain R02; registry write0; 제품 빌드 아님",
+          "classification": "FIXTURE",
+          "recovery": "정확 predicateType별v0.2/v1 buildType분기; 동일 OCI 재검산 전 NOT TESTED",
+          "residualRisk": "구조 검산은 최종 검증·게시·운영 수용을 대신하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_906_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "commandNote": "세부 wrapper argv는 로컬 operations R02 원본 receipt에 보관; 공개 원장에서는 미수집으로 표시",
+          "sourceContentSha256": "471f530027fafa82feb66f61c9e6c619fd58af8225fc23162a7bba7d0029fe4f"
+        },
+        {
+          "id": "same-oci-corrected",
+          "at": null,
+          "timeNote": "세부 명령 시각 미수집; 자기 image cleanup은2026-11-10T22:20:56Z exit0",
+          "stage": "DOCKER",
+          "status": "PASS",
+          "sourceSha": "20dcb599745261dbcf5e27f227cb2d25ed3a578a",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "동일 합성R02fixture/OCI만 검증; 전체프로젝트candidate나registry검증 아님",
+          "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+          "environmentVersion": "합성 toolchain fixture; runtime Node26.8.2",
+          "command": [
+            "NOT CAPTURED"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "재빌드 없이 동일 OCI/attestation graph와 runtime identity 보존",
+          "actual": "동일 R02 OCI의 version별predicate 검산/offline pack+load/configID·diffID·순서/nonrootNode26.8.2 PASS; registrywrite0",
+          "input": "합성 fixture; 제품 API/SQLite/registryPull미검증",
+          "classification": "ENVIRONMENT",
+          "recovery": "단일 OCI를 보존하고 그 runtime child만 offline load, 재빌드 없음",
+          "residualRisk": "로컬 합성 toolchain 재검산만 PASS; 실제 제품 candidate/API/SQLite/GHCR digest Pull은 별도",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": "sha256:70d0d82fe573ba17b6c167aea4be5920a4199c9d5f0cbfad276531739d60ab25",
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_906_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "commandNote": "동일R02OCI version별predicate검산→bounded offline runtime포장→dockerload→config/diffID/order/nonrootNode검증의 실제argv는 ignored operations receipt에보관",
+          "sourceContentSha256": "471f530027fafa82feb66f61c9e6c619fd58af8225fc23162a7bba7d0029fe4f",
+          "archiveSha256": "23774ebd4daf6192ba324968f7b6f3829dd17503a207939611d794b9ac693588",
+          "runtimeConfigDigest": "sha256:38fe6d084540d6f1284ba56cdc36d68ee073f8a5e2c2aadc1d715c874212b644",
+          "verification": {
+            "sourceSha": "20dcb599745261dbcf5e27f227cb2d25ed3a578a",
+            "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+            "imageDigest": "sha256:70d0d82fe573ba17b6c167aea4be5920a4199c9d5f0cbfad276531739d60ab25",
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F906-010",
+      "issue": 906,
+      "ledger": "docs/ISSUE_906_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        907,
+        908
+      ],
+      "domain": "supply-chain",
+      "layer": "oci-copy",
+      "keywords": [
+        "ORAS",
+        "named-root",
+        "blob",
+        "descriptor"
+      ],
+      "cause": "ORAS로컬layout의untagged child등록을 root변조로오인한후조건 assertion",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/scripts/prepr-docker.test.ts",
+          "case": "실제 blob hash와 정확 subject·SPDX/provenance를 검산하고 로컬 config/layers에 결속한다",
+          "historical": false,
+          "coverageArea": "OCI graph/blob검산계약; ORAS실제copy후조건은 원본event/로컬probe에서검증"
+        }
+      ],
+      "residualRisk": "합성로컬OCIcopy만검증, 실제제품registrycopy/Pull/Smoke는별도",
+      "events": [
+        {
+          "id": "assertion-failed",
+          "at": "2026-11-10T22:19:42.881Z",
+          "timeNote": "최초구간2026-11-10T22:19:42.777Z~22:19:42.881Z",
+          "stage": "DOCKER",
+          "status": "FAIL",
+          "sourceSha": "20dcb599745261dbcf5e27f227cb2d25ed3a578a",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "제품 source가 아닌 합성 OCI toolchain fixture",
+          "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+          "environmentVersion": "masterGantt 0.145.1",
+          "command": [
+            "NOT CAPTURED"
+          ],
+          "exit": null,
+          "exitNote": "3개 ORAS명령은 모두0; 후조건 assertion FAIL exit개별미수집",
+          "expected": "로컬 copy의 named root와 모든 참조 blob 동일",
+          "actual": "root descriptor가1개만 있을것이라는 assertion FAIL; untaggedchild2도 등록됐지만 원본 OCIgraph는 보존됨",
+          "input": "합성 toolchain R02; registry write0; 제품 빌드 아님",
+          "classification": "FIXTURE",
+          "recovery": "새copy/build없이 동일copy결과의 namedroot1개+전체참조11blob 검산",
+          "residualRisk": "구조 검산은 최종 검증·게시·운영 수용을 대신하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": "sha256:70d0d82fe573ba17b6c167aea4be5920a4199c9d5f0cbfad276531739d60ab25",
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_906_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "commandNote": "ORAS3개실제argv는 LOCAL:operations-906-908/oras-local-probe-r01-result.json 보관; 공개원장에서는미수집",
+          "sourceContentSha256": "471f530027fafa82feb66f61c9e6c619fd58af8225fc23162a7bba7d0029fe4f",
+          "archiveSha256": "23774ebd4daf6192ba324968f7b6f3829dd17503a207939611d794b9ac693588"
+        },
+        {
+          "id": "same-copy-rechecked",
+          "at": "2026-11-10T22:20:22.797Z",
+          "timeNote": "동일copyread-only재검산2026-11-10T22:20:22.674Z~22:20:22.797Z",
+          "stage": "DOCKER",
+          "status": "PASS",
+          "sourceSha": "20dcb599745261dbcf5e27f227cb2d25ed3a578a",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "제품 source가 아닌 합성 OCI toolchain fixture",
+          "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+          "environmentVersion": "masterGantt 0.145.1",
+          "command": [
+            "NOT CAPTURED"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "로컬 copy의 named root와 모든 참조 blob 동일",
+          "actual": "namedroot1개의exactdigest와 전체11blob의bytes/descriptor동일PASS; 새copy/재빌드/registrywrite없음",
+          "input": "합성 toolchain R02; registry write0; 제품 빌드 아님",
+          "classification": "FIXTURE",
+          "recovery": "새copy/build없이 동일copy결과의 namedroot1개+전체참조11blob 검산",
+          "residualRisk": "구조 검산은 최종 검증·게시·운영 수용을 대신하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": "sha256:70d0d82fe573ba17b6c167aea4be5920a4199c9d5f0cbfad276531739d60ab25",
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_906_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "commandNote": "동일 copy결과 read-only named-root/blob검산, 실제argv는 LOCAL:operations-906-908/oras-local-probe-r01-result.json 및 후속receipt 보관",
+          "sourceContentSha256": "471f530027fafa82feb66f61c9e6c619fd58af8225fc23162a7bba7d0029fe4f",
+          "archiveSha256": "23774ebd4daf6192ba324968f7b6f3829dd17503a207939611d794b9ac693588",
+          "verification": {
+            "sourceSha": "20dcb599745261dbcf5e27f227cb2d25ed3a578a",
+            "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+            "imageDigest": "sha256:70d0d82fe573ba17b6c167aea4be5920a4199c9d5f0cbfad276531739d60ab25",
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F906-011",
+      "issue": 906,
+      "ledger": "docs/ISSUE_906_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        907,
+        908
+      ],
+      "domain": "documentation",
+      "layer": "static",
+      "keywords": [
+        "archive",
+        "EOF",
+        "whitespace",
+        "prefix"
+      ],
+      "cause": "원문의 trailing blank를 보존한 신규 archive가 staging 전에는 unstaged diff check에 포함되지 않음",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/scripts/issue-ledger-verifier.test.ts",
+          "case": "Git의 Markdown 원본 prefix도 검사하며 원장 overwrite와 fake previous 우회를 거부한다",
+          "historical": false,
+          "coverageArea": "원본 prefix 보존 계약; 실제 EOF whitespace와 수정 재검산은 event의 git diff --cached --check로 확인"
+        }
+      ],
+      "residualRisk": "SCOPED 문서 검산이며 최종 whole-source Gate와 제품 게시 근거는 별도",
+      "events": [
+        {
+          "id": "staged-check-failed",
+          "at": null,
+          "timeNote": "개별 실행 시각 미수집",
+          "stage": "STATIC",
+          "status": "FAIL",
+          "sourceSha": "4aad8865972e3446f0d34c7ffcfd2bbab439e366",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "기준 HEAD4aad와 작업 중 변경 상태; 전체 working fingerprint 미수집",
+          "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+          "environmentVersion": "masterGantt 0.145.1",
+          "command": [
+            "git",
+            "diff",
+            "--cached",
+            "--check"
+          ],
+          "exit": 2,
+          "exitNote": null,
+          "expected": "staging된 변경의 whitespace 계약과 원문 보존을 함께 충족",
+          "actual": "앞선 unstaged 검사에 없던 untracked archive 4개의 new blank line at EOF를 staging 이후 발견",
+          "input": "과거 원문의 trailing blank를 그대로 포함한 보존 문서",
+          "classification": "POLICY",
+          "recovery": "원문을 trim하지 않고 보존 wrapper footer를 추가하여 이전 모든 bytes prefix 유지",
+          "residualRisk": "구조 검산은 최종 검증·게시·운영 수용을 대신하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_906_FAILURE_ANALYSIS.md"
+            },
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:archive-footer-fix.json"
+            }
+          ]
+        },
+        {
+          "id": "wrapper-attempt-failed",
+          "at": null,
+          "timeNote": "개별 실행 시각 미수집",
+          "stage": "STATIC",
+          "status": "FAIL",
+          "sourceSha": "4aad8865972e3446f0d34c7ffcfd2bbab439e366",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "기준 HEAD4aad와 작업 중 변경 상태; 전체 working fingerprint 미수집",
+          "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+          "environmentVersion": "masterGantt 0.145.1",
+          "command": [
+            "NOT CAPTURED"
+          ],
+          "exit": null,
+          "exitNote": "개별 exit 미수집; 비ASCII bytes literal SyntaxError로 파일 변경 없이 중단",
+          "expected": "보존 원문 뒤 footer를 안전하게 추가",
+          "actual": "Python SyntaxError: 비ASCII bytes literal 사용. 파일 쓰기 없이 중단",
+          "input": "과거 원문의 trailing blank를 그대로 포함한 보존 문서",
+          "classification": "POLICY",
+          "recovery": "문자열을 UTF-8 encode하도록 교정",
+          "residualRisk": "구조 검산은 최종 검증·게시·운영 수용을 대신하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_906_FAILURE_ANALYSIS.md"
+            },
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:archive-footer-fix.json"
+            }
+          ],
+          "commandNote": "로컬 보존 wrapper Python 보완 명령; 정확 argv는 미수집"
+        },
+        {
+          "id": "restaged-check-passed",
+          "at": null,
+          "timeNote": "개별 실행 시각 미수집",
+          "stage": "STATIC",
+          "status": "PASS",
+          "sourceSha": "4aad8865972e3446f0d34c7ffcfd2bbab439e366",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "기준 HEAD4aad와 작업 중 변경 상태; 전체 working fingerprint 미수집",
+          "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+          "environmentVersion": "masterGantt 0.145.1",
+          "command": [
+            "git",
+            "diff",
+            "--cached",
+            "--check"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "staging된 변경의 whitespace 계약과 원문 보존을 함께 충족",
+          "actual": "원문 bytes의 완전 prefix/hash 보존 후 restage/cached diff check/Markdown454파일 검산 모두 exit0",
+          "input": "과거 원문의 trailing blank를 그대로 포함한 보존 문서",
+          "classification": "POLICY",
+          "recovery": "원본 trim이나 검사 약화 없이 wrapper footer만 보완",
+          "residualRisk": "구조 검산은 최종 검증·게시·운영 수용을 대신하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_906_FAILURE_ANALYSIS.md"
+            },
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:archive-footer-fix.json"
+            }
+          ],
+          "verification": {
+            "sourceSha": "4aad8865972e3446f0d34c7ffcfd2bbab439e366",
+            "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
+    }
+  ]
+}

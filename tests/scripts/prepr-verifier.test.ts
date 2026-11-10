@@ -1,12 +1,13 @@
 import { afterEach, describe, expect, it } from "vitest";
+import { createHash } from "node:crypto";
 import { execFileSync, spawnSync } from "node:child_process";
-import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { assertCapturedInstall } from "../fixtures/gantt-state-consistency/capture-install";
 import {
-  diagnosticSubset, e2eSafety, inferRisk, inventory, isPathWithin, resolveBase, selectImpact, sourceEvidence,
+  COMMON_CHECKS, environmentEvidence, evaluateAdmission, reportChecksum, runnerCoverage, diagnosticSubset, e2eSafety, inferRisk, inventory, isPathWithin, resolveBase, selectImpact, sourceEvidence,
 } from "../../scripts/prepr-core.mjs";
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
@@ -32,11 +33,11 @@ const failure = (runId: string, file: string) => ({
   pr: 695, runId, attempt: 1, headSha: head, status: "FAIL", file,
 });
 describe("Issue #699 — risk/path/real test selection", () => {
-  it("gives docs-only a safe LOW empty-test plan without weakening remote checks", () => {
+  it("gives docs-only a safe LOW empty-test plan with explicit unselected local coverage", () => {
     const s = selectImpact({ changed: ["docs/README.md"], tests, risk: "LOW" });
     expect(s.state).toBe("READY");
     expect(s.selected).toHaveLength(0);
-    expect(s.notSelectedReason).toMatch(/remote Required/);
+    expect(s.notSelectedReason).toMatch(/unselected local tests/);
   });
   it("uses a real Chromium direct and negative consumer for MEDIUM Task editor", () => {
     const s = selectImpact({ changed: ["src/features/gantt/task-editor-model.ts"], tests, risk: "MEDIUM" });
@@ -175,7 +176,7 @@ describe("Issue #699 — risk/path/real test selection", () => {
     expect(s.state).toBe("READY");
     expect(s.selected.map((x) => x.path)).toEqual(["tests/scripts/pr-batch-verifier.test.ts"]);
     expect(s.selected.every((x) => x.kind === "unit")).toBe(true);
-    expect(s.notSelectedReason).toMatch(/remote Required/);
+    expect(s.notSelectedReason).toMatch(/unselected local tests/);
     expect(() => selectImpact({ changed: ["scripts/verify-pr-batch.mjs"], tests, risk: "LOW" })).toThrow(/below path floor/);
   });
 });
@@ -260,7 +261,7 @@ describe("Issue #699 — process and existing-data safety", () => {
   it("exposes a safe help entry and rejects unknown modes without launching tests", () => {
     const help = spawnSync(process.execPath, ["scripts/verify-prepr.mjs", "--help"], { cwd: root, encoding: "utf8" });
     expect(help.status).toBe(0);
-    expect(help.stdout).toContain("never replaces GitHub PR CI");
+    expect(help.stdout).toContain("PR/원격 CI를 실행하지 않습니다");
     const invalid = spawnSync(process.execPath, ["scripts/verify-prepr.mjs", "--mode=none"], { cwd: root, encoding: "utf8" });
     expect(invalid.status).toBe(2);
     expect(invalid.stderr).toContain("Unknown mode");
@@ -435,4 +436,238 @@ describe("Issue #699/#752/#762/#556 — immutable historical capture with review
       expect(readFileSync(resolve(dir, snapshots, file))).toEqual(readFileSync(resolve(root, snapshots, file)));
     }
   });
+});
+
+
+describe("Issue #908 — local-only publication admission", () => {
+  function setup() {
+    const repo = repository();
+    mkdirSync(resolve(repo.dir, "tests/fixtures"), { recursive: true });
+    writeFileSync(resolve(repo.dir, "tests/fixtures/synthetic.json"), '{"fixture":1}');
+    writeFileSync(resolve(repo.dir, "package-lock.json"), '{"lockfileVersion":3}');
+    repo.git("add", "."); repo.git("commit", "-m", "synthetic verification inputs");
+    // Documentation scope has no Docker/browser requirement; every common
+    // command still needs real PASS-shaped coverage before admission.
+    const source = { ...sourceEvidence(repo.dir, "HEAD~1"), changed: ["docs/synthetic.md"] };
+    const environment = environmentEvidence(repo.dir, { LANG: "C", FIXTURE_SETTING: "one" });
+    const selection = selectImpact({ changed: source.changed, tests, risk: "LOW" });
+    const seal = <T extends object>(report: T) => ({ ...report, integritySha256: reportChecksum(report) });
+    const report = seal({
+      schemaVersion: 2, tool: "mastergantt-local-verify", issue: 908, mode: "fast", status: "PASS", dryRun: false, interrupted: false,
+      startedAt: "2026-01-01T00:00:00.000Z", completedAt: "2026-01-01T00:01:00.000Z",
+      sourceStart: source, sourceEnd: source, sourceStable: true,
+      environmentStart: environment, environmentEnd: environment, environmentStable: true,
+      selection, errors: [] as string[],
+      steps: Object.entries(COMMON_CHECKS).map(([label, command]) => ({ label, command: label === "Unit" ? [...command, "--reporter=default", "--reporter=json", "--outputFile=/synthetic/.prepr-reports/run/vitest-results.json"] : command, status: "PASS", exitCode: 0, signal: null as null | string, caseCount: label === "Unit" ? 50 : null, coveredTests: [] as string[], logSha256: "b".repeat(64) })),
+    });
+    const admit = (reports: unknown[] = [report], inputSource = source, inputEnvironment = environment, inputSelection = selection) => evaluateAdmission({ reports, source: inputSource, environment: inputEnvironment, selection: inputSelection, issue: 908, now: Date.parse("2026-01-02T00:00:00Z") });
+    return { ...repo, source, environment, selection, report, seal, admit };
+  }
+  it("combines common completed commands for the exact clean source and environment", () => {
+    const { admit } = setup();
+    expect(admit()).toMatchObject({ status: "PASS", publishAllowed: true });
+  });
+  it("rejects partial results, fabricated status/command coverage and modified report bytes", () => {
+    const { report, seal, admit } = setup();
+    expect(admit([{ ...report, status: "FAIL" }]).publishAllowed).toBe(false);
+    expect(admit([seal({ ...report, steps: report.steps.filter((step) => step.label !== "Production build") })]).reasons.join(" ")).toContain("Production build");
+    expect(admit([seal({ ...report, steps: report.steps.map((step) => step.label === "Lint" ? { ...step, command: ["true"] } : step) })]).publishAllowed).toBe(false);
+    expect(admit([{ ...report, errors: ["changed without checksum"] }]).reasons.join(" ")).toContain("checksum");
+  });
+  it("rejects FAIL/BLOCKED/NOT TESTED, cancellation, dry-run and incomplete logs", () => {
+    const { report, seal, admit } = setup();
+    for (const status of ["FAIL", "BLOCKED", "NOT TESTED"]) expect(admit([seal({ ...report, status })]).publishAllowed).toBe(false);
+    expect(admit([seal({ ...report, dryRun: true })]).publishAllowed).toBe(false);
+    expect(admit([seal({ ...report, interrupted: true })]).publishAllowed).toBe(false);
+    expect(admit([seal({ ...report, steps: report.steps.map((step) => ({ ...step, logSha256: "" })) })]).publishAllowed).toBe(false);
+  });
+  it("never reuses an old green scope after a newer failed run; preserves recovery history", () => {
+    const { report, seal, admit } = setup();
+    const failed = seal({ ...report, status: "FAIL", completedAt: "2026-01-01T00:02:00.000Z" });
+    expect(admit([report, failed]).publishAllowed).toBe(false);
+    const recovered = seal({ ...report, completedAt: "2026-01-01T00:03:00.000Z" });
+    expect(admit([report, failed, recovered]).publishAllowed).toBe(true);
+  });
+  it("rejects dirty checkout, changed head/base/content and fixture/environment drift", () => {
+    const { report, source, environment, seal, admit, dir } = setup();
+    expect(admit([report], { ...source, dirty: true }).publishAllowed).toBe(false);
+    expect(admit([report], { ...source, fingerprint: "f".repeat(64) }).publishAllowed).toBe(false);
+    expect(admit([seal({ ...report, sourceStart: { ...source, headSha: "c".repeat(40) } })]).publishAllowed).toBe(false);
+    expect(admit([seal({ ...report, sourceEnd: { ...source, fixtureSha256: "f".repeat(64) } })]).publishAllowed).toBe(false);
+    expect(admit([report], source, { ...environment, fingerprint: "f".repeat(64) }).publishAllowed).toBe(false);
+    writeFileSync(resolve(dir, "tests/fixtures/synthetic.json"), '{"fixture":2}');
+    expect(sourceEvidence(dir).fixtureSha256).not.toBe(source.fixtureSha256);
+    expect(sourceEvidence(dir).dirty).toBe(true);
+  });
+  it("binds the Git index even when working bytes are restored to HEAD", () => {
+    const { dir, git, source } = setup();
+    writeFileSync(resolve(dir, "tracked.txt"), "staged-only\n"); git("add", "tracked.txt");
+    writeFileSync(resolve(dir, "tracked.txt"), "v1\n");
+    const changed = sourceEvidence(dir);
+    expect(changed.contentSha256).toBe(source.contentSha256);
+    expect(changed.indexSha256).not.toBe(source.indexSha256);
+    expect(changed.dirty).toBe(true);
+  });
+  it("blocks hidden assume-unchanged/skip-worktree inputs and never prints .env values", () => {
+    const { dir, git } = setup();
+    git("update-index", "--assume-unchanged", "tracked.txt");
+    writeFileSync(resolve(dir, "tracked.txt"), "concealed mutation\n");
+    expect(() => sourceEvidence(dir)).toThrow(/assume-unchanged/);
+    git("update-index", "--no-assume-unchanged", "tracked.txt");
+    git("update-index", "--skip-worktree", "tracked.txt");
+    expect(() => sourceEvidence(dir)).toThrow(/skip-worktree/);
+    git("update-index", "--no-skip-worktree", "tracked.txt");
+    writeFileSync(resolve(dir, ".env.production.local"), "SECRET=never-print-this-value\n");
+    try { sourceEvidence(dir); throw new Error("expected block"); } catch (error) {
+      expect(String(error)).toContain(".env"); expect(String(error)).not.toContain("never-print-this-value");
+    }
+  });
+  it("hashes installed lock and relevant environment without exposing credentials", () => {
+    const { dir, environment } = setup();
+    const changed = environmentEvidence(dir, { LANG: "C", FIXTURE_SETTING: "two", TOKEN: "synthetic-secret-value" });
+    expect(changed.fingerprint).not.toBe(environment.fingerprint);
+    expect(JSON.stringify(changed)).not.toContain("synthetic-secret-value");
+    mkdirSync(resolve(dir, "node_modules"), { recursive: true });
+    writeFileSync(resolve(dir, "node_modules/.package-lock.json"), '{"tampered":true}');
+    expect(environmentEvidence(dir, { LANG: "C", FIXTURE_SETTING: "one" }).fingerprint).not.toBe(environment.fingerprint);
+  });
+  it("blocks unknown build/root inputs and selected exclusions", () => {
+    const { report, source, environment } = setup();
+    for (const path of ["next.config.ts", "tsconfig.json", "postcss.config.mjs", "eslint.config.mjs", "unknown.build-input"]) {
+      const selection = selectImpact({ changed: [path], tests, risk: "HIGH" });
+      expect(selection.state).toBe("BLOCKED");
+      expect(evaluateAdmission({ reports: [report], source, environment, selection, issue: 908 }).publishAllowed).toBe(false);
+    }
+    const selection = selectImpact({ changed: ["scripts/verify-prepr.mjs"], tests, risk: "HIGH", excludes: ["tests/scripts/prepr-verifier.test.ts:synthetic exclusion"] });
+    expect(evaluateAdmission({ reports: [report], source, environment, selection, issue: 908 }).reasons.join(" ")).toContain("제외");
+  });
+  it("requires Docker runtime/API persistence for non-doc source and actual selected consumer coverage", () => {
+    const { report, source, environment, seal } = setup();
+    const paths = ["scripts/verify-prepr.mjs"];
+    const selection = selectImpact({ changed: paths, tests, risk: "HIGH" });
+    const changed = { ...source, changed: paths };
+    const receipt = seal({ ...report, sourceStart: changed, sourceEnd: changed, selection });
+    const result = evaluateAdmission({ reports: [receipt], source: changed, environment, selection, issue: 908 });
+    expect(result.publishAllowed).toBe(false);
+    expect(result.reasons.join(" ")).toContain("Docker API/SQLite persistence");
+    expect(result.reasons.join(" ")).toContain("tests/scripts/prepr-verifier.test.ts");
+  });
+
+  it("derives coverage from actual per-file results and excludes skip-only/missing consumers", () => {
+    const unit = runnerCoverage("vitest", { testResults: [
+      { name: resolve(root, "tests/scripts/pass.test.ts"), assertionResults: [{ status: "passed" }] },
+      { name: resolve(root, "tests/scripts/skip.test.ts"), assertionResults: [{ status: "pending" }] },
+    ] }, root);
+    expect(unit.find((file) => file.path.endsWith("skip.test.ts"))).toMatchObject({ passed: 0, skipped: 1 });
+    const browser = runnerCoverage("playwright", { suites: [{ specs: [
+      { file: "pass.spec.ts", tests: [{ expectedStatus: "passed", results: [{ status: "passed" }] }] },
+      { file: "skip.spec.ts", tests: [{ expectedStatus: "passed", results: [{ status: "skipped" }] }] },
+    ] }] }, root);
+    expect(browser.filter((file) => file.passed > 0).map((file) => file.path)).toEqual(["tests/e2e/pass.spec.ts"]);
+    expect(() => runnerCoverage("vitest", { testResults: [{ name: "/outside/rogue.test.ts", assertionResults: [{ status: "passed" }] }] }, root)).toThrow(/tests 밖/);
+    expect(() => runnerCoverage("playwright", {}, root)).toThrow(/suites/);
+  });
+  it("blocks missing or different Primary Issue receipts", () => {
+    const { report, source, environment, selection, seal, admit } = setup();
+    expect(evaluateAdmission({ reports: [report], source, environment, selection }).publishAllowed).toBe(false);
+    expect(admit([seal({ ...report, issue: 906 })]).reasons.join(" ")).toContain("Primary Issue");
+  });
+  it("blocks empty or same-head baseline admission", () => {
+    const { report, source, admit } = setup();
+    expect(admit([report], { ...source, changed: [] }).publishAllowed).toBe(false);
+    expect(admit([report], { ...source, baseSha: source.headSha }).publishAllowed).toBe(false);
+  });
+  it("blocks operational DB/URL environment before any local command launches", () => {
+    const path = resolve(root, ".prepr-reports", `safety-test-${process.pid}-${Date.now()}`);
+    created.push(path);
+    const child = spawnSync(process.execPath, ["scripts/verify-prepr.mjs", "--mode=targeted", `--report-dir=${path}`], { cwd: root, encoding: "utf8", env: { ...process.env, DATABASE_PATH: "/synthetic-operational-do-not-touch.sqlite3" } });
+    expect(child.status).toBe(1);
+    const report = JSON.parse(readFileSync(resolve(path, "report.json"), "utf8"));
+    expect(report.status).toBe("BLOCKED"); expect(report.steps).toHaveLength(0);
+    expect(report.errors.join(" ")).toContain("DATABASE_PATH");
+  });
+  it("checks actual log bytes and every artifact symlink before admission", () => {
+    const repo = repository();
+    mkdirSync(resolve(repo.dir, "scripts"), { recursive: true });
+    for (const file of ["verify-prepr.mjs", "prepr-core.mjs", "prepr-snapshot.mjs", "prepr-docker.mjs"]) copyFileSync(resolve(root, "scripts", file), resolve(repo.dir, "scripts", file));
+    copyFileSync(resolve(root, "package.json"), resolve(repo.dir, "package.json"));
+    copyFileSync(resolve(root, "package-lock.json"), resolve(repo.dir, "package-lock.json"));
+    writeFileSync(resolve(repo.dir, ".gitignore"), ".prepr-reports/\n");
+    repo.git("add", "."); repo.git("commit", "-m", "verification fixture tool");
+    const base = repo.git("rev-parse", "HEAD");
+    mkdirSync(resolve(repo.dir, "docs")); writeFileSync(resolve(repo.dir, "docs/change.md"), "synthetic docs change\n");
+    repo.git("add", "."); repo.git("commit", "-m", "synthetic docs-only change");
+    const source = sourceEvidence(repo.dir, base);
+    const path = resolve(repo.dir, ".prepr-reports/receipt"); mkdirSync(path, { recursive: true });
+    // Deliberately incomplete synthetic receipt: test the artifact rejection
+    // reason, never pretend these local fixture commands actually ran.
+    const report = {
+      schemaVersion: 2, tool: "mastergantt-local-verify", issue: 908, mode: "fast", status: "PASS",
+      sourceStart: source, steps: [{ label: "Version contract", command: COMMON_CHECKS["Version contract"], status: "PASS", exitCode: 0, logFile: "step-1.log", logSha256: "0".repeat(64) }],
+    };
+    const write = () => writeFileSync(resolve(path, "report.json"), JSON.stringify({ ...report, integritySha256: reportChecksum(report) }));
+    writeFileSync(resolve(path, "step-1.log"), "synthetic changed log\n"); write();
+    const run = () => {
+      const output = resolve(repo.dir, ".prepr-reports", `admit-${Date.now()}-${Math.random().toString(16).slice(2)}`);
+      const child = spawnSync(process.execPath, ["scripts/verify-prepr.mjs", "--mode=admit", "--issue=908", `--base=${base}`, `--report-dir=${output}`], { cwd: repo.dir, encoding: "utf8" });
+      expect(child.status).toBe(1);
+      return JSON.parse(readFileSync(resolve(output, "report.json"), "utf8")).errors.join(" ");
+    };
+    expect(run()).toContain("로그 bytes/checksum");
+    rmSync(resolve(path, "step-1.log"));
+    symlinkSync(resolve(repo.dir, "tracked.txt"), resolve(path, "step-1.log"));
+    expect(run()).toContain("symlink");
+  }, 15000);
+  it("excludes local raw logs and outputs from the Docker build context", () => {
+    const dockerignore = readFileSync(resolve(root, ".dockerignore"), "utf8");
+    expect(dockerignore.split(/\r?\n/)).toContain(".prepr-reports");
+    expect(dockerignore.split(/\r?\n/)).toContain(".next-prepr");
+  });
+  it("recovers same-source admission after a cancelled run without runner JSON while preserving its history", () => {
+    const repo = repository();
+    mkdirSync(resolve(repo.dir, "scripts"), { recursive: true });
+    for (const file of ["verify-prepr.mjs", "prepr-core.mjs", "prepr-snapshot.mjs", "prepr-docker.mjs"]) copyFileSync(resolve(root, "scripts", file), resolve(repo.dir, "scripts", file));
+    for (const file of ["package.json", "package-lock.json"]) copyFileSync(resolve(root, file), resolve(repo.dir, file));
+    writeFileSync(resolve(repo.dir, ".gitignore"), ".prepr-reports/\n");
+    mkdirSync(resolve(repo.dir, "tests")); writeFileSync(resolve(repo.dir, "tests/synthetic.test.ts"), "// synthetic receipt parsing fixture only\n");
+    repo.git("add", "."); repo.git("commit", "-m", "local admission fixture");
+    const base = repo.git("rev-parse", "HEAD");
+    mkdirSync(resolve(repo.dir, "docs")); writeFileSync(resolve(repo.dir, "docs/change.md"), "synthetic docs\n");
+    repo.git("add", "."); repo.git("commit", "-m", "synthetic scope");
+    const source = sourceEvidence(repo.dir, base), environment = environmentEvidence(repo.dir);
+    const selection = selectImpact({ changed: source.changed, tests: { unit: ["tests/synthetic.test.ts"], e2e: [] }, risk: "LOW", includes: ["tests/synthetic.test.ts"] });
+    const timestamp = Date.now() - 20_000;
+    const common = { schemaVersion: 2, tool: "mastergantt-local-verify", issue: 908, mode: "fast", sourceStart: source, sourceEnd: source, sourceStable: true, environmentStart: environment, environmentEnd: environment, environmentStable: true, selection, dryRun: false, startedAt: new Date(timestamp).toISOString() };
+    const save = (folder: string, report: object) => {
+      mkdirSync(folder, { recursive: true });
+      writeFileSync(resolve(folder, "report.json"), JSON.stringify({ ...report, integritySha256: reportChecksum(report) }));
+    };
+    const cancelledPath = resolve(repo.dir, ".prepr-reports/cancelled");
+    const cancelled = { ...common, completedAt: new Date(timestamp + 1_000).toISOString(), status: "FAIL", interrupted: true, errors: ["synthetic SIGINT"], steps: [{ label: "Unit", status: "FAIL", exitCode: null, signal: "SIGINT" }] };
+    save(cancelledPath, cancelled);
+    const passedPath = resolve(repo.dir, ".prepr-reports/passed"); mkdirSync(passedPath, { recursive: true });
+    const runnerBytes = JSON.stringify({ testResults: [{ name: resolve(repo.dir, "tests/synthetic.test.ts"), assertionResults: [{ status: "passed" }] }] });
+    writeFileSync(resolve(passedPath, "vitest-results.json"), runnerBytes);
+    const digest = (value: string) => createHash("sha256").update(value).digest("hex");
+    const steps = Object.entries(COMMON_CHECKS).map(([label, command], index) => {
+      const logFile = `step-${index + 1}.log`, bytes = `synthetic fixture ${label}\n`;
+      writeFileSync(resolve(passedPath, logFile), bytes);
+      return { label, command: label === "Unit" ? [...command, "--reporter=default", "--reporter=json", `--outputFile=${resolve(passedPath, "vitest-results.json")}`] : command, status: "PASS", exitCode: 0, signal: null, logFile, logSha256: digest(bytes), caseCount: label === "Unit" ? 1 : null, coveredTests: label === "Unit" ? ["tests/synthetic.test.ts"] : [], ...(label === "Unit" ? { runner: { kind: "vitest", resultFile: "vitest-results.json", resultSha256: digest(runnerBytes), fileResults: [{ path: "tests/synthetic.test.ts", passed: 1, failed: 0, skipped: 0 }] } } : {}) };
+    });
+    save(passedPath, { ...common, completedAt: new Date(timestamp + 2_000).toISOString(), status: "PASS", interrupted: false, errors: [], steps });
+    const run = () => {
+      const output = resolve(repo.dir, ".prepr-reports", `admit-${Date.now()}-${Math.random().toString(16).slice(2)}`);
+      const child = spawnSync(process.execPath, ["scripts/verify-prepr.mjs", "--mode=admit", "--issue=908", "--include=tests/synthetic.test.ts", `--base=${base}`, `--report-dir=${output}`], { cwd: repo.dir, encoding: "utf8" });
+      return { child, report: JSON.parse(readFileSync(resolve(output, "report.json"), "utf8")) };
+    };
+    const recovered = run();
+    expect(recovered.child.status, recovered.report.errors.join(" ")).toBe(0);
+    expect(recovered.report.admission.publishAllowed).toBe(true);
+    expect(readFileSync(resolve(cancelledPath, "report.json"), "utf8")).toContain("synthetic SIGINT");
+    save(cancelledPath, { ...cancelled, completedAt: new Date(timestamp + 3_000).toISOString() });
+    const latestFailure = run();
+    expect(latestFailure.child.status).toBe(1);
+    expect(latestFailure.report.admission.publishAllowed).toBe(false);
+    expect(latestFailure.report.errors.join(" ")).toContain("최신 실행");
+  }, 20000);
 });

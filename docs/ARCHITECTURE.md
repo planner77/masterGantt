@@ -124,14 +124,14 @@ Project Copy와 지원 Template는 global Resource ID를 재사용한다. 미지
 
 ## #548 / 2026-10-15 — Milestone 기본 표시와 marker 분리의 코드 소유권
 
-아래 순서는 2026-10-15 결정 당시 계획이다. #667 공통 제품 연결은 이후 main merge `bdaed6bd`로 통합되었으며, U2~U4 개별 절의 미연결 설명은 각 모듈 도입 당시 범위로 읽는다. #552 새 후보는 통합된 단일 authority를 재사용하고 자체 수용/CI 결과를 별도로 검증한다.
+아래 순서는 2026-10-15 결정 당시 계획이다. #667 공통 제품 연결은 이후 main merge `bdaed6bd`로 통합되었으며, U2~U4 개별 절의 미연결 설명은 각 모듈 도입 당시 범위로 읽는다. #552 새 후보는 통합된 단일 authority를 재사용하고 현재 [TEST_PLAN](TEST_PLAN.md)의 로컬 수용 결과를 별도로 검증한다.
 
 [Milestone Presentation Policy](MILESTONE_PRESENTATION_POLICY.md)에 따라 서버 canonical Milestone/Stage Gate/Resource·Target Assignment·Summary roll-up은 WBS native visibility의 입력 여부와 독립이다. 기존 #570 projection의 `displayMode: compatibility | separate-milestones`, #551 `MilestoneTimelineCapability`(기본 OFF), #663~#666의 아직 미연결 정합성 모듈은 **세 가지 서로 다른 계약**이다. Main 제품 적용 순서를 혼합하지 않는다.
 
 1. #667: **main 기반** 실제 Core conformance/recall·semantic receipt·axis transaction을 ProjectGantt와 Coordinator에 순차 통합. 같은 API/user intent/actual Core/native 측정의 GSC SC 누적 결과 없이 no-op·복원 성공을 보고하지 않는다. Milestone 표시 모드·marker 활성화는 변경하지 않는다.
 2. #552: 별도 WBS projection에서 milestone native Grid/Chart row/bar/hidden endpoint를 제거하되 canonical ID/Link/Membership/Stage/Export와 Task/Summary hierarchy 유지. Marker capability 운영 enabled=false; 임시 날짜 reveal/Preference ON을 참조하지 않는다. Dashboard·소속 일반 Task의 별도 경로를 제공한다. 긴밀하게 결합된 #552/PR #561 source는 marker ON을 추출한 뒤에만 수용한다.
-3. #553/#574: marker OFF에서도 JSON/Excel/SVG/PNG/Copy/Template·Result/Error/Focus/Resource Roll-up과 5폭이 실제 source/HTTP·SQLite/6-shard CI를 통과해야 한다.
-4. #573/#693(선택): #551 앱 소유 marker lane의 독립 상태 gate 기본 OFF, marker-only observer·RAF·scroll/resize/reveal0, production WBS mode 불변. #573 marker ON geometry/focus/틱±1px 검증 없으면 ON은 DEFER. standalone PR의 flag-OFF / revert rollback을 실제 시험한다.
+3. #553/#574: marker OFF에서도 JSON/Excel/SVG/PNG/Copy/Template·Result/Error/Focus/Resource Roll-up과 5폭이 동일 source의 실제 HTTP·SQLite·관련 Chromium/5폭 로컬 회귀를 통과해야 한다([TEST_PLAN](TEST_PLAN.md)).
+4. #573/#693(선택): #551 앱 소유 marker lane의 독립 상태 gate 기본 OFF, marker-only observer·RAF·scroll/resize/reveal0, production WBS mode 불변. #573 marker ON geometry/focus/틱±1px 검증 없으면 ON은 DEFER. 별도 변경 단위의 flag-OFF / 새 revert commit rollback을 실제 시험한다.
 
 이 순서는 과거 #567/#548의 기능 결합 구현·테스트 기록을 삭제하지 않고 **앞선 제품 활성화 의존을 대체**한다. #674/PR #675의 동일 `project-gantt.tsx` 진단 수정을 #667보다 먼저 정렬하거나 명시 충돌 인계한다. Production Gantt/Workspace/port는 단계마다 작성자 하나만 소유한다. UI flag/필터/레이아웃 전환을 Project DB mutation으로 저장하거나 private Core store를 직접 쓰지 않는다.
 
@@ -346,11 +346,10 @@ flowchart TD
   Service --> Domain[Pure Scheduling Domain]
   Service --> Repo[Repository / SQL transaction]
   Repo --> DB[(SQLite persistent volume)]
-  Git[Reviewed main commit / SemVer tag] --> Actions[GitHub Actions]
-  Actions --> CommitImage[Immutable ci-full-SHA test image]
-  Actions --> ReleaseImage[SemVer exact / rolling release image]
-  CommitImage --> GHCR[GHCR digest + BuildKit provenance / SBOM]
-  ReleaseImage --> GHCR
+  LocalGate[로컬 공통·영향·위험 검증] --> Git[fast-forward main source]
+  Git --> LocalDocker[Owner 승인 로컬 Docker build]
+  LocalDocker --> Image[고유 SHA / 승인된 버전 이미지]
+  Image --> GHCR[GHCR exact digest Pull·Smoke]
   GHCR --> Runtime[Single non-root container]
   Runtime --> DB
   Browser -. 동일 Domain으로 preview .-> Domain
@@ -362,6 +361,8 @@ flowchart TD
   SvgExport --> SVG[Safe SVG download]
   SVG --> PNG[Browser Canvas PNG]
 ```
+
+현재 delivery 경계는 Owner의 PR·원격 CI 미사용 정책을 따른다. 이전 Actions/ci-SHA/Release diagram은 [변경 전 Git 원본](https://github.com/planner77/masterGantt/blob/4aad8865972e3446f0d34c7ffcfd2bbab439e366/docs/ARCHITECTURE.md#경계)에 보존한다.
 
 위 Repository→Export 화살표는 snapshot DTO 전달이다. Export Service가 조회를 조정하며 Repository가 OOXML/SVG writer를 import하지 않는다. 모든 persistence 접근은 Service 아래 Repository를 통한다.
 
@@ -452,9 +453,9 @@ Web export는 일정 DTO의 DB 일관된 snapshot을 얻고 transaction 밖에�
 
 W04 생성 bootstrap에 이어 W05는 recorded scrypt profile의 timing-safe password 검증, unknown/corrupt credential dummy KDF, Project-bound session의 expiry/revoke/auth-version 검증, logout, password rotation과 metadata mutation authorization을 적용한다. Cookie는 8시간 HttpOnly/SameSite=Strict이며 production에서 Secure/`__Host-`를 강제한다. Unlock은 bounded process-local global+Project limiter와 공유 KDF concurrency 2 상한을 사용한다. [SECURITY.md](SECURITY.md)가 세부 정책이다. Public URL은 편집 권한을 부여하지 않지만 읽기 기밀성을 보장하는 인증도 아니다. production 노출 범위는 사용자 결정 항목이다.
 
-초기 운영은 한 Node application container와 local persistent SQLite volume이다. Native addon은 빌드·런타임 ABI/libc/architecture를 일치시키고 non-root permission과 restart persistence를 검사한다. PR과 수동 CI는 read-only로 application/browser/container 회귀만 수행한다. 모든 gate를 통과한 비문서 `main` push는 `ci-<full SHA>` image를 게시해 registry exact digest runtime을 검증한다. version이 유지된 merge는 해당 package version을 정리하지만 version-changing merge의 verified candidate는 formal release까지 보존한다. Release는 `package.json`과 일치하며 이전 tag보다 큰 annotated Semantic Version만 직렬 처리하고, tag target SHA의 Main candidate source/revision/version/digest와 runtime을 재검증한 뒤 **새 build 없이 동일 digest를 exact SemVer와 stable rolling alias로 promotion**한다. Consumer와 post-publish smoke는 mutable alias가 아니라 exact version/digest를 사용한다. WAL-aware backup과 production host restore는 별도 경로에서 시험한다. [CI_CD.md](CI_CD.md), [DEPLOYMENT.md](DEPLOYMENT.md) 참조.
+초기 운영은 한 Node application container와 local persistent SQLite volume이다. Native addon의 빌드·런타임 ABI/libc/architecture, non-root permission과 restart persistence를 로컬에서 검사한다. Owner 2026-11-10 결정으로 모든 위험도에서 PR·원격 CI·Trusted QA·자동 Finalizer 없이 로컬 검증→main 직접 fast-forward Push→승인된 로컬 Build-once·수동 GHCR→exact digest Pull/Smoke를 사용한다. source SHA/tree·fixture/lock·환경과 실제 실행 증거를 연결하고 필수 미통과·drift는 게시를 차단한다. 운영 배포는 별도 명시 범위이며 WAL-aware backup·새 격리 volume restore·호환 DB+image digest 검증이 선행한다. [CI_CD.md](CI_CD.md), [DEPLOYMENT.md](DEPLOYMENT.md), [Issue Lifecycle](ISSUE_LIFECYCLE.md) 참조. 이전 delivery 문단은 해당 문서들의 보존 구역과 Git 원본에 남긴다.
 
-## 구현 진입 Gate
+## 초기 구현 진입의 역사적 기록
 
 최초 vertical slice인 Project 생성→SQLite 저장→Direct Readonly→unlock→root Task 생성·SVAR 이동/resize→reload 유지→삭제를 W07에서 독립 QA PASS / Manager ACCEPT했다. W20 Semantic Release, W21 동기 Grid+Chart와 W22 main commit image 자동화도 완료했다. Main/PR/release workflow, private GHCR publish, commit/release digest의 원격·로컬 smoke와 SBOM/provenance 조회를 PASS했다. D05에 따라 현재 private 요금제의 ruleset 미강제 위험을 수용하고 GitHub Artifact Attestation은 비활성으로 둔다. W23은 D02 승인으로 목록을 활성화했다. W24가 W08의 child 생성·Summary 집계·순수 WBS 계산 일부를 선행하며, WBS DTO/UI·Reparent·FS와 유효 subtree 변경 묶음은 후속이다. VBA는 D01, 운영 공개는 D03 및 별도 네트워크/TLS 배포 검증을 따른다. 전체 기능을 한 번에 시작하지 않는다.
 

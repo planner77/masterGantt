@@ -9,15 +9,15 @@
 
 소규모 프로젝트의 일정과 진행 상황을 관리하는 웹 애플리케이션이다. SVAR React Gantt Core로 일정을 표시·편집하고, 일정 계산은 독립적인 Scheduling Engine에서 수행하는 구조를 목표로 한다.
 
-프로젝트별 직접 링크, SQLite 저장, 편집 비밀번호 인증과 root Task/Milestone Gantt 저장, 좌측 계층 Grid와 우측 동기 Chart 중심의 넓은 Project 작업공간을 구현했다. GitHub Actions 검증, `main` commit별 임시 GHCR registry 검증 image와 Semantic Version release image 기반도 추가했다. Excel 및 Gantt SVG/PNG 내보내기를 제공하며, 승인된 Excel/VBA → JSON·CSV Import와 production 배포 검증은 단계적으로 진행한다. DRM 해제·우회 기능은 개발하지 않는다.
+프로젝트별 직접 링크, SQLite 저장, 편집 비밀번호 인증과 root Task/Milestone Gantt 저장, 좌측 계층 Grid와 우측 동기 Chart 중심의 넓은 Project 작업공간을 구현했다. 현재 개발·게시 운영은 강화된 로컬 검증→main 직접 fast-forward Push→승인된 수동 GHCR→exact digest smoke를 사용한다. PR·원격 CI·Trusted QA·자동 Finalizer는 실행하지 않는다. Excel 및 Gantt SVG/PNG 내보내기를 제공하며, 승인된 Excel/VBA → JSON·CSV Import와 production 배포 검증은 단계적으로 진행한다. DRM 해제·우회 기능은 개발하지 않는다.
 
 이 README는 프로젝트 이해·설치·재설치·실행·진행 상황 확인을 위한 진입 문서다. 상세 요구사항은 [REQUIREMENTS](docs/REQUIREMENTS.md), 최신 작업 상태는 [실행 계획](docs/exec-plans/active/PLAN.md)을 따른다.
 
 Nginx를 앞단에 배치할 때는 [Nginx Reverse Proxy 운영 예제](#nginx-reverse-proxy)를 참고한다.
 
-## 1. 현재 구현 상태
+## 1. 초기 구현 상태의 역사적 기록
 
-기준: **2026-09-19 / 0.17.0 Issue #68 작업 캘린더 Dependency 재계산**. 기존 작업 캘린더 기능에 FS/lag=0 Dependency forward-pass를 연결해 Calendar 변경 시 Auto 후행 일정과 Summary를 함께 재계산하고 Manual dependency 충돌은 원자적으로 거부한다. 작업 캘린더 기본 설계는 [Issue #57 작업 캘린더](docs/ISSUE_57_WORK_CALENDAR.md), 후속 통합 설계는 [Issue #68](docs/ISSUE_68_CALENDAR_DEPENDENCY_RECALC.md)을 따른다.
+아래 표는 **2026-09-19 / 0.17.0 Issue #68 당시 이력**이며 현재 제품 버전/기능 전체를 나타내지 않는다. 현재 version은 package.json, 최신 작업은 [PLAN](docs/exec-plans/active/PLAN.md), 검증/운영은 [Issue Lifecycle](docs/ISSUE_LIFECYCLE.md)을 따른다. 기존 작업 캘린더 기능에 FS/lag=0 Dependency forward-pass를 연결해 Calendar 변경 시 Auto 후행 일정과 Summary를 함께 재계산하고 Manual dependency 충돌은 원자적으로 거부한다. 작업 캘린더 기본 설계는 [Issue #57 작업 캘린더](docs/ISSUE_57_WORK_CALENDAR.md), 후속 통합 설계는 [Issue #68](docs/ISSUE_68_CALENDAR_DEPENDENCY_RECALC.md)을 따른다.
 
 | 단계 | 상태 | 현재 확인 가능한 내용 |
 | --- | --- | --- |
@@ -40,9 +40,9 @@ Nginx를 앞단에 배치할 때는 [Nginx Reverse Proxy 운영 예제](#nginx-r
 | W08 이후 | 일부 W24 선행 / 예정 | WBS UI·reparent·유효 subtree 삭제 묶음, 일반 Task/Link mutation FS 재계산, Import/Export |
 | W16 배포 | 일부 기반 선행 / 운영 검증 예정 | Docker/startup/readiness/named volume 기반; 실제 host·proxy·backup/restore 승인 후속 |
 
-홈(`/`)은 Project를 표 형태로 표시하며 현재 편집 권한이 있는 행에 삭제 기능을 제공한다. 삭제 확인에는 최신 프로젝트명과 모든 일정 제거를 명시하며 서버가 session/Origin/revision을 다시 검증한다. Direct snapshot은 Readonly이며 편집하려면 기존 비밀번호 잠금을 해제한다. Grid Header `+`는 최상위, 행 `+`는 하위 작업을 추가한다. 이름·날짜·기간 입력 없이 `새 작업`·브라우저 오늘·1일을 적용하며 Auto 근무일 보정은 유지한다. 첫 하위 추가 시 일반 작업을 Summary로 전환한다는 명시 동의만 필요하다. 이후 Summary 날짜와 진척은 자식에서 계산된다. Milestone에는 자식을 추가하지 않으며 빈 Summary 방지를 위해 마지막 자식 단독 삭제는 거부한다. 외부 ID는 표시를 선택할 수 있고 토·일은 Chart 음영으로 구분한다. 날짜는 사용자 locale로 표시하고 설정은 기본 접힌 상태다. Project/Grid/Chart header는 유지한 채 내부를 스크롤한다. Reparent/FS 및 Summary 직접 일정 편집은 후속이다. `/gantt-demo`는 저장 없는 CI/개발 검증용 fixture로 유지하지만 운영 상단 주요 메뉴에는 노출하지 않는다.
+홈(`/`)은 Project를 표 형태로 표시하며 현재 편집 권한이 있는 행에 삭제 기능을 제공한다. 삭제 확인에는 최신 프로젝트명과 모든 일정 제거를 명시하며 서버가 session/Origin/revision을 다시 검증한다. Direct snapshot은 Readonly이며 편집하려면 기존 비밀번호 잠금을 해제한다. Grid Header `+`는 최상위, 행 `+`는 하위 작업을 추가한다. 이름·날짜·기간 입력 없이 `새 작업`·브라우저 오늘·1일을 적용하며 Auto 근무일 보정은 유지한다. 첫 하위 추가 시 일반 작업을 Summary로 전환한다는 명시 동의만 필요하다. 이후 Summary 날짜와 진척은 자식에서 계산된다. Milestone에는 자식을 추가하지 않으며 빈 Summary 방지를 위해 마지막 자식 단독 삭제는 거부한다. 외부 ID는 표시를 선택할 수 있고 토·일은 Chart 음영으로 구분한다. 날짜는 사용자 locale로 표시하고 설정은 기본 접힌 상태다. Project/Grid/Chart header는 유지한 채 내부를 스크롤한다. Reparent/FS 및 Summary 직접 일정 편집은 후속이다. `/gantt-demo`는 저장 없는 로컬 개발 검증용 fixture로 유지하지만 운영 상단 주요 메뉴에는 노출하지 않는다.
 
-0.17.0 PR 회귀 기준은 `verify-release-version`, typecheck, lint, test discovery, 전체 Vitest, dependency audit, Markdown/shell 검사, production build, 전체 Chromium E2E, Docker image/runtime·migration·readiness·SQLite restart persistence·HTTP/HTTPS 검증과 함께 Compose 필수 관리자 비밀번호 fail-fast·컨테이너 전달·실제 인증 성공/거부·인증 시점 로그 비밀정보 비노출·강제 재생성 persistence를 포함한다.
+역사적 0.17.0 PR 회귀 기준은 `verify-release-version`, typecheck, lint, test discovery, 전체 Vitest, dependency audit, Markdown/shell 검사, production build, 전체 Chromium E2E, Docker image/runtime·migration·readiness·SQLite restart persistence·HTTP/HTTPS 검증과 함께 Compose 필수 관리자 비밀번호 fail-fast·컨테이너 전달·실제 인증 성공/거부·인증 시점 로그 비밀정보 비노출·강제 재생성 persistence를 포함한다.
 
 ## 2. 기술 스택과 역할
 
@@ -50,9 +50,9 @@ Nginx를 앞단에 배치할 때는 [Nginx Reverse Proxy 운영 예제](#nginx-r
 
 | 기술 | 현재 버전 / 상태 | 역할 |
 | --- | --- | --- |
-| masterGantt | 0.17.0 | Issue #68 작업 캘린더 변경 시 FS/lag=0 Dependency 재계산 기능 버전 |
+| masterGantt | 0.145.1 | package.json과 lockfile이 application version의 원본 |
 | Node.js | 최소 22, 검증 22.14.0 | 서버와 CLI 실행 |
-| Next.js | 16.3.7 | App Router, 서버 Route Handler, 빌드 |
+| Next.js | 16.4.2 | App Router, 서버 Route Handler, 빌드 |
 | React / React DOM | 19.3.0 | 화면 컴포넌트 |
 | TypeScript | 5.8.3 | 타입 검사 |
 | Tailwind CSS | 4.3.3 | UI 스타일 도구; 현재 기본 화면은 CSS도 사용 |
@@ -66,7 +66,7 @@ Nginx를 앞단에 배치할 때는 [Nginx Reverse Proxy 운영 예제](#nginx-r
 | Scheduling Engine | 자체 pure TypeScript | Gregorian ordinal, Project Calendar, 근무일·Leaf Duration; SVAR/DB/시간대 API 비의존 |
 | Excel/이미지 내보내기 | 내부 OOXML/ZIP writer와 자체 SVG renderer | 서버 SVG를 브라우저 Canvas에서 PNG로 변환; SVAR PRO·외부 변환 서비스 미사용 |
 | Docker / Docker Compose | W20 기반 구현 | non-root 단일 애플리케이션, startup migration/readiness와 영속 SQLite volume |
-| GitHub Actions / GHCR | W20/W22 기반 구현 | application·browser·container CI, main commit 임시 registry 검증과 Semantic Version release |
+| 로컬 검증 / GHCR | Owner 2026-11-10 정책 | 로컬 검사·수동 고유 SHA 게시·exact digest smoke; 과거 Actions 이력 보존 |
 
 서버의 접근 경계는 `Route Handler → Service → Repository → SQLite`다. W07 Task mutation도 이 경계를 따르며 transaction 안에서 session과 revision을 다시 확인한 뒤 W06 `scheduleLeaf` 결과를 저장한다. DB 진입점은 `server-only`이며 import나 Next.js build만으로 DB를 열지 않는다. 기술 선정 근거는 [RESEARCH](docs/RESEARCH.md), 설계는 [ARCHITECTURE](docs/ARCHITECTURE.md)를 참고한다.
 
@@ -529,6 +529,8 @@ Build와 typecheck는 `.next` 생성 파일을 공유하므로 순서대로 실�
 npm test -- tests/server/db/database.test.ts tests/server/migration-cli.test.ts
 ```
 
+아래 W21 실행 수·외부 서버/브라우저 override 예시는 역사적 개발 절차다. 현재 게시 근거는 [LOCAL_PREPR](docs/LOCAL_PREPR.md)의 clean source snapshot·운영 입력 거부 계약을 사용하며 이 override 예시는 admission에 사용할 수 없다.
+
 W21 Manager 검증 기준 전체 310개 Vitest와 Chromium E2E 8개가 통과했다. 기본 E2E는 Turbopack과 `.next-e2e`, `.data/playwright.sqlite3`를 사용해 일반 개발 서버와 격리한다. Process-global 생성 limiter를 실제 설정 그대로 사용하는 browser suite는 worker 1개로 직렬 실행한다. 동일 revision 동시 write는 W05 metadata와 W07 Task spec 내부의 병렬 HTTP 요청으로 검증한다. W21 E2E는 빈 Project의 Grid+Chart, 첫 작업 생성 직후 양쪽 표시, Desktop geometry와 narrow 내부 scroll을 추가하고 기존 실제 SVAR 이동·좌우 resize·삭제·reload, 401/412/422/500과 canonical read 실패 복원을 유지한다. 동일 dist directory를 사용하는 Playwright server는 겹쳐 실행하지 않는다. 이미 실행 중인 앱과 별도 Chromium executable을 사용하려면 다음 환경 변수를 선택적으로 지정할 수 있다.
 
 ```sh
@@ -539,18 +541,11 @@ npm run test:e2e
 
 Task 저장 근거는 [W07_REVIEW](docs/W07_REVIEW.md), 일정 계산 기반은 [W06_REVIEW](docs/W06_REVIEW.md), 편집 인증은 [W05_REVIEW](docs/W05_REVIEW.md), 생성·직접 조회는 [W04_REVIEW](docs/W04_REVIEW.md), Gantt 기반은 [W03_REVIEW](docs/W03_REVIEW.md), DB 기반은 [W02_REVIEW](docs/W02_REVIEW.md), 전체 계획은 [TEST_PLAN](docs/TEST_PLAN.md)을 참고한다.
 
-### CI, version과 테스트 image
+### 로컬 검증·version·이미지
 
-Pull Request와 `main` push에서는 GitHub Actions가 application, Chromium과 Docker smoke를 자동 실행한다. Application version은 `package.json`과 lockfile에서 일치해야 하며, release는 같은 commit의 annotated `v<version>` tag로만 시작한다.
+[TEST_PLAN](docs/TEST_PLAN.md)의 공통/영향/위험별 로컬 검증과 [LOCAL_PREPR](docs/LOCAL_PREPR.md)의 same-source admission을 사용한다. `ci-like`는 로컬 모드다. 필수 FAIL/BLOCKED/NOT TESTED·취소·source/fixture/환경 drift는 Push/Publish/Close를 차단한다.
 
-```sh
-npm run version:check
-node scripts/verify-release-version.mjs v0.4.0
-```
-
-성공한 비문서 `main` push는 모든 gate 뒤 `ci-<full SHA>` image를 게시하고 workflow가 출력한 digest를 새로 pull해 Project/Task API authorization과 restart persistence까지 검사한다. 일반 merge의 `ci-*`는 검증 뒤 삭제하지만, application version이 변경된 merge의 verified `ci-*`는 formal release가 동일 digest를 재사용하도록 보존한다. PR과 수동 CI는 registry에 쓰지 않는다.
-
-Release workflow는 별도로 저장소 단위 직렬 실행한다. 이전 release보다 큰 annotated version인지 확인하고 tag target SHA의 Main verified `ci-<SHA>` candidate를 source/revision/version/digest까지 재검증한 뒤 새 build 없이 같은 digest를 exact SemVer와 stable alias로 promotion한다. 테스트에서는 `latest` 대신 workflow가 출력한 exact digest를 사용한다. Private GHCR consumer는 최소 `packages: read`만 사용한다. 실제 tag 생성, plan별 ruleset·attestation 제약과 image login 절차는 [CI/CD 문서](docs/CI_CD.md), container 실행은 [Deployment](docs/DEPLOYMENT.md)를 따른다.
+Application version은 package.json과 lockfile에서 일치시킨다. 첫 main 직접 Push 전 [GITHUB_OPERATIONS](docs/GITHUB_OPERATIONS.md)의 #911 live Ruleset/Actions 전환을 실제로 확인한다. 최신 main과 같은 source를 fast-forward Push하고 Owner가 승인한 고유 SHA 이미지를 로컬 Build-once→수동 GHCR→exact digest 새 Pull·runtime/API/SQLite restart smoke로 검증한다. SemVer/rolling tag와 운영 배포는 별도 범위 승인이다. [CI_CD](docs/CI_CD.md), [DEPLOYMENT](docs/DEPLOYMENT.md)를 따른다. 기존 태그·digest·실패/PR/CI 이력은 보존한다.
 
 ## 7. 코드와 실행 산출물
 
@@ -569,8 +564,8 @@ Release workflow는 별도로 저장소 단위 직렬 실행한다. 이전 relea
 | [tests/server](tests/server), [tests/scripts](tests/scripts) | DB·CLI·health·version·Project Service/HTTP/보안 경계 검증 |
 | [tests/domain/scheduling](tests/domain/scheduling), [tests/features/gantt](tests/features/gantt), [tests/e2e](tests/e2e) | Scheduling unit/purity, Gantt adapter와 Chromium runtime·Project workflow 검증 |
 | [package.json](package.json), [package-lock.json](package-lock.json) | 실행 명령, 의존성·재설치 기준 |
-| [.github/workflows](.github/workflows), [.github/dependabot.yml](.github/dependabot.yml) | PR/main CI, main commit image, GHCR release와 pinned dependency update |
-| [deploy/docker/Dockerfile](deploy/docker/Dockerfile), [deploy/compose.yml](deploy/compose.yml), [deploy/compose.build.yml](deploy/compose.build.yml), [.dockerignore](.dockerignore) | 운영 image-only pull, local/CI build override, non-root image와 single-instance SQLite volume 보호 |
+| [.github/workflows](.github/workflows), [.github/dependabot.yml](.github/dependabot.yml) | 퇴역한 CI/Release workflow 이력·pinned dependency 설정(신규 실행 없음) |
+| [deploy/docker/Dockerfile](deploy/docker/Dockerfile), [deploy/compose.yml](deploy/compose.yml), [deploy/compose.build.yml](deploy/compose.build.yml), [.dockerignore](.dockerignore) | 운영 image-only pull, local build override, non-root image와 single-instance SQLite volume 보호 |
 | [AGENTS.md](AGENTS.md), [.codex](.codex) | 개발·협업 원칙과 전문 Agent 설정 |
 | `.next/`, `node_modules/` | 로컬 생성 빌드·의존성, Git 제외 |
 | `.data/mastergantt.sqlite3` 및 WAL/SHM | 위 개발 예제로 생성하는 실제 DB, Git 제외 |
@@ -614,7 +609,7 @@ Release workflow는 별도로 저장소 단위 직렬 실행한다. 이전 relea
 
 ## Test configuration relocation (#13)
 
-설정은 `tests/config/vitest.config.ts`, `tests/config/playwright.config.ts`에 있다. `npm test`, `npm run test:e2e`는 그대로 사용한다. 직접 실행은 `npx vitest run --config tests/config/vitest.config.ts`, `npx playwright test --config tests/config/playwright.config.ts`로 지정한다. 설정 파일 기준 root/testDir/webServer.cwd를 사용하고 E2E DB `.data/playwright.sqlite3`, `.next-e2e`, `test-results/`는 루트 기준으로 유지한다. CI는 `node scripts/verify-test-discovery.mjs`로 루트/외부 cwd의 동일한 테스트 발견을 확인한 뒤 전체 테스트를 실행한다. 편집기에서 자동 발견되지 않으면 같은 설정 경로를 지정한다. 실제 Windows 편집기 UI 검증은 미실행이며 [배치 문서](docs/REPOSITORY_STRUCTURE.md)를 함께 따른다.
+설정은 `tests/config/vitest.config.ts`, `tests/config/playwright.config.ts`에 있다. `npm test`, `npm run test:e2e`는 그대로 사용한다. 직접 실행은 `npx vitest run --config tests/config/vitest.config.ts`, `npx playwright test --config tests/config/playwright.config.ts`로 지정한다. 설정 파일 기준 root/testDir/webServer.cwd를 사용하고 E2E DB `.data/playwright.sqlite3`, `.next-e2e`, `test-results/`는 루트 기준으로 유지한다. 로컬 검증은 `node scripts/verify-test-discovery.mjs`로 루트/외부 cwd의 동일한 테스트 발견을 확인한 뒤 전체 테스트를 실행한다. 편집기에서 자동 발견되지 않으면 같은 설정 경로를 지정한다. 실제 Windows 편집기 UI 검증은 미실행이며 [배치 문서](docs/REPOSITORY_STRUCTURE.md)를 함께 따른다.
 
 ## 운영 로그 및 요청 추적
 

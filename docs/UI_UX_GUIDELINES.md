@@ -6,7 +6,7 @@ Work Packet의 UI_EVIDENCE_CONTRACT에 AC→DESIGN 조항→기존 test/화면/v
 
 화면 레이아웃/언어/사용자 상호작용을 변경할 때 Issue AC별 DESIGN.md·본 가이드·PROJECT_UX 기준과 실제 Playwright 상태/viewport/locale/읽기·편집/오류·복귀를 연결한다. 기존 tests/e2e/schedule-views.spec.ts, i18n.spec.ts, Issue #118 Geometry 도구의 동일 fixture·좌표 비교를 우선 재사용하고, 불필요한 스냅샷/테스트 중복을 만들지 않는다.
 
-합성 Fixture PNG, DOM bounding boxes, screenshot SHA256·source commit·AC/viewport/locale manifest는 **시각적 관찰 증거**이지 자동 디자인 적합성 PASS가 아니다. 픽셀 골든은 실제 디자인 승인 없이는 자동 갱신·수용하지 않는다. 실제 UAT는 #897에서 Owner가 Preview에 접속하여 동작·조작감·접근성을 확인하며, 실운영 스크린샷·사용자 데이터는 public PR/Artifact에 업로드하지 않는다.
+합성 Fixture PNG, DOM bounding boxes, screenshot SHA256·source commit·AC/viewport/locale manifest는 **시각적 관찰 증거**이지 자동 디자인 적합성 PASS가 아니다. 픽셀 골든은 실제 디자인 승인 없이는 자동 갱신·수용하지 않는다. 실제 UAT는 #897의 로컬 격리 환경에서 Owner가 동작·조작감·접근성을 확인하며, 실운영 스크린샷·사용자 데이터는 PUBLIC Git/Issue/공개 증거에 업로드하지 않는다.
 
 ---
 

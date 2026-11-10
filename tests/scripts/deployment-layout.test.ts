@@ -110,7 +110,7 @@ describe("deployment repository layout", () => {
     expect(buildCompose).toContain("pull_policy: never");
   });
 
-  it("builds the container once on main and promotes the verified digest for release", () => {
+  it("preserves retired main/release build-once contracts as historical evidence", () => {
     const ci = text(".github/workflows/ci.yml");
     const release = text(".github/workflows/release-image.yml");
     expect(ci.match(/context: \.\n\s+file: deploy\/docker\/Dockerfile/g)).toHaveLength(2);
@@ -130,7 +130,7 @@ describe("deployment repository layout", () => {
     expect(release.indexOf("verified candidate digest GitHub Attestation")).toBeLessThan(
       release.indexOf("최종 exact·rolling tag를 verified digest로 promotion"),
     );
-    expect(text("AGENTS.md")).toContain("successful non-docs main merge의 verified `ci-<SHA>`");
+    expect(text("docs/history/owner-ci-retired-20261110/AGENTS.md")).toContain("successful non-docs main merge의 verified `ci-<SHA>`");
     expect(ci).toContain("version_changed:");
     expect(ci).toContain("BEFORE_SHA: ${{ github.event.before }}");
     expect(ci).toContain(
