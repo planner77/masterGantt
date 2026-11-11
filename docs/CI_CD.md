@@ -11,7 +11,7 @@ Owner 2026-11-10 결정으로 모든 위험도에 [단일 Issue Lifecycle](ISSUE
 
 ## 2. Build-once와 고유 태그
 
-#906/#907/#908 통합 범위의 로컬 Docker Gate는 기존 Docker/OCI 검산을 재사용해 검증 image·attested OCI 인계의 최소 경계를 구현한다. #909의 전체 수동 게시·보존 운영 범위는 별도 AC로 유지한다. 도구/권한이 없거나 실제 검증을 하지 않았으면 BLOCKED/NOT TESTED이며 기존 원격 workflow를 대체 실행하지 않는다.
+#906/#907/#908의 로컬 Docker Gate·OCI 검산을 재사용하고 #912/#909/#911 통합 범위에서 `scripts/publish-local-image.mjs`의 계획·사전검증·게시와 private 증거 보존을 구현한다. CLI 구현·집중 테스트나 이전 이미지의 수동 게시 성공은 새 exact source에서 실행한 CLI의 게시 PASS가 아니다. 도구/권한이 없거나 실제 검증을 하지 않았으면 BLOCKED/NOT TESTED이며 기존 원격 workflow를 대체 실행하지 않는다.
 
 깨끗한 exact source에서 `deploy/docker/Dockerfile`·Buildx와 운영 architecture `linux/amd64`를 사용해 한 번 build한다. build/runtime의 Node major·ABI·distribution/libc·architecture 일치를 확인한다. 실제 commit/tree/lock·빌드 입력을 기록하고 revision/source/version label과 비교한다. label 자기신고만으로 source provenance PASS를 만들지 않는다. BuildKit SBOM/provenance의 실제 생성·보존 여부를 기록하고 미생성이나 유실을 숨기지 않는다.
 
@@ -24,6 +24,37 @@ Owner가 승인한 `ghcr.io/planner77/mastergantt:sha-<full40SHA>` 같은 고유
 수동 게시에서는 검증한 동일 OCI archive를 검증된 ORAS 도구로 고유 태그에 복사한다. 재빌드나 classic store image의 별도 Push로 attestation을 잃지 않도록 archive checksum과 registry index digest를 대조한다. source·archive·image identity가 바뀌면 게시하지 않고 재검증한다.
 
 인증은 로컬 Docker credential store와 최소 package read/write 권한을 사용한다. token/secret을 Git·Issue·명령 출력·image layer·build argument에 남기지 않는다. 과거 CI/PR 메타데이터를 게시 허가 증거로 오인하지 않는다.
+
+### 로컬 게시 CLI
+
+`node scripts/publish-local-image.mjs --help`로 실제 옵션을 확인한다. 모든 인수는 `--이름=값`이며 아래 모드를 구분한다.
+
+| 모드 | 실제 경계 | 결과 해석 |
+| --- | --- | --- |
+| `plan`(기본) | 계획만 작성; 외부 검증·registry 쓰기·runtime 없음 | NOT TESTED이며 게시 허가/실행 성공이 아님 |
+| `verify` | 같은 source의 실제 admission, ORAS/인증·원격 Head/태그 충돌 사전검증 | 사전검증 PASS여도 이미지 게시·runtime PASS가 아님 |
+| `publish` | 동일 attested OCI 복사·registry graph/digest 대조·새 exact Pull/runtime/API/SQLite | 해당 source·실행의 전체 결과로 판정 |
+
+공통 Gate와 publisher는 **동일한 controlled launcher/실제 환경**에서 이어 실행한다. 예를 들어 Gate를 npm에서 실행한 뒤 publisher만 다른 Node/PATH/npm_lifecycle 환경으로 바꾸고 지문 검사를 우회하지 않는다. 필요 시 Gate도 `node scripts/verify-prepr.mjs`로 직접 실행한다. `--base`는 고정 baseline, `--issue`는 통합 Primary, `--reports`/`--include`는 같은 검증 범위로 반복 지정한다. ORAS는 검증한 1.3.6 binary의 절대 경로, auth file은 Git 밖의 소유자 전용 0600 config다. repository는 `ghcr.io/planner77/mastergantt`, 태그는 clean HEAD에서 만든 고유 `sha-<full SHA>`만 허용한다.
+
+```sh
+node scripts/publish-local-image.mjs \
+  --mode=publish --base="$MG_BASE_SHA" --issue=912 \
+  --reports=.prepr-reports/fast/report.json \
+  --reports=.prepr-reports/targeted/report.json \
+  --reports=.prepr-reports/docker/report.json \
+  --oras="$MG_VERIFIED_ORAS" --auth-file="$MG_PRIVATE_AUTH_FILE" \
+  --private-log-dir="$MG_NEW_PRIVATE_LOG_DIR" \
+  --report-dir=.prepr-reports/publish-attempt
+```
+
+예시의 경로는 실제 생성한 해당 source의 보고서로 바꾸고 게시 승인·정상 main Head를 먼저 확인한다. `plan`/`verify`에도 `--private-log-dir`가 필요하며 help만 예외다. private log root는 **저장소 밖 새 소유자 0700 디렉터리**로 생성하고, 기존 디렉터리나 symlink를 재사용하지 않는다. stdout/stderr 원문은 실행별 AES-256-GCM 파일과 metadata(0600)로 보존하며 별도 `keys/evidence.key`(0600)가 복원에 필요하다. 이 key는 DB backup key와 다르며 Git/이미지/공개 receipt에 넣지 않는다. 공개 가능한 결과에는 opaque attempt/stream ID·hash·bytes/truncated·단계/category/exit/시각만 남긴다. `truncated`가 있으면 수집 한계를 명시하고 원문 전체를 확보했다고 주장하지 않는다.
+
+태그 부재는 임의 서버 오류 문자열이나 literal `404`/`MANIFEST_UNKNOWN`에만 의존하지 않는다. 고정한 ORAS 도구에서 같은 인증·repository의 tag inventory와 정확한 대상/대조 ref 조회를 함께 검증하며 권한·네트워크 오류를 부재로 오인하지 않는다. 해당 도구 경계의 read-only 진단은 2026-11-11T10:24:55.432Z~10:24:58.344Z PASS였고 registry 쓰기는 없었다. 이는 새 candidate의 전체 publish PASS가 아니다.
+
+`publish-receipt.json`은 ignored 보고 경로의 0600 파일이다. 실제 digest/graph/runtime 불일치는 FAIL, 권한·오프라인·출처 부족은 BLOCKED이며 `publicationEligibility=BLOCKED`이면 게시/종료 후속을 중단한다. OCI 복사 뒤 실패하면 `published=true`/`tagState=CREATED` 또는 결과 불명 `UNKNOWN`을 보존하고 검증 완료로 오인하지 않는다. 전체 성공의 `VERIFIED`와 구분하며 태그 삭제·덮어쓰기·무조건 재시도로 원본 실패를 숨기지 않는다.
+
+CLI는 운영 배포·SemVer/rolling/latest 갱신·기존 tag/image 삭제를 하지 않는다. 정상·직전 정상 rollback digest와 호환 backup ID를 보존·원장에 연결하고 이전 digest로의 격리 복귀를 별도 검증한다. 해당 image/backup을 cleanup 후보로 처리하지 않는다.
 
 ## 3. 실제 digest Pull·Smoke
 

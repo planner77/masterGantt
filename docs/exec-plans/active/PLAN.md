@@ -2,7 +2,19 @@
 
 현행 단일 단계·역할/완료 조건은 [Issue Lifecycle](../../ISSUE_LIFECYCLE.md)이다. 모든 위험도에서 로컬 검증 후 main 직접 fast-forward Push·승인된 수동 GHCR·수동 종료를 사용하며 PR·원격 CI·Trusted QA·자동 Finalizer를 실행하지 않는다.
 
-## #906 / #907 / #908 통합 구현
+## 진행 중: #912 / #909 / #911 · 상위 #905
+
+[통합 Work Packet](ISSUE_912_909_911.md)의 baseline은 `8eaaaaa2b7b9a24e2b4a72e7d81698217da5cf2d`다. 기존 SQLite/OCI·#906/#907/#908/#913 증거를 재사용해 백업/복원 CLI, 같은 OCI의 안전한 로컬 게시 CLI, 기존 PR 개별 처리와 운영 문서를 구현한다. 위험도 HIGH/AGENT_LOCAL이며 새 코드의 최종 same-source 로컬 검사·독립 QA·게시 결과는 실제 실행 전 NOT TESTED다. 기존 제품 이미지를 새 CLI 실행 성공으로 오인하지 않는다.
+
+Owner는 기존 원본 프로젝트의 `backups/mastergantt`에 암호화 archive/manifest를 보관하도록 지정했다. key는 프로젝트 밖에 분리하고 Git/Docker context에서 백업을 제외한다. off-host 요구는 이번 범위에서 제거됐으며 NOT TESTED / N/A(Owner 범위 변경)이지 PASS가 아니다. 같은 호스트 장애 위험은 남는다. 매일+배포 전/30일/월간 복원/RPO24시간·RTO1시간은 아직 별도 응답 대기다.
+
+[기존 일곱 PR의 개별 제안](../../PR_DISPOSITIONS_911.md)은 Owner가 `제안대로 이관·개별종료`를 승인했다. Manager가 2026-11-11T10:17:59Z~10:18:31Z에 각각 댓글·미병합 종료하고 7개 CLOSED/merged=false·원본 Head 일치를 재조회했다. #395는 #914 로컬 runtime-security 재평가로, #904의 #898/#899 및 #721의 #720은 OPEN 후속으로 보존한다. #847 원격 ref 일시 누락은 actor를 추정하지 않고 10:21:16.308889Z~10:21:17.336553Z create-only 복구를 기록했으며 최종 원격 7개 ref와 local archive는 원본 Head에 있다. 제품 기능·Node base의 채택이나 merge를 수행하지 않았다.
+
+기존 로컬 archive의 격리 복원 3단계는 2026-11-11T10:17:59.146Z~10:18:10.872Z 실제 PASS했다. current image source `8e29fe828a3a8b5fb5b8dc46b82b74722bae33fe`/digest `sha256:8ebd91b4f6b316c3bdc9a221e5a8ee9d50a3fb4fb845c2ebf140e44ac50292d1`와 rollback source `90c5a1a951c749a9690b1c83e5a74b6d122dd6e3`/digest `sha256:7c8e3ed6ed8b78ab8d5832fa2b225cf3f160e1c8e5b044963330e78eb26dc866`에서 73개 table/SQL38·ledger38·같은 volume의 합성 추가 데이터 보존과 새 volume 복원을 대조했다. 자기 리소스는 10:19:47.417Z 정리했고 운영 DB에 쓰지 않았다. 이는 기존 형식/이미지의 증거이며 새 AES-GCM CLI·새 candidate publisher의 실제 실행 PASS는 아직 아니다.
+
+현재 Actions 비활성·force/delete 보호 및 기존 정상/직전 digest를 유지한다. 새 exact source의 로컬 필수 검사·Owner 승인 범위를 확인한 뒤에만 정상 fast-forward Push와 새 CLI의 고유 SHA 게시·digest 검증으로 진행한다. 숫자 정책/원격 목적지를 승인으로 추정하거나 기존 CI/Finalizer를 실행하지 않는다. 새 코드의 운영 재배포·SemVer/latest 변경은 자동 수행하지 않는다.
+
+## 이전 source 기록: #906 / #907 / #908 통합 구현
 
 [통합 Work Packet](ISSUE_906_908.md)을 따른다. 현행 정책·템플릿/Agent 지침, #907의 append-only 원장·기계 회귀 인덱스/검증기, 기존 로컬 실행기·source admission을 통합 구현했다. 실제 실행·최초 실패·교정·Push/GHCR·Owner 결정은 같은 source의 Packet/원장과 Issue 증거에 연결한다. 과거 main/PR 성공을 새 source PASS로 사용하지 않는다.
 
@@ -12,9 +24,9 @@
 
 main 일반 fast-forward Push 후 같은 OCI를 `sha-8e29fe828a3a8b5fb5b8dc46b82b74722bae33fe`로 게시했다. 검증한 registry root index는 `sha256:8ebd91b4f6b316c3bdc9a221e5a8ee9d50a3fb4fb845c2ebf140e44ac50292d1`이며 exact digest 새 Pull·image policy·readiness·API/auth·재시작 persistence·native SQLite/integrity/FK smoke와 원본 OCI graph 17개 blob 대조가 PASS했다. SBOM/provenance와 기존 정상/직전 이미지·태그·권한·7개 PR·운영 서비스는 보존했다. 비활성화 전 댓글이 만든 네 skipped Run과 ORAS 첫 호출 실패 F906-019는 지우지 않는다.
 
-현재 후속은 **문서 전용 완료 증거 commit의 로컬 검증·fast-forward 연결과 세 Issue의 FINAL/수동 종료**다. 이 기록만으로 CLOSED를 주장하지 않는다. 후속 commit은 실행 코드·빌드 입력을 바꾸지 않는 기록 변경이므로 새 이미지/재빌드는 N/A이며 위 애플리케이션 source·digest를 그대로 귀속한다. 최신 문서 Head와 실제 최종 gate/종료 상태는 각 Issue FINAL과 원격 main을 따른다. 운영 배포·SemVer/latest 변경은 요청 범위에 포함하지 않는다.
+이전 source 기록 당시의 후속은 **문서 전용 완료 증거 commit의 로컬 검증·fast-forward 연결과 세 Issue의 FINAL/수동 종료**였다. 이 기록만으로 CLOSED를 주장하지 않는다. 후속 commit은 실행 코드·빌드 입력을 바꾸지 않는 기록 변경이므로 새 이미지/재빌드는 N/A이며 위 애플리케이션 source·digest를 그대로 귀속한다. 최신 문서 Head와 실제 최종 gate/종료 상태는 각 Issue FINAL과 원격 main을 따른다. 운영 배포·SemVer/latest 변경은 요청 범위에 포함하지 않는다.
 
-## 선행과 병행
+## 이전 source 기록의 선행과 병행
 
 - #907: 통합 구현에 포함. [원장 계약](../../ISSUE_LEDGER.md)·[회귀 인덱스](../../REGRESSION_INDEX.md)·검증기를 실제 로컬 검사했다. 애플리케이션 source `8e29fe82` 기준 3개 Issue·18개 Failure·39개 event이며 게시 중 F906-019는 원본과 후속 기록으로 보존한다. 이후 누적 수치는 해당 source의 실제 validator 결과로 확인한다.
 - #909: 이번 source의 Build-once·동일 OCI 수동 게시·exact digest smoke는 완료했으며 #909 전체 운영 플랫폼 AC/종료는 별도다.

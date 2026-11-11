@@ -1,9 +1,10 @@
 version: 2
 updates:
-  # SHA-pinned action updates still need review; Dependabot proposes the next
-  # trusted release SHA rather than allowing a mutable major tag at runtime.
+  # Owner의 No-PR 정책: 새 버전은 로컬 Issue로 검토한다.
+  # 보안 알림과 별개인 자동 버전 PR 생성만 중지하고 기존 설정은 보존한다.
   - package-ecosystem: github-actions
     directory: /
+    open-pull-requests-limit: 0
     schedule:
       interval: weekly
     groups:
@@ -11,5 +12,6 @@ updates:
         patterns: ["*"]
   - package-ecosystem: docker
     directory: /deploy/docker
+    open-pull-requests-limit: 0
     schedule:
       interval: weekly

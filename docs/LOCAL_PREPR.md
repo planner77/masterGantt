@@ -62,6 +62,12 @@ admit에는 `--issue=<Primary>`와 `--base=<고정된 이전 baseline SHA>`가 �
 
 로컬 JSON/훅은 Owner 단말의 보조 수단이며 변조 방지된 인증 서버가 아니다. Manager는 실제 실행과 출처·AC를 대조하고 Owner의 대상 범위 승인, #911 live 설정과 최신 main을 별도로 확인한다. 이 도구는 Git/GHCR 쓰기를 수행하지 않는다.
 
+### 후속 backup·publish 소비자
+
+#912의 SQLite backup/restore CLI와 #909의 publisher는 기존 Gate의 실제 직접 테스트 소비자로 선정한다. 공통/영향/필요 Docker·admit를 같은 고정 source·launcher·환경에서 마친 뒤 [CI_CD의 게시 CLI](CI_CD.md#로컬-게시-cli)로 인계한다. `node scripts/verify-prepr.mjs`와 publisher의 직접 Node 실행을 사용할 수 있으며 npm/PATH/실제 기능 환경 차이를 transient로 숨기지 않는다. `--include`가 필요하면 Gate와 publisher에서 동일하게 지정한다.
+
+backup의 정적 SQL prefix·manifest 검증, publisher `plan`/`verify`, 실제 exact digest runtime/격리 복원은 각각 다른 증거다. 도구의 출력·문서·과거 수동 게시 PASS만으로 새로운 runtime 또는 운영 복원 성공을 선언하지 않는다. 별도 전용 private 로그·backup key 경계는 [CI_CD](CI_CD.md)·[DEPLOYMENT](DEPLOYMENT.md)를 따른다.
+
 ## 4. 재작업과 원장
 
 최초 FAIL·환경 BLOCKED·미실행을 `docs/ISSUE_<N>_FAILURE_ANALYSIS.md`에 append-only로 기록한다. 제품/fixture/환경/정책/UNKNOWN을 분류하고 수정 SHA와 재실행의 동일 source·결과를 추가한다. [Regression Index](REGRESSION_INDEX.md)와 관련 원장에서 같은 consumer를 조사하며 이전 PASS를 새 source에 전용하지 않는다. #907의 [원장 계약](ISSUE_LEDGER.md)·기계 검증 가능한 인덱스와 validator는 이번 #906/#907/#908 통합 구현 범위다. 등록·구현 사실과 실제 검증 성공을 구별하고 그 결과를 같은 source 증거에 연결한다.

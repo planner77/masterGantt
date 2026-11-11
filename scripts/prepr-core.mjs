@@ -272,6 +272,24 @@ const RULES = [
     reason: "Issue 실패 원장·회귀 인덱스의 로컬 schema/출처·누적 이력 검증",
   },
   {
+    id: "dependabot-owner-policy", risk: "HIGH",
+    re: /^\.github\/dependabot\.yml$/,
+    unitPaths: ["tests/scripts/deployment-layout.test.ts"],
+    reason: "Owner 수동 운영 정책에 따른 ecosystem별 자동 PR 중지 설정 검증",
+  },
+  {
+    id: "local-image-publisher", risk: "HIGH",
+    re: /^(?:scripts\/(?:local-publish-core\.(?:mjs|d\.mts)|publish-local-image\.mjs)|tests\/scripts\/local-publish\.test\.ts)$/,
+    unitPaths: ["tests/scripts/local-publish.test.ts"],
+    reason: "동일 OCI 수동 게시·admission·고유 SHA·정확 digest/인증/실패 차단",
+  },
+  {
+    id: "sqlite-backup-recovery", risk: "HIGH",
+    re: /^(?:scripts\/(?:sqlite-backup-core\.(?:mjs|d\.mts)|verify-sqlite-recovery\.mjs)|tests\/scripts\/sqlite-backup\.test\.ts)$/,
+    unitPaths: ["tests/scripts/sqlite-backup.test.ts"],
+    reason: "SQLite 일관 백업·암호화 manifest·격리 복원과 source/image 결속",
+  },
+  {
     id: "registry-runtime-smoke", risk: "HIGH",
     re: /^(?:scripts\/verify-registry-api-smoke\.mjs|scripts\/registry-smoke-core\.(?:mjs|d\.mts)|tests\/scripts\/(?:registry-smoke|test-config-layout)\.test\.ts)$/,
     unitPaths: ["tests/scripts/registry-smoke.test.ts", "tests/scripts/test-config-layout.test.ts"],

@@ -64,3 +64,22 @@ F906-012의 실제 전체 Unit 실패를 추가하여 현재 기계 등록은 12
 새 Primary #913의 [단일 원장](ISSUE_913_FAILURE_ANALYSIS.md)에 F913-001을 연결했다. 현재 index는4 Issues/실제 실패20개/events45개다. 최초 restore clone의 wrapper FAIL(exit1)·환경 BLOCKED, 같은 backup의 R02 clone PASS(exit0), 실제 exact digest 운영 교체 PASS(exit0)를 구분해 누적했다. 기존 #906/#907/#908의3 Issues·19개 실패·42events prefix는 그대로다.
 
 공개 근거는 [첫 차단](https://github.com/planner77/masterGantt/issues/913#issuecomment-6791731783), [격리 복원/사전 QA](https://github.com/planner77/masterGantt/issues/913#issuecomment-6791875917), [실제 운영 교체](https://github.com/planner77/masterGantt/issues/913#issuecomment-6791954696)와 명시 허용된 sanitized summary다. 실제 DB/env/Origin/원시 로그·backup/키·운영 자원 명칭은 공개하지 않았다. helper Unit이 운영 복원을 자동검증했다고 주장하지 않으며 최종 통합 QA/종료·offhost DR/수동 UX/TLS 미실증은 별도다.
+
+## #912/#909/#911 로컬 복구·게시 준비 원본 추가
+
+[Primary #912](ISSUE_912_FAILURE_ANALYSIS.md), [#909 연결](ISSUE_909_FAILURE_ANALYSIS.md), [#911 연결](ISSUE_911_FAILURE_ANALYSIS.md)을 추가했다. 현재7 Issues·26 Failure·57events이며 기존4 Issues·20 Failure·45events와4개 Markdown prefix는 기준 `8eaaaaa2b7b9a24e2b4a72e7d81698217da5cf2d`에 대해 그대로 보존한다.
+
+| 도메인/증상 | 실제 원본 | 원인·재사용 검사 | 증거 범위 |
+| --- | --- | --- | --- |
+| backup 저장 정책/외부 목적지 부재 | [F912-001](ISSUE_912_FAILURE_ANALYSIS.md) | read-only 조사·Owner 로컬 project 하위 보관 결정; [ledger 계약](../tests/scripts/issue-ledger-verifier.test.ts) | offhost는 범위 변경 N/A·NOT TESTED이며 PASS 아님 |
+| SQLite fixture 큰 정수/타입 | [F912-002](ISSUE_912_FAILURE_ANALYSIS.md) | TS2737·동일값 BigInt(string); [실제 native 테스트](../tests/scripts/sqlite-backup.test.ts)·typecheck | 합성 WAL·NULL/BLOB/큰 정수 복원/직접 CLI |
+| symlink/ignore guard 우선순위 | [F912-003](ISSUE_912_FAILURE_ANALYSIS.md) | 실제14PASS/1FAIL→교정16PASS; [경로 부정검사](../tests/scripts/sqlite-backup.test.ts) | 위험 경로 차단 유지·운영 원본 미변경 |
+| ORAS1.3.6 실제 부재 오류 | [F912-004](ISSUE_912_FAILURE_ANALYSIS.md) | two exact refs+authenticated inventory; [publisher 테스트](../tests/scripts/local-publish.test.ts) | read-only probe이며 실제 게시 PASS 아님 |
+| PR 종료 후 remote ref 누락 | [F912-005](ISSUE_912_FAILURE_ANALYSIS.md) | actor 미확인; create-only 정확 Head 복원·7 refs 검산 | 수동 API/정제 원본, 자동 bot 회귀 주장 없음 |
+| registry auth 파일 권한 | [F912-006](ISSUE_912_FAILURE_ANALYSIS.md) | 원본 mode 유지·밖의0700/0600 private copy; [auth guard](../tests/scripts/local-publish.test.ts) | strict guard 유지·read-only probe |
+
+새 native CLI16PASS와 독립 QA16PASS는 WIP SCOPED이며 새 source 전체 Gate·새 AES 실제 운영 backup/복원·새 publisher 실제 write를 선기록하지 않는다. 기존 #913 GPG와 새 AES-GCM format은 별도다. 실제 운영 raw DB/env/Origin/key/auth와 원시 로그는 Git에 포함하지 않는다. 정확 exit 미수집 관측은 자동 PASS로 바꾸지 않는다.
+
+### 로컬 문서 검사 명령 교정
+
+F912-007은 원장 작성 Agent의 링크검사 파일명 오류(exit1/MODULE_NOT_FOUND)와 정확 기존 `scripts/check-markdown-links.mjs`의460files PASS(exit0)다. 현재7 Issues·27 Failure·59events이며 기존 baseline prefix는 그대로다. 제품/validator 결함이나 새로운 검증 기준 변경으로 분류하지 않는다.

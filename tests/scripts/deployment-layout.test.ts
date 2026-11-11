@@ -172,4 +172,10 @@ describe("deployment repository layout", () => {
     }
     expect(existsSync(resolve(root, "deploy/docker/Dockerfile.dockerignore"))).toBe(false);
   });
+
+  it("pauses version pull requests for every configured Dependabot ecosystem", () => {
+    const updates = text(".github/dependabot.yml").split(/^  - package-ecosystem: /m).slice(1);
+    expect(updates.map((block) => block.split("\n", 1)[0])).toEqual(expect.arrayContaining(["github-actions", "docker"]));
+    for (const block of updates) expect(block).toMatch(/^ {4}open-pull-requests-limit: 0\s*$/m);
+  });
 });

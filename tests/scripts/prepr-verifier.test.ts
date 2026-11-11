@@ -168,6 +168,22 @@ describe("Issue #699 — risk/path/real test selection", () => {
     expect(unknown.state).toBe("BLOCKED");
     expect(unknown.unknown.map(item => item.path)).toContain("tests/e2e/helpers/unknown-bridge.ts");
   });
+  it("maps local publication and backup tools to their actual direct safety tests at HIGH risk", () => {
+    const cases = [
+      { paths: ["scripts/local-publish-core.mjs", "scripts/local-publish-core.d.mts", "scripts/publish-local-image.mjs", "tests/scripts/local-publish.test.ts"], unit: "tests/scripts/local-publish.test.ts" },
+      { paths: ["scripts/sqlite-backup-core.mjs", "scripts/sqlite-backup-core.d.mts", "scripts/verify-sqlite-recovery.mjs", "tests/scripts/sqlite-backup.test.ts"], unit: "tests/scripts/sqlite-backup.test.ts" },
+    ];
+    for (const item of cases) {
+      const available = { ...tests, unit: [...new Set([...tests.unit, item.unit])] };
+      for (const path of item.paths) {
+        const selection = selectImpact({ changed: [path], tests: available, risk: "HIGH" });
+        expect(selection.state).toBe("READY");
+        expect(selection.selected.map((test) => test.path)).toEqual([item.unit]);
+        expect(selection.selected.every((test) => test.kind === "unit")).toBe(true);
+        expect(() => selectImpact({ changed: [path], tests: available, risk: "LOW" })).toThrow(/below path floor/);
+      }
+    }
+  });
   it("maps batch preparation scripts to their actual safety tests without adding browser requirements", () => {
     const s = selectImpact({
       changed: ["scripts/pr-batch-core.mjs", "scripts/pr-batch-core.d.mts", "scripts/verify-pr-batch.mjs"],

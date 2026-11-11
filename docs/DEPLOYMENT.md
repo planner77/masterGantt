@@ -163,18 +163,58 @@ Application package와 lockfile은 존재하며 source checkout의 frozen instal
 
 ## 8. Backup, restore, rollback
 
-WAL DB는 DB 파일만 임의 copy하지 않는다. SQLite backup API는 concurrent 변경 중에도 consistent snapshot을 만들기 위한 공식 방법이다. [SQLite Backup API](https://www.sqlite.org/backup.html) application에 backup command가 생길 때까지 운영 절차는 scheduled maintenance window에서 app을 cleanly stop한 뒤 `/data` 전체(DB, `-wal`, `-shm`)를 atomic snapshot storage에 복사하는 방식이다.
+WAL DB는 DB 파일만 임의 copy하지 않는다. `scripts/verify-sqlite-recovery.mjs`는 기존 SQLite Online Backup API를 재사용해 실행 중인 DB의 일관 snapshot을 만들고 AES-256-GCM archive로 보존한다. [SQLite Backup API](https://www.sqlite.org/backup.html) clean stop 후 `/data` 전체(DB, `-wal`, `-shm`)의 일관 snapshot을 만드는 기존 경로도 유지한다. 임의 파일 copy나 image 교체를 DB 복원으로 취급하지 않는다.
 
 - backup artifact는 image/volume 내부만의 단일 사본으로 두지 않고, access-controlled durable storage에 encryption-at-rest와 retention 정책을 적용한다.
 - restore는 새/격리된 `/data` volume에 backup을 복원하고, image와 동일 UID:GID 및 DB access를 확인한 뒤 application을 single instance로 시작한다.
 - schema migration rollback은 DB file를 직접 역방향 편집하지 않는다. deploy 전 compatible backup을 확인하고, failed migration은 application을 ready로 만들지 않는다. restore rehearsal 성공 전 destructive migration release를 승인하지 않는다.
 - upgrade/restore/rehearsal 시 DB, WAL, SHM, migration ledger, representative project read/write, export URL, restart persistence를 모두 검사한다.
 
+### 로컬 백업·검증·격리 복원 CLI
+
+모든 인수는 `--이름=값` 형식이다. 원본 DB에 권한이 있는 운영 계정에서 경로를 명시하며 CLI를 위해 DB 소유권·운영 volume을 임의 변경하지 않는다. 아래 `MG_*` 값은 운영자가 실제 조회한 비공개 값으로 설정한다. `MG_PROJECT_ROOT`는 `.git` 디렉터리가 있는 기존 원본 프로젝트이고 일회용 worktree가 아니다. `MG_SOURCE_SHA`·`MG_IMAGE_DIGEST`·`MG_IMAGE_SQL`은 **백업 시점의 실제 image source/digest 및 그 image에서 캡처한 SQL**이다. 현재 CLI checkout의 Head나 임의 label만으로 대체하지 않는다.
+
+```sh
+node scripts/verify-sqlite-recovery.mjs --help
+node scripts/verify-sqlite-recovery.mjs keygen --root="$MG_KEY_ROOT"
+node scripts/verify-sqlite-recovery.mjs backup \
+  --project-root="$MG_PROJECT_ROOT" --source="$MG_DB_SOURCE" \
+  --root="$MG_PROJECT_ROOT/backups/mastergantt/$MG_BACKUP_ID" \
+  --key-file="$MG_KEY_ROOT/backup.key" --backup-id="$MG_BACKUP_ID" \
+  --source-sha="$MG_SOURCE_SHA" --image-digest="$MG_IMAGE_DIGEST" \
+  --image-migrations="$MG_IMAGE_SQL"
+node scripts/verify-sqlite-recovery.mjs verify \
+  --backup-root="$MG_PROJECT_ROOT/backups/mastergantt/$MG_BACKUP_ID" \
+  --key-file="$MG_KEY_ROOT/backup.key" --backup-id="$MG_BACKUP_ID" \
+  --expected-source-sha="$MG_SOURCE_SHA" --expected-image-digest="$MG_IMAGE_DIGEST" \
+  --max-age-ms="$MG_MAX_AGE_MS" --image-migrations="$MG_IMAGE_SQL"
+node scripts/verify-sqlite-recovery.mjs restore \
+  --backup-root="$MG_PROJECT_ROOT/backups/mastergantt/$MG_BACKUP_ID" \
+  --key-file="$MG_KEY_ROOT/backup.key" --backup-id="$MG_BACKUP_ID" \
+  --expected-source-sha="$MG_SOURCE_SHA" --expected-image-digest="$MG_IMAGE_DIGEST" \
+  --max-age-ms="$MG_MAX_AGE_MS" --image-migrations="$MG_CANDIDATE_IMAGE_SQL" \
+  --root="$MG_RESTORE_ROOT"
+```
+
+keygen의 새 root와 `MG_RESTORE_ROOT`는 Git/프로젝트 밖의 새 private 경로다. keygen은 32-byte `backup.key`를 만든다. backup root는 새 0700 디렉터리이며 `manifest.json`, `snapshot.sqlite3.aesgcm` 등 private 파일은 0600이다. manifest/AAD는 opaque backup ID·생성 시각·captured source/image pair·SQL inventory·schema/data/ledger/hash를 결속한다. 검증은 key·archive·ID/출처·신선도·integrity/FK·migration ledger를 확인하고, restore는 새 root의 `restored.sqlite3`와 `restore-receipt.json`만 생성한다. 기존 파일·운영 DB를 overwrite하거나 source DB를 자동 탐색하지 않는다.
+
+`MG_MAX_AGE_MS`는 각 검증에서 명시하는 freshness 상한이며 보존 기간·RPO/RTO 또는 자동 스케줄 승인을 대신하지 않는다. 손상·누락·오래된 백업·잘못된 key·출처 불일치·호환되지 않는 SQL은 FAIL/BLOCKED로 기록한다. `SQL_PREFIX_VERIFIED`와 pending migration 수는 정적 SQL/ledger 대조 결과다. CLI의 `runtimeImageVerified=false`, `offHostVerified=false`를 실제 Docker runtime/오프호스트 PASS로 바꾸지 않는다. 선택한 exact digest를 새 격리 volume에서 기동해 readiness·실제 Project/Task read/write·권한·export·restart를 별도로 검증해야 한다.
+
+이 schema1 AES-GCM 형식은 #913의 기존 GPG 백업과 별개다. 기존 GPG archive·key·복원 근거는 그대로 보존하며 새 CLI와 key를 섞어 사용하거나 변환됐다고 주장하지 않는다. 키 값·원시 DB/manifest·내부 경로·복호화 산출물은 공개 로그/Git/Issue에 넣지 않는다.
+
+### #912 이번 승인 범위: 프로젝트 내부 암호화 보관
+
+Owner는 별도 외부 목적지 대신 **기존 원본 프로젝트의 `backups/mastergantt` 하위 폴더**를 지정했다. 운영자가 정한 기존 `PROJECT_ROOT`를 기준으로 하며, 정리되는 일회용 개발/검증 worktree를 장기 보관 원본으로 삼지 않는다. archive와 manifest는 접근 통제된 로컬 폴더에 보관하고 Git의 `backups/` 및 Docker build context 제외를 유지한다. 암호화 파일도 Git/Issue/이미지에 게시하지 않는다.
+
+backup 복호화 key는 프로젝트·backup 폴더 밖의 보호된 위치에 별도로 보관한다. publisher의 실행별 암호화 로그 key와 backup key는 서로 다른 목적이며 섞어 쓰지 않는다. 복원은 새 격리 target/volume에만 수행하고 운영 원본 DB를 overwrite하지 않는다.
+
+이번 Owner 범위 변경으로 off-host 목적지·외부 업로드/다운로드 검증은 제외한다. 상태는 **NOT TESTED / N/A(범위 제외)**이며 off-host 복구 PASS가 아니다. 같은 호스트 장애·유실 위험은 남는다. 매일+배포 전 백업·30일 보관·월간 복원·RPO24시간/RTO1시간은 아직 제안/응답 대기이며 승인되거나 자동 스케줄이 적용된 값으로 기록하지 않는다.
+
 ## 9. 배포 전후 확인과 복구 분기 (#912)
 
 운영 배포는 Owner의 명시 요청 또는 동일 범위 위임이 있을 때만 수행한다. 격리 합성 환경에서 로컬 Docker/readiness/API/auth·revision/native SQLite/restart persistence를 먼저 검증하고 실제 운영 host·proxy/TLS·storage·backup/restore 결과를 구분한다. 실제 환경 미실행은 NOT TESTED이며 합성 DB PASS로 대체하지 않는다.
 
-배포 전에 source SHA·verified image digest·DB schema/migration ledger·WAL 상태·backup ID·직전 정상 digest와 호환성을 기록한다. 백업은 SQLite Online Backup API(또는 sqlite3 `.backup`) 또는 clean stop 후 `/data` 전체의 일관 snapshot으로 만든다. 쓰기 중인 DB 본체 하나만 복사하지 않는다. 접근 통제·암호화·오프호스트 보관·retention·RPO/RTO와 복원 주기는 Owner가 결정한다. 초기 제안은 매일+배포/migration 직전 백업과 월간 격리 복원이며 확정/실제 수행 전 NOT TESTED다.
+배포 전에 source SHA·verified image digest·DB schema/migration ledger·WAL 상태·backup ID·직전 정상 digest와 호환성을 기록한다. 백업은 SQLite Online Backup API(또는 sqlite3 `.backup`) 또는 clean stop 후 `/data` 전체의 일관 snapshot으로 만든다. 쓰기 중인 DB 본체 하나만 복사하지 않는다. 접근 통제·암호화·외부 보관 여부·retention·RPO/RTO와 복원 주기는 Owner가 결정하며 이번 로컬 보관 승인 범위는 위 절을 따른다. 초기 제안은 매일+배포/migration 직전 백업과 월간 격리 복원이며 확정/실제 수행 전 NOT TESTED다.
 
 새 격리 volume 복원 후 `PRAGMA integrity_check`, `foreign_key_check`, migration ledger/checksum, 대표 Project/Task 읽기·쓰기/권한·export/readiness·restart persistence를 **호환 exact digest**로 확인한다. WAL 활성·손상/누락/오래된 백업·migration 중 실패·구 이미지 비호환도 음성 테스트한다. 파괴적 migration은 백업·복원 준비 없이는 배포하지 않는다. 기존 운영 파일을 자동 overwrite하거나 ledger를 편집하지 않는다.
 
@@ -193,6 +233,14 @@ production container는 prepared Next standalone tree와 build-time compiled run
 Compose runtime 변수는 `.env.example`과 `deploy/compose.yml`의 명시 전달을 확인한다. `.env`는 Compose 치환용이며 모든 값이 자동 전달되는 것은 아니다. `RESOURCE_CATALOG_ADMIN_PASSWORD`, `LOGISTICS_CATALOG_ADMIN_PASSWORD`, `PROJECT_MASTER_ADMIN_PASSWORD`는 신규 credential seed이며 이후 DB credential을 덮지 않는다. LLM 설정은 [LLM_CONFIGURATION](LLM_CONFIGURATION.md), 전송은 [HTTP_OPERATION](HTTP_OPERATION.md)을 따른다. production 기본 HTTPS, 명시적 `ALLOW_INSECURE_HTTP=true` 내부망 HTTP에서도 Origin/session/revision·Cookie 정책을 유지한다.
 
 정상 구성 확인에는 `docker compose --env-file .env -f deploy/compose.yml config --quiet`를 사용한다. 전체 config·환경값·raw 운영 로그는 게시하지 않는다. JSON stdout/stderr 로그·requestId·TRUST_PROXY 경계·보존/회전 정책은 [LOGGING](LOGGING.md)을 따른다. 기존 Compose project/volume·운영 데이터·루트 진입점을 변경하지 않는다. 배포 경로는 [REPOSITORY_STRUCTURE](REPOSITORY_STRUCTURE.md)다.
+
+### 기존 로컬 archive의 current/rollback 격리 리허설 증거
+
+2026-11-11T10:17:59.146Z~10:18:10.872Z에 기존 프로젝트 로컬 archive 복원으로 3단계 리허설을 실제 수행했다. current image는 source `8e29fe828a3a8b5fb5b8dc46b82b74722bae33fe`, exact digest `sha256:8ebd91b4f6b316c3bdc9a221e5a8ee9d50a3fb4fb845c2ebf140e44ac50292d1`이고 rollback image는 source `90c5a1a951c749a9690b1c83e5a74b6d122dd6e3`, digest `sha256:7c8e3ed6ed8b78ab8d5832fa2b225cf3f160e1c8e5b044963330e78eb26dc866`다.
+
+원본의 73개 table·SQL38/ledger38을 대조하고 current/rollback의 API·재시작, 같은 volume의 합성 추가 데이터 보존과 새 volume의 원래 source/image pair 복원을 확인했다. 자기 격리 리소스 정리는 10:19:47.417Z 완료했으며 운영 DB에 합성 데이터나 복원 파일을 쓰지 않았다. 원시 DB/주소/로그·backup key는 비공개다.
+
+이 결과는 **기존 archive 형식과 위 두 이미지의 실제 격리 복원 PASS**다. 새 schema1 AES-GCM CLI의 실제 원본 backup/restore, 새 candidate의 publisher와 그 image 검증을 대신하지 않는다. 새 CLI/환경 검증은 별도 source·시각·명령/결과로 확인하며 아직 실행되지 않은 항목은 NOT TESTED로 남긴다.
 
 ## 11. 미검증·Owner 결정
 

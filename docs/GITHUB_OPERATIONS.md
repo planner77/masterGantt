@@ -20,6 +20,20 @@ Issue에는 목표·배경·범위/비범위·AC·선행/관련 이슈·파일 �
 
 live 변경 전/후 값과 복원용 snapshot은 접근 통제된 곳에 보관하고 공개 원장에는 민감 정보 없는 결과만 적는다. 정책 변경이 필요하면 별도 Owner 결정으로 처리하며 오류 복구를 이유로 CI/PR을 임의 재활성화하지 않는다.
 
+### Actions와 Dependabot PR 설정의 구분
+
+repository Actions 비활성만으로 Dependabot의 주간 version PR 생성이 중지됐다고 추정하지 않는다. `.github/dependabot.yml`의 기존 `github-actions`·`docker` 두 ecosystem/directory·schedule/group을 보존하고 각 `open-pull-requests-limit: 0`으로 version PR 생성을 중지하도록 준비했다. **기본 브랜치 fast-forward 전에는 원격 설정 적용 완료가 아니다.**
+
+security PR은 별도 설정이다. `open-pull-requests-limit: 0`은 version update를 제외하면서 security update 설정은 따로 적용될 수 있으므로, version PR 구성만으로 security PR도 꺼졌다고 보고하지 않는다. [GitHub 공식 설명](https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/manage-your-dependency-security/customizing-dependabot-security-prs).
+
+현재 Manager의 `GET /repos/planner77/masterGantt/automated-security-fixes` read-only 조회는 `enabled=false`, `paused=false`였다. security update 설정을 변경한 것이 아니며 Dependabot alerts도 변경하지 않았다. 해당 API의 결과·권한과 실제 적용 시점을 별도로 기록하고 허용되지 않은 보안 설정 write를 추가하지 않는다. [GitHub 공식 REST 조회](https://docs.github.com/en/rest/repos/repos#check-if-dependabot-security-updates-are-enabled-for-a-repository).
+
+### #911 기존 PR의 개별 이관·종료
+
+[개별 처리 원장](PR_DISPOSITIONS_911.md)은 일곱 PR의 source Head/base·변경·제품/퇴역 CI 구분과 Owner 제안을 보존한다. Owner는 [#911 제안](https://github.com/planner77/masterGantt/issues/911#issuecomment-6792743534)에 `제안대로 이관·개별종료`를 승인했다. 이 승인은 각 PR을 미병합 처리하는 범위이며 실제 API 실행 결과와 구분한다.
+
+Manager는 #395의 로컬 runtime-security 재평가 [#914](https://github.com/planner77/masterGantt/issues/914)와 #904의 #898/#899·#721의 #720 OPEN 인계를 확보하고 원본 Head/branch·실패를 보존한 뒤 PR마다 설명·종료 근거를 남긴다. 새 Node base·제품 코드·옛 PR/CI 정책을 무검증 merge/cherry-pick하지 않는다. 상태는 실제 PR API 재조회로 확인하고 승인만으로 CLOSED를 기재하지 않는다. 이번 일곱 건은 개별 댓글·종료·재조회로 CLOSED/merged=false와 원본 Head를 확인했다. 원격 #847 ref의 일시 누락은 삭제 actor 미확인 상태로 기록하고 원본 SHA에 create-only 복구했으며, 최종 7개 ref를 확인했다. Manager는 merge·branch 삭제·과거 Run/태그 재작성을 수행하지 않았다. 세부 시각·영수증·예외는 [개별 처리 원장](PR_DISPOSITIONS_911.md#실제-개별-처리-결과)을 따른다.
+
 ## 3. 매 Push 절차
 
 1. 동일 소스의 로컬 공통/영향/위험별 검사·문서·QA와 admission을 완료한다. clean exact commit·base/main·fixture/환경을 보고서와 대조한다.
