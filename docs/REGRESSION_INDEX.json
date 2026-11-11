@@ -2416,6 +2416,293 @@
           ]
         }
       ]
+    },
+    {
+      "id": "F906-019",
+      "issue": 906,
+      "ledger": "docs/ISSUE_906_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        907,
+        908
+      ],
+      "domain": "delivery",
+      "layer": "ghcr-publish-cli",
+      "keywords": [
+        "ORAS1.3.6",
+        "destination-registry-config",
+        "immutable-OCI",
+        "GHCR_PUSH",
+        "exact-digest"
+      ],
+      "cause": "pinned ORAS cp에 지원되지 않는 공통 --registry-config를 전달했으며 목적지는 --to-registry-config가 필요",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/scripts/issue-ledger-verifier.test.ts",
+          "case": "합성 GHCR_PUSH 실패/재실행을 원본 손실 없이 검증하고 운영 결과와 구분한다",
+          "historical": false,
+          "coverageArea": "실패/재시도와 출처 결속의 원장 계약만 검사; 실제 ORAS flag 호환·업로드를 자동 Unit으로 검증했다는 뜻이 아님"
+        }
+      ],
+      "manualChecks": [
+        {
+          "command": [
+            "/home/planner/Dev/masterGantt-worktrees/issue-906-908/.prepr-reports/operations-906-908/oras-1.3.6/oras",
+            "cp",
+            "--help"
+          ],
+          "result": "read-only help에서 --to-registry-config 목적지 인증 지원 확인",
+          "scope": "actual pinned CLI help, 자동 regression 아님"
+        }
+      ],
+      "residualRisk": "앱 image source8e29의 GHCR digest 검증만 완료; docs-only evidence 후속 검증·Owner FINAL·수동 종료와 운영배포/복원은 분리",
+      "events": [
+        {
+          "id": "oras-destination-option-failed",
+          "at": "2026-11-11T00:08:27.861226+00:00",
+          "timeNote": "완료2026-11-11T00:08:27.865908+00:00",
+          "stage": "GHCR_PUSH",
+          "status": "FAIL",
+          "sourceSha": "8e29fe828a3a8b5fb5b8dc46b82b74722bae33fe",
+          "fixSourceSha": null,
+          "sourceFingerprint": "f0e00c13cb32a5bdc217e5cd494e858c3080e6a8223d5c9582508e8cdbeaa54b",
+          "sourceNote": "게시와 최종검증 당시 exact main8e29; 동일 검증 OCI source에 결속",
+          "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45; ORAS1.3.6",
+          "environmentVersion": "masterGantt0.145.1; pinned ORAS1.3.6",
+          "command": [
+            "/home/planner/Dev/masterGantt-worktrees/issue-906-908/.prepr-reports/operations-906-908/oras-1.3.6/oras",
+            "cp",
+            "--from-oci-layout",
+            "--recursive",
+            "--registry-config",
+            "<LOCAL_DOCKER_AUTH_CONFIG>",
+            "/home/planner/Dev/masterGantt-worktrees/issue-906-908/.prepr-reports/final-docker-8e29fe82/buildkit-image.oci.tar@sha256:8ebd91b4f6b316c3bdc9a221e5a8ee9d50a3fb4fb845c2ebf140e44ac50292d1",
+            "ghcr.io/planner77/mastergantt:sha-8e29fe828a3a8b5fb5b8dc46b82b74722bae33fe"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "pinned ORAS cp가 목적지 인증 옵션을 받아 동일 OCI를 고유 tag에 게시",
+          "actual": "--registry-config unsupported flag로 exit1. registry write 전 실패, 원본 보존",
+          "input": "로컬에서 검증한 동일 OCI archive와 고유 sha source tag",
+          "classification": "PUBLISH",
+          "recovery": "cp --help의 --to-registry-config로 교정하고 인증된404 collision 재확인 후 같은 OCI 재시도",
+          "residualRisk": "최초 실패는 없애지 않으며 재시도·registry readback·postpull runtime을 각각 검증",
+          "evidenceScope": "EXACT",
+          "synthetic": false,
+          "imageDigest": "sha256:8ebd91b4f6b316c3bdc9a221e5a8ee9d50a3fb4fb845c2ebf140e44ac50292d1",
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_906_FAILURE_ANALYSIS.md"
+            },
+            {
+              "kind": "PUBLIC_URL",
+              "reference": "https://github.com/planner77/masterGantt/issues/906#issuecomment-6782891041"
+            },
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:operations-906-908/execution-8e29fe82-publish-receipt.json"
+            }
+          ],
+          "sourceContentSha256": "f30688027e75c5132790f8ed5f1c7235e58a6d9b62a5388c56490e022c72728e",
+          "environmentFingerprint": null,
+          "environmentStable": null,
+          "environmentNote": "source seal/OCI identity/도구버전·registry receipt 확인; 별도 게시 process 전체 환경 hash 미수집",
+          "commandRedactions": "인증 파일 경로만 정제. 원본 argv는 ignored 실행 receipt에 보존",
+          "archiveSha256": "d78c332818c44bc741af2cdbb686f838ee48d732cf4f0f5a3ceb8c6f5915022b",
+          "registryTarget": "ghcr.io/planner77/mastergantt:sha-8e29fe828a3a8b5fb5b8dc46b82b74722bae33fe",
+          "rebuild": false,
+          "semverOrRollingChanged": false,
+          "registryPublished": false
+        },
+        {
+          "id": "same-oci-destination-option-corrected",
+          "at": "2026-11-11T00:09:46.476497+00:00",
+          "timeNote": "완료2026-11-11T00:10:07.188303+00:00",
+          "stage": "GHCR_PUSH",
+          "status": "PASS",
+          "sourceSha": "8e29fe828a3a8b5fb5b8dc46b82b74722bae33fe",
+          "fixSourceSha": null,
+          "sourceFingerprint": "f0e00c13cb32a5bdc217e5cd494e858c3080e6a8223d5c9582508e8cdbeaa54b",
+          "sourceNote": "게시와 최종검증 당시 exact main8e29; 동일 검증 OCI source에 결속",
+          "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45; ORAS1.3.6",
+          "environmentVersion": "masterGantt0.145.1; pinned ORAS1.3.6",
+          "command": [
+            "/home/planner/Dev/masterGantt-worktrees/issue-906-908/.prepr-reports/operations-906-908/oras-1.3.6/oras",
+            "cp",
+            "--from-oci-layout",
+            "--recursive",
+            "--to-registry-config",
+            "<LOCAL_DOCKER_AUTH_CONFIG>",
+            "/home/planner/Dev/masterGantt-worktrees/issue-906-908/.prepr-reports/final-docker-8e29fe82/buildkit-image.oci.tar@sha256:8ebd91b4f6b316c3bdc9a221e5a8ee9d50a3fb4fb845c2ebf140e44ac50292d1",
+            "ghcr.io/planner77/mastergantt:sha-8e29fe828a3a8b5fb5b8dc46b82b74722bae33fe"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "tag overwrite/재빌드 없이 같은 source OCI index 게시·readback 일치",
+          "actual": "목적지 옵션만 교정한 R02 exit0; authenticated404 재확인 후 동일index registry readback 일치",
+          "input": "로컬에서 검증한 동일 OCI archive와 고유 sha source tag",
+          "classification": "PUBLISH",
+          "recovery": "00:10:08.359772Z까지 registry index 확인, 이 시점 runtime은 아직 별도",
+          "residualRisk": "이 event는 게시/index검증만 PASS; exact Pull/runtime은 후속 event에 결속",
+          "evidenceScope": "EXACT",
+          "synthetic": false,
+          "imageDigest": "sha256:8ebd91b4f6b316c3bdc9a221e5a8ee9d50a3fb4fb845c2ebf140e44ac50292d1",
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_906_FAILURE_ANALYSIS.md"
+            },
+            {
+              "kind": "PUBLIC_URL",
+              "reference": "https://github.com/planner77/masterGantt/issues/906#issuecomment-6782891041"
+            },
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:operations-906-908/execution-8e29fe82-publish-r02-receipt.json"
+            }
+          ],
+          "sourceContentSha256": "f30688027e75c5132790f8ed5f1c7235e58a6d9b62a5388c56490e022c72728e",
+          "environmentFingerprint": null,
+          "environmentStable": null,
+          "environmentNote": "source seal/OCI identity/도구버전·registry receipt 확인; 별도 게시 process 전체 환경 hash 미수집",
+          "commandRedactions": "인증 파일 경로만 정제. 원본 argv는 ignored 실행 receipt에 보존",
+          "archiveSha256": "d78c332818c44bc741af2cdbb686f838ee48d732cf4f0f5a3ceb8c6f5915022b",
+          "registryTarget": "ghcr.io/planner77/mastergantt:sha-8e29fe828a3a8b5fb5b8dc46b82b74722bae33fe",
+          "rebuild": false,
+          "semverOrRollingChanged": false,
+          "registryPublished": true,
+          "registryRuntimeVerified": false,
+          "registryVerifiedAt": "2026-11-11T00:10:08.359772+00:00",
+          "verification": {
+            "sourceSha": "8e29fe828a3a8b5fb5b8dc46b82b74722bae33fe",
+            "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45; ORAS1.3.6",
+            "imageDigest": "sha256:8ebd91b4f6b316c3bdc9a221e5a8ee9d50a3fb4fb845c2ebf140e44ac50292d1",
+            "backupId": null
+          }
+        },
+        {
+          "id": "registry-exact-digest-runtime-verified",
+          "at": "2026-11-11T00:16:00.893994+00:00",
+          "timeNote": "postpull2026-11-11T00:13:06.138Z~2026-11-11T00:13:12.268Z;graph2026-11-11T00:13:40.331810+00:00~2026-11-11T00:13:40.500969+00:00",
+          "stage": "GHCR_PULL",
+          "status": "PASS",
+          "sourceSha": "8e29fe828a3a8b5fb5b8dc46b82b74722bae33fe",
+          "fixSourceSha": null,
+          "sourceFingerprint": "f0e00c13cb32a5bdc217e5cd494e858c3080e6a8223d5c9582508e8cdbeaa54b",
+          "sourceNote": "게시와 최종검증 당시 exact main8e29; 동일 검증 OCI source에 결속",
+          "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45; ORAS1.3.6",
+          "environmentVersion": "masterGantt0.145.1; pinned ORAS1.3.6",
+          "command": [
+            "node",
+            "scripts/verify-registry-api-smoke.mjs",
+            "http://127.0.0.1:32776",
+            "mastergantt-release-smoke"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "registry exact digest Pull/graph·source identity와 실제 runtime/API/SQLite restart persistence·cleanup 보존",
+          "actual": "exact Pull0/ORAS graph Pull0;원본17blobs121491268bytes·SBOM/provenance동일, source8e29/config/amd64대조, policy/readiness/API권한·저장·재시작·SQLite integrity/FK·자기정리PASS",
+          "input": "로컬에서 검증한 동일 OCI archive와 고유 sha source tag",
+          "classification": "PUBLISH",
+          "recovery": "same artifact no rebuild, 기대된 URL음성exit1은 PASS. normal/latest/rollback·Git tags·PR7Heads·권한·sourceclean 보존",
+          "residualRisk": "운영 배포/운영 DB·offhost restore 미실증. 문서-only 후속source 검증과 Owner수동FINAL은별도, 앱이미지source8e29유지",
+          "evidenceScope": "EXACT",
+          "synthetic": false,
+          "imageDigest": "sha256:8ebd91b4f6b316c3bdc9a221e5a8ee9d50a3fb4fb845c2ebf140e44ac50292d1",
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_906_FAILURE_ANALYSIS.md"
+            },
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:operations-906-908/execution-8e29fe82-final-summary.json"
+            },
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:operations-906-908/execution-8e29fe82-postpull-smoke.json"
+            },
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:operations-906-908/execution-8e29fe82-graph-verification.json"
+            }
+          ],
+          "sourceContentSha256": "f30688027e75c5132790f8ed5f1c7235e58a6d9b62a5388c56490e022c72728e",
+          "environmentFingerprint": null,
+          "environmentStable": null,
+          "environmentNote": "source seal/OCI identity/도구버전·registry receipt 확인; 별도 게시 process 전체 환경 hash 미수집",
+          "archiveSha256": "d78c332818c44bc741af2cdbb686f838ee48d732cf4f0f5a3ceb8c6f5915022b",
+          "registryTarget": "ghcr.io/planner77/mastergantt:sha-8e29fe828a3a8b5fb5b8dc46b82b74722bae33fe",
+          "rebuild": false,
+          "semverOrRollingChanged": false,
+          "registryPublished": true,
+          "registryRuntimeVerified": true,
+          "registryVerifiedAt": "2026-11-11T00:10:08.359772+00:00",
+          "verification": {
+            "sourceSha": "8e29fe828a3a8b5fb5b8dc46b82b74722bae33fe",
+            "environment": "Linux; Node 22.14.0; npm 11.10.0; Docker 29.8.0; GitHub CLI 2.45; ORAS1.3.6",
+            "imageDigest": "sha256:8ebd91b4f6b316c3bdc9a221e5a8ee9d50a3fb4fb845c2ebf140e44ac50292d1",
+            "backupId": null
+          },
+          "lifecyclePhase": "GHCR_DIGEST_VERIFIED",
+          "commandNote": "실제 postpull API/restart persistence 명령. Docker/ORAS graph Pull exit0와 나머지 checks는 별도 원본 receipt에 결속",
+          "registryReference": "ghcr.io/planner77/mastergantt@sha256:8ebd91b4f6b316c3bdc9a221e5a8ee9d50a3fb4fb845c2ebf140e44ac50292d1",
+          "graphVerification": {
+            "status": "PASS",
+            "blobCount": 17,
+            "blobBytes": 121491268,
+            "allOriginalBlobBytesPreserved": true,
+            "attestations": [
+              "provenance",
+              "sbom"
+            ],
+            "dockerPullExitCode": 0,
+            "orasGraphPullExitCode": 0,
+            "networkCommandStartedAt": "NOT CAPTURED; log creation timestamps retained"
+          },
+          "runtimeImageId": "sha256:b78c505f15c114560c3f84d778dbfd97b3c0eef560ef42f4f0cc63c979d84ab3",
+          "runtimeArchitecture": "linux/amd64",
+          "runtimeEndpointBefore": {
+            "id": "cacc66b2aae0e1379cfb0e738e851dafd65ddcfd401dd911b454f0b1f090b483",
+            "image": "sha256:b78c505f15c114560c3f84d778dbfd97b3c0eef560ef42f4f0cc63c979d84ab3",
+            "baseUrl": "http://127.0.0.1:32776"
+          },
+          "runtimeEndpointAfter": {
+            "id": "cacc66b2aae0e1379cfb0e738e851dafd65ddcfd401dd911b454f0b1f090b483",
+            "image": "sha256:b78c505f15c114560c3f84d778dbfd97b3c0eef560ef42f4f0cc63c979d84ab3",
+            "baseUrl": "http://127.0.0.1:32777"
+          },
+          "ownContainerCleanup": "PASS",
+          "expectedNegativeChecks": [
+            {
+              "label": "Fail closed URL missing",
+              "status": "PASS",
+              "exitCode": 1
+            },
+            {
+              "label": "Fail closed URL invalid",
+              "status": "PASS",
+              "exitCode": 1
+            }
+          ],
+          "helperSha256": {
+            "scripts/verify-registry-api-smoke.mjs": "aabfe7fd21167cf0687bfe5fe1d805ec8c0affd6df9db261382f1e45af5695ed",
+            "scripts/registry-smoke-core.mjs": "e016ddeb3f142e94e9368a8035f6052d105e7bf1f2e3ecb9690fbb2366c78f8d",
+            "scripts/verify-image-policy.sh": "b39cad2bbd1e4d55c0deba57eb2357e793eb5885758a723cbe038a2279399d80"
+          },
+          "productionDeployment": false,
+          "offHostBackupRestore": "NOT TESTED",
+          "actionsNewRunsSinceDisable": 0,
+          "actionsNewRunsAfterPush": 0
+        }
+      ]
     }
   ]
 }

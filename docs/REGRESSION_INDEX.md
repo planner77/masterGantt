@@ -54,3 +54,7 @@ F906-012의 실제 전체 Unit 실패를 추가하여 현재 기계 등록은 12
 ## F906-018 집중 재작업 누적
 
 동일 F906-018 아래 r1/r2의 실제 focused 실패와 r3의65PASS를 각각 누적했다. in-memory positive receipt가 실제 selected unit 소비자 전체를 구성하도록 고쳤으며 기존 layout/allowlist·외부 URL 음성·runtime 의무를 유지한다. WIP 집중 성공은 새 candidate 전체 Gate 성공이 아니다. 실패 개수는18개이며 새 Failure ID를 만들지 않았다.
+
+## 실제 GHCR 게시 원본 추가
+
+현재 실제 실패는19개다. F906-019는 ORAS1.3.6 cp의 잘못된 목적지 인증 옵션 실패와 동일 OCI의 교정 재시도다. 자동 ORAS regression을 주장하지 않고 실제 `cp --help`·인증된404·upload/readback·exact digest Pull/runtime receipt에 연결했다. 앱 source8e29·index8ebd91b4f6b316c3bdc9a221e5a8ee9d50a3fb4fb845c2ebf140e44ac50292d1의 GHCR_DIGEST_VERIFIED를 기록하되 운영 배포/복원·Owner FINAL/종료 및 후속 문서-only 검증과 분리한다. 이전18개·39events prefix는 그대로다.

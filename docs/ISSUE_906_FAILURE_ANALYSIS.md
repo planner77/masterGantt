@@ -306,3 +306,24 @@ D906-002의 inventory/필수 소비자 구분을 실제 관측된 범위로 좁�
 - 교정은 실제 `selection.selected.filter(kind===unit).map(path)`를 사용해 모든 직접 소비자의 coverage를 구성하는 것이다. 실제 allowlist/CLI wiring·정확 승인 범위와 non-loopback 음성·mandatory runtime 검사를 유지한다. 합성 receipt를 운영 게시 증거로 사용하지 않는다.
 - r3:23:47:56Z,10.76s,동일 명령 exit0,3files65PASS(prepr46+layout14+registry5). `/tmp/mastergantt-906-f018-green-r3.log`; final typecheck exit0·변경3files ESLint exit0·diff 검사 PASS. r1/r2 실패를 새 성공으로 지우지 않는다.
 - 증거는 집중 교정에 한정된다. 새 candidate의 전체 Gate/실제 Docker/API/SQLite/admission/GHCR는 별도 실행이며 아직 성공을 선기록하지 않는다.
+
+## F906-019 · GHCR_PUSH / ORAS 목적지 인증 옵션 — FAIL → PASS
+
+- 앱 source/main `8e29fe828a3a8b5fb5b8dc46b82b74722bae33fe`의 검증된 단일 OCI를 게시하는 실제 운영 단계다. 최초 `oras 1.3.6 cp --from-oci-layout --recursive --registry-config <로컬 인증 파일> <원본 OCI>@<index digest> <고유 sha tag>`는 2026-11-11T00:08:27.861226Z~00:08:27.865908Z exit1이었다. cp가 지원하지 않는 `--registry-config` 옵션 오류이며 registry write 전 실패했다. [공개 EXCEPTION](https://github.com/planner77/masterGantt/issues/906#issuecomment-6782891041)과 원본 receipt/log를 보존한다.
+- 실제 pinned ORAS의 read-only `cp --help`에서 source 인증은 `--from-registry-config`, 목적지 인증은 `--to-registry-config`임을 확인했다. 실제 ORAS 옵션 호환성을 자동 Unit으로 검증했다고 주장하지 않는다. 기계 원장의 합성 GHCR cycle 테스트는 이력/출처 보존만 검사한다.
+- 인증된 tag 조회404를 다시 확인한 뒤 목적지 옵션만 `--to-registry-config`로 교정했다. R02 00:09:46.476497Z~00:10:07.188303Z exit0,00:10:08.359772Z registry index readback 일치. 같은 원본 archive SHA256 `d78c332818c44bc741af2cdbb686f838ee48d732cf4f0f5a3ceb8c6f5915022b`와 index `sha256:8ebd91b4f6b316c3bdc9a221e5a8ee9d50a3fb4fb845c2ebf140e44ac50292d1`를 사용했으며 재빌드·tag overwrite·SemVer/rolling tag 변경은 없다.
+- 고유 tag `ghcr.io/planner77/mastergantt:sha-8e29fe828a3a8b5fb5b8dc46b82b74722bae33fe`. 원본·R02 argv/exit/시각은 ignored `execution-8e29fe82-publish[-r02]-receipt.json`에 보존한다. 공개 문서는 인증 파일 내용·민감 로그를 포함하지 않는다. 인덱스 명령에서는 인증 파일 경로만 정제하고 원본 argv는 로컬 receipt로 연결한다.
+
+## V906-015 · exact GHCR digest Pull·runtime·보존 확인 — PASS
+
+- 운영 receipt의 최종 phase는 `GHCR_DIGEST_VERIFIED`, 기록 시각2026-11-11T00:16:00.893994Z다. 게시·검증 시점의 main과 이미지 source는 모두 `8e29fe828a3a8b5fb5b8dc46b82b74722bae33fe`, 고정 base4aad다. source fingerprint `f0e00c13cb32a5bdc217e5cd494e858c3080e6a8223d5c9582508e8cdbeaa54b`의 검증된 image와 동일 OCI를 사용했다.
+- registry exact digest 새 Pull 및 ORAS graph Pull exit0. graph 검산00:13:40.331810Z~00:13:40.500969Z에서 원본17blobs/121491268bytes·SBOM/provenance 보존 PASS. 네트워크 명령의 개별 시작 시각은 미수집이며 로그 생성 시각을 별도로 보존한다. index `sha256:8ebd91b4f6b316c3bdc9a221e5a8ee9d50a3fb4fb845c2ebf140e44ac50292d1`, runtime config `sha256:b78c505f15c114560c3f84d778dbfd97b3c0eef560ef42f4f0cc63c979d84ab3`, linux/amd64·source/version label을 대조했다.
+- post-pull smoke00:13:06.138Z~00:13:12.268Z PASS. image policy, URL 누락/오류의 기대된 fail-closed exit1, readiness, Project/Task authorization·저장·readonly snapshot·restart persistence, native SQLite integrity/FK 검사가 성공했다. 기대된 음성 exit1은 새 운영 실패로 세지 않는다.
+- 실제 API 명령은 `node scripts/verify-registry-api-smoke.mjs http://127.0.0.1:32776 mastergantt-release-smoke`,00:13:09.571Z~00:13:11.667Z exit0. restart 전후 같은 container/image가32776→32777 매핑을 사용했고 자기 container/volume 정리는 exit0/PASS였다. 운영 DB/서비스 배포는 하지 않았다.
+- source/main clean 보존 검산00:14:50Z~00:15:00Z에서 기존0.145.1/latest/직전0.145.0 digest, 모든 Git tag, 열린 PR7개와 각 Head, writer 권한을 보존했다. Ruleset은 정확히 deletion/non_fast_forward와 조건·active·bypass없음을 유지하고 PR/Required Check만 제거했다. Actions disabled, 비활성화 이후·이번 main Push 이후 새 Run0건이다. 전환 전 네 skipped Run(F906-004)은 삭제하거나 세션 전체0건으로 바꾸지 않는다.
+- 실제 Push00:06:37.936001Z~00:06:42.060927Z는 일반 fast-forward exit0이며 force/새 PR은 없다. 정식 SemVer/rolling tag·운영 배포·운영 DB/off-host backup restore는 범위 밖 또는 미실증이며 게시 PASS와 구분한다.
+- 원본 final summary·graph·postpull·preserve receipt는 ignored `.prepr-reports/operations-906-908/`에 두고 공개 문서에는 정제된 결과만 기록한다. 소유자 FINAL·수동 Issue 종료는 실제 완료 시 별도 기록한다.
+
+## 문서 전용 사후 증거 commit 경계
+
+F906-019 및 완료 근거를 저장할 후속 변경은 이 원장·#907 연결·회귀 인덱스 네 문서만이다. `8e29fe828a3a8b5fb5b8dc46b82b74722bae33fe`를 고정 base로 새로운 문서 source의 fast/targeted/admit·독립 QA를 수행하고, 실행 전 PASS나 미래 commit SHA를 추측하지 않는다. 제품 산출물·배포 입력이 없으므로 새 이미지 N/A이며 이미 검증한 앱 image source/tag/digest는8e29로 유지한다. 후속 문서 main SHA와 앱 image source SHA를 Owner FINAL에서 분리한다.

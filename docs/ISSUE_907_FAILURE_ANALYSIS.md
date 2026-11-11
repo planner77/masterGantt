@@ -57,3 +57,7 @@ a3b2 exact candidate 전체 Unit3914PASS/1FAIL/기존3SKIP 중 allowlist의 정�
 ## F906-018 같은 Failure의 집중 교정 이력
 
 최초 전체 Unit 실패와 별개로 같은 재작업의 focused r1/r2 실패·typecheck 오류·r3 65PASS를 기존 Failure에 추가했다. 명령/시각·exit·case 수·로그를 각각 보존했고 working fingerprint 미수집의 SCOPED 근거로 명시했다. 실제 selected 소비자 전체·non-loopback 음성을 유지한 교정이며 final Gate/게시 승인과 분리한다.
+
+## F906-019 실제 GHCR 단계 / 완료 근거 연결
+
+실제 게시의 첫 ORAS 옵션 오류(exit1), 같은 OCI 재시도(exit0·registry exact index 일치), exact digest Pull/graph·Project/Task API·SQLite restart persistence 및 자체 정리 PASS를 F906-019의 세 event로 누적했다. 앱 source/main8e29와 archive/index/config·runtime source label을 결속했고 재빌드·tag overwrite·rolling 변경은 없었다. 원본18개/39events와 모든 기존 Markdown은 보존했다. 운영 배포/offhost restore는 별도이며 이 증거를 저장하는 문서-only 후속 source는 새 고정 base8e29에서 검증한다. 새 문서 SHA나 Owner FINAL/Issue 종료는 실행 전 만들어 넣지 않는다.
