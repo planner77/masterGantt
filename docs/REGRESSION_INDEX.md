@@ -58,3 +58,9 @@ F906-012의 실제 전체 Unit 실패를 추가하여 현재 기계 등록은 12
 ## 실제 GHCR 게시 원본 추가
 
 현재 실제 실패는19개다. F906-019는 ORAS1.3.6 cp의 잘못된 목적지 인증 옵션 실패와 동일 OCI의 교정 재시도다. 자동 ORAS regression을 주장하지 않고 실제 `cp --help`·인증된404·upload/readback·exact digest Pull/runtime receipt에 연결했다. 앱 source8e29·index8ebd91b4f6b316c3bdc9a221e5a8ee9d50a3fb4fb845c2ebf140e44ac50292d1의 GHCR_DIGEST_VERIFIED를 기록하되 운영 배포/복원·Owner FINAL/종료 및 후속 문서-only 검증과 분리한다. 이전18개·39events prefix는 그대로다.
+
+## #913 운영 배포 원본 추가
+
+새 Primary #913의 [단일 원장](ISSUE_913_FAILURE_ANALYSIS.md)에 F913-001을 연결했다. 현재 index는4 Issues/실제 실패20개/events45개다. 최초 restore clone의 wrapper FAIL(exit1)·환경 BLOCKED, 같은 backup의 R02 clone PASS(exit0), 실제 exact digest 운영 교체 PASS(exit0)를 구분해 누적했다. 기존 #906/#907/#908의3 Issues·19개 실패·42events prefix는 그대로다.
+
+공개 근거는 [첫 차단](https://github.com/planner77/masterGantt/issues/913#issuecomment-6791731783), [격리 복원/사전 QA](https://github.com/planner77/masterGantt/issues/913#issuecomment-6791875917), [실제 운영 교체](https://github.com/planner77/masterGantt/issues/913#issuecomment-6791954696)와 명시 허용된 sanitized summary다. 실제 DB/env/Origin/원시 로그·backup/키·운영 자원 명칭은 공개하지 않았다. helper Unit이 운영 복원을 자동검증했다고 주장하지 않으며 최종 통합 QA/종료·offhost DR/수동 UX/TLS 미실증은 별도다.

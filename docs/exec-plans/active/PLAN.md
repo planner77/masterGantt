@@ -22,3 +22,11 @@ main 일반 fast-forward Push 후 같은 OCI를 `sha-8e29fe828a3a8b5fb5b8dc46b82
 - #912: 일관 백업·새 격리 volume 복원·호환 DB+image·off-host 실증. 데이터 위험 배포의 사전조건.
 
 기존 open PR과 제품 변경은 Owner가 개별 채택/재작업/미채택을 판단하며 일괄 종료·무검증 병합하지 않는다. 이전 실행 계획 전체와 당시 승인 범위/미검증은 [보존 기록](../../history/owner-ci-retired-20261110/ACTIVE_PLAN.md)에 있다. 이전 Work Packet의 PR/CI 단계는 그 당시 기록이며 신규 재개는 현행 Lifecycle로 새 범위를 정한다.
+
+## #913 운영 배포 결과
+
+Owner의 명시적 운영 배포 요청으로 [#913](https://github.com/planner77/masterGantt/issues/913)에서 위 검증 이미지 source `8e29fe828a3a8b5fb5b8dc46b82b74722bae33fe`, exact digest `sha256:8ebd91b4f6b316c3bdc9a221e5a8ee9d50a3fb4fb845c2ebf140e44ac50292d1`를 적용했다. 2026-11-11T09:15:36.947326Z clean stop 후 09:15:42.022010Z healthy로 전환했고 관측 중단은 5.074684초다. SQL/ledger38 일치·pending migration0, 전후73개 table/schema/ledger 지문 동일, integrity=ok/FK0, 기존 환경14개·volume/ports/networks/project·사용자 수정 Compose 원문 보존을 검증했다. 실제 canonical HTTP readiness/HTML/정적 자산8개와 익명 readonly session도 PASS다.
+
+SQLite Online Backup과 격리 복원·HTTP/권한/쓰기/export/restart 검증 후, clean stop 시점의 전체 `/data` 최종 암호화 백업 `mg-final-20261111T091537Z-2e77d3fb`를 보존했다. 원래 환경파일의 IMAGE_NAME만 exact digest로 영구 반영했고 추가 운영 restart·합성 데이터 쓰기는 하지 않았다. F913-001의 격리 네트워크 첫 실행 실패와 복구는 [Primary 원장](../../ISSUE_913_FAILURE_ANALYSIS.md)에 연결한다. 원시 DB/환경/백업·내부 주소/로그는 비공개다.
+
+후속 문서 Head는 이 실행 결과의 증거 기록이며 새 이미지·재빌드는 N/A다. 문서 검증·정상 fast-forward와 독립 QA/Manager 최종 판정은 #913의 STATUS/FINAL을 따른다. 오프호스트 복원·TLS·실브라우저 수동 UX는 NOT TESTED로 남기며 #912 전체 완료를 주장하지 않는다.
