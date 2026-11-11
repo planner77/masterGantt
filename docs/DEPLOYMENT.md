@@ -242,6 +242,16 @@ Compose runtime 변수는 `.env.example`과 `deploy/compose.yml`의 명시 전�
 
 이 결과는 **기존 archive 형식과 위 두 이미지의 실제 격리 복원 PASS**다. 새 schema1 AES-GCM CLI의 실제 원본 backup/restore, 새 candidate의 publisher와 그 image 검증을 대신하지 않는다. 새 CLI/환경 검증은 별도 source·시각·명령/결과로 확인하며 아직 실행되지 않은 항목은 NOT TESTED로 남긴다.
 
+### 새 AES-GCM 복원본의 실제 volume/image 검증
+
+2026-11-11 새 CLI의 실제 snapshot/restore와 별도 volume/image R02를 검증했다. 도구 source는 `af3d72f85555722c8af81b8e99dc94a5c4f0c08f`, backup ID는 `mg-aes-20261111T103816Z-ac051a98`이며 captured runtime은 source `8e29fe828a3a8b5fb5b8dc46b82b74722bae33fe`/digest `sha256:8ebd91b4f6b316c3bdc9a221e5a8ee9d50a3fb4fb845c2ebf140e44ac50292d1`다. 도구 checkout과 백업 대상 image source를 구분한다.
+
+R02는 10:50:12.971286Z~10:50:16.630893Z PASS했다. 73개 table/schema·migration ledger38/SQL38·integrity/FK 오류 0·API/auth/Origin/revision/export/restart를 실제 새 격리 volume과 대응 image에서 확인했다. 운영 DB 쓰기는 0건이다. R01 CANTOPEN 실패 원본은 [Primary 실패 원장](ISSUE_912_FAILURE_ANALYSIS.md)에 보존하며 성공으로 덮지 않는다. snapshot/restore 단계와 추가 runtime의 자체 cleanup도 PASS했다. 10:51:48.227267Z에 자체 container 1개·volume 1개와 복원 평문을 제거하고 작업 공간 SQLite 파일 0개를 확인했다. AES 암호문/key의 0600, 기존 GPG 백업과 활성 운영 도구는 보존했으며 독립 QA도 완료했다. 실제 DB·backup·key·원시 로그는 비공개로 유지한다.
+
+수동 운영 launcher `~/.local/bin/mastergantt-recovery`는 10:47:32.236Z~10:47:47.572Z 활성화했다. 실제 help와 AES verify는 exit 0이며 독립 검증으로 runtime 파일 100개와 native hash의 자체 검증을 확인했다. 이는 자동 백업 스케줄 설치가 아니다. timer·prune·배포 hook은 0개이며 매일+배포 전/30일/월간 복원/RPO24시간·RTO1시간은 아직 Owner 응답 대기다. #912/#905는 OPEN으로 유지한다. off-host는 위 Owner 범위 변경에 따른 NOT TESTED / N/A이며 같은 호스트 장애 위험은 남는다.
+
+새로 게시한 `af3d72f85555722c8af81b8e99dc94a5c4f0c08f` image는 [CI_CD의 실제 게시 증거](CI_CD.md#909-새-cli의-실제-게시-증거)를 따른다. 이 작업에서 실제 운영 중인 위 `8e29fe82` image를 교체하거나 운영 DB를 복원하지 않았다.
+
 ## 11. 미검증·Owner 결정
 
 실제 architecture/native parity, bind mount 권한, 운영 upgrade/rollback, off-host backup/restore, reverse proxy/TLS, 수동 UX는 해당 환경 증거 전 NOT TESTED다. canonical hostname·인증서 담당·storage·retention/RPO/RTO·rehearsal 주기·자원/healthcheck 값은 Owner의 환경별 결정이다. #912는 실제 복원, #909는 수동 GHCR, #911은 관리자 전환을 담당한다. 문서 작성으로 그 실행 완료를 주장하지 않는다.

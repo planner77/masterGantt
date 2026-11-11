@@ -83,3 +83,11 @@ F906-012의 실제 전체 Unit 실패를 추가하여 현재 기계 등록은 12
 ### 로컬 문서 검사 명령 교정
 
 F912-007은 원장 작성 Agent의 링크검사 파일명 오류(exit1/MODULE_NOT_FOUND)와 정확 기존 `scripts/check-markdown-links.mjs`의460files PASS(exit0)다. 현재7 Issues·27 Failure·59events이며 기존 baseline prefix는 그대로다. 제품/validator 결함이나 새로운 검증 기준 변경으로 분류하지 않는다.
+
+## af3 실제 검증·게시 / 새 AES 운영 보조 실증 추가
+
+[Primary #912](ISSUE_912_FAILURE_ANALYSIS.md)에F912-001의새AESactualCLI/cleanup,F912-004의exactaf3전체4mode·같은OCI게시·Pull/runtime/SBOMprovenancePASS를후속추가했다. af3imageindex는 `sha256:9b68d8dda46f469d5fab87843f65f8b393ad6bb2fb767cd788f19afa90f85f2f`이며기존runtime8e29/backup의as-capturedpair와다르다. 정상tag/current/rollback6refs는게시전후보존됐다. 운영배포는하지않았다.
+
+새F912-008~F912-012는reviewerwrapper종류오용,운영nativeprobe두실패,Managercomment schema,rollbacksha-tag추정조회,새AES복원clone의물리RO/WAL조합실패와각교정을보존한다. commentAPI의실제성공을비프로세스exit0로꾸미지않으며retentionstderr미보존원인은UNKNOWN으로유지한다. actual새AESR02는기존currentimage격리clone의73tables/ledger38/schema/SQL38·권한/Origin/revision/export/restartPASS·생산0·자기cleanupPASS이며새af3운영배포가아니다.
+
+현재7 Issues·32 Failure·72events다. 기존7/27/59events·기존Markdownbytes는af3기준prefix그대로유지한다. [snapshotguard](../tests/scripts/prepr-snapshot.test.ts),[SQLitebackup](../tests/scripts/sqlite-backup.test.ts),[publisher](../tests/scripts/local-publish.test.ts)의실제case와수동probe범위를구분한다. 숫자정책/자동timer/cron/prune/deployhook은미승인·미설치,offhost는Owner범위변경N/A·미실증이며로컬보관의동일host유실위험은남는다.

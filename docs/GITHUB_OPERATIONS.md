@@ -20,13 +20,17 @@ Issue에는 목표·배경·범위/비범위·AC·선행/관련 이슈·파일 �
 
 live 변경 전/후 값과 복원용 snapshot은 접근 통제된 곳에 보관하고 공개 원장에는 민감 정보 없는 결과만 적는다. 정책 변경이 필요하면 별도 Owner 결정으로 처리하며 오류 복구를 이유로 CI/PR을 임의 재활성화하지 않는다.
 
+2026-11-11 Manager의 `GET /repos/planner77/masterGantt/rules/branches/main` 실제 조회에서도 적용 중인 규칙은 Ruleset `24043042`의 `deletion`·`non_fast_forward` 두 개였다. 별도 Ruleset 조회의 active·bypass=[] 및 classic protection404와 함께 확인했다. 이 API는 해당 branch에 적용되는 active rule을 반환한다([GitHub 공식 규격](https://docs.github.com/en/rest/repos/rules#get-rules-for-a-branch)). 기존 main에 force push나 삭제를 시도하는 검증은 수행하지 않았다.
+
 ### Actions와 Dependabot PR 설정의 구분
 
-repository Actions 비활성만으로 Dependabot의 주간 version PR 생성이 중지됐다고 추정하지 않는다. `.github/dependabot.yml`의 기존 `github-actions`·`docker` 두 ecosystem/directory·schedule/group을 보존하고 각 `open-pull-requests-limit: 0`으로 version PR 생성을 중지하도록 준비했다. **기본 브랜치 fast-forward 전에는 원격 설정 적용 완료가 아니다.**
+repository Actions 비활성만으로 Dependabot의 주간 version PR 생성이 중지됐다고 추정하지 않는다. `.github/dependabot.yml`의 기존 `github-actions`·`docker` 두 ecosystem/directory·schedule/group을 보존하고 각 `open-pull-requests-limit: 0`을 적용했다. 2026-11-11 구현 source `af3d72f85555722c8af81b8e99dc94a5c4f0c08f`의 정상 main fast-forward 뒤 원격 exact source에서 두 값을 확인했다. 비활성 이후 이 직접 Push의 신규 Actions Run은 0건이며, 비활성 이전 실행 이력은 그대로 보존한다.
 
 security PR은 별도 설정이다. `open-pull-requests-limit: 0`은 version update를 제외하면서 security update 설정은 따로 적용될 수 있으므로, version PR 구성만으로 security PR도 꺼졌다고 보고하지 않는다. [GitHub 공식 설명](https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/manage-your-dependency-security/customizing-dependabot-security-prs).
 
 현재 Manager의 `GET /repos/planner77/masterGantt/automated-security-fixes` read-only 조회는 `enabled=false`, `paused=false`였다. security update 설정을 변경한 것이 아니며 Dependabot alerts도 변경하지 않았다. 해당 API의 결과·권한과 실제 적용 시점을 별도로 기록하고 허용되지 않은 보안 설정 write를 추가하지 않는다. [GitHub 공식 REST 조회](https://docs.github.com/en/rest/repos/repos#check-if-dependabot-security-updates-are-enabled-for-a-repository).
+
+위 source의 로컬 검사·독립 QA·Manager ACCEPT·수동 GHCR 게시 실증은 [통합 Packet](exec-plans/active/ISSUE_912_909_911.md)의 후속 기록을 따른다. #909/#911은 증거 문서의 후속 검증 뒤 FINAL/수동 종료 예정이며 이 문서만으로 CLOSED를 추정하지 않는다. 실제 최종 상태는 각 Issue FINAL을 확인한다. 숫자 백업 정책은 별도 Owner 응답 대기이며 #912/#905는 OPEN이다.
 
 ### #911 기존 PR의 개별 이관·종료
 

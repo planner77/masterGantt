@@ -3066,6 +3066,75 @@
               "reference": "https://github.com/planner77/masterGantt/issues/912#issuecomment-6793132205"
             }
           ]
+        },
+        {
+          "id": "actual-aes-cli-roundtrip-passed",
+          "at": "2026-11-11T10:38:16.523934Z",
+          "timeNote": "완료 시각/미수집 경계는 추가 필드 참조",
+          "stage": "BACKUP",
+          "status": "PASS",
+          "sourceSha": "af3d72f85555722c8af81b8e99dc94a5c4f0c08f",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "af3 tool source; 실제 runtime/DB는 별도 capturedRuntimeSourceSha8e29. 전체 operator sourceFingerprint 미수집으로 SCOPED",
+          "environment": "Linux local sealed/operator tooling; Node22.14.0 ABI127; SQLite3.53.4; private runtime values withheld",
+          "environmentVersion": "masterGantt0.145.1; sealed tool af3",
+          "command": [
+            "python3",
+            "<private-runner>/aes-trial.private.py",
+            "<private-evidence-dir>"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "범위에 맞는 검산·실패원본 보존·비공개 자료 보호",
+          "actual": "actualkeygen/backup/verify/restore 각exit0, source readonly·73tables/ledger38/schema/data exact; source DB volume writes/restarts0",
+          "input": "정제된 실행 metadata만; 실제 DB/env/Origin/key/원문 로그는 비공개",
+          "classification": "TOOLING",
+          "recovery": "원본 실패를 보존하고 올바른 호출/실제 loaded dependency로 교정",
+          "residualRisk": "도구 보조 검산을 제품 결함/새 candidate 전체 Gate/실제 게시·배포·정책 승인으로 확대하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": "sha256:8ebd91b4f6b316c3bdc9a221e5a8ee9d50a3fb4fb845c2ebf140e44ac50292d1",
+          "backupId": "mg-aes-20261111T103816Z-ac051a98",
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_912_FAILURE_ANALYSIS.md"
+            },
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:912/aes-cli-sanitized-summary.json"
+            }
+          ],
+          "capturedRuntimeSourceSha": "8e29fe828a3a8b5fb5b8dc46b82b74722bae33fe",
+          "completedAt": "2026-11-11T10:38:17.592562Z",
+          "cipherSha256": "f23b225e5499afadf6b943b58a943a9194fce6f68f57072199c48d586b301749",
+          "runtimeImageVerified": false,
+          "offHostVerified": false,
+          "testOnlyMaxAgeMs": 3600000,
+          "OwnerPolicyMaxAgeApproved": false,
+          "scheduledJobsInstalled": 0,
+          "productionVolumeWrites": 0,
+          "productionRestarts": 0,
+          "commandRedactions": "정확 비공개 argv는 원본 receipt에 보존. placeholder는 의도적 정제",
+          "cleanup": {
+            "command": [
+              "python3",
+              "-"
+            ],
+            "exit": 0,
+            "completedAt": "2026-11-11T10:39:34.574012Z",
+            "startTimeNote": "시작 미기록",
+            "status": "PASS",
+            "scope": "자기 source/restored plaintext DB/WAL/SHM만 제거, SQLite files0; cipher/manifest/분리 AESkey/legacyGPG보존, 생산 변경0"
+          },
+          "verification": {
+            "sourceSha": "af3d72f85555722c8af81b8e99dc94a5c4f0c08f",
+            "environment": "Linux local sealed/operator tooling; Node22.14.0 ABI127; SQLite3.53.4; private runtime values withheld",
+            "imageDigest": "sha256:8ebd91b4f6b316c3bdc9a221e5a8ee9d50a3fb4fb845c2ebf140e44ac50292d1",
+            "backupId": "mg-aes-20261111T103816Z-ac051a98"
+          }
         }
       ]
     },
@@ -3419,6 +3488,135 @@
               "reference": "LOCAL:909/oras-absence-r2-private-receipt"
             }
           ]
+        },
+        {
+          "id": "exact-af3-published-digest-verified",
+          "at": "2026-11-11T10:44:59.604Z",
+          "timeNote": "게시wrapper완료2026-11-11T10:48:40.550Z; ORAScp span10:45:13.649Z→10:47:40.640Z",
+          "stage": "GHCR_PUSH",
+          "status": "PASS",
+          "sourceSha": "af3d72f85555722c8af81b8e99dc94a5c4f0c08f",
+          "fixSourceSha": "af3d72f85555722c8af81b8e99dc94a5c4f0c08f",
+          "sourceFingerprint": "7128eeb035413b3a63a2a40b32a6456a48858db4f44b43f8b53ce47dda77addd",
+          "sourceNote": "고정cleanmainaf3 exactsource/환경 시작끝동일; image/source/content/config/OCIgraph 결속검증",
+          "environment": "Node22.14.0/npm11.10.0/linuxx64/ABI127; environmentFingerprint=45cc59822937f2396b4fa9b031b0351b4b6b53c6b9dea0822d4b65a003b71cd0",
+          "environmentVersion": "masterGantt0.145.1; sealed tool af3",
+          "command": [
+            "<pinned-oras1.3.6>",
+            "cp",
+            "--from-oci-layout",
+            "--recursive",
+            "--to-registry-config",
+            "<auth-config>",
+            "<same-OCI-archive>@sha256:9b68d8dda46f469d5fab87843f65f8b393ad6bb2fb767cd788f19afa90f85f2f",
+            "ghcr.io/planner77/mastergantt:sha-af3d72f85555722c8af81b8e99dc94a5c4f0c08f"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "범위에 맞는 검산·실패원본 보존·비공개 자료 보호",
+          "actual": "원본ORAS부재판정BLOCKED후 narrowexactreference/authinventory guard로실제고정af3게시PASS. 동일OCI17blobs/SBOMprov/정확digestPull/policy/readiness/APIauth/SQLiteRestartintegrity/owncleanupPASS, 재빌드/정상tagoverwrite/운영배포없음",
+          "input": "정제된 실행 metadata만; 실제 DB/env/Origin/key/원문 로그는 비공개",
+          "classification": "PUBLICATION",
+          "recovery": "실제pinnedORAS guard 유지·같은OCI를고유shaTag로게시/원격graph와runtime재검증",
+          "residualRisk": "도구 보조 검산을 제품 결함/새 candidate 전체 Gate/실제 게시·배포·정책 승인으로 확대하지 않음",
+          "evidenceScope": "EXACT",
+          "synthetic": false,
+          "imageDigest": "sha256:9b68d8dda46f469d5fab87843f65f8b393ad6bb2fb767cd788f19afa90f85f2f",
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_912_FAILURE_ANALYSIS.md"
+            },
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:912/publish-af3d72f8-r1/publish-receipt.json"
+            },
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:912/mastergantt-af3-gates-summary.json"
+            }
+          ],
+          "completedAt": "2026-11-11T10:48:40.550Z",
+          "commandRedactions": "정확 비공개 argv는 원본 receipt에 보존. placeholder는 의도적 정제",
+          "verification": {
+            "sourceSha": "af3d72f85555722c8af81b8e99dc94a5c4f0c08f",
+            "environment": "Node22.14.0/npm11.10.0/linuxx64/ABI127; environmentFingerprint=45cc59822937f2396b4fa9b031b0351b4b6b53c6b9dea0822d4b65a003b71cd0",
+            "imageDigest": "sha256:9b68d8dda46f469d5fab87843f65f8b393ad6bb2fb767cd788f19afa90f85f2f",
+            "backupId": null
+          },
+          "publisherReceiptIntegritySha256": "4f0b47102c89c75671758c596ac74192979f67e76cc17b4f4e0b640468a8fc44",
+          "environmentFingerprint": "45cc59822937f2396b4fa9b031b0351b4b6b53c6b9dea0822d4b65a003b71cd0",
+          "sourceStable": true,
+          "environmentStable": true,
+          "sourceContentSha256": "889c9d8edf4a2229b23189fabffb8ba766f8116f62f8416bd42500027efa5bcc",
+          "ociArchiveSha256": "c8b01a8ff06d38ad3e609cf4caca74b5a10d570cc6cf0d8d4d82bf947e8ae7f6",
+          "runtimeConfigDigest": "sha256:b0001c5304dc6527fc7a3ba1c48409a62c8563533bc53510de801abac483ed09",
+          "graph": {
+            "status": "PASS",
+            "blobs": 17,
+            "indexDigest": "sha256:9b68d8dda46f469d5fab87843f65f8b393ad6bb2fb767cd788f19afa90f85f2f"
+          },
+          "runtime": {
+            "status": "PASS",
+            "imageId": "sha256:b0001c5304dc6527fc7a3ba1c48409a62c8563533bc53510de801abac483ed09",
+            "reference": "ghcr.io/planner77/mastergantt@sha256:9b68d8dda46f469d5fab87843f65f8b393ad6bb2fb767cd788f19afa90f85f2f",
+            "readiness": "PASS",
+            "apiAuthorization": "PASS",
+            "sqliteRestart": "PASS",
+            "sqliteIntegrity": "PASS"
+          },
+          "deployment": "NOT TESTED",
+          "gateEvidence": [
+            {
+              "mode": "fast",
+              "status": "PASS",
+              "startedAt": "2026-11-11T10:34:54.088Z",
+              "completedAt": "2026-11-11T10:38:19.936Z",
+              "integritySha256": "622cc39abd66da2f682227487efa03619862d1921442332b363b2d752d74d374"
+            },
+            {
+              "mode": "targeted",
+              "status": "PASS",
+              "startedAt": "2026-11-11T10:38:19.971Z",
+              "completedAt": "2026-11-11T10:38:51.760Z",
+              "integritySha256": "68b0c84ae30ef237fca3c3f918070837bc43540efb23df5932e06898642df793"
+            },
+            {
+              "mode": "docker",
+              "status": "PASS",
+              "startedAt": "2026-11-11T10:38:51.805Z",
+              "completedAt": "2026-11-11T10:42:42.232Z",
+              "integritySha256": "079903eb4850d6948813ff27e282f2c91ab7dda2b9ba9a991d5ce30f0a3449d4"
+            },
+            {
+              "mode": "admit",
+              "status": "PASS",
+              "startedAt": "2026-11-11T10:42:42.272Z",
+              "completedAt": "2026-11-11T10:42:44.127Z",
+              "integritySha256": "cee71c73a56ad7e2bcfcb46a8063191d6c01144959a6668231fce73a6f3059ce"
+            }
+          ],
+          "wholeUnit": {
+            "passed": 3970,
+            "failed": 0,
+            "skipped": 3
+          },
+          "targeted": {
+            "unitPassed": 108,
+            "browserPassed": 4
+          },
+          "manualPublisherSession": 60229,
+          "asCapturedBackupEvidence": {
+            "backupId": "mg-aes-20261111T103816Z-ac051a98",
+            "capturedRuntimeSourceSha": "8e29fe828a3a8b5fb5b8dc46b82b74722bae33fe",
+            "capturedRuntimeImageDigest": "sha256:8ebd91b4f6b316c3bdc9a221e5a8ee9d50a3fb4fb845c2ebf140e44ac50292d1"
+          },
+          "independentQa": {
+            "status": "PASS",
+            "scope": "58 encrypted evidence streams metadata/AAD/hash/mode exact, truncated0; key/plaintext not read"
+          }
         }
       ]
     },
@@ -3766,6 +3964,723 @@
             "environment": "Linux local worktree; Node22.14.0/npm11.10.0; ORAS1.3.6; private operating values withheld",
             "imageDigest": null,
             "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F912-008",
+      "issue": 912,
+      "ledger": "docs/ISSUE_912_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        909,
+        911,
+        905
+      ],
+      "domain": "tooling",
+      "layer": "reviewer-wrapper",
+      "keywords": [
+        "reviewer",
+        "runner-kind",
+        "snapshot-root"
+      ],
+      "cause": "검산 wrapper가 Vitest와 Playwright snapshot root 계약을 혼동",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/scripts/prepr-snapshot.test.ts",
+          "case": "binds audit input/head and runner paths to this exact snapshot instead of accepting paths outside tests",
+          "historical": false,
+          "coverageArea": "snapshotRunnerRoot guard 자체의 실제 Unit; reviewer wrapper runner-kind 오용은 수동 검산이고 자동 wrapper regression 없음"
+        }
+      ],
+      "residualRisk": "원본 실행형 tooling 오류이며 제품 defect로 과대평가하지 않음; 새 candidate 전체 Gate/게시는 별도",
+      "events": [
+        {
+          "id": "review-wrapper-vitest-snapshot-misuse-failed",
+          "at": null,
+          "timeNote": "정확 개별 시각 미수집",
+          "stage": "STATIC",
+          "status": "FAIL",
+          "sourceSha": "af3d72f85555722c8af81b8e99dc94a5c4f0c08f",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "af3 tool source; 실제 runtime/DB는 별도 capturedRuntimeSourceSha8e29. 전체 operator sourceFingerprint 미수집으로 SCOPED",
+          "environment": "Linux local sealed/operator tooling; Node22.14.0 ABI127; SQLite3.53.4; private runtime values withheld",
+          "environmentVersion": "masterGantt0.145.1; sealed tool af3",
+          "command": [
+            "node",
+            "--input-type=module"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "범위에 맞는 검산·실패원본 보존·비공개 자료 보호",
+          "actual": "read-only wrapper가 Vitest에도 snapshotRunnerRoot를호출하여 BLOCKED runner source 경로 mismatch; 제품/source/report 변경0",
+          "input": "정제된 실행 metadata만; 실제 DB/env/Origin/key/원문 로그는 비공개",
+          "classification": "TOOLING",
+          "recovery": "원본 실패를 보존하고 올바른 호출/실제 loaded dependency로 교정",
+          "residualRisk": "도구 보조 검산을 제품 결함/새 candidate 전체 Gate/실제 게시·배포·정책 승인으로 확대하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_912_FAILURE_ANALYSIS.md"
+            },
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:qa/chunk-db9953"
+            }
+          ]
+        },
+        {
+          "id": "review-wrapper-runner-kind-corrected-passed",
+          "at": null,
+          "timeNote": "정확 개별 시각 미수집",
+          "stage": "STATIC",
+          "status": "PASS",
+          "sourceSha": "af3d72f85555722c8af81b8e99dc94a5c4f0c08f",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "af3 tool source; 실제 runtime/DB는 별도 capturedRuntimeSourceSha8e29. 전체 operator sourceFingerprint 미수집으로 SCOPED",
+          "environment": "Linux local sealed/operator tooling; Node22.14.0 ABI127; SQLite3.53.4; private runtime values withheld",
+          "environmentVersion": "masterGantt0.145.1; sealed tool af3",
+          "command": [
+            "node",
+            "--input-type=module"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "범위에 맞는 검산·실패원본 보존·비공개 자료 보호",
+          "actual": "playwright만snapshotRunnerRoot, Vitest실제repoRoot 사용. source/checksum/log/runner/audit 전부true; wholeUnit3970PASS0FAIL3SKIP와targeted108Unit/4browser 보고서대조, 전체Docker/pub판정아님",
+          "input": "정제된 실행 metadata만; 실제 DB/env/Origin/key/원문 로그는 비공개",
+          "classification": "TOOLING",
+          "recovery": "원본 실패를 보존하고 올바른 호출/실제 loaded dependency로 교정",
+          "residualRisk": "도구 보조 검산을 제품 결함/새 candidate 전체 Gate/실제 게시·배포·정책 승인으로 확대하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_912_FAILURE_ANALYSIS.md"
+            },
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:qa/chunk-cc749d"
+            }
+          ],
+          "verification": {
+            "sourceSha": "af3d72f85555722c8af81b8e99dc94a5c4f0c08f",
+            "environment": "Linux local sealed/operator tooling; Node22.14.0 ABI127; SQLite3.53.4; private runtime values withheld",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F912-009",
+      "issue": 912,
+      "ledger": "docs/ISSUE_912_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        909,
+        911,
+        905
+      ],
+      "domain": "tooling",
+      "layer": "native-operator-staging",
+      "keywords": [
+        "native-addon",
+        "ERR_PACKAGE_PATH_NOT_EXPORTED",
+        "ENOENT",
+        "loaded-cache"
+      ],
+      "cause": "비공개 package subpath와 추측 addon path로 native 설치를 검사함",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/scripts/sqlite-backup.test.ts",
+          "case": "executes keygen, encrypted backup, verify and fresh restore through the real CLI without exposing private artifacts",
+          "historical": false,
+          "coverageArea": "actualnative/directCLI 테스트만; staging private probe는 별도 수동 실행 근거"
+        }
+      ],
+      "residualRisk": "원본 실행형 tooling 오류이며 제품 defect로 과대평가하지 않음; 새 candidate 전체 Gate/게시는 별도",
+      "events": [
+        {
+          "id": "native-probe-r01-private-subpath-failed",
+          "at": null,
+          "timeNote": "R01 시작 미기록; capturedAt은 실패 receipt 저장 시각",
+          "stage": "STATIC",
+          "status": "FAIL",
+          "sourceSha": "af3d72f85555722c8af81b8e99dc94a5c4f0c08f",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "af3 tool source; 실제 runtime/DB는 별도 capturedRuntimeSourceSha8e29. 전체 operator sourceFingerprint 미수집으로 SCOPED",
+          "environment": "Linux local sealed/operator tooling; Node22.14.0 ABI127; SQLite3.53.4; private runtime values withheld",
+          "environmentVersion": "masterGantt0.145.1; sealed tool af3",
+          "command": [
+            "<pinned-node-v22.14.0>",
+            "--input-type=commonjs",
+            "-e",
+            "<private-native-probe-R01>"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "범위에 맞는 검산·실패원본 보존·비공개 자료 보호",
+          "actual": "ERR_PACKAGE_PATH_NOT_EXPORTED; better-sqlite3 private subpath require.resolve 오용. nativeDB/제품오류아님",
+          "input": "정제된 실행 metadata만; 실제 DB/env/Origin/key/원문 로그는 비공개",
+          "classification": "TOOLING",
+          "recovery": "원본 실패를 보존하고 올바른 호출/실제 loaded dependency로 교정",
+          "residualRisk": "도구 보조 검산을 제품 결함/새 candidate 전체 Gate/실제 게시·배포·정책 승인으로 확대하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_912_FAILURE_ANALYSIS.md"
+            },
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:912/native-probe-R01-failure.private.json"
+            }
+          ],
+          "capturedAt": "2026-11-11T10:40:33.133723Z"
+        },
+        {
+          "id": "native-probe-r02-guessed-addon-failed",
+          "at": "2026-11-11T10:41:23.064000Z",
+          "timeNote": "완료 시각/미수집 경계는 추가 필드 참조",
+          "stage": "STATIC",
+          "status": "FAIL",
+          "sourceSha": "af3d72f85555722c8af81b8e99dc94a5c4f0c08f",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "af3 tool source; 실제 runtime/DB는 별도 capturedRuntimeSourceSha8e29. 전체 operator sourceFingerprint 미수집으로 SCOPED",
+          "environment": "Linux local sealed/operator tooling; Node22.14.0 ABI127; SQLite3.53.4; private runtime values withheld",
+          "environmentVersion": "masterGantt0.145.1; sealed tool af3",
+          "command": [
+            "<pinned-node-v22.14.0>",
+            "--input-type=commonjs",
+            "-e",
+            "<private-native-probe-R02>"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "범위에 맞는 검산·실패원본 보존·비공개 자료 보호",
+          "actual": "ENOENT; build/Release addon path 추측오류. 첫실패와 별도원문보존, product/sourceedit0",
+          "input": "정제된 실행 metadata만; 실제 DB/env/Origin/key/원문 로그는 비공개",
+          "classification": "TOOLING",
+          "recovery": "원본 실패를 보존하고 올바른 호출/실제 loaded dependency로 교정",
+          "residualRisk": "도구 보조 검산을 제품 결함/새 candidate 전체 Gate/실제 게시·배포·정책 승인으로 확대하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_912_FAILURE_ANALYSIS.md"
+            },
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:912/native-probe-R02-failure.private.json"
+            }
+          ],
+          "completedAt": "2026-11-11T10:41:23.096788Z"
+        },
+        {
+          "id": "native-probe-r03-actually-loaded-addon-passed",
+          "at": "2026-11-11T10:42:07.481351Z",
+          "timeNote": "완료 시각/미수집 경계는 추가 필드 참조",
+          "stage": "STATIC",
+          "status": "PASS",
+          "sourceSha": "af3d72f85555722c8af81b8e99dc94a5c4f0c08f",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "af3 tool source; 실제 runtime/DB는 별도 capturedRuntimeSourceSha8e29. 전체 operator sourceFingerprint 미수집으로 SCOPED",
+          "environment": "Linux local sealed/operator tooling; Node22.14.0 ABI127; SQLite3.53.4; private runtime values withheld",
+          "environmentVersion": "masterGantt0.145.1; sealed tool af3",
+          "command": [
+            "<pinned-node-v22.14.0>",
+            "--input-type=commonjs",
+            "-e",
+            "<private-actual-loaded-native-probe-R03>"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "범위에 맞는 검산·실패원본 보존·비공개 자료 보호",
+          "actual": "require.cache 실제loadedlinux-x64.node bytehash+memorySQLiteopen3.53.4 PASS; 기존AESstagedverify도0. 제품source변경/activation/timer/prod0",
+          "input": "정제된 실행 metadata만; 실제 DB/env/Origin/key/원문 로그는 비공개",
+          "classification": "TOOLING",
+          "recovery": "원본 실패를 보존하고 올바른 호출/실제 loaded dependency로 교정",
+          "residualRisk": "도구 보조 검산을 제품 결함/새 candidate 전체 Gate/실제 게시·배포·정책 승인으로 확대하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_912_FAILURE_ANALYSIS.md"
+            },
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:912/operator-sanitized-summary.json"
+            }
+          ],
+          "completedAt": "2026-11-11T10:42:07.517481Z",
+          "nativeAddonSha256": "6fd4292c6c5f352436cd85c9e1cb286978efa43c20ae350973f83414ced9991d",
+          "stagingCompletedAt": "2026-11-11T10:42:32.185536Z",
+          "activeLauncherInstalled": false,
+          "timerInstalled": false,
+          "verification": {
+            "sourceSha": "af3d72f85555722c8af81b8e99dc94a5c4f0c08f",
+            "environment": "Linux local sealed/operator tooling; Node22.14.0 ABI127; SQLite3.53.4; private runtime values withheld",
+            "imageDigest": null,
+            "backupId": null
+          },
+          "operatorActivation": {
+            "status": "PASS",
+            "activatedAt": "2026-11-11T10:47:32.236012Z",
+            "completedAt": "2026-11-11T10:47:47.572324Z",
+            "activeHelpExit": 0,
+            "activeNewAESVerifyExit": 0,
+            "stagingBytesPreserved": true,
+            "existingUserFilesOverwritten": false,
+            "timerInstalled": false,
+            "productionWrites": 0,
+            "productionRestarts": 0,
+            "evidence": "LOCAL:912/operator-activation-sanitized-summary.json"
+          }
+        }
+      ]
+    },
+    {
+      "id": "F912-010",
+      "issue": 912,
+      "ledger": "docs/ISSUE_912_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        909,
+        911,
+        905
+      ],
+      "domain": "tooling",
+      "layer": "github-comment-tool-schema",
+      "keywords": [
+        "INVALID_ARGUMENT",
+        "structured-schema",
+        "no-mutation"
+      ],
+      "cause": "Manager가 GitHub connector의 structured parameter schema를 잘못 호출",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/scripts/issue-ledger-verifier.test.ts",
+          "case": "FAIL→수정 source PASS를 추가해도 원본 source/오류/시각을 그대로 보존한다",
+          "historical": false,
+          "coverageArea": "ledger 보존만 자동검사; GitHub tool schema regression은 수동호출근거"
+        }
+      ],
+      "residualRisk": "원본 실행형 tooling 오류이며 제품 defect로 과대평가하지 않음; 새 candidate 전체 Gate/게시는 별도",
+      "events": [
+        {
+          "id": "manager-comment-tool-schema-rejected",
+          "at": null,
+          "timeNote": "정확 개별 시각 미수집",
+          "stage": "OPERATION",
+          "status": "FAIL",
+          "sourceSha": "af3d72f85555722c8af81b8e99dc94a5c4f0c08f",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "af3 tool source; 실제 runtime/DB는 별도 capturedRuntimeSourceSha8e29. 전체 operator sourceFingerprint 미수집으로 SCOPED",
+          "environment": "Linux local sealed/operator tooling; Node22.14.0 ABI127; SQLite3.53.4; private runtime values withheld",
+          "environmentVersion": "masterGantt0.145.1; sealed tool af3",
+          "command": [
+            "GITHUB_COMMENT_TOOL",
+            "<incorrect-structured-parameter-schema>"
+          ],
+          "exit": null,
+          "exitNote": "process exit가 없는 structured tool 응답 또는 wrapper exit 미수집; 실제 tool 상태는 actual 참조",
+          "expected": "범위에 맞는 검산·실패원본 보존·비공개 자료 보호",
+          "actual": "INVALID_ARGUMENT; tool schema 거부, 외부mutation0/제품오류아님",
+          "input": "정제된 실행 metadata만; 실제 DB/env/Origin/key/원문 로그는 비공개",
+          "classification": "TOOLING",
+          "recovery": "원본 실패를 보존하고 올바른 호출/실제 loaded dependency로 교정",
+          "residualRisk": "도구 보조 검산을 제품 결함/새 candidate 전체 Gate/실제 게시·배포·정책 승인으로 확대하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_912_FAILURE_ANALYSIS.md"
+            },
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:manager/comment-schema-first-rejected"
+            }
+          ]
+        },
+        {
+          "id": "manager-comment-correct-schema-observed",
+          "at": null,
+          "timeNote": "정확 개별 시각 미수집",
+          "stage": "OPERATION",
+          "status": "NOT TESTED",
+          "sourceSha": "af3d72f85555722c8af81b8e99dc94a5c4f0c08f",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "af3 tool source; 실제 runtime/DB는 별도 capturedRuntimeSourceSha8e29. 전체 operator sourceFingerprint 미수집으로 SCOPED",
+          "environment": "Linux local sealed/operator tooling; Node22.14.0 ABI127; SQLite3.53.4; private runtime values withheld",
+          "environmentVersion": "masterGantt0.145.1; sealed tool af3",
+          "command": [
+            "GITHUB_COMMENT_TOOL",
+            "repo_full_name/pr_number/comment"
+          ],
+          "exit": null,
+          "exitNote": "process exit가 없는 structured tool 응답 또는 wrapper exit 미수집; 실제 tool 상태는 actual 참조",
+          "expected": "범위에 맞는 검산·실패원본 보존·비공개 자료 보호",
+          "actual": "정확 structured parameters 재시도 toolSUCCESS, comment6793663002 생성관측. process exit가 없는 API tool이므로 exit0/PASS를만들지않음",
+          "input": "정제된 실행 metadata만; 실제 DB/env/Origin/key/원문 로그는 비공개",
+          "classification": "TOOLING",
+          "recovery": "원본 실패를 보존하고 올바른 호출/실제 loaded dependency로 교정",
+          "residualRisk": "도구 보조 검산을 제품 결함/새 candidate 전체 Gate/실제 게시·배포·정책 승인으로 확대하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_912_FAILURE_ANALYSIS.md"
+            },
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:manager/comment-6793663002"
+            }
+          ],
+          "toolStatus": "SUCCESS",
+          "commentId": 6793663002
+        }
+      ]
+    },
+    {
+      "id": "F912-011",
+      "issue": 912,
+      "ledger": "docs/ISSUE_912_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        909,
+        911,
+        905
+      ],
+      "domain": "tooling",
+      "layer": "retention-readonly-probe",
+      "keywords": [
+        "retention",
+        "guessed-sha-tag",
+        "exact-rollback-digest",
+        "stderr-not-preserved"
+      ],
+      "cause": "Manager read-only probe가 rollback SHA tag 존재를 추정해 조회; 원문 stderr 미보존으로 구체 이유는 UNKNOWN",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/scripts/local-publish.test.ts",
+          "case": "태그 존재/성공조회/원격main 이동은 모두 차단한다",
+          "historical": false,
+          "coverageArea": "기존 tag collision/source guard Unit만; 실제 retention inventory와 rollback exactdescriptor는 수동probe, guessed tag 실패 자동재현아님"
+        }
+      ],
+      "residualRisk": "원본 실행형 tooling 오류이며 제품 defect로 과대평가하지 않음; 새 candidate 전체 Gate/게시는 별도",
+      "events": [
+        {
+          "id": "retention-guessed-rollback-tag-probe-failed",
+          "at": "2026-11-11T10:43:33.470Z",
+          "timeNote": "report 관측시각; 전체 wrapper 시작/종료 정확시각 미수집",
+          "stage": "OPERATION",
+          "status": "FAIL",
+          "sourceSha": "af3d72f85555722c8af81b8e99dc94a5c4f0c08f",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "af3 tool source; 실제 runtime/DB는 별도 capturedRuntimeSourceSha8e29. 전체 operator sourceFingerprint 미수집으로 SCOPED",
+          "environment": "Linux local sealed/operator tooling; Node22.14.0 ABI127; SQLite3.53.4; private runtime values withheld",
+          "environmentVersion": "masterGantt0.145.1; sealed tool af3",
+          "command": [
+            "READONLY_RETENTION_PROBE",
+            "<exact-wrapper-argv-not-collected>"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "범위에 맞는 검산·실패원본 보존·비공개 자료 보호",
+          "actual": "5knownformal/currentrefs조회exit0; 마지막rollbacksource90c5sha-tag가있다고추정한조회exit1/digestnull. 원문stderr미보존으로404/auth/offline등이유추정금지. registrywrite0",
+          "input": "정제된 실행 metadata만; 실제 DB/env/Origin/key/원문 로그는 비공개",
+          "classification": "TOOLING",
+          "recovery": "원본 실패를 보존하고 올바른 호출/실제 loaded dependency로 교정",
+          "residualRisk": "도구 보조 검산을 제품 결함/새 candidate 전체 Gate/실제 게시·배포·정책 승인으로 확대하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_912_FAILURE_ANALYSIS.md"
+            },
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:912/retention-before-af3d72f8.json"
+            }
+          ],
+          "toolSession": 73849,
+          "stderrPreserved": false,
+          "registryWrites": 0
+        },
+        {
+          "id": "retention-formal-and-exactdigest-r2-passed",
+          "at": "2026-11-11T10:44:05.886Z",
+          "timeNote": "report 관측시각; 전체 wrapper 시작/종료 정확시각 미수집",
+          "stage": "OPERATION",
+          "status": "PASS",
+          "sourceSha": "af3d72f85555722c8af81b8e99dc94a5c4f0c08f",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "af3 tool source; 실제 runtime/DB는 별도 capturedRuntimeSourceSha8e29. 전체 operator sourceFingerprint 미수집으로 SCOPED",
+          "environment": "Linux local sealed/operator tooling; Node22.14.0 ABI127; SQLite3.53.4; private runtime values withheld",
+          "environmentVersion": "masterGantt0.145.1; sealed tool af3",
+          "command": [
+            "READONLY_RETENTION_PROBE_R2",
+            "<exact-wrapper-argv-not-collected>"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "범위에 맞는 검산·실패원본 보존·비공개 자료 보호",
+          "actual": "latest/0.145.1/0.145/0은기존7c8동일; exactcurrent8ebd와rollback7c8descriptor각exit0. stdout/stderr암호화private보존;registrywrite0",
+          "input": "정제된 실행 metadata만; 실제 DB/env/Origin/key/원문 로그는 비공개",
+          "classification": "TOOLING",
+          "recovery": "원본 실패를 보존하고 올바른 호출/실제 loaded dependency로 교정",
+          "residualRisk": "도구 보조 검산을 제품 결함/새 candidate 전체 Gate/실제 게시·배포·정책 승인으로 확대하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_912_FAILURE_ANALYSIS.md"
+            },
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:912/retention-before-af3d72f8-r2.json"
+            }
+          ],
+          "toolSession": 36541,
+          "stderrPreserved": true,
+          "registryWrites": 0,
+          "rollbackDigest": "sha256:7c8e3ed6ed8b78ab8d5832fa2b225cf3f160e1c8e5b044963330e78eb26dc866",
+          "currentDigest": "sha256:8ebd91b4f6b316c3bdc9a221e5a8ee9d50a3fb4fb845c2ebf140e44ac50292d1",
+          "verification": {
+            "sourceSha": "af3d72f85555722c8af81b8e99dc94a5c4f0c08f",
+            "environment": "Linux local sealed/operator tooling; Node22.14.0 ABI127; SQLite3.53.4; private runtime values withheld",
+            "imageDigest": null,
+            "backupId": null
+          },
+          "postPublishRetention": {
+            "observedAt": "2026-11-11T10:49:16.710Z",
+            "status": "PASS",
+            "wrapperExit": 0,
+            "referencesUnchanged": 6,
+            "formalTags": [
+              "latest",
+              "0.145.1",
+              "0.145",
+              "0"
+            ],
+            "currentDigest": "sha256:8ebd91b4f6b316c3bdc9a221e5a8ee9d50a3fb4fb845c2ebf140e44ac50292d1",
+            "rollbackDigest": "sha256:7c8e3ed6ed8b78ab8d5832fa2b225cf3f160e1c8e5b044963330e78eb26dc866",
+            "evidence": "LOCAL:912/retention-after-af3d72f8.json"
+          }
+        }
+      ]
+    },
+    {
+      "id": "F912-012",
+      "issue": 912,
+      "ledger": "docs/ISSUE_912_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        909,
+        911,
+        905
+      ],
+      "domain": "recovery",
+      "layer": "isolated-runtime-wal-metadata",
+      "keywords": [
+        "SQLITE_CANTOPEN",
+        "physical-readonly-volume",
+        "WAL",
+        "owned-isolated-clone"
+      ],
+      "cause": "격리복원volume을물리ROmount한fingerprint helper가sidecar없는WALsnapshot을열지못함; 자기volumeRW/DBconnectionreadonly로교정",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/scripts/sqlite-backup.test.ts",
+          "case": "backs up an active WAL read-only, restores to a fresh root and survives reopen with NULL/BLOB/large INTEGER intact",
+          "historical": false,
+          "coverageArea": "native readonly OnlineBackup/복원 계약만 자동검사; physicalRO Docker mount의 actualCANTOPEN/APIruntime교정은 별도 수동실증"
+        }
+      ],
+      "residualRisk": "원본 실행형 tooling 오류이며 제품 defect로 과대평가하지 않음; 새 candidate 전체 Gate/게시는 별도",
+      "events": [
+        {
+          "id": "new-aes-runtime-r01-fingerprint-failed",
+          "at": "2026-11-11T10:49:04.311838Z",
+          "timeNote": "전체R01span10:49:04.311838Z→10:49:05.680253Z; fingerprintsubspan10:49:05.333049Z→10:49:05.680051Z",
+          "stage": "RESTORE",
+          "status": "FAIL",
+          "sourceSha": "af3d72f85555722c8af81b8e99dc94a5c4f0c08f",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "af3 tool source; 실제 runtime/DB는 별도 capturedRuntimeSourceSha8e29. 전체 operator sourceFingerprint 미수집으로 SCOPED",
+          "environment": "Linux local sealed/operator tooling; Node22.14.0 ABI127; SQLite3.53.4; private runtime values withheld",
+          "environmentVersion": "masterGantt0.145.1; sealed tool af3",
+          "command": [
+            "docker",
+            "run",
+            "--rm",
+            "--network",
+            "none",
+            "<owned isolated volume mount>",
+            "<exact current image>",
+            "node",
+            "-e",
+            "<readonly fingerprint>"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "범위에 맞는 검산·실패원본 보존·비공개 자료 보호",
+          "actual": "activeAESrestore exit0 후 app시작전 fingerprint helper SQLITE_CANTOPEN/exit1. 생산mount/write/restart0; 원본R01receipt보존",
+          "input": "정제된 실행 metadata만; 실제 DB/env/Origin/key/원문 로그는 비공개",
+          "classification": "ENVIRONMENT",
+          "recovery": "격리ownedvolume만RWphysicalmount하여WAL/SHMmetadata를허용하고SQLite connectionreadonly/query_only유지",
+          "residualRisk": "도구 보조 검산을 제품 결함/새 candidate 전체 Gate/실제 게시·배포·정책 승인으로 확대하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": "sha256:8ebd91b4f6b316c3bdc9a221e5a8ee9d50a3fb4fb845c2ebf140e44ac50292d1",
+          "backupId": "mg-aes-20261111T103816Z-ac051a98",
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_912_FAILURE_ANALYSIS.md"
+            },
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:912/aes-runtime-r01-receipt.private.json"
+            }
+          ],
+          "capturedRuntimeSourceSha": "8e29fe828a3a8b5fb5b8dc46b82b74722bae33fe",
+          "completedAt": "2026-11-11T10:49:05.680253Z",
+          "runtimeImageVerified": false,
+          "offHostVerified": false,
+          "testOnlyMaxAgeMs": 3600000,
+          "OwnerPolicyMaxAgeApproved": false,
+          "scheduledJobsInstalled": 0,
+          "productionVolumeWrites": 0,
+          "productionRestarts": 0,
+          "commandRedactions": "정확 비공개 argv는 원본 receipt에 보존. placeholder는 의도적 정제"
+        },
+        {
+          "id": "new-aes-runtime-r02-owned-rw-readonly-db-passed",
+          "at": "2026-11-11T10:50:12.971286Z",
+          "timeNote": "R02완료10:50:16.630893Z",
+          "stage": "RESTORE",
+          "status": "PASS",
+          "sourceSha": "af3d72f85555722c8af81b8e99dc94a5c4f0c08f",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "af3 tool source; 실제 runtime/DB는 별도 capturedRuntimeSourceSha8e29. 전체 operator sourceFingerprint 미수집으로 SCOPED",
+          "environment": "Linux local sealed/operator tooling; Node22.14.0 ABI127; SQLite3.53.4; private runtime values withheld",
+          "environmentVersion": "masterGantt0.145.1; sealed tool af3",
+          "command": [
+            "python3",
+            "<private-runner>/aes-runtime-r02.private.py",
+            "<private-evidence-dir>"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "범위에 맞는 검산·실패원본 보존·비공개 자료 보호",
+          "actual": "같은ownedvolumeRW/SQLiteconnectionreadonly_queryonly교정. syntheticwrites전73tables/38ledger/schemaexact·actualSQL38·integrityok/FK0·APIauthOriginrevisionJSONexportrestartPASS; 생산mount/write/restart0",
+          "input": "정제된 실행 metadata만; 실제 DB/env/Origin/key/원문 로그는 비공개",
+          "classification": "ENVIRONMENT",
+          "recovery": "격리ownedvolume만RWphysicalmount하여WAL/SHMmetadata를허용하고SQLite connectionreadonly/query_only유지",
+          "residualRisk": "도구 보조 검산을 제품 결함/새 candidate 전체 Gate/실제 게시·배포·정책 승인으로 확대하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": "sha256:8ebd91b4f6b316c3bdc9a221e5a8ee9d50a3fb4fb845c2ebf140e44ac50292d1",
+          "backupId": "mg-aes-20261111T103816Z-ac051a98",
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_912_FAILURE_ANALYSIS.md"
+            },
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:912/aes-runtime-sanitized-summary.json"
+            }
+          ],
+          "capturedRuntimeSourceSha": "8e29fe828a3a8b5fb5b8dc46b82b74722bae33fe",
+          "completedAt": "2026-11-11T10:50:16.630893Z",
+          "runtimeImageVerified": false,
+          "offHostVerified": false,
+          "testOnlyMaxAgeMs": 3600000,
+          "OwnerPolicyMaxAgeApproved": false,
+          "scheduledJobsInstalled": 0,
+          "productionVolumeWrites": 0,
+          "productionRestarts": 0,
+          "commandRedactions": "정확 비공개 argv는 원본 receipt에 보존. placeholder는 의도적 정제",
+          "newAESFormatActualRuntimeVerified": true,
+          "cleanup": {
+            "status": "PASS",
+            "command": [
+              "python3",
+              "-"
+            ],
+            "exit": 0,
+            "completedAt": "2026-11-11T10:51:48.227267Z",
+            "startTimeNote": "시작 미수집",
+            "scope": "ownclone1/volume1/restoreplaintext제거/workspaceSQLite0",
+            "AESBackupAndExternal32Byte0600KeyRetained": true,
+            "legacyGPGRetained": true,
+            "activeOperatorStagingRetained": true,
+            "productionVolumeMounts": 0,
+            "productionWrites": 0,
+            "productionRestarts": 0,
+            "timerCronPruneDeployHook": 0,
+            "evidence": "LOCAL:912/aes-runtime-cleanup-sanitized-summary.json"
+          },
+          "verification": {
+            "sourceSha": "af3d72f85555722c8af81b8e99dc94a5c4f0c08f",
+            "environment": "Linux local sealed/operator tooling; Node22.14.0 ABI127; SQLite3.53.4; private runtime values withheld",
+            "imageDigest": "sha256:8ebd91b4f6b316c3bdc9a221e5a8ee9d50a3fb4fb845c2ebf140e44ac50292d1",
+            "backupId": "mg-aes-20261111T103816Z-ac051a98"
           }
         }
       ]

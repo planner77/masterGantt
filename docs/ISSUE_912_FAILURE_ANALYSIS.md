@@ -59,3 +59,53 @@ Manager가 실제 tool session89982의 `python3 -` wrapper exit0를 확인했다
 Manager가 전달한 정제 결과에서 기존 암호화 backup의 원본 project-local copy·격리 복원의3단계가2026-11-11T10:17:59.146Z~10:18:10.872Z PASS였다. current source8e29/index `sha256:8ebd91b4f6b316c3bdc9a221e5a8ee9d50a3fb4fb845c2ebf140e44ac50292d1`와 rollback `sha256:7c8e3ed6ed8b78ab8d5832fa2b225cf3f160e1c8e5b044963330e78eb26dc866`,73tables·ledger38 보존을 확인했고 자기 소유 임시 자료 cleanup은10:19:47.417Z였다. 이 원장 작성 Agent는 raw DB/env/key/로그를 읽지 않았다. 정확 정제 argv/개별 exit와 backup ID는 추가 sanitized 근거 전 미수집으로 남긴다.
 
 위는 기존 #913 GPG format·해당 current/rollback image의 실제 수동 리허설 보고다. 새 AES-GCM CLI로 운영 backup을 만들거나 새 candidate runtime을 검증한 결과가 아니며 새 format의 actual operator proof는 아직 NOT TESTED다.
+
+## 후속 실제 근거 / 고정 candidate와 도구 호출 오류
+
+아래 결과는 앞선 WIP·미수집·미실행 기록을 덮지 않고 추가한다. source는 `af3d72f85555722c8af81b8e99dc94a5c4f0c08f`이며 제품0.145.1이다. 실제 toolsourceaf3와 backup이 포착한 runtime source8e29/index8ebd를 구분한다.
+
+## F912-001 후속 · 새 AES-GCM 실제 CLI/격리 복원 — PASS
+
+`python3 <private-runner>/aes-trial.private.py <private-evidence-dir>`는2026-11-11T10:38:16.523934Z~10:38:17.592562Z exit0였다. 실제 keygen/backup/verify/restore는각exit0이며 native재open에서73tables·ledger38·schema/data가동일했다. backupID `mg-aes-20261111T103816Z-ac051a98`은원본project의승인prefix에암호문으로보관하고key는Git밖32byte0600,기존GPGkey와별도다. cipherSHA256 `f23b225e5499afadf6b943b58a943a9194fce6f68f57072199c48d586b301749`를결속했다.
+
+실제backup source/image는 `8e29fe828a3a8b5fb5b8dc46b82b74722bae33fe` / `sha256:8ebd91b4f6b316c3bdc9a221e5a8ee9d50a3fb4fb845c2ebf140e44ac50292d1`다. 새toolsourceaf3를기존DB의source로바꾸지않았다. sourceDBconnectionreadonly·productionvolumewrite/restart0,scheduledjob0이며CLIruntimeImageVerified/offHostVerified=false를유지한다. testOnlyMaxAgeMs3600000은Owner정책이아니다. 최초offhostBLOCKED/로컬범위결정은그대로보존한다.
+
+cleanup `python3 -` exit0·완료10:39:34.574012Z/시작미기록. 자기source/restoredplaintext DB/WAL/SHM제거·SQLitefiles0,AEScipher/manifest·외부32byte0600key·legacyGPG보존·생산변경0을확인했다. 독립QA는sanitizedmetadata만검토했고rawDB/key/env를읽지않았다. `LOCAL:912/aes-cli-sanitized-summary.json`에4CLI정제argv/시각/exit가있다.
+
+## F912-004 후속 · 고정 source 검증과 실제 같은 OCI 게시 — PASS
+
+exactsourceFingerprint `7128eeb035413b3a63a2a40b32a6456a48858db4f44b43f8b53ce47dda77addd`·environmentFingerprint `45cc59822937f2396b4fa9b031b0351b4b6b53c6b9dea0822d4b65a003b71cd0`가시작/끝같았다. fast10:34:54.088Z~10:38:19.936Z,targeted10:38:19.971Z~10:38:51.760Z,docker10:38:51.805Z~10:42:42.232Z,admit10:42:42.272Z~10:42:44.127Z 모두실제PASS였다. wholeUnit3970PASS/0FAIL/3SKIP,targeted108Unit/4browser를구분한다.4mode의integrityhash는기계event·로컬summary에보존한다.
+
+실제publisher는10:44:59.604Z~10:48:40.550Z,session60229exit0였다. pinnedORAS1.3.6의원본부재판정오류를보존하고narrowexactreference+authenticatedinventory guard로재검증했다. 실제ORAScp는10:45:13.649Z~10:47:40.640Z exit0, `cp --from-oci-layout --recursive --to-registry-config <auth-config> <same-OCI>@sha256:9b68d8dda46f469d5fab87843f65f8b393ad6bb2fb767cd788f19afa90f85f2f ghcr.io/planner77/mastergantt:sha-af3d72f85555722c8af81b8e99dc94a5c4f0c08f`였다. placeholder는정확비공개/로컬경로를의도적으로정제한것이다.
+
+동일OCI원격graph17blobs·SBOM/provenance·exactdigestPull·imagepolicy/readiness/APIauth/SQLiteRestart/integrity·owncleanupPASS였다. archiveSHA256 `c8b01a8ff06d38ad3e609cf4caca74b5a10d570cc6cf0d8d4d82bf947e8ae7f6`,configdigest `sha256:b0001c5304dc6527fc7a3ba1c48409a62c8563533bc53510de801abac483ed09`,receiptintegrity `4f0b47102c89c75671758c596ac74192979f67e76cc17b4f4e0b640468a8fc44`다. 독립QA는58encryptedstream의metadata/AAD/hash/mode/truncated0을검토했고key/plaintext는읽지않았다. 재빌드·기존정상tagoverwrite·운영배포는없다.
+
+## F912-008 · STATIC / reviewer wrapper의 runner 종류 오용 — FAIL
+
+독립Reviewer의 `node --input-type=module` stdin read-only검산은Vitest에도snapshotRunnerRoot를호출해 `BLOCKED: runner source 경로가 해당 보고서의 snapshot과 다릅니다.` exit1(chunkdb9953)이었다. 제품/source/report변경0,정확개별시각미수집이다. Playwright에만snapshotRunnerRoot,Vitest에실제repoRoot를사용한교정검산은exit0(chunkcc749d),source/checksum/log/runner/audit전부true였다. 제품결함·실제Gate실패와구분한다.
+
+## F912-009 · STATIC / 운영 도구 staging native probe — FAIL
+
+R01의better-sqlite3 private subpath require.resolve는ERR_PACKAGE_PATH_NOT_EXPORTED/exit1이었다. capturedAt10:40:33.133723Z는실패receipt저장시각이고시작시각은미기록이다. R02의build/Release addonpath추측은ENOENT/exit1,10:41:23.064000Z~10:41:23.096788Z였다. 두원본stderr/failure receipt를비공개로별도보존했다.
+
+R03은실제require.cache에서loadedlinux-x64.node를찾아bytehash/native memorySQLiteopen을검사해exit0,10:42:07.481351Z~10:42:07.517481Z였다. pinnedNode22.14.0/ABI127·better-sqlite3 13.0.3·SQLite3.53.4·nativeSHA256 `6fd4292c6c5f352436cd85c9e1cb286978efa43c20ae350973f83414ced9991d`와sealedtool을결속했다. help/stagedexistingAESverify도exit0,staging완료10:42:32.185536Z이며이때activation/timer/prod0이었다. memoryDB만사용해새plaintextfile0,CLIverify scratch는finally정리했다.
+
+후속수동operator활성화는10:47:32.236012Z~10:47:47.572324Z실제PASS이며activehelp/newAESverify각exit0였다. 기존userfilesoverwrite0/stagingbytes보존,productionwrite/restart0,timer/cron/prune/deployhook0이다. 숫자정책은계속PENDING이다.
+
+## F912-010 · OPERATION / Manager GitHub 댓글 parameter schema — FAIL
+
+첫structuredconnector호출은잘못된schema로INVALID_ARGUMENT였고외부mutation0이었다. 정확repo_full_name/pr_number/comment로재시도해comment6793663002가생성됐다. 정확개별시각은미수집이다. API tool은process exit가없으므로후속actual/toolStatus=SUCCESS를기록하고가짜exit0/PASS를만들지않는다. 기계event의후속NOTTESTED는process-exit검증경계를뜻하며실제댓글생성을부정하지않는다. 제품결함이아닌도구호출오류다.
+
+## F912-011 · OPERATION / rollback SHA tag 추정 조회 — FAIL
+
+Manager의read-onlyretention wrapper는10:43:33.470Z exit1(session73849)이었다. latest/0.145.1/0.145/0은기존7c8,currentsha8e29tag는8ebd로5조회exit0였다. 마지막rollbacksource90c5의sha-tag존재를추정한조회가exit1/digestnull이었다. 원문stderr미보존으로구체이유는UNKNOWN이며404/인증/네트워크오류로추정하지않는다. registrywrite0,제품/publisher결함아님을명시한다.
+
+실제rollbackauthority인기존formal0.145.1및exactdigest7c8로교정한R2는10:44:05.886Z wrapperexit0(session36541),4formalrefs7c8동일/current8ebd·rollback7c8descriptor각exit0였다. stdout/stderr는암호화private로보존했다. 게시후10:49:16.710Z재검산도6reference동일·exit0였고정상tag/current/rollback보존을확인했다. 실제wrapperargv는현재공개원장미수집으로남기고원본root transcript를연결한다.
+
+## F912-012 · RESTORE / 새 AES 복원 clone의 물리 RO/WAL 보조 파일 — FAIL
+
+R01전체span10:49:04.311838Z~10:49:05.680253Z에서activeAESrestore는exit0였으나app시작전fingerprintsubcommand10:49:05.333049Z~10:49:05.680051Z가SQLITE_CANTOPEN/exit1이었다. sidecar없는WALsnapshot과물리ROownedvolume조합이원인이었다. 원본R01receipt/stderr를보존했고생산mount/write/restart0이었다.
+
+자기ownedvolume만RWphysicalmount하고SQLiteconnectionreadonly/query_only를유지한 `python3 <private-runner>/aes-runtime-r02.private.py <private-evidence-dir>` R02는exit0,10:50:12.971286Z~10:50:16.630893Z였다. syntheticwrites전73tables/ledger38/schemaexact·actualSQL38·integrityok/FK0·APIauthOriginrevisionJSONexportrestartPASS였다. 새AESbackup→기존current8e29image의격리clone실증이며af3image의운영배포가아니다. productionmount/write/restart0,offhostfalse,testOnlyMaxAgeMs3600000은정책승인이아니다.
+
+최종cleanup `python3 -` exit0,완료10:51:48.227267Z/시작미수집. ownclone1/volume1/restore평문을제거해workspaceSQLite0,AEScipher/외부32byte0600key·legacyGPG·activeoperatorstaging원본은보존했다. timer/cron/prune/deployhook0·productionmount/write/restart0을확인했다. 허용sanitizedsummary만읽고rawDB/env/key/원문로그는읽지않았다.

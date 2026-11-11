@@ -56,6 +56,14 @@ node scripts/publish-local-image.mjs \
 
 CLI는 운영 배포·SemVer/rolling/latest 갱신·기존 tag/image 삭제를 하지 않는다. 정상·직전 정상 rollback digest와 호환 backup ID를 보존·원장에 연결하고 이전 digest로의 격리 복귀를 별도 검증한다. 해당 image/backup을 cleanup 후보로 처리하지 않는다.
 
+### #909 새 CLI의 실제 게시 증거
+
+2026-11-11T10:44:59.604Z~10:48:40.550Z에 source `af3d72f85555722c8af81b8e99dc94a5c4f0c08f`/version `0.145.1`의 새 CLI publish가 exit 0으로 PASS했다. 태그는 `sha-af3d72f85555722c8af81b8e99dc94a5c4f0c08f`, registry index는 `sha256:9b68d8dda46f469d5fab87843f65f8b393ad6bb2fb767cd788f19afa90f85f2f`, runtime config는 `sha256:b0001c5304dc6527fc7a3ba1c48409a62c8563533bc53510de801abac483ed09`다.
+
+29개 단계에서 admission 재검사·같은 OCI 복사 1회·17개 blob의 exact graph Pull·policy/readiness/API/auth/native SQLite/restart/integrity·cleanup이 PASS했고 source/환경은 유지됐다. SBOM/provenance를 보존했으며 암호화 stream 58개의 metadata/AAD/cipher hash·mode와 truncation 0도 검증했다. 영수증의 `integritySha256`은 `4f0b47102c89c75671758c596ac74192979f67e76cc17b4f4e0b640468a8fc44`다. 게시 후 10:49:16.710Z 재조회에서 기존 6개 ref는 불변이었고 독립 QA는 기존 `0.145.0`도 보존됐음을 확인했다. 추가 독립 QA PASS와 [Manager ACCEPT](https://github.com/planner77/masterGantt/issues/909#issuecomment-6793714928)를 연결한다.
+
+새 게시 source와 실제 운영 중인 source `8e29fe828a3a8b5fb5b8dc46b82b74722bae33fe`/digest `sha256:8ebd91b4f6b316c3bdc9a221e5a8ee9d50a3fb4fb845c2ebf140e44ac50292d1`는 별개다. 운영 재배포·SemVer/latest 변경은 수행하지 않았다. 후속 문서 전용 commit은 실행 코드·빌드 입력이 변하지 않을 때 새 image/build N/A를 기록하고 위 artifact source를 유지한다. #909의 실제 최종 종료 상태는 Issue FINAL을 따른다.
+
 ## 3. 실제 digest Pull·Smoke
 
 Push 결과와 registry 실제 manifest digest를 비교한 후 **exact digest로 새로 Pull**한다. 태그 Pull만으로 GHCR 검증 PASS가 아니다. source revision·architecture·entrypoint·non-root·이미지 정책을 확인하고 운영과 분리한 합성 DB/새 volume에서 아래를 실행한다.

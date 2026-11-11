@@ -4,15 +4,17 @@
 
 ## 진행 중: #912 / #909 / #911 · 상위 #905
 
-[통합 Work Packet](ISSUE_912_909_911.md)의 baseline은 `8eaaaaa2b7b9a24e2b4a72e7d81698217da5cf2d`다. 기존 SQLite/OCI·#906/#907/#908/#913 증거를 재사용해 백업/복원 CLI, 같은 OCI의 안전한 로컬 게시 CLI, 기존 PR 개별 처리와 운영 문서를 구현한다. 위험도 HIGH/AGENT_LOCAL이며 새 코드의 최종 same-source 로컬 검사·독립 QA·게시 결과는 실제 실행 전 NOT TESTED다. 기존 제품 이미지를 새 CLI 실행 성공으로 오인하지 않는다.
+[통합 Work Packet](ISSUE_912_909_911.md)의 baseline은 `8eaaaaa2b7b9a24e2b4a72e7d81698217da5cf2d`, 구현 source는 `af3d72f85555722c8af81b8e99dc94a5c4f0c08f`다. 기존 SQLite/OCI·#906/#907/#908/#913 자산을 재사용해 백업/복원 CLI, 동일 OCI의 로컬 게시 CLI, 기존 PR 개별 처리와 운영 문서를 구현했다. 위험도 HIGH/AGENT_LOCAL이며 같은 source의 fast 3,970 PASS·0 FAIL·opt-in 3 SKIP, targeted 108 PASS·Chromium 4 PASS, Docker·admit PASS와 네 보고서 source/환경 일치를 확인했다. 독립 QA PASS와 [Manager ACCEPT](https://github.com/planner77/masterGantt/issues/909#issuecomment-6793714928) 이후 main을 정상 fast-forward했다. 비활성 이후 이 Push의 신규 Actions Run은 0건이다.
 
 Owner는 기존 원본 프로젝트의 `backups/mastergantt`에 암호화 archive/manifest를 보관하도록 지정했다. key는 프로젝트 밖에 분리하고 Git/Docker context에서 백업을 제외한다. off-host 요구는 이번 범위에서 제거됐으며 NOT TESTED / N/A(Owner 범위 변경)이지 PASS가 아니다. 같은 호스트 장애 위험은 남는다. 매일+배포 전/30일/월간 복원/RPO24시간·RTO1시간은 아직 별도 응답 대기다.
 
 [기존 일곱 PR의 개별 제안](../../PR_DISPOSITIONS_911.md)은 Owner가 `제안대로 이관·개별종료`를 승인했다. Manager가 2026-11-11T10:17:59Z~10:18:31Z에 각각 댓글·미병합 종료하고 7개 CLOSED/merged=false·원본 Head 일치를 재조회했다. #395는 #914 로컬 runtime-security 재평가로, #904의 #898/#899 및 #721의 #720은 OPEN 후속으로 보존한다. #847 원격 ref 일시 누락은 actor를 추정하지 않고 10:21:16.308889Z~10:21:17.336553Z create-only 복구를 기록했으며 최종 원격 7개 ref와 local archive는 원본 Head에 있다. 제품 기능·Node base의 채택이나 merge를 수행하지 않았다.
 
-기존 로컬 archive의 격리 복원 3단계는 2026-11-11T10:17:59.146Z~10:18:10.872Z 실제 PASS했다. current image source `8e29fe828a3a8b5fb5b8dc46b82b74722bae33fe`/digest `sha256:8ebd91b4f6b316c3bdc9a221e5a8ee9d50a3fb4fb845c2ebf140e44ac50292d1`와 rollback source `90c5a1a951c749a9690b1c83e5a74b6d122dd6e3`/digest `sha256:7c8e3ed6ed8b78ab8d5832fa2b225cf3f160e1c8e5b044963330e78eb26dc866`에서 73개 table/SQL38·ledger38·같은 volume의 합성 추가 데이터 보존과 새 volume 복원을 대조했다. 자기 리소스는 10:19:47.417Z 정리했고 운영 DB에 쓰지 않았다. 이는 기존 형식/이미지의 증거이며 새 AES-GCM CLI·새 candidate publisher의 실제 실행 PASS는 아직 아니다.
+기존 로컬 archive의 격리 복원 3단계는 2026-11-11T10:17:59.146Z~10:18:10.872Z 실제 PASS했다. current image source `8e29fe828a3a8b5fb5b8dc46b82b74722bae33fe`/digest `sha256:8ebd91b4f6b316c3bdc9a221e5a8ee9d50a3fb4fb845c2ebf140e44ac50292d1`와 rollback source `90c5a1a951c749a9690b1c83e5a74b6d122dd6e3`/digest `sha256:7c8e3ed6ed8b78ab8d5832fa2b225cf3f160e1c8e5b044963330e78eb26dc866`에서 73개 table/SQL38·ledger38·같은 volume의 합성 추가 데이터 보존과 새 volume 복원을 대조했다. 자기 리소스는 10:19:47.417Z 정리했고 운영 DB에 쓰지 않았다. 새 AES-GCM CLI의 별도 실제 volume/image 복원 R02도 10:50:12.971286Z~10:50:16.630893Z PASS했다. 도구 source는 `af3d72f85555722c8af81b8e99dc94a5c4f0c08f`, 캡처 대상 runtime은 위 `8e29fe82` source/digest이며 R01의 CANTOPEN 실패 원본은 보존한다.
 
-현재 Actions 비활성·force/delete 보호 및 기존 정상/직전 digest를 유지한다. 새 exact source의 로컬 필수 검사·Owner 승인 범위를 확인한 뒤에만 정상 fast-forward Push와 새 CLI의 고유 SHA 게시·digest 검증으로 진행한다. 숫자 정책/원격 목적지를 승인으로 추정하거나 기존 CI/Finalizer를 실행하지 않는다. 새 코드의 운영 재배포·SemVer/latest 변경은 자동 수행하지 않는다.
+새 게시 CLI는 2026-11-11T10:44:59.604Z~10:48:40.550Z 실제 PASS했다. 태그는 `sha-af3d72f85555722c8af81b8e99dc94a5c4f0c08f`, index는 `sha256:9b68d8dda46f469d5fab87843f65f8b393ad6bb2fb767cd788f19afa90f85f2f`다. 동일 OCI 복사 1회·17개 blob·exact Pull/runtime·SBOM/provenance와 게시 후 기존 6개 ref/`0.145.0` 보존을 확인했다. 새 게시 image와 실제 운영 중인 `8e29fe82` image는 구분한다.
+
+수동 운영 launcher `~/.local/bin/mastergantt-recovery`는 10:47:32.236Z~10:47:47.572Z 활성화됐고 실제 help/AES verify와 독립 runtime 파일 100개·native hash 검증을 통과했다. 자동 timer·prune·배포 hook은 0개이며 숫자 정책은 응답 대기다. #912/#905는 OPEN으로 유지한다. #909/#911은 후속 증거 문서의 검증 뒤 FINAL/수동 종료 예정이며 실제 최종 상태는 각 Issue FINAL을 따른다. Actions 비활성·force/delete 보호를 유지하며 운영 재배포·SemVer/latest 변경은 수행하지 않았다. 문서 전용 후속 commit의 새 image/build는 실행 입력 불변을 근거로 N/A이며 게시 artifact source는 `af3d72f85555722c8af81b8e99dc94a5c4f0c08f`로 고정한다.
 
 ## 이전 source 기록: #906 / #907 / #908 통합 구현
 
