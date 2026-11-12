@@ -1,3 +1,9 @@
+## Issues #898 / #899 — 조회 선택·휠 실제 입력 검증
+
+조회 Grid 선택과 Editor 명시 진입을 분리한다. 이름 선택 버튼·정보 버튼·Chart Bar의 접근성 이름/기능을 구별하고 Editor 종료 시 유효한 원래 trigger에 focus를 복원한다. DOM 교체 시 동일 rowKey·역할을 우선하며 새 사용자 입력/source가 과거 복원을 취소한다. 기존 End/Home/Arrow의 정보 버튼/Group 확장 이동 계약을 보존한다.
+
+휠 검증은 가시 영역·elementFromPoint의 실제 target과 Control+mouse.wheel을 사용한다. 합성 dispatch의 defaultPrevented만으로 browser page zoom 차단을 승인하지 않는다. DPR/innerWidth/visualViewport와 앱 row/font/Bar geometry를 독립 측정한다. 390/768/1024/1440/1920px·Day/Week/fullscreen·KO/EN/VI 중 실행/제외를 구별하고 native125%·실기기/hybrid/AT·Owner UAT를 자동 검증으로 대체하지 않는다. [범위와 증거](exec-plans/active/ISSUE_898.md).
+
 ## Issue #896 — 측정 가능한 UI 증거 계약 (2026-11-09)
 
 Work Packet의 UI_EVIDENCE_CONTRACT에 AC→DESIGN 조항→기존 test/화면/viewport→자동 수치/수동 수용/미검증을 연결한다. #889의 ≤1px 공통 좌표와 #822 행 밀도 수치를 재사용하며 새 허용오차를 임의 완화하지 않는다. 대표 합성 PNG·geometry·실제 사용자 흐름은 기존 E2E에서 수집한다. baseline/OS/font/locale/fixture가 다르면 비교를 BLOCKED하고 원본 golden을 자동 교체하지 않는다. [증거 형식·제외 조합](UI_EVIDENCE.md), [#896 추적표](exec-plans/active/ISSUE_896.md).

@@ -95,3 +95,8 @@ F912-007은 원장 작성 Agent의 링크검사 파일명 오류(exit1/MODULE_NO
 ## 2026-11-12 Owner 복구 정책 확정
 
 [F912-001 후속](ISSUE_912_FAILURE_ANALYSIS.md)과 [Owner 결정](https://github.com/planner77/masterGantt/issues/912#issuecomment-6812259893)을 추가했다. 배포 전 수동 백업·검증과 배포 후 실제 문제 시 수동 복원만 채택했으며 정기/보관기간/정례 연습/RPO·RTO 수치 제안은 미채택이다. 숫자 승인 대기는 해소됐고 자동 예약/복원/삭제를 실행하지 않는다. command/exit가 없는 Owner 결정을 실제 검사 PASS로 바꾸지 않는다. 기존7 Issues·32 Failure·72events와 Markdown prefix는 보존하며 현재7 Issues·32 Failure·73events다. 새 source gate·Push·최종 종료의 실제 근거는 Issue FINAL을 따른다.
+
+
+## #898/#899 실제 입력·조회 선택 재작업
+
+[Primary #898](ISSUE_898_FAILURE_ANALYSIS.md)과 [#899 연결](ISSUE_899_FAILURE_ANALYSIS.md)을 추가한다. F898-001은 PLAN SHA 오기/실제 Git 조회 정정, F898-002는 현행 main의 실제 Grid 클릭 Editor 자동 열림, F898-003은 blank Grid scroll층·Chart SVG 포인터에서 density 누락의 실제 red다. 이전 [#904 최초 다섯 실패](ISSUE_898_899_FAILURE_ANALYSIS.md)와 보완은 역사 원본으로 보존하고 새 PASS로 덮지 않는다. 기존 일정 View HTTP/SQLite·물리 wheel·focus/virtual keyboard 회귀를 확장한다. 작업중 SCOPED 진단은 최종 exact source admission이 아니며 운영 장치/Owner UAT는 별도다.

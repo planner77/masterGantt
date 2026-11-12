@@ -1,3 +1,9 @@
+## Issues #898 / #899 — 실제 휠·조회 시작점 재작업
+
+[Work Packet](exec-plans/active/ISSUE_898.md)의 REUSE_REVIEW/TEST_LIFECYCLE_REVIEW/AC_TEST_COVERAGE를 따른다. 기존 #822 물리 wheel, #889 세 View/5폭/Day·Week, #880 실제 SQLite/HTTP·중복/85행·Editor/keyboard/source 회귀를 확장하고 원본 assertions/timeout/retry/skip을 유지한다. 새 reveal Unit은 날짜/scroll capacity/미측정 typed 결과만 검사하며 실제 UI 정렬을 대신하지 않는다. 원래 #904 최초 실패는 [보존 원장](ISSUE_898_899_FAILURE_ANALYSIS.md), 현재 source의 실패/재시험은 [Primary 원장](ISSUE_898_FAILURE_ANALYSIS.md)에 추가한다.
+
+로컬 fast·영향 Chromium/Unit·Docker/runtime/SQLite·clean exact-source admit를 수행한다. 실제 pointer hit-test·page zoom 독립 측정, sticky 경계와 bar-left≤1px, Editor 닫힘/명시 열기·focus, clicked rowKey·쓰기0/WBS identity를 확인한다. #896 합성 PNG/geometry/flow manifest는 출처·무결성 근거이고 #897 Owner UAT/실제 운영 장치 수용은 별도다. 과거 Required3/E2E8/Trusted/Main/Release는 역사적 증거이며 신규 원격 실행은 N/A다.
+
 # 로컬 테스트 계획과 Test Lifecycle
 
 Owner 2026-11-10 결정에 따라 모든 Issue에서 로컬 검증을 유일한 테스트 gate로 사용한다. PR·GitHub Actions·원격 CI·Trusted QA·Finalizer는 실행하지 않는다. 흐름은 [Issue Lifecycle](ISSUE_LIFECYCLE.md), 환경·CLI·실행 보고·admission은 [LOCAL_PREPR](LOCAL_PREPR.md)이 원본이다. 기존 제품 케이스/경계는 유지하며 과거 전체 테스트 계획은 [보존 기록](history/owner-ci-retired-20261110/TEST_PLAN.md)에 있다. 과거 원격 실행 요구는 현행 gate가 아니다.

@@ -13,6 +13,7 @@ import { GANTT_CELL_WIDTH, type GanttScaleMode } from "./timeline-range";
 import { ganttColumnHeader } from "./svar-locales";
 import { formatLocaleDateOnly } from "../../lib/date-display";
 import { scheduleScaleCells } from "./schedule-view-scale";
+import { projectedTaskReveal, type ProjectedTaskRevealStatus } from "./schedule-view-reveal";
 import "./schedule-view-panel.css";
 
 const DAY = 86_400_000;
@@ -92,8 +93,13 @@ export function ScheduleViewPanel(props: Props) {
   const [axis, setAxis] = useState<{ start: number; width: number; grid: number; left: number; headerHeight: number; columns: IColumnConfig[] } | null>(null);
   const focusRow = useRef<string | null>(null);
   const bookmark = useRef<ProjectionBookmark | null>(null);
+  // Preserve the clicked duplicated projection path across React selection
+  // rerenders, but relinquish it to a later actual user input/source receipt.
+  const selectedPathAnchor = useRef<{ rowKey: string; context: string; receipt: number; intent: number } | null>(null);
   const requestSequence = useRef(0);
   const userIntent = useRef(0);
+  const navigationGeneration = useRef(0);
+  useLayoutEffect(() => { navigationGeneration.current++; }, [sourceKey, loaded?.receipt, projectionContext, props.active, props.blocked]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -220,8 +226,31 @@ export function ScheduleViewPanel(props: Props) {
     first: firstTick, last: lastTick, mode: scaleMode, locale, calendar: props.calendar }) : { upper: [], lower: [] };
   const scaleTooltipText = scaleTooltip?.mode === scaleMode
     ? (scaleTooltip.tier === 0 ? scaleCells.upper : scaleCells.lower).find(cell => cell.date === scaleTooltip.date)?.tooltip : undefined;
+  const validTask = (id: string | null) => Boolean(id && props.tasks.some(task => task.taskId === id && task.type === "task"));
+  const selectTaskRow = (row: ScheduleViewRow) => {
+    if (row.kind !== "task" || !row.canonicalTaskId || !validTask(row.canonicalTaskId) || props.blocked || !source || !props.active) return;
+    const root = scroller.current;
+    focusRow.current = row.viewRowKey;
+    if (root) {
+      const reveal = axis ? projectedTaskReveal({ start: row.start, axisStart: axis.start, pixelsPerDay,
+        scrollWidth: root.scrollWidth, clientWidth: root.clientWidth })
+        : { status: "NOT_MEASURABLE" as const, left: 0 };
+      let status: ProjectedTaskRevealStatus = reveal.status;
+      if (status === "ALIGNED" || status === "NO_SCROLL_CAPACITY") {
+        if (Math.abs(root.scrollLeft - reveal.left) > 0.5) root.scrollLeft = reveal.left;
+        if (Math.abs(root.scrollLeft - reveal.left) > 1) status = "NOT_MEASURABLE";
+      }
+      root.dataset.lastRevealStatus = status;
+      root.dataset.lastRevealRowKey = row.viewRowKey;
+      selectedPathAnchor.current = { rowKey: row.viewRowKey, context: projectionContext,
+        receipt: loaded?.receipt ?? -1, intent: userIntent.current };
+      captureBookmark(root);
+      setViewport({ top: root.scrollTop, left: root.scrollLeft, height: root.clientHeight, width: root.clientWidth });
+    }
+    props.onSelect(row.canonicalTaskId);
+  };
   const openTask = (id: string) => {
-    if (props.blocked || !source || !props.tasks.some(task => task.taskId === id && task.type === "task")) return;
+    if (props.blocked || !source || !validTask(id)) return;
     const root = scroller.current;
     if (root) captureBookmark(root);
     props.onSelect(id); props.onOpenTask(id);
@@ -230,7 +259,12 @@ export function ScheduleViewPanel(props: Props) {
   const presentation = `${sourceKey}:${loaded?.receipt}:${axis?.start}:${axis?.width}:${locale}:${cellHeight}`;
   const captureBookmark = useCallback((root: HTMLDivElement) => {
     if (!source || !axis || !loaded || !props.active || props.blocked || root.clientWidth === 0 || root.clientHeight === 0) return;
-    const index = Math.min(rows.length - 1, Math.floor(root.scrollTop / cellHeight));
+    const topIndex = Math.max(0, Math.min(rows.length - 1, Math.floor(root.scrollTop / cellHeight)));
+    const anchor = selectedPathAnchor.current;
+    const trustedAnchor = anchor && anchor.context === projectionContext && anchor.receipt === loaded.receipt && anchor.intent === userIntent.current;
+    if (anchor && !trustedAnchor) selectedPathAnchor.current = null;
+    const selectedIndex = trustedAnchor ? rows.findIndex(row => row.viewRowKey === anchor.rowKey) : -1;
+    const index = selectedIndex >= 0 ? selectedIndex : topIndex;
     const row = rows[index];
     const byKey = new Map(rows.map(entry => [entry.viewRowKey, entry]));
     const ancestors: string[] = [];
@@ -238,7 +272,7 @@ export function ScheduleViewPanel(props: Props) {
     while (parent) { ancestors.push(parent); parent = byKey.get(parent)?.parentViewRowKey ?? null; }
     bookmark.current = { context: projectionContext, presentation, receipt: loaded.receipt, intent: userIntent.current,
       rowKey: row?.viewRowKey ?? null, canonicalTaskId: row?.canonicalTaskId ?? null, ancestors,
-      offset: root.scrollTop - Math.max(0, index) * cellHeight, date: axis.start + root.scrollLeft / pixelsPerDay };
+      offset: root.scrollTop - index * cellHeight, date: axis.start + root.scrollLeft / pixelsPerDay };
   }, [source, axis, loaded, props.active, props.blocked, rows, cellHeight, projectionContext, presentation, pixelsPerDay]);
 
   useLayoutEffect(() => {
@@ -301,7 +335,19 @@ export function ScheduleViewPanel(props: Props) {
     const top = headerHeight + logicalIndex * cellHeight;
     if (top < root.scrollTop + headerHeight || top + cellHeight > root.scrollTop + root.clientHeight) root.scrollTop = Math.max(0, top - headerHeight);
     setViewport({ top: root.scrollTop, left: root.scrollLeft, height: root.clientHeight, width: root.clientWidth });
-    requestAnimationFrame(() => root.querySelector<HTMLElement>(`[data-view-row-key="${CSS.escape(row.viewRowKey)}"] button:not(:disabled)`)?.focus({ preventScroll: true }));
+    // #880/#899: roving keyboard navigation must retain the original Task
+    // information control even though single click now belongs to the separate
+    // selection button. Group rows still focus their expand/collapse control.
+    const intent = userIntent.current, generation = navigationGeneration.current;
+    requestAnimationFrame(() => {
+      if (!root.isConnected || root.dataset.ready !== "true" || intent !== userIntent.current || generation !== navigationGeneration.current) return;
+      const currentRow = root.querySelector<HTMLElement>(`[data-view-row-key="${CSS.escape(row.viewRowKey)}"]`);
+      const preferred = row.kind === "task"
+        ? currentRow?.querySelector<HTMLButtonElement>("button[data-schedule-task-open]:not(:disabled)")
+        : null;
+      const target = preferred ?? currentRow?.querySelector<HTMLButtonElement>("button:not(:disabled)");
+      target?.focus({ preventScroll: true });
+    });
   };
 
   const errorMessage = requestState?.key === sourceKey && requestState.error ? t(requestState.error)
@@ -397,7 +443,9 @@ export function ScheduleViewPanel(props: Props) {
             data-task-completed={status === "completed" || undefined} data-view-row-key={row.viewRowKey} data-canonical-task-id={row.canonicalTaskId ?? undefined} data-view-row-kind={row.kind} data-view-entity-id={row.entityId} data-view-group-kind={row.groupKind}
             className={`project-schedule-view-row ${row.kind === "group" ? "project-schedule-view-group" : ""}`}
             style={{ top: headerHeight + (startRow + offset) * cellHeight, height: cellHeight }}>
-            <div className="project-schedule-view-grid" data-schedule-view-grid-cell data-schedule-view-body style={{ width: gridWidth }}>
+            <div className="project-schedule-view-grid" data-schedule-view-grid-cell data-schedule-view-body style={{ width: gridWidth }}
+              onClick={row.kind === "task" ? () => selectTaskRow(row) : undefined}
+              onDoubleClick={row.kind === "task" ? () => { if (row.canonicalTaskId) openTask(row.canonicalTaskId); } : undefined}>
               {gridColumns.map(column => <div key={column.id} role="gridcell" data-column-id={column.id}
                 className={`project-schedule-view-cell ${column.id === "text" ? "project-schedule-view-name" : ""}`}
                 style={{ width: column.width, textAlign: column.align ?? "start", transform: `translateX(${-gridOffset}px)`, paddingInlineStart: column.id === "text" ? 8 + row.depth * 16 : undefined }}>
@@ -408,8 +456,15 @@ export function ScheduleViewPanel(props: Props) {
                 onKeyDown={event => { if (event.key === "Escape") { event.stopPropagation(); setInfoTooltip(null); } }}
                 onClick={() => setCollapsed(current => { const next = new Set(current); if (next.has(row.viewRowKey)) next.delete(row.viewRowKey); else next.add(row.viewRowKey); return next; })}>
                 <span aria-hidden="true">{collapsed.has(row.viewRowKey) ? "▸" : "▾"}</span> {row.label}{row.active === false ? ` · ${t("비활성")}` : ""}{row.managementUnit === "fleet" ? ` (${row.quantity})` : ""} <small>{row.taskCount ? t("{count}개 작업", { count: row.taskCount }) : t("하위 작업 없음")}</small>
-              </button> : <button type="button" disabled={props.blocked} title={row.label} aria-label={t("작업 정보 열기: {name}", { name: row.label })}
-                onFocus={() => { focusRow.current = row.viewRowKey; }} onClick={() => row.canonicalTaskId && openTask(row.canonicalTaskId)}><span className="project-schedule-view-task-name">{row.label}</span><small>{statusLabel}</small></button>}
+              </button> : <>
+                <button type="button" disabled={props.blocked} title={row.label} aria-label={`${t("선택")}: ${row.label}`}
+                  onFocus={() => { focusRow.current = row.viewRowKey; }}><span className="project-schedule-view-task-name">{row.label}</span><small>{statusLabel}</small></button>
+                <button type="button" className="project-schedule-view-info" data-schedule-task-open disabled={props.blocked}
+                  title={t("작업 정보 열기: {name}", { name: row.label })} aria-label={t("작업 정보 열기: {name}", { name: row.label })}
+                  onFocus={() => { focusRow.current = row.viewRowKey; }}
+                  onClick={event => { event.stopPropagation(); if (row.canonicalTaskId) openTask(row.canonicalTaskId); }}
+                  onDoubleClick={event => event.stopPropagation()}><span aria-hidden="true">i</span></button>
+              </>}
               </> : column.id === "copySelection" && task ? <span className="project-schedule-view-selection" role="checkbox" aria-checked={selected} aria-readonly="true" aria-label={t("선택")} ><span aria-hidden="true">{selected ? "✓" : ""}</span></span> : <span title={cellValue(column, task)}>{cellValue(column, task)}</span>}
               </div>)}
             </div>

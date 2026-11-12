@@ -5,7 +5,7 @@ import { ContextHelp } from "@/components/ui/context-help";
 
 import { observeScaleDecoration } from "./scale-decoration-observer";
 
-import { createDensityWheel, densityHeight, densityFontScale, nextDensityLevel, isDensityWheelTarget } from "./gantt-density";
+import { createDensityWheel, densityHeight, densityFontScale, nextDensityLevel, isDensityWheelTarget, densityWheelPointer } from "./gantt-density";
 
 import { createInlineNameSession, type InlineNameSubmitCause } from "./inline-name-session";
 
@@ -2149,7 +2149,7 @@ export function ProjectGantt({
           (frame?.contains(event.target) && event.target.closest("[data-schedule-view-scroll]"))) && !event.target.closest("dialog")) {
         // Density owns one wheel-burst lease. Sub-threshold tail events must
         // not revoke its in-flight anchor; unrelated native input still wins.
-        if (!(event instanceof WheelEvent && event.ctrlKey && !event.altKey && !event.metaKey && event.cancelable && isDensityWheelTarget(event.target, frame ?? root))) coordinator.userInput();
+        if (!(event instanceof WheelEvent && event.ctrlKey && !event.altKey && !event.metaKey && event.cancelable && isDensityWheelTarget(event.target, frame ?? root, densityWheelPointer(event)))) coordinator.userInput();
         if (event instanceof WheelEvent && event.deltaX > 0 && !event.ctrlKey && event.target.closest(".wx-chart"))
           scheduleTimelineExtension(api, coordinator.stamp());
       }
@@ -2227,7 +2227,7 @@ export function ProjectGantt({
       change(0, coarse, null);
     };
     const wheel = (event: WheelEvent) => {
-      if (!event.ctrlKey || event.altKey || event.metaKey || !event.cancelable || !(event.target instanceof Element) || !isDensityWheelTarget(event.target, inputRoot)) return;
+      if (!event.ctrlKey || event.altKey || event.metaKey || !event.cancelable || !(event.target instanceof Element) || !isDensityWheelTarget(event.target, inputRoot, densityWheelPointer(event))) return;
       event.preventDefault();
       event.stopPropagation();
       // Native mutation/recovery owns temporary row geometry. Consume the
@@ -2236,7 +2236,7 @@ export function ProjectGantt({
         accumulator.reset();
         return;
       }
-      pointerY = event.clientY;
+      pointerY = densityWheelPointer(event)?.y ?? null;
       const now = performance.now();
       if (now - lastWheel > 250) viewportCoordinatorReference.current?.userInput();
       lastWheel = now;

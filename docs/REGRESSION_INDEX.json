@@ -35,6 +35,16 @@
       "issue": 911,
       "primaryIssue": 912,
       "ledger": "docs/ISSUE_911_FAILURE_ANALYSIS.md"
+    },
+    {
+      "issue": 898,
+      "primaryIssue": 898,
+      "ledger": "docs/ISSUE_898_FAILURE_ANALYSIS.md"
+    },
+    {
+      "issue": 899,
+      "primaryIssue": 898,
+      "ledger": "docs/ISSUE_899_FAILURE_ANALYSIS.md"
     }
   ],
   "failures": [
@@ -4728,6 +4738,568 @@
             "imageDigest": "sha256:8ebd91b4f6b316c3bdc9a221e5a8ee9d50a3fb4fb845c2ebf140e44ac50292d1",
             "backupId": "mg-aes-20261111T103816Z-ac051a98"
           }
+        }
+      ]
+    },
+    {
+      "id": "F898-001",
+      "issue": 898,
+      "ledger": "docs/ISSUE_898_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        899
+      ],
+      "domain": "gantt-input",
+      "layer": "operation",
+      "keywords": [
+        "wheel",
+        "selection",
+        "reveal",
+        "focus"
+      ],
+      "cause": "Manager PLAN 전체 SHA 오기; 실제 git 조회값으로 즉시 정정",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/scripts/issue-ledger-verifier.test.ts",
+          "case": "단일 Primary 연결을 유지하고 중복 Failure/Issue/event ID를 거부한다",
+          "historical": false,
+          "coverageArea": "ledger-contract-only;댓글/Git 조회 실제 절차와 구별"
+        }
+      ],
+      "residualRisk": "실제 정확 source gate/독립 QA/Owner UAT는 별도",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "개별 시각 미수집;frontend 실제 실행 보고/Primary 원장 참조",
+          "stage": "LOCAL_PREP",
+          "status": "FAIL",
+          "sourceSha": "f9a6488d686ae7e4b3228c8a9fe9c33a7fd00185",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "제품 baseline 불변·진단 테스트 diff 존재;당시 전체 지문 미수집 SCOPED",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Playwright1.63.0 Chromium",
+          "environmentVersion": "masterGantt0.145.1",
+          "command": [
+            "git",
+            "rev-parse",
+            "HEAD"
+          ],
+          "exit": 0,
+          "exitNote": "원래 댓글 API는 process exit없음;git 조회 실제exit0",
+          "expected": "정확한 source 귀속",
+          "actual": "실제 main SHA 확인·댓글 정정; 제품 테스트 결과 아님",
+          "input": "합성 fixture;운영 DB/화면 미사용",
+          "classification": "HARNESS",
+          "recovery": "최초 원본 보존;현재 source 교정과 재시험은 후속 event로 추가",
+          "residualRisk": "운영 Chrome/Edge·hybrid·Owner UAT 별도 NOT TESTED",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_898_FAILURE_ANALYSIS.md"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "F898-002",
+      "issue": 898,
+      "ledger": "docs/ISSUE_898_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        899
+      ],
+      "domain": "gantt-input",
+      "layer": "ui",
+      "keywords": [
+        "wheel",
+        "selection",
+        "reveal",
+        "focus"
+      ],
+      "cause": "조회 Grid 작업명 button이 선택 뒤 Editor를 직접 호출",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/e2e/schedule-views.spec.ts",
+          "case": "#899 projected Grid click reveals clicked duplicate path and preserves explicit Editor",
+          "historical": false,
+          "coverageArea": "실제 제품 회귀"
+        }
+      ],
+      "residualRisk": "실제 정확 source gate/독립 QA/Owner UAT는 별도",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "개별 시각 미수집;frontend 실제 실행 보고/Primary 원장 참조",
+          "stage": "PLAYWRIGHT",
+          "status": "FAIL",
+          "sourceSha": "f9a6488d686ae7e4b3228c8a9fe9c33a7fd00185",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "제품 baseline 불변·진단 테스트 diff 존재;당시 전체 지문 미수집 SCOPED",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Playwright1.63.0 Chromium",
+          "environmentVersion": "masterGantt0.145.1",
+          "command": [
+            "npm",
+            "run",
+            "test:e2e",
+            "--",
+            "tests/e2e/schedule-views.spec.ts",
+            "--grep",
+            "#898",
+            "--reporter=list"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "Issue의 실제 입력 계약 충족",
+          "actual": "실제 Grid click 후 dialog 기대0/실제1; 1FAIL/고정 wheel1PASS",
+          "input": "합성 fixture;운영 DB/화면 미사용",
+          "classification": "PRODUCT",
+          "recovery": "최초 원본 보존;현재 source 교정과 재시험은 후속 event로 추가",
+          "residualRisk": "운영 Chrome/Edge·hybrid·Owner UAT 별도 NOT TESTED",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_898_FAILURE_ANALYSIS.md"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "F898-003",
+      "issue": 898,
+      "ledger": "docs/ISSUE_898_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        899
+      ],
+      "domain": "gantt-input",
+      "layer": "ui",
+      "keywords": [
+        "wheel",
+        "selection",
+        "reveal",
+        "focus"
+      ],
+      "cause": "body 후손 selector가 빈 Grid scroll층과 Chart SVG overlay를 놓침",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/e2e/schedule-views.spec.ts",
+          "case": "#898 real pointer Ctrl+wheel across three Views including empty body",
+          "historical": false,
+          "coverageArea": "실제 제품 회귀"
+        }
+      ],
+      "residualRisk": "실제 정확 source gate/독립 QA/Owner UAT는 별도",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "개별 시각 미수집;frontend 실제 실행 보고/Primary 원장 참조",
+          "stage": "PLAYWRIGHT",
+          "status": "FAIL",
+          "sourceSha": "f9a6488d686ae7e4b3228c8a9fe9c33a7fd00185",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "제품 baseline 불변·진단 테스트 diff 존재;당시 전체 지문 미수집 SCOPED",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Playwright1.63.0 Chromium",
+          "environmentVersion": "masterGantt0.145.1",
+          "command": [
+            "npm",
+            "run",
+            "test:e2e",
+            "--",
+            "tests/e2e/schedule-views.spec.ts",
+            "--grep",
+            "#898 real",
+            "--reporter=list"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "Issue의 실제 입력 계약 충족",
+          "actual": "빈 WBS Grid actual Control+wheel 기대32/실제34px;1FAIL17.2초;baseline PageZoom 자체는 미측정",
+          "input": "합성 fixture;운영 DB/화면 미사용",
+          "classification": "PRODUCT",
+          "recovery": "최초 원본 보존;현재 source 교정과 재시험은 후속 event로 추가",
+          "residualRisk": "운영 Chrome/Edge·hybrid·Owner UAT 별도 NOT TESTED",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_898_FAILURE_ANALYSIS.md"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "F898-004",
+      "issue": 898,
+      "ledger": "docs/ISSUE_898_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        899
+      ],
+      "domain": "gantt-input",
+      "layer": "test",
+      "keywords": [
+        "reveal",
+        "capacity",
+        "date",
+        "import"
+      ],
+      "cause": "reveal strict date helper 별칭 import를 Vitest가 해석하지 못함",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/features/gantt/schedule-view-reveal.test.ts",
+          "case": "keeps missing or invalid dates distinct from insufficient scroll room",
+          "historical": false,
+          "coverageArea": "실제 typed 결과/제품 UI 회귀;WIP진단과최종Gate구별"
+        }
+      ],
+      "residualRisk": "새 exact source 전체 Gate/독립QA/OwnerUAT는 별도",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "개별 시각 미수집;frontend 실제 실행 보고/Primary 원장 참조",
+          "stage": "UNIT",
+          "status": "FAIL",
+          "sourceSha": "f9a6488d686ae7e4b3228c8a9fe9c33a7fd00185",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "HEAD는baseline이나제품·테스트교정diff존재;당시전체지문미수집SCOPED,최종exact-source아님",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Playwright1.63.0 Chromium",
+          "environmentVersion": "masterGantt0.145.1",
+          "command": [
+            "npm",
+            "test",
+            "--",
+            "tests/features/gantt/gantt-density.test.ts",
+            "tests/features/gantt/schedule-view-reveal.test.ts"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "해당 테스트의 실제 제품 계약 검사",
+          "actual": "Cannot find package '@/domain/scheduling/date-only';1suiteFAIL/4testsPASS → 상대import 교정7PASS135ms",
+          "input": "합성 fixture;운영 DB/화면 미사용",
+          "classification": "HARNESS",
+          "recovery": "최초 실패 보존;기존 관례/실제 scroll capacity 전제로 교정 후 새 exact source 검사",
+          "residualRisk": "운영 Chrome/Edge·hybrid·Owner UAT 별도 NOT TESTED",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_898_FAILURE_ANALYSIS.md"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "F898-005",
+      "issue": 898,
+      "ledger": "docs/ISSUE_898_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        899
+      ],
+      "domain": "gantt-input",
+      "layer": "test",
+      "keywords": [
+        "reveal",
+        "capacity",
+        "date",
+        "import"
+      ],
+      "cause": "5폭/Week reveal 테스트가 기존 축의 scroll capacity 부족을 무시하고 ALIGNED를 가정",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/e2e/schedule-views.spec.ts",
+          "case": "#899 projected Grid click reveals clicked duplicate path and preserves explicit Editor",
+          "historical": false,
+          "coverageArea": "실제 typed 결과/제품 UI 회귀;WIP진단과최종Gate구별"
+        }
+      ],
+      "residualRisk": "새 exact source 전체 Gate/독립QA/OwnerUAT는 별도",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "개별 시각 미수집;frontend 실제 실행 보고/Primary 원장 참조",
+          "stage": "PLAYWRIGHT",
+          "status": "FAIL",
+          "sourceSha": "f9a6488d686ae7e4b3228c8a9fe9c33a7fd00185",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "HEAD는baseline이나제품·테스트교정diff존재;당시전체지문미수집SCOPED,최종exact-source아님",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Playwright1.63.0 Chromium",
+          "environmentVersion": "masterGantt0.145.1",
+          "command": [
+            "npm",
+            "run",
+            "test:e2e",
+            "--",
+            "tests/e2e/schedule-views.spec.ts",
+            "tests/e2e/project-summary-bar-visual.spec.ts",
+            "--grep",
+            "#899 projected|#898 real|#822 scopes cancellation",
+            "--reporter=list"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "해당 테스트의 실제 제품 계약 검사",
+          "actual": "390px/Week/Resource에서 Expected ALIGNED/Received NO_SCROLL_CAPACITY;2PASS/1FAIL1.6분;target/max당시미측정",
+          "input": "합성 fixture;운영 DB/화면 미사용",
+          "classification": "HARNESS",
+          "recovery": "최초 실패 보존;기존 관례/실제 scroll capacity 전제로 교정 후 새 exact source 검사",
+          "residualRisk": "운영 Chrome/Edge·hybrid·Owner UAT 별도 NOT TESTED",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_898_FAILURE_ANALYSIS.md"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "F898-006",
+      "issue": 898,
+      "ledger": "docs/ISSUE_898_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        899
+      ],
+      "domain": "gantt-input",
+      "layer": "test",
+      "keywords": [
+        "wheel",
+        "capacity",
+        "fullscreen",
+        "hit-test"
+      ],
+      "cause": "후속일반wheel시험이matrix복귀뒤양성scrollcapacity를수집하지않음",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/e2e/schedule-views.spec.ts",
+          "case": "#899 projected Grid click reveals clicked duplicate path and preserves explicit Editor",
+          "historical": false,
+          "coverageArea": "현재실제입력·양성전제귀속검사;원래미측정원인은별도"
+        }
+      ],
+      "residualRisk": "원래target/capacity미관측보존;새exactsource와운영UAT는별도",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "개별 시각 미수집;frontend 실제 실행 보고/Primary 원장 참조",
+          "stage": "PLAYWRIGHT",
+          "status": "FAIL",
+          "sourceSha": "f9a6488d686ae7e4b3228c8a9fe9c33a7fd00185",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "HEAD는baseline이나제품·테스트교정diff존재;당시전체지문미수집SCOPED,최종exact-source아님",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Playwright1.63.0 Chromium",
+          "environmentVersion": "masterGantt0.145.1",
+          "command": [
+            "npm",
+            "run",
+            "test:e2e",
+            "--",
+            "tests/e2e/schedule-views.spec.ts",
+            "tests/e2e/project-summary-bar-visual.spec.ts",
+            "--grep",
+            "#899 projected|#898 real|#822 scopes cancellation",
+            "--reporter=list"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "해당 테스트의 실제 제품 계약 검사",
+          "actual": "deltaX120뒤Expected>0/Received0;max당시미측정;원인확정불가",
+          "input": "합성 fixture;운영 DB/화면 미사용",
+          "classification": "HARNESS",
+          "recovery": "실제양성capacity/fullscreenowner·현재hittarget전제확인후같은계약재시험;원래미관측값은추측하지않음",
+          "residualRisk": "운영 Chrome/Edge·hybrid·Owner UAT 별도 NOT TESTED",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_898_FAILURE_ANALYSIS.md"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "F898-007",
+      "issue": 898,
+      "ledger": "docs/ISSUE_898_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        899
+      ],
+      "domain": "gantt-input",
+      "layer": "test",
+      "keywords": [
+        "wheel",
+        "capacity",
+        "fullscreen",
+        "hit-test"
+      ],
+      "cause": "추가fullscreenwheel이cancelablefalse;원래hittarget미수집",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/e2e/schedule-views.spec.ts",
+          "case": "#898 real pointer Ctrl+wheel across three Views including empty body",
+          "historical": false,
+          "coverageArea": "현재실제입력·양성전제귀속검사;원래미측정원인은별도"
+        }
+      ],
+      "residualRisk": "원래target/capacity미관측보존;새exactsource와운영UAT는별도",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "개별 시각 미수집;frontend 실제 실행 보고/Primary 원장 참조",
+          "stage": "PLAYWRIGHT",
+          "status": "FAIL",
+          "sourceSha": "f9a6488d686ae7e4b3228c8a9fe9c33a7fd00185",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "HEAD는baseline이나제품·테스트교정diff존재;당시전체지문미수집SCOPED,최종exact-source아님",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Playwright1.63.0 Chromium",
+          "environmentVersion": "masterGantt0.145.1",
+          "command": [
+            "npm",
+            "run",
+            "test:e2e",
+            "--",
+            "tests/e2e/schedule-views.spec.ts",
+            "tests/e2e/project-summary-bar-visual.spec.ts",
+            "--grep",
+            "#899 projected|#898 real|#822 scopes cancellation",
+            "--reporter=list"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "해당 테스트의 실제 제품 계약 검사",
+          "actual": "포인터1368,948/deltaY120;cancelable기대true/실제false;원래targetUNKNOWN;차단성공아님",
+          "input": "합성 fixture;운영 DB/화면 미사용",
+          "classification": "UNKNOWN",
+          "recovery": "실제양성capacity/fullscreenowner·현재hittarget전제확인후같은계약재시험;원래미관측값은추측하지않음",
+          "residualRisk": "운영 Chrome/Edge·hybrid·Owner UAT 별도 NOT TESTED",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_898_FAILURE_ANALYSIS.md"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "F898-008",
+      "issue": 898,
+      "ledger": "docs/ISSUE_898_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        899
+      ],
+      "domain": "gantt-input",
+      "layer": "test",
+      "keywords": [
+        "readiness",
+        "axis",
+        "capacity"
+      ],
+      "cause": "새matrix가무관한과거nativeoperation완료성공까지요구",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/e2e/schedule-views.spec.ts",
+          "case": "#899 projected Grid click reveals clicked duplicate path and preserves explicit Editor",
+          "historical": false,
+          "coverageArea": "현재Core축/실제projectedgeometry와typedcapacity검사"
+        }
+      ],
+      "residualRisk": "원래operationNOcapacity보존;새exactsource최종검증과운영UAT별도",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "개별 시각 미수집;frontend 실제 실행 보고/Primary 원장 참조",
+          "stage": "PLAYWRIGHT",
+          "status": "FAIL",
+          "sourceSha": "f9a6488d686ae7e4b3228c8a9fe9c33a7fd00185",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "HEAD는baseline이나제품·테스트교정diff존재;당시전체지문미수집SCOPED,최종exact-source아님",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Playwright1.63.0 Chromium",
+          "environmentVersion": "masterGantt0.145.1",
+          "command": [
+            "npm",
+            "run",
+            "test:e2e",
+            "--",
+            "tests/e2e/schedule-views.spec.ts",
+            "--grep",
+            "#899 projected|#898 real",
+            "--reporter=list"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "해당 테스트의 실제 제품 계약 검사",
+          "actual": "#899 matrix전waitForGanttReadiness가과거nativeCURRENT_OPERATION_FAILED_NO_SCROLL_CAPACITY로중단;#898확장33.1초PASS;전체exit1/1PASS1FAIL1.7분",
+          "input": "합성 fixture;운영 DB/화면 미사용",
+          "classification": "HARNESS",
+          "recovery": "새matrix의현재scaleunit·기존axisGeometry독립대조로한정;기존helper/gate/typedcapacity단언불변",
+          "residualRisk": "운영 Chrome/Edge·hybrid·Owner UAT 별도 NOT TESTED",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_898_FAILURE_ANALYSIS.md"
+            }
+          ]
         }
       ]
     }

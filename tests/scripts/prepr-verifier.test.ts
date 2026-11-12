@@ -142,6 +142,53 @@ describe("Issue #699 — risk/path/real test selection", () => {
     expect(missing.state).toBe("BLOCKED");
     expect(missing.missing.map((item) => item.path)).toContain("tests/features/gantt/gantt-density.test.ts");
   });
+  it("정확한 조회 panel·reveal 경로를 실제 원본·geometry·포커스 소비자에 HIGH로 연결한다", () => {
+    const paths = [
+      "src/features/gantt/schedule-view-panel.tsx",
+      "src/features/gantt/schedule-view-panel.css",
+      "src/features/gantt/schedule-view-reveal.ts",
+    ];
+    const expected = [
+      "tests/e2e/i18n.spec.ts",
+      "tests/e2e/project-gantt-fullscreen.spec.ts",
+      "tests/e2e/project-task-editor-persistence.spec.ts",
+      "tests/e2e/schedule-views.spec.ts",
+      "tests/e2e/viewport-coordinator.spec.ts",
+      "tests/features/gantt/schedule-view-projection.test.ts",
+      "tests/features/gantt/schedule-view-reveal.test.ts",
+      "tests/features/gantt/schedule-view-scale.test.ts",
+    ];
+    for (const path of paths) {
+      const selection = selectImpact({ changed: [path], tests, risk: "HIGH" });
+      expect(selection.state).toBe("READY");
+      expect(selection.unknown).toEqual([]);
+      expect(selection.missing).toEqual([]);
+      expect(selection.selected.map(item => item.path)).toEqual(expected);
+      expect(inferRisk([path])).toBe("HIGH");
+      expect(() => selectImpact({ changed: [path], tests, risk: "MEDIUM" })).toThrow(/below path floor/);
+    }
+  });
+  it("조회 panel 인접 미등록 모듈과 실제 reveal Unit·브라우저 소비자 누락은 BLOCKED한다", () => {
+    for (const adjacent of [
+      "src/features/gantt/schedule-view-panel-next.tsx",
+      "src/features/gantt/schedule-view-reveal-next.ts",
+      "src/features/gantt/schedule-view-reveal.css",
+    ]) {
+      const unknown = selectImpact({ changed: [adjacent], tests, risk: "HIGH" });
+      expect(unknown.state).toBe("BLOCKED");
+      expect(unknown.unknown.map(item => item.path)).toEqual([adjacent]);
+    }
+    for (const missingPath of [
+      "tests/features/gantt/schedule-view-reveal.test.ts",
+      "tests/e2e/schedule-views.spec.ts",
+    ]) {
+      const missing = selectImpact({ changed: ["src/features/gantt/schedule-view-reveal.ts"],
+        tests: { ...tests, unit: tests.unit.filter(path => path !== missingPath), e2e: tests.e2e.filter(path => path !== missingPath) },
+        risk: "HIGH" });
+      expect(missing.state).toBe("BLOCKED");
+      expect(missing.missing.map(item => item.path)).toContain(missingPath);
+    }
+  });
   it("maps Issue #552 shared UI, lockfile and browser helper to real direct/adjacent/negative consumers", () => {
     const paths = [
       "package-lock.json", "src/features/gantt/gantt-scale-toolbar.css",

@@ -1,7 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { createDensityWheel, densityFontScale, densityHeight, nextDensityLevel } from "../../../src/features/gantt/gantt-density";
+import { createDensityWheel, densityFontScale, densityHeight, nextDensityLevel, densityWheelPointer } from "../../../src/features/gantt/gantt-density";
 
 describe("Project Gantt vertical density input", () => {
+  it("keeps DOM fallback for unlocated synthetic wheel but spatially validates real pointers (#898)", () => {
+    // Existing synthetic dispatchEvent tests deliberately omit clientX/Y.
+    expect(densityWheelPointer({ isTrusted: false, clientX: 0, clientY: 0 })).toBeUndefined();
+    // Actual physical events are never silently upgraded to a DOM-only success.
+    expect(densityWheelPointer({ isTrusted: true, clientX: 0, clientY: 0 })).toEqual({ x: 0, y: 0 });
+    expect(densityWheelPointer({ isTrusted: true, clientX: 143, clientY: 218 })).toEqual({ x: 143, y: 218 });
+    expect(densityWheelPointer({ isTrusted: false, clientX: 143, clientY: 218 })).toEqual({ x: 143, y: 218 });
+  });
+
   it("clamps both ends and keeps touch/hybrid geometry at 44px", () => {
     expect([0, 1, 2, 3].map(level => densityHeight(level, false))).toEqual([34, 32, 30, 28]);
     expect(nextDensityLevel(0, -1, false)).toBe(0);

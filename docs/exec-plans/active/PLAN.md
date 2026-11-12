@@ -1,5 +1,9 @@
 # 현재 실행 계획
 
+## 진행 중: #898 / #899 실제 입력·조회 선택 재작업
+
+[Work Packet](ISSUE_898.md)에 따라 main `f9a6488d686ae7e4b3228c8a9fe9c33a7fd00185` 기반 `fix/issues-898-899-local`에서 #904의 제품/테스트·최초 실패를 재검토해 EXTEND한다. 세 View 본문 실제 Ctrl+wheel/page zoom과 Resource·설비 단일 선택/Chart 시작점·명시 Editor를 수정한다. 로컬 공통/영향 Chromium/geometry·Docker·동일 source admission·실제 독립 QA를 수행하며 원격 PR/Actions는 사용하지 않는다. 정식 tag/rolling·운영 배포·Owner UAT·Issue 종료는 미승인/미실증이며 완료로 표시하지 않는다.
+
 현행 단일 단계·역할/완료 조건은 [Issue Lifecycle](../../ISSUE_LIFECYCLE.md)이다. 모든 위험도에서 로컬 검증 후 main 직접 fast-forward Push·승인된 수동 GHCR·수동 종료를 사용하며 PR·원격 CI·Trusted QA·자동 Finalizer를 실행하지 않는다.
 
 ## 진행 중: #912 / #909 / #911 · 상위 #905

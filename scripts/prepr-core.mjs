@@ -223,6 +223,20 @@ const RULES = [
     reason: "Gantt entry and layout → marker-OFF geometry, visible projection, axis, fullscreen, notification and viewport consumers",
   },
   {
+    id: "issue-898-899-projected-navigation", risk: "HIGH",
+    re: /^src\/features\/gantt\/(?:schedule-view-panel\.(?:tsx|css)|schedule-view-reveal\.ts)$/,
+    unitPaths: [
+      "tests/features/gantt/schedule-view-projection.test.ts",
+      "tests/features/gantt/schedule-view-scale.test.ts",
+      "tests/features/gantt/schedule-view-reveal.test.ts",
+    ],
+    browser: [
+      "schedule-views", "i18n", "project-gantt-fullscreen",
+      "project-task-editor-persistence", "viewport-coordinator",
+    ],
+    reason: "조회 Grid/Chart 선택·시작점 정렬 → 실제 SQLite 원본/중복행·Editor 포커스·source/입력 세대·언어/전체화면·WBS viewport 회귀",
+  },
+  {
     id: "issue-822-gantt-density", risk: "HIGH",
     re: /^src\/features\/gantt\/gantt-density\.ts$/,
     unitPaths: ["tests/features/gantt/gantt-density.test.ts"],

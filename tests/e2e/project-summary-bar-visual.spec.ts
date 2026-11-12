@@ -637,6 +637,28 @@ test("Issue #822 scopes cancellation and clamps hybrid/coarse changes without re
   expect((await row.locator('.project-copy-selection-hitarea').boundingBox())!.height).toBeGreaterThanOrEqual(44);
   await page.evaluate(() => (window as unknown as { setDensityTouch(value: boolean): void }).setDensityTouch(false));
   await expect(root).toHaveAttribute('data-gantt-cell-height', '34');
+  // #898 extends this existing real-pointer test to the native empty Grid
+  // scroll layer and SVG links background, rather than only row descendants.
+  const empty = await root.evaluate(element => {
+    const body = element.querySelector<HTMLElement>('.wx-gantt')!.getBoundingClientRect();
+    const grid = element.querySelector<HTMLElement>('.wx-table-container')!.getBoundingClientRect();
+    const y = Math.min(innerHeight - 20, body.bottom - 35);
+    return [{ x: grid.left + 80, y }, { x: grid.right + 56, y }].map(point => ({ ...point,
+      row: document.elementFromPoint(point.x, point.y)?.closest('.wx-row[data-id]')?.getAttribute('data-id') ?? null }));
+  });
+  const zoom = () => page.evaluate(() => ({ dpr: devicePixelRatio, width: innerWidth, scale: visualViewport?.scale ?? 1 }));
+  const beforeZoom = await zoom();
+  for (const [index, point] of empty.entries()) {
+    expect(point.row, 'native empty body probe must not hit a rendered row').toBeNull();
+    await page.mouse.move(point.x, point.y);
+    await page.keyboard.down('Control');
+    try { await page.mouse.wheel(0, index === 0 ? 120 : -120); }
+    finally { await page.keyboard.up('Control'); }
+    const height = index === 0 ? 32 : 34;
+    await expect(root).toHaveAttribute('data-gantt-cell-height', String(height));
+    await expect.poll(() => row.evaluate(element => element.getBoundingClientRect().height)).toBe(height);
+    expect(await zoom(), 'empty-body physical Ctrl+wheel must retain browser page zoom').toEqual(beforeZoom);
+  }
   await expectSameGanttRoot(page, identity);
   expect(fixture.patchRequests).toHaveLength(0);
 });

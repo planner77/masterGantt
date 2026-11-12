@@ -1,3 +1,7 @@
+## Issues #898 / #899 — 일정 본문 입력과 Task 선택
+
+Ctrl+휠 세로 밀도 조작은 현재 가시 Grid/Chart 본문(행·Bar·빈 배경·scroll layer)에 한정한다. 헤더·툴바·입력·메뉴·dialog·일정 외부의 브라우저 동작은 점유하지 않는다. 기존 fine34/32/30/28px·coarse44px와 system font/semantic token을 유지한다. Resource/설비 Grid 일반 단일 선택은 클릭한 표시행의 Chart 시작점을 sticky Grid 경계에 맞추고 Editor를 자동으로 열지 않는다. Editor는 명시 정보 버튼·더블클릭·기존 Chart Bar로 연다. 기존 이름 우선/compact layout과 keyboard focus를 보존한다. 실제 검증/미검증은 [실행 계획](docs/exec-plans/active/ISSUE_898.md)에 연결한다.
+
 ## Issue #889 / #890 — 일정 View 공통 작업면과 현재 언어 헤더 (2026-11-08)
 
 WBS/Resource/설비는 같은 View·표시 단위·전체 화면과 44px 상태 슬롯을 사용한다. 조회 전용·건수·다시 조회·stale/error는 이 슬롯에서 제공하고 추가 strip으로 본문을 밀지 않는다. Grid는 WBS 열 ID·폭·순서·표시 상태, 2단 Day/Week 날짜축·행 밀도·semantic focus/selection을 공유한다. 조회 View의 편집 명령은 비활성이다. 선택 도움말은 기존 ContextHelp의 44px 버튼으로 열며 긴 언어에서도 원문과 키보드 포커스 표시를 가리지 않는다. Ctrl+휠은 세 View의 본문에서만 34↔28px(터치44px) 밀도를 변경한다.

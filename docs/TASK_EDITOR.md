@@ -1,3 +1,9 @@
+## Issue #899 — 조회 Grid의 선택과 Editor 진입 분리
+
+Resource/설비 Grid 일반 클릭은 선택/Chart 시작점 탐색이며 Editor를 자동으로 열지 않는다. 더블클릭·명시 `작업 정보 열기` 버튼 Enter/Space/터치·기존 Chart Bar는 동일 canonical Task Editor를 사용한다. Group 행은 expand/collapse만 한다. 권한/초안/취소는 기존 단일 Editor 계약을 유지한다.
+
+종료 시 실제 select/info/Bar trigger가 같은 유효 rowKey·canonical Task에 남아 있으면 우선 복원한다. DOM 교체 시 같은 역할의 버튼→안전한 현재 행/root fallback을 사용하며 새 입력·source 재수신 이후 오래된 focus 작업을 적용하지 않는다. 기존 가상행 End/Home/Arrow 정보 버튼 이동도 유지한다. 상세 [Work Packet](exec-plans/active/ISSUE_898.md), 최초 실패 [보존 원장](ISSUE_898_899_FAILURE_ANALYSIS.md).
+
 ## Issue #885 — Task/Summary/Milestone Description Markdown (2026-11-07)
 
 기존 Description은 `plain`으로 읽으며 다른 입력을 수정해도 서식이 바뀌지 않는다. **Markdown 편집으로 전환**을 직접 선택하면 안전 이스케이프 후 MDXEditor 시각적 편집이 열리고, 툴바 **Source mode**에서 원문을 입력한다. 저장 시 `description` 원문과 `descriptionFormat: "markdown"`을 함께 PATCH한다. Task 편집 잠금/readonly/stale/unsaved 취소 확인, 일정 계산, 프로젝트 revision/리소스 변경 잠금은 이전과 동일하다. 최대 10,000 Unicode 문자, 이미지·HTML 실행 불가, CodeFence·표·체크리스트·링크는 안전한 AST 렌더러로만 보여 준다.

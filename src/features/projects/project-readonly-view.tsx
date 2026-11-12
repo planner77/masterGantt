@@ -1611,7 +1611,22 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
           if (!root || panel?.closest("[hidden], [inert]") || document.querySelector('dialog[open][aria-labelledby="task-editor-title"]')) return;
           const row = root.querySelector<HTMLElement>(`[data-view-row-key="${CSS.escape(scheduleOrigin.rowKey)}"]`) ??
             root.querySelector<HTMLElement>(`[data-canonical-task-id="${CSS.escape(scheduleOrigin.taskId)}"]`);
-          const target = row?.querySelector<HTMLButtonElement>("button:not(:disabled)") ?? root;
+          // A projected Task row now has distinct select, info and Chart
+          // buttons (#899). The former "first button" fallback silently moved
+          // focus from an explicit Editor opener to the select button (#904).
+          // Restore the original connected, enabled trigger first. If a fresh
+          // projection replaced its DOM node, prefer the same command role in
+          // the original row before falling back to its first focusable button.
+          const sameRowTrigger = trigger?.isConnected && row?.contains(trigger) &&
+            !trigger.matches(":disabled") && !trigger.closest("[hidden], [inert]") ? trigger : null;
+          const preferred = trigger?.matches("[data-schedule-task-open]")
+            ? "[data-schedule-task-open]:not(:disabled)"
+            : trigger?.matches(".project-schedule-view-bar")
+              ? ".project-schedule-view-bar:not(:disabled)"
+              : ".project-schedule-view-name > button:not(.project-schedule-view-info):not(:disabled)";
+          const target = sameRowTrigger ??
+            row?.querySelector<HTMLElement>(preferred) ??
+            row?.querySelector<HTMLButtonElement>("button:not(:disabled)") ?? root;
           target.focus({ preventScroll: true });
           stop();
         });

@@ -1,3 +1,11 @@
+## [0.145.2] — Unreleased / Issues #898·#899 (2026-11-12)
+
+- 세 일정 View의 빈 Grid scroll층·Chart 배경에서도 실제 Ctrl+휠 세로 밀도를 처리하고 유효 본문에서 브라우저 확대 기본 동작을 취소한다. 입력/헤더/메뉴/dialog 등의 제외와34/32/30/28·coarse44 정책을 유지한다.
+- Resource·설비 Grid 단일 클릭은 선택과 현재 표시행 Chart 시작점 탐색으로 분리한다. 공간이 부족하면 NO_SCROLL_CAPACITY를 명시하며 기존 축 범위는 확장하지 않는다. 정보 버튼·더블클릭·Chart Bar의 동일 원본 Editor와 keyboard/focus를 보존한다.
+- 기존 #822/#880/#889의 실제 SQLite/HTTP·pointer/geometry 회귀를 확장하고 최초 #904 실패를 보존한다. 실제 source별 로컬 검증/남은 수동 UAT는 [Work Packet](docs/exec-plans/active/ISSUE_898.md)과 [원장](docs/ISSUE_898_FAILURE_ANALYSIS.md)을 따른다. 정식 버전 tag/GHCR·rolling·운영 배포는 미승인/미실행이다.
+
+---
+
 ## [0.145.1] — Unreleased / Issue #889·#890 (2026-11-08)
 
 - WBS/Resource/설비의 공통 toolbar 상태 슬롯·열 배치·2단 Day/Week 헤더 및 본문 Ctrl+휠 세로 밀도를 통합한다.

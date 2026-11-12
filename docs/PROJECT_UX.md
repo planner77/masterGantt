@@ -1,3 +1,9 @@
+## Issues #898 / #899 — 실제 본문 휠·조회 Task 탐색
+
+일정 frame의 단일 non-passive capture listener가 현재 보이는 WBS/Resource/설비 본문 좌표와 소유 DOM을 확인한다. 유효 cancelable Ctrl+휠은 밀도 mutation/recovery/coarse 보류 중에도 브라우저 확대를 유발하지 않게 취소한다. 비취소 이벤트는 차단 성공으로 간주하지 않는다. 일반 wheel과 header/toolbar/input/menu/dialog/외부는 기존 동작을 유지한다.
+
+Resource/설비 Grid 단일 클릭·선택 버튼 Enter/Space는 canonical Task 선택과 클릭한 viewRowKey의 현재 Chart 시작점 정렬만 수행한다. 정보 버튼(키보드/터치), 더블클릭, 기존 Chart Bar는 같은 canonical Task Editor를 연다. Group은 expand/collapse만 한다. 원본 Task/Link/Revision·readonly 권한과 숨긴 WBS Core/viewport는 보존한다. 용량 부족·날짜 없음·미측정은 typed 결과이며 Editor 자동 진입이나 축 확장으로 우회하지 않는다. 상세 [실행 계획](exec-plans/active/ISSUE_898.md).
+
 ## Issue #889 / #890 — 일정 View의 동일 배치·밀도·언어
 
 View 전환은 공통 toolbar와 작업면 안의 내용만 바꾼다. 조회 전용·작업 건수·다시 조회/오류는 공통 상태 슬롯에 표시한다. WBS 선택 도움말은 44px ContextHelp 버튼으로 전체 문구를 열고 focus/click/Escape와 전체화면을 지원한다. Resource/설비 Grid는 WBS의 열 폭/순서/표시 상태와 Day/Week 2단 헤더를 재사용한다. Ctrl+휠은 세 View의 Grid/Chart 본문에서 34→32→30→28px 및 역방향34px 상한, coarse44px을 적용한다. 조회 View는 canonicalTaskId로 원본 작업 정보만 열며 추가/수정/drag는 제공하지 않는다.

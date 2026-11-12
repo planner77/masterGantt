@@ -1,3 +1,7 @@
+## Issues #898 / #899 — 조회 scroller와 canonical 선택 경계
+
+Resource/설비의 단일 Grid 선택은 canonical ID와 clicked viewRowKey를 구별한다. 동일 Task의 중복 표시 선택은 동기화하지만 시작점 정렬은 클릭한 표시 경로의 row.start·현재 axis/pixelsPerDay·sticky split·실제 scroll capacity로 계산한다. 현재 조회 scroller에만 제한된 일회성 intent를 전달하며 숨긴 WBS Coordinator/Core를 스크롤하지 않는다. 새 wheel/key/pointer/View/source receipt는 오래된 bookmark/RAF/reveal을 취소한다. 날짜 없음·미측정·용량 부족을 성공 정렬로 보고하지 않는다. 원본 snapshot/revision/쓰기0와 동일 WBS instance/selection/open/date anchor는 [실제 브라우저 검증](exec-plans/active/ISSUE_898.md)으로 확인한다.
+
 ## Issue #889 / #890 — locale header·조회 밀도 적용
 
 Issue #890의 native sort는 원본 sibling order를 쓰는 명령이 아니다. 현재 sort descriptor·유효한 stable-tie history·공개 column comparator와 canonical hierarchy로 표시 기대 순서를 독립 계산한다. canonical payload/parent/Link·누락/중복·branch 불변 검증을 유지하며 정렬된 tree의 정확한 기대 순서가 검증된 경우에만 canonical proof로 정규화한다. 실제 Core/DOM 순서·Y는 정렬된 기대값과 exact 비교하고 무정렬 상태는 기존 canonical 순서를 그대로 강제한다. sort 입력은 새 관측 세대이며 낡은 SETTLED를 승계하지 않는다.
