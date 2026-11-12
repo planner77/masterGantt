@@ -323,7 +323,7 @@ for (const coarse of [false, true]) for (const scale of ["일", "주"] as const)
           const editor = page.getByRole("dialog", { name: "작업 정보", exact: true });
           await expect(editor.getByLabel("작업명", { exact: true })).toHaveValue(name);
           if (!coarse && scale === "주" && !fullscreen && progress === 0 && target === 2) {
-            await page.screenshot({ path: "output/playwright/issue-818/correct-child-editor.png" });
+            await page.screenshot({ path: testInfo.outputPath("issue-818-correct-child-editor.png") });
           }
           await page.keyboard.press("Escape");
           await expect(editor).toHaveCount(0);
@@ -397,7 +397,7 @@ for (const height of [34, 32, 28]) test(`Issue #818/#822 preserves native Summar
       const rect = element.getBoundingClientRect();
       return document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2) === element;
     });
-    if (progress === 0 && height === 34) await page.screenshot({ path: "output/playwright/issue-818/active-progress-target.png" });
+    if (progress === 0 && height === 34) await page.screenshot({ path: testInfo.outputPath("issue-818-active-progress-target.png") });
     expect(activeLabelHit).toBe(true);
     await page.mouse.up();
     await expect(marker).not.toHaveClass(/wx-progress-in-drag/);

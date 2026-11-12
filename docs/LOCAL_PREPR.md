@@ -73,3 +73,7 @@ backup의 정적 SQL prefix·manifest 검증, publisher `plan`/`verify`, 실제 
 최초 FAIL·환경 BLOCKED·미실행을 `docs/ISSUE_<N>_FAILURE_ANALYSIS.md`에 append-only로 기록한다. 제품/fixture/환경/정책/UNKNOWN을 분류하고 수정 SHA와 재실행의 동일 source·결과를 추가한다. [Regression Index](REGRESSION_INDEX.md)와 관련 원장에서 같은 consumer를 조사하며 이전 PASS를 새 source에 전용하지 않는다. #907의 [원장 계약](ISSUE_LEDGER.md)·기계 검증 가능한 인덱스와 validator는 이번 #906/#907/#908 통합 구현 범위다. 등록·구현 사실과 실제 검증 성공을 구별하고 그 결과를 같은 source 증거에 연결한다.
 
 과거 전체 절차·실패 입력 예시는 [보존 기록](history/owner-ci-retired-20261110/LOCAL_PREPR.md)에 있다. 그 안의 원격 실행 요구는 현재 gate가 아니다.
+
+### UI 산출물 배치 후속 (#898/#899)
+
+기존 sourceguard는 PNG/JSON도 tracked source 변경·untracked 입력으로 판정한다. 따라서 테스트의 새 화면/geometry 출력은 testInfo.outputPath를 사용하며 committed output/playwright의 역사 이미지/JSON은 수정하지 않는다. 알려진4개 legacy 생산자는 같은 Playwright 산출물로 이관했고 test/golden 입력·기대치는 바꾸지 않았다. 실패 보고/trace viewer나 진단 worktree를 source 아래에 보존해 root lint가 생성 JS를 읽는 경우에는 자기 증거를 source 밖으로 이동 보존한다. ESLint나 snapshot 검사를 약화하지 않는다. [최초 원장](ISSUE_898_FAILURE_ANALYSIS.md).

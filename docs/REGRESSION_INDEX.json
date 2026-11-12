@@ -5370,6 +5370,42 @@
               "reference": "docs/ISSUE_898_FAILURE_ANALYSIS.md"
             }
           ]
+        },
+        {
+          "id": "version_metadata_correction",
+          "at": null,
+          "timeNote": "후속원본report읽기정정시개별시각미수집",
+          "stage": "LOCAL_PREP",
+          "status": "NOT TESTED",
+          "sourceSha": "f1da5ebb88edafe3f2e2e79ca12c1f379bf3fa44",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "기존f1원본보고서의packageVersion을읽어metadata정정;원래eventprefix보존·새Gate미실행",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Playwright1.63.0 Chromium",
+          "environmentVersion": "masterGantt0.145.2",
+          "command": [
+            "python3",
+            "-"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "원본source의실제packageVersion과원장설명일치",
+          "actual": "최초environmentVersion0.145.1표기는복사오기;f1exact보고서실제0.145.2를확인.원래FAIL/BLOCKED결과는변경안함",
+          "input": "합성 fixture;운영 DB/화면 미사용",
+          "classification": "METADATA",
+          "recovery": "기존event수정없이후속정정;새sourcePASS주장없음",
+          "residualRisk": "운영 Chrome/Edge·hybrid·Owner UAT 별도 NOT TESTED",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_898_FAILURE_ANALYSIS.md"
+            }
+          ]
         }
       ]
     },
@@ -5432,6 +5468,42 @@
           "input": "합성 fixture;운영 DB/화면 미사용",
           "classification": "PRODUCT",
           "recovery": "최초원본/취소보존;좁은행focus교정과검사직렬화뒤새exactsource전체재검증",
+          "residualRisk": "운영 Chrome/Edge·hybrid·Owner UAT 별도 NOT TESTED",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_898_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "version_metadata_correction",
+          "at": null,
+          "timeNote": "후속원본report읽기정정시개별시각미수집",
+          "stage": "LOCAL_PREP",
+          "status": "NOT TESTED",
+          "sourceSha": "f1da5ebb88edafe3f2e2e79ca12c1f379bf3fa44",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "기존f1원본보고서의packageVersion을읽어metadata정정;원래eventprefix보존·새Gate미실행",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Playwright1.63.0 Chromium",
+          "environmentVersion": "masterGantt0.145.2",
+          "command": [
+            "python3",
+            "-"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "원본source의실제packageVersion과원장설명일치",
+          "actual": "최초environmentVersion0.145.1표기는복사오기;f1exact보고서실제0.145.2를확인.원래FAIL/BLOCKED결과는변경안함",
+          "input": "합성 fixture;운영 DB/화면 미사용",
+          "classification": "METADATA",
+          "recovery": "기존event수정없이후속정정;새sourcePASS주장없음",
           "residualRisk": "운영 Chrome/Edge·hybrid·Owner UAT 별도 NOT TESTED",
           "evidenceScope": "SCOPED",
           "synthetic": false,
@@ -5514,6 +5586,42 @@
               "reference": "docs/ISSUE_898_FAILURE_ANALYSIS.md"
             }
           ]
+        },
+        {
+          "id": "version_metadata_correction",
+          "at": null,
+          "timeNote": "후속원본report읽기정정시개별시각미수집",
+          "stage": "LOCAL_PREP",
+          "status": "NOT TESTED",
+          "sourceSha": "f1da5ebb88edafe3f2e2e79ca12c1f379bf3fa44",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "기존f1원본보고서의packageVersion을읽어metadata정정;원래eventprefix보존·새Gate미실행",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Playwright1.63.0 Chromium",
+          "environmentVersion": "masterGantt0.145.2",
+          "command": [
+            "python3",
+            "-"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "원본source의실제packageVersion과원장설명일치",
+          "actual": "최초environmentVersion0.145.1표기는복사오기;f1exact보고서실제0.145.2를확인.원래FAIL/BLOCKED결과는변경안함",
+          "input": "합성 fixture;운영 DB/화면 미사용",
+          "classification": "METADATA",
+          "recovery": "기존event수정없이후속정정;새sourcePASS주장없음",
+          "residualRisk": "운영 Chrome/Edge·hybrid·Owner UAT 별도 NOT TESTED",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_898_FAILURE_ANALYSIS.md"
+            }
+          ]
         }
       ]
     },
@@ -5584,6 +5692,392 @@
               "reference": "docs/ISSUE_898_FAILURE_ANALYSIS.md"
             }
           ]
+        },
+        {
+          "id": "version_metadata_correction",
+          "at": null,
+          "timeNote": "후속원본report읽기정정시개별시각미수집",
+          "stage": "LOCAL_PREP",
+          "status": "NOT TESTED",
+          "sourceSha": "f1da5ebb88edafe3f2e2e79ca12c1f379bf3fa44",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "기존f1원본보고서의packageVersion을읽어metadata정정;원래eventprefix보존·새Gate미실행",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Playwright1.63.0 Chromium",
+          "environmentVersion": "masterGantt0.145.2",
+          "command": [
+            "python3",
+            "-"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "원본source의실제packageVersion과원장설명일치",
+          "actual": "최초environmentVersion0.145.1표기는복사오기;f1exact보고서실제0.145.2를확인.원래FAIL/BLOCKED결과는변경안함",
+          "input": "합성 fixture;운영 DB/화면 미사용",
+          "classification": "METADATA",
+          "recovery": "기존event수정없이후속정정;새sourcePASS주장없음",
+          "residualRisk": "운영 Chrome/Edge·hybrid·Owner UAT 별도 NOT TESTED",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_898_FAILURE_ANALYSIS.md"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "F898-013",
+      "issue": 898,
+      "ledger": "docs/ISSUE_898_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        899
+      ],
+      "domain": "local-validation",
+      "layer": "test",
+      "keywords": [
+        "lint",
+        "artifact",
+        "worktree",
+        "trace"
+      ],
+      "cause": "자기진단worktree/HTML생성코드가source하위rootlint입력에포함",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/scripts/prepr-verifier.test.ts",
+          "case": "local artifact/log/source/admission guard",
+          "historical": false,
+          "coverageArea": "실제CLI실패/출력배치교정은원장;일반guardUnit과구별"
+        }
+      ],
+      "residualRisk": "회복fastPASS는별도snapshotBLOCKED를통과시키지않음",
+      "events": [
+        {
+          "id": "observed",
+          "at": "2026-11-12T03:55:40.937Z",
+          "timeNote": null,
+          "stage": "STATIC",
+          "status": "FAIL",
+          "sourceSha": "f4a07533067324c4e630ae01de27f748d9d66b1c",
+          "fixSourceSha": null,
+          "sourceFingerprint": "c9d0f625ac6dcda9980eff6a231800ca01eac570d971b1c40460d34c2088acf2",
+          "sourceNote": "exact clean f4 실행;개별PASS/전체BLOCKED를원장에서구별",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Playwright1.63.0 Chromium",
+          "environmentVersion": "masterGantt0.145.2",
+          "command": [
+            "node",
+            "scripts/verify-prepr.mjs",
+            "--mode=fast",
+            "--base=f9a6488d686ae7e4b3228c8a9fe9c33a7fd00185",
+            "--issue=898",
+            "--report-dir=.prepr-reports/final-fast-02"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "해당 테스트의 실제 제품 계약 검사",
+          "actual": "진단worktreeNext생성코드가lint되어883errors/8360warnings;환경/source불변",
+          "input": "합성 fixture;운영 DB/화면 미사용",
+          "classification": "ENVIRONMENT",
+          "recovery": "최초원본보존;출력목적지만격리한새exactsource전체Gate필요",
+          "residualRisk": "운영 Chrome/Edge·hybrid·Owner UAT 별도 NOT TESTED",
+          "evidenceScope": "EXACT",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_898_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "html_remaining",
+          "at": "2026-11-12T03:58:21.193Z",
+          "timeNote": null,
+          "stage": "STATIC",
+          "status": "FAIL",
+          "sourceSha": "f4a07533067324c4e630ae01de27f748d9d66b1c",
+          "fixSourceSha": null,
+          "sourceFingerprint": "c9d0f625ac6dcda9980eff6a231800ca01eac570d971b1c40460d34c2088acf2",
+          "sourceNote": "exact clean f4 실행;개별PASS/전체BLOCKED를원장에서구별",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Playwright1.63.0 Chromium",
+          "environmentVersion": "masterGantt0.145.2",
+          "command": [
+            "node",
+            "scripts/verify-prepr.mjs",
+            "--mode=fast",
+            "--base=f9a6488d686ae7e4b3228c8a9fe9c33a7fd00185",
+            "--issue=898",
+            "--report-dir=.prepr-reports/final-fast-03"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "해당 테스트의 실제 제품 계약 검사",
+          "actual": "이전HTMLtrace생성JS7개가남아259errors/2815warnings;최초정리불완전",
+          "input": "합성 fixture;운영 DB/화면 미사용",
+          "classification": "ENVIRONMENT",
+          "recovery": "최초원본보존;출력목적지만격리한새exactsource전체Gate필요",
+          "residualRisk": "운영 Chrome/Edge·hybrid·Owner UAT 별도 NOT TESTED",
+          "evidenceScope": "EXACT",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_898_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "recovered",
+          "at": "2026-11-12T04:02:37.049Z",
+          "timeNote": null,
+          "stage": "STATIC",
+          "status": "PASS",
+          "sourceSha": "f4a07533067324c4e630ae01de27f748d9d66b1c",
+          "fixSourceSha": null,
+          "sourceFingerprint": "c9d0f625ac6dcda9980eff6a231800ca01eac570d971b1c40460d34c2088acf2",
+          "sourceNote": "exact clean f4 실행;개별PASS/전체BLOCKED를원장에서구별",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Playwright1.63.0 Chromium",
+          "environmentVersion": "masterGantt0.145.2",
+          "command": [
+            "node",
+            "scripts/verify-prepr.mjs",
+            "--mode=fast",
+            "--base=f9a6488d686ae7e4b3228c8a9fe9c33a7fd00185",
+            "--issue=898",
+            "--report-dir=.prepr-reports/final-fast-04"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "해당 테스트의 실제 제품 계약 검사",
+          "actual": "자기생성증거를source밖보존후3976PASS/기존3SKIP·build/공통9단계PASS;F014별도BLOCKED",
+          "input": "합성 fixture;운영 DB/화면 미사용",
+          "classification": "ENVIRONMENT",
+          "recovery": "최초원본보존;출력목적지만격리한새exactsource전체Gate필요",
+          "residualRisk": "운영 Chrome/Edge·hybrid·Owner UAT 별도 NOT TESTED",
+          "evidenceScope": "EXACT",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_898_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "f4a07533067324c4e630ae01de27f748d9d66b1c",
+            "environment": "Linux; Node22.14.0; npm11.10.0; Playwright1.63.0 Chromium",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F898-014",
+      "issue": 898,
+      "ledger": "docs/ISSUE_898_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        899
+      ],
+      "domain": "local-validation",
+      "layer": "test",
+      "keywords": [
+        "artifact",
+        "snapshot",
+        "tracked",
+        "untracked"
+      ],
+      "cause": "legacyPNG/JSON생산자가tracked13을덮고untracked16을source에생성",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/e2e/milestone-dashboard-state.spec.ts",
+          "case": "existing PNG/geometry output under testInfo.outputPath",
+          "historical": false,
+          "coverageArea": "기존behavior/geometryassertion유지·실제산출물출처격리"
+        },
+        {
+          "path": "tests/e2e/project-summary-bar-visual.spec.ts",
+          "case": "existing PNG/geometry output under testInfo.outputPath",
+          "historical": false,
+          "coverageArea": "기존behavior/geometryassertion유지·실제산출물출처격리"
+        },
+        {
+          "path": "tests/e2e/project-task-editor-persistence.spec.ts",
+          "case": "existing PNG/geometry output under testInfo.outputPath",
+          "historical": false,
+          "coverageArea": "기존behavior/geometryassertion유지·실제산출물출처격리"
+        },
+        {
+          "path": "tests/e2e/schedule-views.spec.ts",
+          "case": "existing PNG/geometry output under testInfo.outputPath",
+          "historical": false,
+          "coverageArea": "기존behavior/geometryassertion유지·실제산출물출처격리"
+        }
+      ],
+      "residualRisk": "개별160PASS/코드불변검산은전체snapshotBLOCKED를대체하지않음",
+      "events": [
+        {
+          "id": "observed",
+          "at": "2026-11-12T04:33:24.115Z",
+          "timeNote": null,
+          "stage": "PLAYWRIGHT",
+          "status": "BLOCKED",
+          "sourceSha": "f4a07533067324c4e630ae01de27f748d9d66b1c",
+          "fixSourceSha": null,
+          "sourceFingerprint": "c9d0f625ac6dcda9980eff6a231800ca01eac570d971b1c40460d34c2088acf2",
+          "sourceNote": "exact clean f4 실행;개별PASS/전체BLOCKED를원장에서구별",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Playwright1.63.0 Chromium",
+          "environmentVersion": "masterGantt0.145.2",
+          "command": [
+            "node",
+            "scripts/verify-prepr.mjs",
+            "--mode=targeted",
+            "--base=f9a6488d686ae7e4b3228c8a9fe9c33a7fd00185",
+            "--issue=898",
+            "--report-dir=.prepr-reports/final-targeted-03"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "해당 테스트의 실제 제품 계약 검사",
+          "actual": "Unit140PASS/19Chromium160PASS0FAIL0SKIP지만tracked13/untracked16출력으로snapshotBLOCKED;src/tests1221·index/설치불변검산",
+          "input": "합성 fixture;운영 DB/화면 미사용",
+          "classification": "ENVIRONMENT",
+          "recovery": "최초원본보존;출력목적지만격리한새exactsource전체Gate필요",
+          "residualRisk": "운영 Chrome/Edge·hybrid·Owner UAT 별도 NOT TESTED",
+          "evidenceScope": "EXACT",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_898_FAILURE_ANALYSIS.md"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "F898-015",
+      "issue": 898,
+      "ledger": "docs/ISSUE_898_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        899
+      ],
+      "domain": "local-validation",
+      "layer": "documentation",
+      "keywords": [
+        "ledger",
+        "verification",
+        "version"
+      ],
+      "cause": "새PASS event의verification결속필드누락·복사버전오기",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/scripts/issue-ledger-verifier.test.ts",
+          "case": "PASS source/environment and append-only evidence validation",
+          "historical": false,
+          "coverageArea": "실제원장CLI구조검사;제품PASS/Owner수용대체불가"
+        }
+      ],
+      "residualRisk": "새exactsource전체Gate/OwnerUAT는별도",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "원장초안검산의개별시각미수집",
+          "stage": "STATIC",
+          "status": "FAIL",
+          "sourceSha": "f4a07533067324c4e630ae01de27f748d9d66b1c",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "HEADf4의원장초안변경중SCOPED;기존제품코드불변",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Playwright1.63.0 Chromium",
+          "environmentVersion": "masterGantt0.145.2",
+          "command": [
+            "node",
+            "scripts/verify-issue-ledger.mjs",
+            "--base=f4a07533067324c4e630ae01de27f748d9d66b1c"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "PASS event의실제source/environment/image/backup결속",
+          "actual": "새F013/recoveredPASS verification필드누락으로2개결속오류",
+          "input": "합성 fixture;운영 DB/화면 미사용",
+          "classification": "HARNESS",
+          "recovery": "실제reportsource/환경·nullimage/backupverification명시후원장구조만재검산",
+          "residualRisk": "운영 Chrome/Edge·hybrid·Owner UAT 별도 NOT TESTED",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_898_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "recovered",
+          "at": null,
+          "timeNote": "원장초안검산의개별시각미수집",
+          "stage": "STATIC",
+          "status": "PASS",
+          "sourceSha": "f4a07533067324c4e630ae01de27f748d9d66b1c",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "HEADf4의원장초안변경중SCOPED;기존제품코드불변",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Playwright1.63.0 Chromium",
+          "environmentVersion": "masterGantt0.145.2",
+          "command": [
+            "node",
+            "scripts/verify-issue-ledger.mjs",
+            "--base=f4a07533067324c4e630ae01de27f748d9d66b1c"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "PASS event의실제source/environment/image/backup결속",
+          "actual": "같은validator실제exit0/9issues46failures93events;원장구조검사만PASS이며전체sourceGate아님",
+          "input": "합성 fixture;운영 DB/화면 미사용",
+          "classification": "HARNESS",
+          "recovery": "실제reportsource/환경·nullimage/backupverification명시후원장구조만재검산",
+          "residualRisk": "운영 Chrome/Edge·hybrid·Owner UAT 별도 NOT TESTED",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_898_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "f4a07533067324c4e630ae01de27f748d9d66b1c",
+            "environment": "Linux; Node22.14.0; npm11.10.0; Playwright1.63.0 Chromium",
+            "imageDigest": null,
+            "backupId": null
+          }
         }
       ]
     }

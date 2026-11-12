@@ -105,3 +105,33 @@ Primary #898, related #899. baseline main `f9a6488d686ae7e4b3228c8a9fe9c33a7fd00
 - 새 회귀는 실제 열 메뉴로 작업명 보임/숨김×Resource/설비4조합에서 마지막 중복 표시행의 날짜 셀을 실제 더블클릭하고 정확 canonical Editor/Escape·같은 행 선택 버튼 또는 프로그램 focus Grid·rowKey·같은 WBS Core·canonical snapshot/쓰기0를 단언했다. 본문 입력/readonly 소유권을 바꾸지 않았다.
 - source는 교정 코드+문서의 WIP이며 당시 전체 지문 미수집 SCOPED다. 최종 clean commit의 공통·영향·Docker/admit·독립 QA 결과는 이후 실제 보고서에 귀속한다. 이전 f1 결과·미관측 값·취소는 보존한다.
 - 명시적 작업명 열 숨김과 별개로, 내부 Grid 가로 스크롤에서 Task 선택 버튼이 부분 clipping된 모든 조합은 이 새 focus 사례에서 전수 검증하지 않았다. 이전 scroll/viewport 인접 회귀와 대표5폭은 계속 실행하며 실기기/AT·Owner UAT와 전체 Cartesian 조합 수용을 주장하지 않는다.
+
+## F898-013 — 진단 worktree/HTML report 생성 코드가 root lint 입력에 포함
+
+- source `f4a07533067324c4e630ae01de27f748d9d66b1c`는 clean/전후불변이었다. final-fast-02(03:53:20.539Z~03:55:40.937Z)는 `FAILED: Lint`, exit1이었다. 별도 red 진단 worktree를 `.prepr-reports/cell-focus-source`에 만든 Manager의 배치 때문에 그 안의 Next 생성 코드가 기존 ESLint 입력이 됐다. 로그104경로 중87은 nested 진단,883errors/8360warnings였다. checksum `1f2f8327c36cda9448808c64794ccb3145c3a1d12bb8fc3e3bb2d6fa52583fc6`.
+- 진단 worktree 전체를 source 밖 sibling으로 `git worktree move`해 보존했다. 이후 fast-03(03:57:15.840Z~03:58:21.193Z)도 이전 f1 HTML trace viewer 생성 JS7개가 남아259errors/2815warnings로 lint FAIL(exit1)이었다. checksum `e6cb8b8613de8046d618e19741a2d81b35de871518951f78cc40ac5cbe5629e9`. 첫 환경 정리가 이 범위를 포함하지 못했다.
+- HTML report 전체도 source 밖 sibling archive로 이동 보존하고 보고 폴더의 생성 JS/TS가0개임을 확인했다. ESLint 설정·제품·테스트·설치·기존 trace/로그를 수정하거나 지우지 않았다. [외부 최초 기록](https://github.com/planner77/masterGantt/issues/898#issuecomment-6813999368), [후속 기록](https://github.com/planner77/masterGantt/issues/898#issuecomment-6814052705).
+- 같은 f4의 fast-04(03:59:18.657Z~04:02:37.049Z)는 공통9단계 exit0/PASS,319 Unit파일3976PASS/0FAIL/기존opt-in3SKIP·production build였다. checksum `bcca248af6f58a40839aa84b15bc6f672de370add0d2acd231154e23828d3a3e`. 이 회복은 f4 공통 검사에만 귀속하며 아래 snapshot BLOCKED를 전체 PASS로 바꾸지 않는다.
+
+## F898-014 — 실제 160 Chromium PASS 후 legacy 출력의 source snapshot 변경
+
+- exact f4, `node scripts/verify-prepr.mjs --mode=targeted --base=f9a6488d686ae7e4b3228c8a9fe9c33a7fd00185 --issue=898 --report-dir=.prepr-reports/final-targeted-03`,03:02가 아니라 **2026-11-12T04:02:57.464Z~04:33:24.115Z**, 전체 exit1/BLOCKED. report checksum `676a5b0cba8172b8cf1c583ab1bb19f293b53f7c686ba1a4e59427f1278e7748`.
+- 개별 실행은 실제 Unit10파일140PASS와 Chromium19파일160PASS/0FAIL/0SKIP(Chromium command exit0/1792878ms)이었다. 그러나 snapshot guard는 `snapshot 입력/Head/파일 목록 근거가 다릅니다`로 차단했다. 전체 PASS/admit/Push를 주장하지 않는다.
+- 최초 조사에서 untracked16개를 확인했고 독립 QA는 추가로 tracked15개 변경을 확인했다. 이 중 Next 표준 생성 metadata2개와 **legacy 출력13개 덮어쓰기**를 구별한다. untracked16은 #463 partial geometry5JSON, #818 PNG2, #889/#890 View PNG7, #258 PNG2였다. tracked13은 #463 dashboard5PNG+stage-table5PNG+geometry.json 및 #258390/1440PNG였다. 따라서 dirty를 Next2만의 변화로 단정한 앞선 가설은 정정한다.
+- 독립 재검산: src/tests1221파일의 audit.before SHA와 실제 `git show f4` bytes 일치, audit의 src/tests before/after변경0, index동일, 의존성5시점 manifest `261c68a56fd7f037496dd82b78f544fff936f9871215843356fd7aefc290f20d` 전부동일. Next2는 기존 validateNextGenerated 허용 형식이었다. 앱/테스트 코드가 바뀐 FAIL과는 구별하지만 이미지/JSON source 변경도 guard가 정상 거부해야 한다.
+- UIv2 canonical16개의 무결성/원본test·helper SHA와 대표 Resource1440/Equipment390/VI1440 PNG를 독립 확인했다. controlled-negative-selector-offset1개 수치FAIL은 의도적 음성이다. 신규 #8992개는 fixture DECLARATION_ONLY와 dirty 관측이라 baseline 비교/Owner UAT 승인으로 쓰지 않는다. f4 전체 source guard는 BLOCKED다.
+- QA 보조검산에서 logFile을 reportdir 대신 repo 기준으로 읽은 ENOENT/exit1을 실제 reportdir로 정정해19logs 재해시가 exit0이었다. ephemeral browser-source의 자동 삭제 후 그 옛 경로를 읽은 오류/validator directory-missing BLOCKED도 보존한다. 실제 보존 report.artifacts의 test-results를 사용한 runner/UI 재검산은 exit0이었다. 이 조회 오류들은 제품 FAIL이 아니며 after 파일 직접 재해시가 가능한 것처럼 주장하지 않는다. audit/Git source·test 대조와 보존된 실제 runner bytes의 범위를 구별했다.
+- 교정은 기존4spec의 **출력 목적지만** Playwright testInfo.outputPath로 이동한다: milestone-dashboard-state의 #463 PNG/JSON16변형, project-summary-bar-visual의 #818 PNG2, project-task-editor-persistence의 #258 PNG4, schedule-views의 #880/#889 PNG7. 총29변형/10write호출+mkdir1이다. 기존 attachments/geometry/assertion/threshold/timeout/retry/skip/fixture와 committed PNG/JSON/golden은 유지한다. scripts/tests 검색에서 해당 파일을 읽는 test/golden 소비자는 없고 역사 문서만 참조했다.
+- 변경4files를 출력 문자열 역치환하면 f4의 동일 files와 완전 같은 bytes임을 검산했다. 관련 typecheck/4spec lint(오류·경고0)/diffcheck는 exit0이고 새로운 출력 경로의 실제 Chromium은 다음 exact source 전체 Gate에서 재검증한다. guard allowlist/ignore/Git 기준을 넓혀 우회하지 않는다.
+
+## 합성 UAT 데이터 재사용 준비 (Owner 수용 아님)
+
+- 자기 f4 browser snapshot의 실제 schedule-views isolated SQLite를 mode=ro/query_only로 식별했다. Task/개인/Group/설비와 마지막 ARCHIVE-880 exact self/whole binding·직접설비2·개인assignment2까지 seed완료를 확인하고 online backup했다. 공용 mock DB·운영 DB는 사용하지 않았다.
+- 캡처04:27:05.117015Z~04:27:05.227183Z, 새 소유0700/tmp 폴더/0600baseline·manifest. baseline SHA256 `d0d9ff828d952fbbe0ce7128734a286792dc4598612330764f5f49d31730e249`, manifest SHA256 `c314f2d5256fa27b5ee2f3aacb488b1287314e6ffe3def0bb2aae3e0a15ff73a`。복사본에서 기존 inspectSqliteSnapshot/assertImageMigrationCompatibility를 재사용해 integrity/FK·73tables/38migrations/exactSQL/pending0을 확인했다.
+- 활성 test title은 직접 연결 증거가 없어 UNKNOWN으로 보존한다. fixture 소스/spec hashes와 actual source f4·시각은 manifest에 있다. 이것은 특정 test case PASS나 clean UI capture의 대체 증거가 아니다. 새 검증 source의 앱/fixture bytes 호환을 확인하고 같은 새 이미지에 별도 runtime copy를 연결해야 하며 Owner UAT는 NOT TESTED다. 원본 baseline은 변경하지 않는다.
+
+## F898-015 — 원장 초안의 PASS verification 누락과 버전 metadata 정정
+
+- 새 F898-013 회복 PASS event를 초안 작성하며 verification의 source/환경·image/backup 결속을 누락해 `node scripts/verify-issue-ledger.mjs --base=f4a07533067324c4e630ae01de27f748d9d66b1c`가 실제 FAIL(두 결속 오류)이었다. 제품/검증기 결함이 아닌 Manager 원장 작성 오류다.
+- 실제 f4 report의 source/환경과 null image/backup을 verification에 명시해 같은 구조 검산이 exit0/PASS(9issues/46failures/93events)였다. 이 PASS는 원장 구조·원본 보존 검사뿐이며 전체 source admission을 뜻하지 않는다. 초안 전체 지문/개별 시각은 미수집 SCOPED다.
+- 함께 확인한 F898-009~012 최초 environmentVersion0.145.1은 복사 오기였다. 보존된 f1 원본 report의 실제 packageVersion은0.145.2다. 기존 event prefix를 수정하지 않고 각 version_metadata_correction 후속 event로 정정했다. 최초 FAIL/BLOCKED·실제 source SHA/명령/결과는 바꾸지 않았다. 새 F898-013/014의 실제 환경 버전은0.145.2로 기록한다.

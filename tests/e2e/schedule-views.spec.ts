@@ -98,7 +98,7 @@ test("#880 실제 원본 다중 Resource·설비 View, Editor 동일 ID, 5폭·�
       { name: "resourceView", locator: resource },
     ],
   });
-  await info.attach("schedule-view-resource-1440.png", { body: await page.screenshot({ path: "output/playwright/issue-889-890/resource-1440.png" }), contentType: "image/png" });
+  await info.attach("schedule-view-resource-1440.png", { body: await page.screenshot({ path: info.outputPath("issue-889-890-resource-1440.png") }), contentType: "image/png" });
   const open = taskRows(resource, f.task.taskId).first().getByRole("button", { name: `작업 정보 열기: ${f.task.name}`, exact: true });
   await open.focus(); await open.press("Enter");
   const editor = page.getByRole("dialog", { name: "작업 정보", exact: true });
@@ -188,7 +188,7 @@ test("#880 실제 원본 다중 Resource·설비 View, Editor 동일 ID, 5폭·�
     }
     geometries.push({ width, ...geometry });
     await expect(equipment.getByRole("treegrid")).toHaveAttribute("data-ready", "true");
-    await info.attach(`schedule-view-equipment-${width}.png`, { body: await page.screenshot({ path: `output/playwright/issue-889-890/equipment-${width}.png` }), contentType: "image/png" });
+    await info.attach(`schedule-view-equipment-${width}.png`, { body: await page.screenshot({ path: info.outputPath(`issue-889-890-equipment-${width}.png`) }), contentType: "image/png" });
   }
   await page.setViewportSize({ width: 1440, height: 1000 });
   await frame.getByRole("button", { name: "주", exact: true }).click();
@@ -815,7 +815,7 @@ test("#889 세 View 공통 작업면·날짜 헤더·Grid/Chart Ctrl 휠 밀도�
   await waitView("wbs");
   await expect(frame).toHaveAttribute("data-project-gantt-instance", instance!);
   expect(await native!.evaluate(element => element.isConnected)).toBe(true);
-  await page.screenshot({ path: "output/playwright/issue-889-890/wbs-1440.png" });
+  await page.screenshot({ path: info.outputPath("issue-889-890-wbs-1440.png") });
   expect(writes).toEqual([]); expect((await f.snapshot()).data).toEqual(baseline.data);
   // 실제 CSS 회귀를 통제 주입해 검출하고 캡처 실패 시에도 원래 화면을 복원한다.
   const controlBefore = (await selector(page).boundingBox())!;

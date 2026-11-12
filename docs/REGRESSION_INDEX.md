@@ -105,3 +105,8 @@ F912-007은 원장 작성 Agent의 링크검사 파일명 오류(exit1/MODULE_NO
 ## #898/#899 exact f1 뒤 독립 QA 재작업
 
 F898-009~012를 [Primary 원장](ISSUE_898_FAILURE_ANALYSIS.md)에 추가했다. f1 공통3976PASS/기존3SKIP·Docker10단계PASS는 보존하며 실제 plain datecell Editor 종료 뒤 행focus 소실을 F898-010으로 재현했다. 초기 숨긴WBS 가설과 달리 실제는 projected root/rowKey=null이었다. Manager의 f1 Chromium 취소와 병행fast가 남긴 설치cache bytes변화도 따로 BLOCKED로 보존한다. 새source는 visible/hidden Task명×Resource/설비 같은 행focus 회귀와 전체Gate·설치guard를 다시 확인한다.
+
+
+## #898/#899 legacy 생성물과 전체 source 검증
+
+[F898-013/014](ISSUE_898_FAILURE_ANALYSIS.md)에 진단worktree/HTML의 rootlint 오류와 f4 개별160ChromiumPASS 뒤 snapshotBLOCKED를 추가했다. 제품/testbytes·설치 불변과 별개로 tracked13/untracked16 PNG/JSON도 sourceguard가 거부한다. 4개 기존spec의 출력목적지만 testInfo.outputPath로 옮겨 historical이미지/JSON·assertions/golden·gate를 보존한다. 새 exactsource 전체재검증이 필요하며 oldPASS를전용하지않는다.

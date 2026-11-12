@@ -77,3 +77,9 @@ canonical Manifest·PNG·Geometry·Fixture와 로컬 보고를 같은 source/fix
 수집 시간은 manifest `captureDurationMs`, 파일 크기·검증 시간은 실제 summary로 관찰한다. 로컬 비용·UI 결함 재오픈의 개선은 실제 동등 표본 전 NOT TESTED다. 과거 Actions 측정을 현재 비용 절감 PASS로 쓰지 않는다.
 
 공식 근거: [Playwright Visual Comparisons](https://playwright.dev/docs/test-snapshots)는 동일 렌더링 환경을 요구하고, [Clock](https://playwright.dev/docs/clock)의 setFixedTime은 날짜를 고정하면서 timer를 유지한다. 이번에는 승인 golden이 없어 픽셀 비교를 도입하지 않는다.
+
+## #898/#899 legacy 출력 격리와 관측 경계
+
+기존 #463/#818/#258/#880/#889의 일반 PNG/JSON도 Playwright testInfo.outputPath 아래에 수집한다. canonical ui-evidence sibling 이름과 checksum/실제 flow·geometry 수집은 기존 helper를 유지한다. committed output/playwright의 역사 자료를 새 실행으로 덮지 않는다. f4 최초160개 Chromium 개별 PASS는 tracked/untracked 산출물로 전체 source guard가 BLOCKED였으며 새 source에서 다시 검증한다.
+
+DECLARATION_ONLY 캡처는 실제 fixture payload 비교 baseline으로 쓰지 않는다. dirty capture의 원인을 Next 생성 파일만으로 추정하지 않고 실제 snapshot audit를 대조한다. 허용된 생성 metadata 외 source/output 변화가 있으면 전체 검증은 BLOCKED다. 새 소스 검증·관측 무결성과 실제 Owner UAT는 별도다. [F898-014](ISSUE_898_FAILURE_ANALYSIS.md).

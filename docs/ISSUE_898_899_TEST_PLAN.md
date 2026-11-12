@@ -36,3 +36,7 @@ node scripts/verify-prepr.mjs --mode=admit --base=f9a6488d686ae7e4b3228c8a9fe9c3
 ## 독립 QA 후 추가된 일반 셀 focus 회귀
 
 같은 schedule-views 파일에 `#899 plain Grid cell double-click restores its row with visible and hidden Task names`를 추가한다. 별도 f1 진단에서 먼저 red를 확보하고 보이는/숨긴 작업명×Resource/설비·중복 마지막 row의 실제 날짜 셀 double-click/동일 Editor/Escape·정확 rowKey focus·추가Tabstop없음·canonical/Core/쓰기0를 검사한다. 최초 red와 f1 취소/설치cache drift는 F898-009~012에 보존한다. 최종 actual선정은10Unit/19Chromium이며 기존7/18은 version/lock 동기화 전 계획이다. fast와 targeted는 원본 설치cache를 동시에 변경하지 않도록 순차 실행한다.
+
+## f4 전체 실행 뒤 출력 생산자 교정
+
+f4의 개별160Chromium은0FAIL/0SKIP였으나 legacy tracked13/untracked16 출력 때문에 전체 source guard는 BLOCKED였다. 4개 기존 spec의29PNG/JSON변형을 testInfo.outputPath로 이동하며 test/golden 소비자가 없음을 확인했다. 출력목적지10호출+mkdir1 이외 assertion/fixture/threshold/timeout/retry/skip은 그대로다. 새 exact source의 full 선정160개를 재실행하고 guard PASS 전 Push/Publish/Close하지 않는다. source 아래 보존 HTML report/진단 생성 JS는 실행 입력과 분리해 보존하며 guard/ESLint ignore를 추가하지 않는다.

@@ -86,3 +86,11 @@ frontend의 제품/테스트 수정을 완료했다. 직접 #899 최종 집중1P
 최소 교정은 같은 행 선택 버튼(작업명 숨김 시 tabindex=-1 Grid)을 Editor 열기 전에 focus하고 기존 role별 종료 복원에 Grid 역할을 추가하는 것이다. 기존 큰 #899 회귀+신규 visible/hidden Task명×Resource/설비 plaincell 실제 double-click·Escape·같은 rowKey focus 검사가2PASS(41.8초/21.4초)였다. 원본 callback/서버·canonical writer/추가Tab순서는 불변이다. 이 WIP 집중 결과를 새 exact commit 전체 검증으로 전용하지 않는다.
 
 최종 package/lock을 포함한 실제 영향 계획은10Unit/19Chromium이며 버전 동기화 전7/18 계획보다 lock provenance 소비자가 추가됐다. 누락/UNKNOWN/exclude0을 다시 확인한다. 새 source Gate는 fast를 마친 뒤 targeted를 순차 실행하고 Docker는 격리 설치로 독립 수행한다. f1 동시 Unit이 남긴 원본 설치cache bytes drift는 F898-012로 보존하며 hashguard를 완화하지 않는다. 새 최종 보고서와 독립 QA·admit·Push/게시/Owner UAT는 실제 실행 전 NOT TESTED다.
+
+## 출력 source 불변 교정과 최종 재검증
+
+f4의 개별 Unit140/Chromium160은 실제 PASS였지만 tracked output13+untracked16으로 snapshot 전체는 BLOCKED였다. src/tests 코드1221개·index·설치5시점은 독립 일치 검산했고 Next2 외 legacy출력도 dirty 원인이었다. F898-013/014에 lint 출력 배치·그 회복·실제160PASS/guardBLOCKED·UI관측의 DECLARATION_ONLY 경계를 추가했다.
+
+frontend는 기존4spec의29PNG/JSON변형(10write+mkdir1) 목적지만 testInfo.outputPath로 바꿨다. 역치환 bytes 동일·직접소비자 검색·typecheck/4spec lint를 통과했고 제품 src/API/DB/fixture·assertions/gate/timeout/retry/skip은 바꾸지 않았다. TEST_PLAN/LOCAL_PREPR/UI_EVIDENCE의 출력 계약을 동기화한다. 새 source의 공통·160Chromium·Docker·snapshot/admit/독립 QA는 다시 실제 실행 전 NOT TESTED다. f4 PASS는 새 source에 전용하지 않는다.
+
+Owner가 사용할 수 있도록 자기 합성 SQLite snapshot을 일관 backup했고 기존 helper의73tables/38migrations/pending0을 확인했다. dataset capture source는 f4이고 활성 testtitle은 UNKNOWN이다. 새 source에서 제품/fixture bytes 호환·검증된 이미지 provenance를 확인한 후 별도 runtime copy로만 로컬 UAT를 준비한다. 실제 Owner 수용/운영배포/GHCR 게시·정식tag는 미실증/미승인으로 유지한다.

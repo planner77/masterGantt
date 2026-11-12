@@ -62,3 +62,7 @@ TEST_LIFECYCLE_REVIEW에는 변경 계약/AC, 기존 검색 경로·케이스·f
 필수 FAIL/BLOCKED/NOT TESTED·취소·source/base/env drift·fixture 오염·누락/미해결 UNKNOWN은 Push/Publish/Close를 차단한다. Owner 위험 수용은 검사 PASS의 대체가 아니다. source 변경 시 관련 테스트를 재실행하며 원본 실패와 후속 성공을 append-only로 구분한다.
 
 Windows Excel/VBA/DRM, 실제 reverse proxy/TLS, off-host backup/restore·운영 host/최종 수동 UX는 해당 환경에서만 판정한다. 자동 검사나 합성 DB restore는 운영 PASS가 아니다. 파괴적 migration은 #912의 backup/격리 restore·호환 digest 준비가 있어야 한다. Git revert나 이미지 rollback만으로 schema를 되돌렸다고 보고하지 않는다.
+
+## #898/#899 후속 · Playwright 산출물과 source 불변
+
+기존 milestone-dashboard-state(#463), project-summary-bar-visual(#818/#822), project-task-editor-persistence(#258), schedule-views(#880/#889)의 PNG/JSON 출력은 각 testInfo.outputPath 아래에만 생성한다. 기존 committed output/playwright 이미지·geometry와 source를 덮어쓰지 않는다. assertions/fixtures/attachments와 snapshot guard는 유지한다. f4의 개별160PASS 뒤 tracked13/untracked16 산출물 때문에 전체 BLOCKED된 최초 근거는 [F898-014](ISSUE_898_FAILURE_ANALYSIS.md)에 보존한다.

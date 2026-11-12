@@ -258,7 +258,7 @@ test("linked requested dates, metadata, baseline and successor schedules persist
     await page.setViewportSize({ width, height: 1000 });
     expect(await editor.evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBeTruthy();
     await expect(editor.getByRole("button", { name: "저장", exact: true })).toBeVisible();
-    await page.screenshot({ path: `output/playwright/issue258-after-${width}.png`, fullPage: true });
+    await page.screenshot({ path: test.info().outputPath(`issue258-after-${width}.png`), fullPage: true });
   }
   await editor.getByLabel("작업명", { exact: true }).fill("Chain B edited");
   await fillTaskMarkdown(editor, "Linked metadata");

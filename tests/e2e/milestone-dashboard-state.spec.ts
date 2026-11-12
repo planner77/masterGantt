@@ -34,7 +34,7 @@ test("#463 readonly full-state/F separation, keyboard and five-width geometry", 
   const hiddenCopyButtons = region.locator('tbody details:not([open]) button');
   expect(await hiddenCopyButtons.count()).toBeGreaterThan(0);
   await expect(hiddenCopyButtons.first()).toBeHidden();
-  await mkdir("output/playwright/issue-463", { recursive: true }); const metrics: unknown[] = [];
+  await mkdir(test.info().outputPath("issue-463"), { recursive: true }); const metrics: unknown[] = [];
   for (const width of [390, 768, 1024, 1440, 1920]) {
     await page.setViewportSize({ width, height: 900 });
     const trigger = dashboard(page).locator(".project-stage-filter-trigger"); await trigger.click();
@@ -59,7 +59,7 @@ test("#463 readonly full-state/F separation, keyboard and five-width geometry", 
       await test.info().attach(`issue-750-popup-navigation-${width}-${key}`, { body: JSON.stringify({ width, key, navigation }, null, 2), contentType: "application/json" });
       expect(navigation, `${width}px ${key}: ${JSON.stringify(navigation)}`).toMatchObject({ inputFocused: true, activeVisible: true, activeIndex: expectedIndex });
     }
-    await input.press("Escape"); await expect(trigger).toBeFocused(); await dashboard(page).getByRole("heading", { name: "Milestone 대시보드", exact: true }).scrollIntoViewIfNeeded(); await page.screenshot({ path:`output/playwright/issue-463/dashboard-${width}.png`,fullPage:false }); await region.locator("tbody td:first-child > button").first().focus(); await expect(region.locator("tbody td:first-child > button").first()).toBeFocused();
+    await input.press("Escape"); await expect(trigger).toBeFocused(); await dashboard(page).getByRole("heading", { name: "Milestone 대시보드", exact: true }).scrollIntoViewIfNeeded(); await page.screenshot({ path:test.info().outputPath("issue-463", `dashboard-${width}.png`),fullPage:false }); await region.locator("tbody td:first-child > button").first().focus(); await expect(region.locator("tbody td:first-child > button").first()).toBeFocused();
     const geometry = await dashboard(page).evaluate((root) => {
       const bounds = (e: Element) => { const b = e.getBoundingClientRect(); return { left:b.left,right:b.right,top:b.top,bottom:b.bottom,width:b.width,height:b.height }; };
       const contains = (a: ReturnType<typeof bounds>, b: ReturnType<typeof bounds>) => a.left >= b.left - 1 && a.right <= b.right + 1 && a.top >= b.top - 1 && a.bottom <= b.bottom + 1;
@@ -79,7 +79,7 @@ test("#463 readonly full-state/F separation, keyboard and five-width geometry", 
       const focusOwner = bounds(focused.closest("[role=region]") ?? pane);
       return { failedOtherControls:otherControls.filter(({control,owner})=>!contains(control,owner)),documentHeight:document.documentElement.scrollHeight,otherControlCount:otherControls.length,allOtherControlsContained:otherControls.every(({control,owner})=>contains(control,owner)),focusInScrollOwner:focus.left-outset>=focusOwner.left&&focus.right+outset<=focusOwner.right, viewport:innerWidth,documentWidth:document.documentElement.scrollWidth,tables,filterControlsContained:inputs.every((b)=>contains(b,f)),filterControlsNonoverlapping:nonoverlap(inputs),focusVisible:focus.left-outset>=0&&focus.right+outset<=innerWidth&&focus.top-outset>=0&&focus.bottom+outset<=innerHeight,focusOutline:style.outlineStyle,paneOverflowY:getComputedStyle(pane).overflowY,paneClientHeight:pane.clientHeight,paneScrollHeight:pane.scrollHeight,workspaceTabsClientHeight:workspaceTabs.clientHeight,workspaceTabsScrollHeight:workspaceTabs.scrollHeight,inactiveGanttInert:document.querySelector("#project-panel-schedule")!.hasAttribute("inert"),inactiveGanttHidden:getComputedStyle(document.querySelector("#project-panel-schedule")!).visibility,focusedOutsideInactiveGantt:!document.querySelector("#project-panel-schedule")!.contains(document.activeElement) };
     });
-    await writeFile(`output/playwright/issue-463/geometry-partial-${width}.json`, JSON.stringify({ width, popup, ...geometry }, null, 2));
+    await writeFile(test.info().outputPath("issue-463", `geometry-partial-${width}.json`), JSON.stringify({ width, popup, ...geometry }, null, 2));
     // Preserve exact geometry in CI report even if a following assertion fails.
     await test.info().attach(`issue-463-milestone-geometry-${width}`, { body: JSON.stringify({ width, popup, ...geometry }, null, 2), contentType: "application/json" });
     expect(geometry.documentWidth).toBeLessThanOrEqual(width); expect(geometry.filterControlsContained && geometry.filterControlsNonoverlapping && geometry.focusVisible && geometry.focusInScrollOwner && geometry.allOtherControlsContained).toBe(true); expect(geometry.otherControlCount).toBeGreaterThan(0); expect(geometry.focusOutline).not.toBe("none"); expect(geometry.paneOverflowY).toBe("auto"); expect(geometry.workspaceTabsScrollHeight).toBe(geometry.workspaceTabsClientHeight); expect(geometry.inactiveGanttInert && geometry.focusedOutsideInactiveGantt).toBe(true); expect(geometry.inactiveGanttHidden).toBe("hidden");
@@ -93,9 +93,9 @@ test("#463 readonly full-state/F separation, keyboard and five-width geometry", 
     expect(geometry.tables[0].hiddenDisclosureButtons).toBeGreaterThan(0);
     expect(geometry.tables[0].headerBounds[0].width).toBeGreaterThanOrEqual(260);
     expect(geometry.tables[0].width).toBeGreaterThanOrEqual(1052);
-    metrics.push({ width,popup,...geometry }); await page.screenshot({ path:`output/playwright/issue-463/dashboard-stage-table-${width}.png`,fullPage:false });
+    metrics.push({ width,popup,...geometry }); await page.screenshot({ path:test.info().outputPath("issue-463", `dashboard-stage-table-${width}.png`),fullPage:false });
   }
-  await writeFile("output/playwright/issue-463/geometry.json",JSON.stringify(metrics,null,2));
+  await writeFile(test.info().outputPath("issue-463", "geometry.json"),JSON.stringify(metrics,null,2));
   await page.setViewportSize({ width:1440,height:900 }); const first = region.getByRole("row").nth(1); await first.getByRole("button",{name:/Milestone 상세$/}).click(); const editor = page.getByRole("dialog",{name:"작업 정보",exact:true}); await expect(editor).toBeVisible(); await editor.getByRole("button",{name:"작업 편집기 닫기",exact:true}).click(); await expect(tab(page)).toHaveAttribute("aria-selected","true"); expect(writes).toBe(0);
 });
 
