@@ -482,3 +482,7 @@ Full #3524.1의 실제 inline 이름 저장 재시작case가 본문30초를 초�
 C003 성능 해석: 분리된 fixture 예산 때문에 Playwright reporter duration은 준비를 제외한 본문 시간이다. 실제 전체 비용은 inline-name-restart-preparation과 isolated-application performance의 준비/restart/전체elapsed를 함께 읽는다. 짧아진 본문 duration을 dev compile 개선·전체여정단축·10개성공run baseline으로 해석하지 않는다. 기존 shard 성능원장/projectedMs/sourceRunIds와 정책은 변경하지 않는다.
 
 C003 최종 동일동결source의31spec/192계획=190PASS/기존2SKIP/FAIL0, 별도2CPU3반복PASS(고유합계미가산), 최종type/lint/탐색/정책/문서구조PASS다. 자동Pre-PR UNKNOWN94는BLOCKED로유지하고원격/Owner/Manager NOT TESTED와구별한다. [최종정제증거](evidence/issue-866/ci3524-local-validation.json), 단일원장C003 E를따른다.
+
+## Issue #899 · 일반 셀 더블클릭의 같은 행 포커스
+
+날짜·기간 같은 비포커스 셀의 더블클릭도 기존 Editor를 열 수 있다. 열기 직전에 클릭한 표시행의 선택 버튼을 포커스해 rowKey/trigger를 귀속한다. 작업명 열이 숨겨졌으면 해당 행 Grid를 tabIndex=-1로 프로그램 포커스하며 새 Tab 정류점을 추가하지 않는다. Editor 중 DOM이 재생성됐을 때도 같은 역할 Grid를 우선 복원한다. 기존 focus-visible semantic token을 사용한다. 실제 red/교정 범위는 [F898-010](ISSUE_898_FAILURE_ANALYSIS.md)에 기록한다.

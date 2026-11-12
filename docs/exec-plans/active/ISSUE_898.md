@@ -78,3 +78,11 @@ DESIGN/PROJECT_UX/UI_UX_GUIDELINES/GANTT_STATE_CONSISTENCY/TASK_EDITOR/TEST_PLAN
 frontend의 제품/테스트 수정을 완료했다. 직접 #899 최종 집중1PASS49.8초, #898 확장33.1초 PASS, #822 native blank4.9초 PASS는 WIP SCOPED다. #8995폭×DayWeek는 실제 capacity가 충분한 경우≤1px, 부족한 경우 typed NO_SCROLL_CAPACITY·clamp·잔차를 각각 검증한다. #8983View×Grid/Chart별34→28→34 전체 실제 입력과 blank/Bar·header/input 제외, 추가 Equipment Week/fullscreen 실제 row hit를 확인했다. 모든 조합/운영 장치에 성공을 확대하지 않는다.
 
 진단 중 생긴 setup 실패/비취소 이벤트/미관측 원인을 F898-004~008로 보존했고 최종 집중 검사는 교정한 현재 전제를 검증했다. 최종 정적·전체 Unit·빌드/18Chromium·Docker/admit·독립 QA는 clean exact commit에서 실제 실행 전 NOT TESTED이며 결과를 Issue에 추가한다. 검사 뒤 문서 수정으로 source를 바꾸지 않는다. 정식 tag/rolling·GHCR 게시·운영 배포와 Owner UAT/종료는 미승인/미실증으로 구별한다.
+
+## 독립 QA P2 재작업과 두 번째 source freeze
+
+독립 qa_docs가 일반 Grid 날짜/기간 셀 double-click의 trigger 귀속 누락을 발견했고 별도 f1 제품/합성 HTTP SQLite 진단에서 두 View의 행 focus 소실을 실제 재현했다. f1 fast3976PASS/기존3SKIP와 Docker10단계PASS는 보존한다. f1 전체 Chromium은 Manager가 재작업을 위해 중단했고12PASS/1interrupted/146미실행으로 BLOCKED다. 실제로는 조회 root에 focus가 남았으며 숨긴 WBS 이동은 관측되지 않았다.
+
+최소 교정은 같은 행 선택 버튼(작업명 숨김 시 tabindex=-1 Grid)을 Editor 열기 전에 focus하고 기존 role별 종료 복원에 Grid 역할을 추가하는 것이다. 기존 큰 #899 회귀+신규 visible/hidden Task명×Resource/설비 plaincell 실제 double-click·Escape·같은 rowKey focus 검사가2PASS(41.8초/21.4초)였다. 원본 callback/서버·canonical writer/추가Tab순서는 불변이다. 이 WIP 집중 결과를 새 exact commit 전체 검증으로 전용하지 않는다.
+
+최종 package/lock을 포함한 실제 영향 계획은10Unit/19Chromium이며 버전 동기화 전7/18 계획보다 lock provenance 소비자가 추가됐다. 누락/UNKNOWN/exclude0을 다시 확인한다. 새 source Gate는 fast를 마친 뒤 targeted를 순차 실행하고 Docker는 격리 설치로 독립 수행한다. f1 동시 Unit이 남긴 원본 설치cache bytes drift는 F898-012로 보존하며 hashguard를 완화하지 않는다. 새 최종 보고서와 독립 QA·admit·Push/게시/Owner UAT는 실제 실행 전 NOT TESTED다.

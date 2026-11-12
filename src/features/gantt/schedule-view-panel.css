@@ -1,7 +1,7 @@
 .project-schedule-view-controls { display: flex; align-items: center; gap: .375rem; font-size: .8125rem; }
 .project-schedule-view-controls label { font-weight: 650; }
 .project-schedule-view-controls select { min-height: 44px; min-width: 7rem; border: 1px solid var(--border); border-radius: var(--radius); padding: .375rem .5rem; background: var(--card); color: var(--foreground); font: inherit; }
-.project-schedule-view-controls select:focus-visible, .project-schedule-view button:focus-visible, .project-schedule-view-scroll:focus-visible, .project-schedule-view-scale-row > span:focus-visible { outline: 3px solid var(--focus-ring, var(--primary)); outline-offset: -3px; }
+.project-schedule-view-controls select:focus-visible, .project-schedule-view button:focus-visible, .project-schedule-view-grid:focus-visible, .project-schedule-view-scroll:focus-visible, .project-schedule-view-scale-row > span:focus-visible { outline: 3px solid var(--focus-ring, var(--primary)); outline-offset: -3px; }
 .project-gantt-scroll[hidden], .project-copy-selection-controls[hidden] { display: none !important; }
 .project-schedule-view { min-height: 0; min-width: 0; flex: 1 1 0; display: flex; flex-direction: column; overflow-x: auto; overflow-y: hidden; font-size: var(--project-gantt-density-font, 14px); }
 .project-schedule-view-status { display: flex; flex-wrap: nowrap; min-width: 0; width: 100%; height: 44px; align-items: center; gap: .5rem; font-size: .75rem; color: var(--muted-foreground); }

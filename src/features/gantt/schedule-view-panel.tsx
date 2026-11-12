@@ -444,8 +444,16 @@ export function ScheduleViewPanel(props: Props) {
             className={`project-schedule-view-row ${row.kind === "group" ? "project-schedule-view-group" : ""}`}
             style={{ top: headerHeight + (startRow + offset) * cellHeight, height: cellHeight }}>
             <div className="project-schedule-view-grid" data-schedule-view-grid-cell data-schedule-view-body style={{ width: gridWidth }}
+              tabIndex={row.kind === "task" ? -1 : undefined}
               onClick={row.kind === "task" ? () => selectTaskRow(row) : undefined}
-              onDoubleClick={row.kind === "task" ? () => { if (row.canonicalTaskId) openTask(row.canonicalTaskId); } : undefined}>
+              onDoubleClick={row.kind === "task" ? event => {
+                if (!row.canonicalTaskId || props.blocked || !source) return;
+                // Plain cells do not focus a Task action themselves. Preserve
+                // the clicked projection path before the Editor captures it.
+                const trigger = event.currentTarget.querySelector<HTMLButtonElement>(".project-schedule-view-name > button:not(.project-schedule-view-info):not(:disabled)") ?? event.currentTarget;
+                trigger.focus({ preventScroll: true });
+                openTask(row.canonicalTaskId);
+              } : undefined}>
               {gridColumns.map(column => <div key={column.id} role="gridcell" data-column-id={column.id}
                 className={`project-schedule-view-cell ${column.id === "text" ? "project-schedule-view-name" : ""}`}
                 style={{ width: column.width, textAlign: column.align ?? "start", transform: `translateX(${-gridOffset}px)`, paddingInlineStart: column.id === "text" ? 8 + row.depth * 16 : undefined }}>

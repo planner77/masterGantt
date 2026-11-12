@@ -1623,7 +1623,9 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName, issueDefault
             ? "[data-schedule-task-open]:not(:disabled)"
             : trigger?.matches(".project-schedule-view-bar")
               ? ".project-schedule-view-bar:not(:disabled)"
-              : ".project-schedule-view-name > button:not(.project-schedule-view-info):not(:disabled)";
+              : trigger?.matches("[data-schedule-view-grid-cell]")
+                ? "[data-schedule-view-grid-cell]"
+                : ".project-schedule-view-name > button:not(.project-schedule-view-info):not(:disabled)";
           const target = sameRowTrigger ??
             row?.querySelector<HTMLElement>(preferred) ??
             row?.querySelector<HTMLButtonElement>("button:not(:disabled)") ?? root;

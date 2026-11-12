@@ -1865,3 +1865,5 @@ PR864 REWORK3의 관리자 제목 배치는 [390px](evidence/issue342/rework3/ma
 언어 선택은 현재 화면의 고정 문구·도움말·접근성 이름과 읽기용 날짜·숫자만 갱신한다. Project/Task/Issue 이름·본문·사람 이름은 원문이며 관리형 이름만 현재 locale 번역 또는 원본 fallback을 표시한다. 선택 value와 링크·저장은 기존 ID/code를 사용한다. 번역명이 겹치면 code/기존 정렬 문맥으로 구별한다.
 
 전환 때문에 navigation/query·열린 modal·dirty 초안·Gantt 인스턴스·선택·scroll·pending/stale 권한 상태를 reset하지 않는다. 번역 초안은 시작 revision과 함께 유지하며 401/412 뒤 현재 revision을 붙여 저장하지 않는다. 알림은 원문 사용자 parameter와 고정 key descriptor를 유지해 현재 언어로 재표시·복사한다. date/number input은 canonical 값을 유지한다. 장문·keyboard/focus/Escape/복원·overflow는 실제 화면 검증이 필요하며 현재 Phase C 새 Head 원격 E2E/최종 수동 UX는 NOT TESTED다. 상세 계약은 [Phase C 설계](I18N_PHASE_C.md)를 따른다.
+
+일반 조회 Grid 셀을 더블클릭해 Editor를 여는 경우에도 클릭한 표시행을 열기 전에 포커스한다. 작업명 열이 보이면 선택 버튼, 숨겨졌으면 프로그램 포커스 Grid를 사용하며 Editor 종료 뒤 같은 rowKey/역할로 돌아간다. 가상행·source/입력 세대의 기존 복원 취소 규칙과 새 Tab 정류점 없음은 유지한다. 실제 검증은 [F898-010](ISSUE_898_FAILURE_ANALYSIS.md)에 연결한다.

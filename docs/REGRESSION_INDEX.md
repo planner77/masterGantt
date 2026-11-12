@@ -100,3 +100,8 @@ F912-007은 원장 작성 Agent의 링크검사 파일명 오류(exit1/MODULE_NO
 ## #898/#899 실제 입력·조회 선택 재작업
 
 [Primary #898](ISSUE_898_FAILURE_ANALYSIS.md)과 [#899 연결](ISSUE_899_FAILURE_ANALYSIS.md)을 추가한다. F898-001은 PLAN SHA 오기/실제 Git 조회 정정, F898-002는 현행 main의 실제 Grid 클릭 Editor 자동 열림, F898-003은 blank Grid scroll층·Chart SVG 포인터에서 density 누락의 실제 red다. 이전 [#904 최초 다섯 실패](ISSUE_898_899_FAILURE_ANALYSIS.md)와 보완은 역사 원본으로 보존하고 새 PASS로 덮지 않는다. 기존 일정 View HTTP/SQLite·물리 wheel·focus/virtual keyboard 회귀를 확장한다. 작업중 SCOPED 진단은 최종 exact source admission이 아니며 운영 장치/Owner UAT는 별도다.
+
+
+## #898/#899 exact f1 뒤 독립 QA 재작업
+
+F898-009~012를 [Primary 원장](ISSUE_898_FAILURE_ANALYSIS.md)에 추가했다. f1 공통3976PASS/기존3SKIP·Docker10단계PASS는 보존하며 실제 plain datecell Editor 종료 뒤 행focus 소실을 F898-010으로 재현했다. 초기 숨긴WBS 가설과 달리 실제는 projected root/rowKey=null이었다. Manager의 f1 Chromium 취소와 병행fast가 남긴 설치cache bytes변화도 따로 BLOCKED로 보존한다. 새source는 visible/hidden Task명×Resource/설비 같은 행focus 회귀와 전체Gate·설치guard를 다시 확인한다.

@@ -32,3 +32,7 @@ node scripts/verify-prepr.mjs --mode=admit --base=f9a6488d686ae7e4b3228c8a9fe9c3
 ## 시각 증거와 수동 검증
 
 기존 #896 helper의 합성 PNG/geometry/fixture/flow와 v2 manifest 무결성을 실제 source에 연결한다. 대표 screenshot을 실제로 확인하고 automatic PASS를 사람의 DESIGN 수용으로 쓰지 않는다. #897 Owner 격리 UAT, 실제 Chrome/Edge 일반 마우스·trackpad/hybrid·native125%·touch/AT는 별도 NOT TESTED이며 운영 재확인 전 Issue 전체 완료/종료로 표시하지 않는다. 운영 DB/화면·비밀값을 공개하지 않는다.
+
+## 독립 QA 후 추가된 일반 셀 focus 회귀
+
+같은 schedule-views 파일에 `#899 plain Grid cell double-click restores its row with visible and hidden Task names`를 추가한다. 별도 f1 진단에서 먼저 red를 확보하고 보이는/숨긴 작업명×Resource/설비·중복 마지막 row의 실제 날짜 셀 double-click/동일 Editor/Escape·정확 rowKey focus·추가Tabstop없음·canonical/Core/쓰기0를 검사한다. 최초 red와 f1 취소/설치cache drift는 F898-009~012에 보존한다. 최종 actual선정은10Unit/19Chromium이며 기존7/18은 version/lock 동기화 전 계획이다. fast와 targeted는 원본 설치cache를 동시에 변경하지 않도록 순차 실행한다.

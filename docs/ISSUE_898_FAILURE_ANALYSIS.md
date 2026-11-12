@@ -70,3 +70,38 @@ Primary #898, related #899. baseline main `f9a6488d686ae7e4b3228c8a9fe9c33a7fd00
 - 직접 typecheck와 변경 소스 lint는 exit0, lint는 기존 hook warnings3/오류0이었다. 원장 구조40Failure/81events/기존7Markdown prefix와465개 Markdown 링크 검산은 실제 PASS였다. 이는 제품 exact-source 최종 Gate를 대신하지 않는다.
 - frontend는 지정 제품/테스트 수정을 동결하고 자기 진단 artifact를 ignored `.prepr-reports/diagnostic-898`에 보존했다. Next가 진단 중 만든 next-env.d.ts/tsconfig.json 차이만 원본대로 복원했고 자기 서버 종료/3100 free를 확인했다. 원래 사용자 worktree 변경·운영 DB/서비스는 건드리지 않았다.
 - baseline origin/main은 실제 fetch 뒤에도 `f9a6488d686ae7e4b3228c8a9fe9c33a7fd00185`였다. 다음 clean commit의 실제 fast/targeted/docker/admit·독립 최종 QA를 보고서와 Issue에 결속한다. 여기의 작업중 집중 PASS는 source 지문 미수집 SCOPED이며 최종 검증으로 소급 승격하지 않는다. 이미지 NOT PUBLISHED/운영 NOT DEPLOYED/Owner UAT NOT TESTED다.
+
+## F898-009 — exact f1 browser 진입 전 자기 진단 출력 잔존 BLOCKED
+
+- exact source `f1da5ebb88edafe3f2e2e79ca12c1f379bf3fa44`, base `f9a6488d686ae7e4b3228c8a9fe9c33a7fd00185`, fingerprint `edecc134d6087178561e41802776607d77f31574c0338ae5b37aed3a73117ca8`. 환경 지문 `bed4cede1c15093724f318701df5333a949aa62f3fe2e49f498bdb5e303ae131`, Node22.14.0/npm11.10.0/LinuxWSL2。
+- 2026-11-12T03:39:44.502Z~03:39:53.890Z, `node scripts/verify-prepr.mjs --mode=targeted --base=f9a6488d686ae7e4b3228c8a9fe9c33a7fd00185 --issue=898 --report-dir=.prepr-reports/final-targeted-01`, exit1/BLOCKED. 실제 Unit10파일140PASS 뒤 `Existing E2E resource: test-results`로 Chromium 실행 전 중단했다. 제품 FAIL/Chromium FAIL이 아니다.
+- 원본 report checksum `14d58f561fe52d3643c61da621418efbba3fba5b72d314f4f78860761f38a251`, 파일SHA256 `a279103a064308e2121f10729beca13ef8545fffc5070344db189a193afecdee`. [동시 외부 증거](https://github.com/planner77/masterGantt/issues/898#issuecomment-6813714309).
+- frontend가 복사 보존한 자기 마지막 test-results 원본 폴더가 남았다. Manager가 이를 ignored `.prepr-reports/diagnostic-898/final-selection-original-test-results`로 이동 보존하고 같은 source의 targeted02를 시작했다. source/fixture/설치/정책·기존 서비스/운영 DB는 변경하지 않았다. 첫 BLOCKED는 삭제하지 않는다.
+
+## F898-010 — 일반 Grid 날짜 셀 더블클릭 후 행 포커스 소실 (#899 P2)
+
+- 독립 qa_docs는 source f1의 Grid 전체 double-click→openTask 경로에서 `document.activeElement` 귀속 누락을 찾았다. 독립 Chromium nonfocusable div probe는 실제 activeTag=BODY/activeId빈값, exit0/1.3567초였다. 이는 DOM 경계만 실증한 것이며 제품 Escape 결과와 구별했다.
+- 제품 red: 별도 detached f1 worktree의 실제 HTTP/SQLite fixture, 독립3301 포트, `npx --no-install playwright test --config tests/config/playwright.cell-focus.config.ts tests/e2e/schedule-views.spec.ts --grep '#899 diagnostic plain date cell' --reporter=list`, exit1/1testFAIL34.7초. Resource/설비 양쪽 실제 datecell dblclick→동일 canonical Editor 열림→Escape 닫힘은 성공했으나 same-row 선택 버튼 focus는 inactive였다. 실제 activeElement는 두 경우 모두 DIV.project-schedule-view-scroll, rowKey=null/projected=true/native=false였다.
+- 정정: 처음 정적 경로의 숨긴 WBS fallback 가능성은 가설이었다. 이 앱 재현은 **조회 root로 행 포커스가 소실된 사실**이며 숨긴 WBS focus는 관측되지 않았다. 두 사실을 혼동하지 않는다. 진단에는 테스트/config diff가 있어 전체 source fingerprint 미수집 SCOPED이며 제품 코드는 f1 그대로다.
+- 합성 근거 `LOCAL:899-plain-cell-red`(.prepr-reports/cell-focus-source/test-results의 해당 trace/error-context). 실제 운영 DB/화면을 사용하지 않았다.
+- 교정 범위: double-click 때 같은 행 선택 버튼을 먼저 focus하고, 작업명 열이 숨겨졌으면 tabIndex=-1 Grid를 프로그램 focus한 뒤 기존 canonical Editor를 연다. Editor 동안 DOM이 교체돼도 동일 rowKey/명령 역할의 Grid를 우선 복원한다. 새 Tab 순서·Editor callback·canonical/서버 writer는 만들지 않는다. 기존 focus-visible token을 Grid에도 적용한다. 새 회귀는 실제 표시열 메뉴로 작업명 보임/숨김×Resource/설비를 검증하며 정확 rowKey·같은 Core/쓰기0를 함께 검사한다. 교정 뒤 실행은 후속 기록으로 구별한다.
+
+## F898-011 — QA 재작업을 위한 f1 전체 Chromium 의도적 중단
+
+- f1의 fast01은 2026-11-12T03:45:32.270Z 실제 PASS: 공통9단계·전체 Unit3976PASS/기존 opt-in3SKIP·production build. checksum `f6842883367511df0a0b27e01198076d634ed47201cc621a78a4af6ca73846ee`/파일SHA256 `32d1558de8d69ad15642bc06f4fb5224cf411752c871162ea40c5e043215bb47`.
+- 같은 f1 Docker01은03:45:34.062Z 실제 PASS:10단계·OCI SBOM/provenance·policy·runtime/API/auth·SQLite restart/integrity/FK. checksum `9a30f78913f87145fca8d2d360c79fc013c36ab0ad97d34429086bd12baecc7b`/파일SHA256 `caf5e55d40c8735aa246e3d373bc6543b75e48dff97ba5895071efa16bff2adf`.
+- F898-010 해결을 위해 Manager는 자기 verifier와 해당 Playwright process에 SIGINT를 보내 targeted02를 종료했다. 03:40:46.457Z~03:47:17.249Z, exit1/BLOCKED/interrupted=true, Unit140PASS·Chromium12PASS/1interrupted/146not-run. 중단된 i18n 사례의 `Test was interrupted`/`locator.selectOption: Test ended`는 취소 결과이며 원래 제품 회귀 FAIL로 확정하지 않는다. 필요한 미실행을 PASS로 표시하지 않는다.
+- report checksum `7eb69828c02cb598d0cdadf195c3a61c9d3a249c24c549791663e580eb1e5c9a`/파일SHA256 `fa3065833155216e2539239d88720d7b2cb8d2338860b6378e708e511f4f2cb1`. 원본 보고/trace·미실행은 보존한다. 새 source 전체 Gate에 f1 PASS를 전용하지 않는다. f1에 admit/Manager ACCEPT/Push/게시를 수행하지 않았다.
+
+## F898-012 — fast/targeted 동시 실행 중 원본 설치 cache bytes 변화
+
+- f1 targeted02의 snapshot verification도 별도로 BLOCKED였다. root tracked source/environment는 stable이었고 복사 설치는 before/copied/originalAfterCopy/snapshotAfterRun 모두 `81f1160925d06ab01ec663b051b5eb4bc79dd9400ea2770d3b046b9df8396330`으로 같았다. 원본 node_modules만 originalAfterRun `b8ddd654ed8613fd41ea2708b16ecb6eaad37a751bea7013837a65542c909966`으로 바뀌었다. 파일34108/dir3308/link35 수는 같고 총683131782→683162408bytes(+30626)였다.
+- 읽기 전용 infra 진단에서 실행창 mtime의 현재 파일은 `.vite/vitest/da39a3ee5e6b4b0d3255bfef95601890afd80709/results.json` 하나(31674bytes/319results/03:43:20.145509Z)였으며 fast Unit 종료03:43:20.815Z와 일치한다. targeted Unit은03:40:56.650Z 종료 후 snapshot을 만들었다. **동시 fast Unit의 Vitest cache 덮어쓰기로 판단되는 강한 시간 근거**지만 변경 전 파일별 hash/bytes가 없어 정확한 변경 파일 전체는 UNKNOWN이다. production build 원인 증거는 없다.
+- guard의 차단은 타당하며 cache hash 제외나 정책 완화로 우회하지 않는다. 다음 exact source는 fast 완료 후 targeted를 순차 실행하며 그 동안 원본 root의 Unit/빌드/설치를 병행하지 않는다. Docker는 자체 container 설치를 사용하므로 독립 실행할 수 있다. 이전 BLOCKED/취소를 보존하고 새 source에서 실제 source/설치 일치를 확인한다.
+
+## F898-010 교정 후 집중 GREEN (SCOPED)
+
+- `npm run test:e2e -- tests/e2e/schedule-views.spec.ts --grep '#899 plain Grid|#899 projected' --reporter=list`, 실제 exit0/2PASS/약1.7분. 기존 #899 중복/5폭·scale/Editor/경쟁 회귀41.8초, 새 일반 셀 double-click focus 회귀21.4초였다.
+- 새 회귀는 실제 열 메뉴로 작업명 보임/숨김×Resource/설비4조합에서 마지막 중복 표시행의 날짜 셀을 실제 더블클릭하고 정확 canonical Editor/Escape·같은 행 선택 버튼 또는 프로그램 focus Grid·rowKey·같은 WBS Core·canonical snapshot/쓰기0를 단언했다. 본문 입력/readonly 소유권을 바꾸지 않았다.
+- source는 교정 코드+문서의 WIP이며 당시 전체 지문 미수집 SCOPED다. 최종 clean commit의 공통·영향·Docker/admit·독립 QA 결과는 이후 실제 보고서에 귀속한다. 이전 f1 결과·미관측 값·취소는 보존한다.
+- 명시적 작업명 열 숨김과 별개로, 내부 Grid 가로 스크롤에서 Task 선택 버튼이 부분 clipping된 모든 조합은 이 새 focus 사례에서 전수 검증하지 않았다. 이전 scroll/viewport 인접 회귀와 대표5폭은 계속 실행하며 실기기/AT·Owner UAT와 전체 Cartesian 조합 수용을 주장하지 않는다.

@@ -1188,3 +1188,52 @@ test("#898 real pointer Ctrl+wheel across three Views including empty body", asy
   expect(writes).toEqual([]);
   expect((await f.snapshot()).data).toEqual(baseline.data);
 });
+
+
+test("#899 plain Grid cell double-click restores its row with visible and hidden Task names", async ({ page, isolatedApplication, observeIsolatedApi }, info) => {
+  test.setTimeout(180_000);
+  const f = await seedScheduleViews(page, isolatedApplication, observeIsolatedApi);
+  await openWorkspaceView(page, "schedule");
+  const baseline = await f.snapshot();
+  const writes = observeProjectWrites(page, f.publicId);
+  const frame = page.locator(".project-gantt-frame");
+  const apiInstance = await frame.getAttribute("data-project-gantt-api-instance");
+  const editor = page.getByRole("dialog", { name: "작업 정보", exact: true });
+  const receipts: unknown[] = [];
+  for (const textVisible of [true, false]) {
+    if (!textVisible) {
+      await selector(page).selectOption("wbs");
+      await expect(frame.locator(".wx-gantt")).toBeVisible();
+      await frame.locator(".wx-table-container .wx-header").first().click({ button: "right" });
+      await page.locator(".project-column-menu").getByRole("checkbox", { name: "작업", exact: true }).uncheck();
+      await page.keyboard.press("Escape");
+    }
+    for (const mode of ["resource", "equipment"] as const) {
+      await selector(page).selectOption(mode);
+      const surface = view(page, mode);
+      await expect(surface.locator("[data-schedule-view-scroll]")).toHaveAttribute("data-ready", "true");
+      const row = taskRows(surface, f.task.taskId).last();
+      const grid = row.locator("[data-schedule-view-grid-cell]");
+      const select = row.locator(".project-schedule-view-name > button:not(.project-schedule-view-info)");
+      await expect(select).toHaveCount(textVisible ? 1 : 0);
+      await row.locator('[data-column-id="projectStart"]').dblclick();
+      await expect(editor.getByLabel("작업명", { exact: true })).toHaveValue(f.task.name);
+      await editor.press("Escape");
+      await expect(editor).toHaveCount(0);
+      await expect(textVisible ? select : grid, `${mode}: plain cell Editor must return to its clicked projection path`).toBeFocused();
+      const focus = await page.evaluate(() => {
+        const target = document.activeElement;
+        return { tag: target?.tagName ?? null, rowKey: target?.closest("[data-view-row-key]")?.getAttribute("data-view-row-key") ?? null,
+          projected: Boolean(target?.closest("[data-schedule-view]")), native: Boolean(target?.closest(".wx-gantt")) };
+      });
+      expect(focus.rowKey).toBe(await row.getAttribute("data-view-row-key"));
+      expect(focus.projected).toBe(true); expect(focus.native).toBe(false);
+      if (!textVisible) await expect(grid).toHaveAttribute("tabindex", "-1");
+      receipts.push({ mode, textVisible, focus });
+      await expect(frame).toHaveAttribute("data-project-gantt-api-instance", apiInstance!);
+    }
+  }
+  expect(writes).toEqual([]);
+  expect((await f.snapshot()).data).toEqual(baseline.data);
+  await info.attach("issue-899-plain-cell-focus", { body: JSON.stringify(receipts), contentType: "application/json" });
+});
