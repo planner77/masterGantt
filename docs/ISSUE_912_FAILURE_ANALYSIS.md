@@ -109,3 +109,9 @@ R01전체span10:49:04.311838Z~10:49:05.680253Z에서activeAESrestore는exit0였�
 자기ownedvolume만RWphysicalmount하고SQLiteconnectionreadonly/query_only를유지한 `python3 <private-runner>/aes-runtime-r02.private.py <private-evidence-dir>` R02는exit0,10:50:12.971286Z~10:50:16.630893Z였다. syntheticwrites전73tables/ledger38/schemaexact·actualSQL38·integrityok/FK0·APIauthOriginrevisionJSONexportrestartPASS였다. 새AESbackup→기존current8e29image의격리clone실증이며af3image의운영배포가아니다. productionmount/write/restart0,offhostfalse,testOnlyMaxAgeMs3600000은정책승인이아니다.
 
 최종cleanup `python3 -` exit0,완료10:51:48.227267Z/시작미수집. ownclone1/volume1/restore평문을제거해workspaceSQLite0,AEScipher/외부32byte0600key·legacyGPG·activeoperatorstaging원본은보존했다. timer/cron/prune/deployhook0·productionmount/write/restart0을확인했다. 허용sanitizedsummary만읽고rawDB/env/key/원문로그는읽지않았다.
+
+## F912-001 후속 · Owner 정책 확정 / 숫자 제안 미채택
+
+2026-11-12 Owner는 `배포 전 백업, 배포 후 문제 발생 시 복원으로만 가겠습니다.`로 확정했다([결정](https://github.com/planner77/masterGantt/issues/912#issuecomment-6812259893)). 배포 전 수동 일관·암호화 백업과 검증이 실패/누락이면 배포를 차단하며, 배포 후 실제 문제가 발생한 경우에만 호환 backup/image를 새 volume에 수동 복원·검증한 뒤 전환한다.
+
+매일/30일/월간 정례 연습/RPO24시간·RTO1시간은 미채택으로 수치 승인 대기를 해소했다. 이전 PENDING과 off-host BLOCKED·범위 변경, 실제 AES/legacy 복원 결과는 그대로 보존한다. 고정 보관 기간·예약/자동 복원·자동 삭제를 도입하지 않으며 기존 backup/key/image를 보존한다. 필수 --max-age-ms와 출처/암호화/무결성 guard도 유지한다. 이 Owner 결정은 프로세스 실행이 아니므로 exit0/PASS를 만들지 않고 decisionAccepted=true·NOT TESTED(실행 판정 비대상)로 기록한다. 새 배포/복원은 실행하지 않았으며 off-host는 범위 제외 NOT TESTED/N/A, 동일 호스트 전체 유실 위험은 남는다.

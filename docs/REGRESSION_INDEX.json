@@ -3135,6 +3135,52 @@
             "imageDigest": "sha256:8ebd91b4f6b316c3bdc9a221e5a8ee9d50a3fb4fb845c2ebf140e44ac50292d1",
             "backupId": "mg-aes-20261111T103816Z-ac051a98"
           }
+        },
+        {
+          "id": "owner-predeploy-backup-problem-only-restore-policy",
+          "at": null,
+          "timeNote": "사용자 발화의 정확 시각은 미수집; 2026-11-12 결정 원문과 공개 댓글 근거 참조",
+          "stage": "OPERATION",
+          "status": "NOT TESTED",
+          "sourceSha": "c65acd179eb44104dc203b7ccb791980b4a6ee3c",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "문서 수정 전 baseline; Owner 정책 결정은 runtime 검사/새 source 전체 gate 아님",
+          "environment": "Owner conversation; local manual recovery policy; no production mutation",
+          "environmentVersion": "masterGantt 0.145.1; documentation baseline c65acd17",
+          "command": [
+            "OWNER_MESSAGE",
+            "배포 전 백업, 배포 후 문제 발생 시 복원으로만 가겠습니다."
+          ],
+          "exit": null,
+          "exitNote": "사용자 정책 결정은 프로세스 명령이 아니므로 exit 없음; 위 command는 실제 발화의 구조화 기록",
+          "expected": "Owner가 남은 백업 운영 범위를 명시 확정",
+          "actual": "배포 전 백업·배포 후 실제 문제 시 복원만 채택. 정기/고정 보관/월간 연습/RPO·RTO 수치 제안 미채택, 추가 승인 대기 해소",
+          "input": "Owner의 명시적 후속 발화; 비밀값/운영 원시 자료 없음",
+          "classification": "OWNER_DECISION",
+          "recovery": "기존 수동 CLI와 검증된 복원 자산 재사용; 검증 실패 시 배포 차단, 문제 시 새 volume 수동 복원·검증 후 전환",
+          "residualRisk": "동일 호스트 전체 유실 위험; 고정 RPO/RTO 보장 없음; 실제 복원 시 손실 범위 확인. 기존 backup/key/image 및 guard 유지",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "PUBLIC_URL",
+              "reference": "https://github.com/planner77/masterGantt/issues/912#issuecomment-6812259893"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/DEPLOYMENT.md"
+            }
+          ],
+          "decisionAccepted": true,
+          "scheduledBackupPolicy": "NOT ADOPTED",
+          "retentionPeriodPolicy": "NOT ADOPTED",
+          "periodicRehearsalPolicy": "NOT ADOPTED",
+          "numericRpoRtoPolicy": "NOT ADOPTED",
+          "newDeploymentOrRestoreExecuted": false
         }
       ]
     },

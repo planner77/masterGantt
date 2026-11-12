@@ -30,7 +30,7 @@ security PR은 별도 설정이다. `open-pull-requests-limit: 0`은 version upd
 
 현재 Manager의 `GET /repos/planner77/masterGantt/automated-security-fixes` read-only 조회는 `enabled=false`, `paused=false`였다. security update 설정을 변경한 것이 아니며 Dependabot alerts도 변경하지 않았다. 해당 API의 결과·권한과 실제 적용 시점을 별도로 기록하고 허용되지 않은 보안 설정 write를 추가하지 않는다. [GitHub 공식 REST 조회](https://docs.github.com/en/rest/repos/repos#check-if-dependabot-security-updates-are-enabled-for-a-repository).
 
-위 source의 로컬 검사·독립 QA·Manager ACCEPT·수동 GHCR 게시 실증은 [통합 Packet](exec-plans/active/ISSUE_912_909_911.md)의 후속 기록을 따른다. #909/#911은 증거 문서의 후속 검증 뒤 FINAL/수동 종료 예정이며 이 문서만으로 CLOSED를 추정하지 않는다. 실제 최종 상태는 각 Issue FINAL을 확인한다. 숫자 백업 정책은 별도 Owner 응답 대기이며 #912/#905는 OPEN이다.
+위 source의 로컬 검사·독립 QA·Manager ACCEPT·수동 GHCR 게시 실증은 [통합 Packet](exec-plans/active/ISSUE_912_909_911.md)의 후속 기록을 따른다. #909/#911은 [#909 FINAL](https://github.com/planner77/masterGantt/issues/909#issuecomment-6794052938)·[#911 FINAL](https://github.com/planner77/masterGantt/issues/911#issuecomment-6794064739)에 따라 수동 종료했다. 2026-11-12 Owner가 배포 전 백업·배포 후 문제 시 복원만 확정해 #912/#905의 숫자 정책 대기를 해소했다. 정기/보관기간/정례 연습/RPO·RTO 수치 제안은 미채택이다. 최종 source 검증·Push·종료의 실제 상태는 각 Issue FINAL을 따른다.
 
 ### #911 기존 PR의 개별 이관·종료
 

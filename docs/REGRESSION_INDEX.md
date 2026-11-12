@@ -91,3 +91,7 @@ F912-007은 원장 작성 Agent의 링크검사 파일명 오류(exit1/MODULE_NO
 새F912-008~F912-012는reviewerwrapper종류오용,운영nativeprobe두실패,Managercomment schema,rollbacksha-tag추정조회,새AES복원clone의물리RO/WAL조합실패와각교정을보존한다. commentAPI의실제성공을비프로세스exit0로꾸미지않으며retentionstderr미보존원인은UNKNOWN으로유지한다. actual새AESR02는기존currentimage격리clone의73tables/ledger38/schema/SQL38·권한/Origin/revision/export/restartPASS·생산0·자기cleanupPASS이며새af3운영배포가아니다.
 
 현재7 Issues·32 Failure·72events다. 기존7/27/59events·기존Markdownbytes는af3기준prefix그대로유지한다. [snapshotguard](../tests/scripts/prepr-snapshot.test.ts),[SQLitebackup](../tests/scripts/sqlite-backup.test.ts),[publisher](../tests/scripts/local-publish.test.ts)의실제case와수동probe범위를구분한다. 숫자정책/자동timer/cron/prune/deployhook은미승인·미설치,offhost는Owner범위변경N/A·미실증이며로컬보관의동일host유실위험은남는다.
+
+## 2026-11-12 Owner 복구 정책 확정
+
+[F912-001 후속](ISSUE_912_FAILURE_ANALYSIS.md)과 [Owner 결정](https://github.com/planner77/masterGantt/issues/912#issuecomment-6812259893)을 추가했다. 배포 전 수동 백업·검증과 배포 후 실제 문제 시 수동 복원만 채택했으며 정기/보관기간/정례 연습/RPO·RTO 수치 제안은 미채택이다. 숫자 승인 대기는 해소됐고 자동 예약/복원/삭제를 실행하지 않는다. command/exit가 없는 Owner 결정을 실제 검사 PASS로 바꾸지 않는다. 기존7 Issues·32 Failure·72events와 Markdown prefix는 보존하며 현재7 Issues·32 Failure·73events다. 새 source gate·Push·최종 종료의 실제 근거는 Issue FINAL을 따른다.

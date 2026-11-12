@@ -165,7 +165,7 @@ Application package와 lockfile은 존재하며 source checkout의 frozen instal
 
 WAL DB는 DB 파일만 임의 copy하지 않는다. `scripts/verify-sqlite-recovery.mjs`는 기존 SQLite Online Backup API를 재사용해 실행 중인 DB의 일관 snapshot을 만들고 AES-256-GCM archive로 보존한다. [SQLite Backup API](https://www.sqlite.org/backup.html) clean stop 후 `/data` 전체(DB, `-wal`, `-shm`)의 일관 snapshot을 만드는 기존 경로도 유지한다. 임의 파일 copy나 image 교체를 DB 복원으로 취급하지 않는다.
 
-- backup artifact는 image/volume 내부만의 단일 사본으로 두지 않고, access-controlled durable storage에 encryption-at-rest와 retention 정책을 적용한다.
+- backup artifact는 image/volume 내부만의 단일 사본으로 두지 않고, 승인된 프로젝트 하위 접근 통제 폴더에 암호화 보관한다. 고정 보관 기간과 자동 삭제 정책은 채택하지 않았으며 기존 정상 백업·키를 임의로 지우지 않는다.
 - restore는 새/격리된 `/data` volume에 backup을 복원하고, image와 동일 UID:GID 및 DB access를 확인한 뒤 application을 single instance로 시작한다.
 - schema migration rollback은 DB file를 직접 역방향 편집하지 않는다. deploy 전 compatible backup을 확인하고, failed migration은 application을 ready로 만들지 않는다. restore rehearsal 성공 전 destructive migration release를 승인하지 않는다.
 - upgrade/restore/rehearsal 시 DB, WAL, SHM, migration ledger, representative project read/write, export URL, restart persistence를 모두 검사한다.
@@ -208,13 +208,13 @@ Owner는 별도 외부 목적지 대신 **기존 원본 프로젝트의 `backups
 
 backup 복호화 key는 프로젝트·backup 폴더 밖의 보호된 위치에 별도로 보관한다. publisher의 실행별 암호화 로그 key와 backup key는 서로 다른 목적이며 섞어 쓰지 않는다. 복원은 새 격리 target/volume에만 수행하고 운영 원본 DB를 overwrite하지 않는다.
 
-이번 Owner 범위 변경으로 off-host 목적지·외부 업로드/다운로드 검증은 제외한다. 상태는 **NOT TESTED / N/A(범위 제외)**이며 off-host 복구 PASS가 아니다. 같은 호스트 장애·유실 위험은 남는다. 매일+배포 전 백업·30일 보관·월간 복원·RPO24시간/RTO1시간은 아직 제안/응답 대기이며 승인되거나 자동 스케줄이 적용된 값으로 기록하지 않는다.
+이번 Owner 범위 변경으로 off-host 목적지·외부 업로드/다운로드 검증은 제외한다. 상태는 **NOT TESTED / N/A(범위 제외)**이며 off-host 복구 PASS가 아니다. 같은 호스트 장애·유실 위험은 남는다. Owner는 2026-11-12에 배포 전 수동 백업과 배포 후 실제 문제 발생 시 수동 복원만 채택했다. 매일 정기 백업·30일 보관·월간 정례 복원 연습·RPO24시간/RTO1시간 제안은 미채택이며 추가 숫자 승인 대기가 아니다. timer/cron·자동 복원·자동 보관 삭제·배포 hook는 설치하지 않는다.
 
 ## 9. 배포 전후 확인과 복구 분기 (#912)
 
 운영 배포는 Owner의 명시 요청 또는 동일 범위 위임이 있을 때만 수행한다. 격리 합성 환경에서 로컬 Docker/readiness/API/auth·revision/native SQLite/restart persistence를 먼저 검증하고 실제 운영 host·proxy/TLS·storage·backup/restore 결과를 구분한다. 실제 환경 미실행은 NOT TESTED이며 합성 DB PASS로 대체하지 않는다.
 
-배포 전에 source SHA·verified image digest·DB schema/migration ledger·WAL 상태·backup ID·직전 정상 digest와 호환성을 기록한다. 백업은 SQLite Online Backup API(또는 sqlite3 `.backup`) 또는 clean stop 후 `/data` 전체의 일관 snapshot으로 만든다. 쓰기 중인 DB 본체 하나만 복사하지 않는다. 접근 통제·암호화·외부 보관 여부·retention·RPO/RTO와 복원 주기는 Owner가 결정하며 이번 로컬 보관 승인 범위는 위 절을 따른다. 초기 제안은 매일+배포/migration 직전 백업과 월간 격리 복원이며 확정/실제 수행 전 NOT TESTED다.
+배포 전에 source SHA·verified image digest·DB schema/migration ledger·WAL 상태·backup ID·직전 정상 digest와 호환성을 기록한다. 백업은 SQLite Online Backup API(또는 sqlite3 `.backup`) 또는 clean stop 후 `/data` 전체의 일관 snapshot으로 만든다. 쓰기 중인 DB 본체 하나만 복사하지 않는다. 이번 배포를 위한 새 일관 백업을 프로젝트 하위 승인 폴더에 암호화 보관하고, 해당 backup ID·키·출처·무결성·호환성 검증이 성공한 뒤에만 배포한다. 백업 누락 또는 verify FAIL/BLOCKED이면 배포를 중단한다. 정기 백업과 정례 복원 연습은 운영 일정에 넣지 않는다. 배포 후 실제 문제가 있을 때만 선택한 배포 전 백업과 호환 image로 아래 수동 복구 분기를 적용한다.
 
 새 격리 volume 복원 후 `PRAGMA integrity_check`, `foreign_key_check`, migration ledger/checksum, 대표 Project/Task 읽기·쓰기/권한·export/readiness·restart persistence를 **호환 exact digest**로 확인한다. WAL 활성·손상/누락/오래된 백업·migration 중 실패·구 이미지 비호환도 음성 테스트한다. 파괴적 migration은 백업·복원 준비 없이는 배포하지 않는다. 기존 운영 파일을 자동 overwrite하거나 ledger를 편집하지 않는다.
 
@@ -222,7 +222,7 @@ backup 복호화 key는 프로젝트·backup 폴더 밖의 보호된 위치에 �
 | --- | --- | --- |
 | 데이터 변경 없는 화면/코드 오류 | 새 Git revert/교정 commit 또는 DB 호환이 확인된 직전 digest로 교체 | 새 source 로컬 검사·실제 운영 smoke |
 | schema migration 후 오류 | 새 volume의 호환 DB snapshot + 대응 이전 exact digest를 쌍으로 복원 | ledger/integrity/FK·대표 read/write·restart·손실 범위 확인 |
-| 데이터 손상/host 장애 | 접근 통제된 off-host 백업을 새 격리 volume에 복원 | backup 시점·예상 RPO 손실·실측 RTO·Owner 결정·운영 검증 |
+| 데이터 손상 또는 로컬 백업을 읽을 수 있는 host 장애 | 선택한 배포 전 로컬 암호화 백업과 호환 image를 새 격리 volume에 복원·검증한 뒤 수동 전환 | backup 이후 손실 범위·실측 복구 시간·Owner 결정·운영 검증. 같은 호스트와 보관본 전체 유실의 복구는 보장하지 않음 |
 
 Git revert와 이미지 교체는 forward-only DB migration을 취소하지 않는다. 운영 rollback 승인 전에 백업 시점 이후 데이터 손실을 명시한다. source/digest/backup ID·명령/exit·실제 결과를 Issue 실패 원장과 [Regression Index](REGRESSION_INDEX.md)에 연결한다. 운영 DB·백업·사내 주소·실화면·비밀값은 PUBLIC 저장소/Issue에 올리지 않는다.
 
@@ -248,10 +248,18 @@ Compose runtime 변수는 `.env.example`과 `deploy/compose.yml`의 명시 전�
 
 R02는 10:50:12.971286Z~10:50:16.630893Z PASS했다. 73개 table/schema·migration ledger38/SQL38·integrity/FK 오류 0·API/auth/Origin/revision/export/restart를 실제 새 격리 volume과 대응 image에서 확인했다. 운영 DB 쓰기는 0건이다. R01 CANTOPEN 실패 원본은 [Primary 실패 원장](ISSUE_912_FAILURE_ANALYSIS.md)에 보존하며 성공으로 덮지 않는다. snapshot/restore 단계와 추가 runtime의 자체 cleanup도 PASS했다. 10:51:48.227267Z에 자체 container 1개·volume 1개와 복원 평문을 제거하고 작업 공간 SQLite 파일 0개를 확인했다. AES 암호문/key의 0600, 기존 GPG 백업과 활성 운영 도구는 보존했으며 독립 QA도 완료했다. 실제 DB·backup·key·원시 로그는 비공개로 유지한다.
 
-수동 운영 launcher `~/.local/bin/mastergantt-recovery`는 10:47:32.236Z~10:47:47.572Z 활성화했다. 실제 help와 AES verify는 exit 0이며 독립 검증으로 runtime 파일 100개와 native hash의 자체 검증을 확인했다. 이는 자동 백업 스케줄 설치가 아니다. timer·prune·배포 hook은 0개이며 매일+배포 전/30일/월간 복원/RPO24시간·RTO1시간은 아직 Owner 응답 대기다. #912/#905는 OPEN으로 유지한다. off-host는 위 Owner 범위 변경에 따른 NOT TESTED / N/A이며 같은 호스트 장애 위험은 남는다.
+수동 운영 launcher `~/.local/bin/mastergantt-recovery`는 10:47:32.236Z~10:47:47.572Z 활성화했다. 실제 help와 AES verify는 exit 0이며 독립 검증으로 runtime 파일 100개와 native hash의 자체 검증을 확인했다. 이는 자동 백업 스케줄 설치가 아니다. 당시 timer·prune·배포 hook은 0개였다. 2026-11-12 Owner는 배포 전 백업·배포 후 문제 시 복원만 확정해 숫자 정책 대기를 해소했다. #912/#905의 최종 검증·수동 종료 상태는 각 Issue FINAL을 따른다. off-host는 위 Owner 범위 변경에 따른 NOT TESTED / N/A이며 같은 호스트 장애 위험은 남는다.
 
 새로 게시한 `af3d72f85555722c8af81b8e99dc94a5c4f0c08f` image는 [CI_CD의 실제 게시 증거](CI_CD.md#909-새-cli의-실제-게시-증거)를 따른다. 이 작업에서 실제 운영 중인 위 `8e29fe82` image를 교체하거나 운영 DB를 복원하지 않았다.
 
 ## 11. 미검증·Owner 결정
 
 실제 architecture/native parity, bind mount 권한, 운영 upgrade/rollback, off-host backup/restore, reverse proxy/TLS, 수동 UX는 해당 환경 증거 전 NOT TESTED다. canonical hostname·인증서 담당·storage·retention/RPO/RTO·rehearsal 주기·자원/healthcheck 값은 Owner의 환경별 결정이다. #912는 실제 복원, #909는 수동 GHCR, #911은 관리자 전환을 담당한다. 문서 작성으로 그 실행 완료를 주장하지 않는다.
+
+## 12. Owner 확정: 배포 전 백업·문제 시 복원만 운영
+
+2026-11-12 [Owner 결정](https://github.com/planner77/masterGantt/issues/912#issuecomment-6812259893) 원문은 `배포 전 백업, 배포 후 문제 발생 시 복원으로만 가겠습니다.`다. 배포할 때마다 수동 백업·검증을 배포 선행 조건으로 두며 배포 후 문제가 없으면 복원하지 않는다. 실제 문제 시 새 volume에서 호환 backup/image 쌍을 검증하고 손실 범위를 확인한 뒤 수동 전환한다. 단순 코드 오류에서 DB까지 무조건 되감거나 운영 원본을 직접 overwrite하지 않는다.
+
+고정 보관 기간·정기 백업·월간 정례 연습·RPO/RTO 수치 목표와 자동 스케줄/복원/삭제는 채택하지 않았다. 기존 암호화 백업·별도 key·정상/직전 image는 보존한다. 이미 수행한 격리 복원 리허설은 실제 검증 이력으로 유지하고, 향후 정례 일정의 약속으로 바꾸지 않는다.
+
+필수 `--max-age-ms`는 계속 실행별로 명시한다. 선택한 배포 전 backup 생성 시각과 배포/장애 시각을 근거로 검증 상한을 정하며, 고정 보관 기간·RPO/RTO 또는 과거 시험값 1시간을 운영 기본값으로 사용하지 않는다. 신선도·출처·암호화·무결성 guard는 그대로 유지한다. 실제 손실 범위와 복구 시간은 사고 처리 기록에 남긴다.
