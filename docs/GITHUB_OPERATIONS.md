@@ -8,9 +8,9 @@ Owner는 재사용/요구 범위·고위험 잔여 위험·게시/배포·수동
 
 Issue에는 목표·배경·범위/비범위·AC·선행/관련 이슈·파일 소유권·위험·테스트·문서·요청 종료점을 기록한다. 진행 댓글 유형은 PLAN/STATUS/EXCEPTION/DECISION_REQUIRED/RESUME/FINAL이다. Manager가 기본 writer이며 infra에 위임할 때 Work Packet에 `issue_comment_writer=infra`, `issue_comment_allowed_types=STATUS,EXCEPTION` 범위를 명시한다. 다른 Agent는 댓글 후보와 증거를 반환한다. 단순 조회/정상 반복 명령을 전부 댓글로 남기지 않는다.
 
-## 2. 첫 직접 Push 이전 관리자 전환 (#911)
+## 2. 최초 관리자 전환 이력 (#911, 2026-11-11 완료)
 
-**이 문서 작성은 live 설정 변경의 증거가 아니다.** 전환 작업은 #911이 담당한다. 최신 live 상태를 읽기 전용으로 조회하고 실제 변경·검증 시각/actor와 정제한 snapshot을 별도 기록한다. 다음 전제가 준비되기 전 Push하지 않는다.
+[#911 FINAL](https://github.com/planner77/masterGantt/issues/911#issuecomment-6794064739)에 따라 최초 Ruleset/Actions 전환과 정상 main 직접 Push 실증은 2026-11-11 완료됐다. **아래 1–5는 그 당시 전환·검증 절차의 보존 기록이며 신규 Issue마다 전환을 재실행하지 않는다.** 현재 작업은 이력을 현재 live 상태의 증거로 오인하지 않고 매 Push마다 [§3](#3-매-push-절차)의 설정·source·권한을 다시 점검한다. 문서 변경 자체가 관리자 설정 변경을 뜻하지 않는다.
 
 1. 기존 Ruleset/branch protection 전체 rule·bypass·required check/actor, 실행 중 Actions·open PR, baseline main SHA·기존 정상 digest·해당 backup ID를 안전하게 snapshot한다. `issue_comment.created`와 schedule도 원격 Run을 만들 수 있으므로 Actions가 활성인 동안 새 원격 Issue 진행 댓글·자동화 이벤트를 발생시키지 않는다. snapshot과 Actions 비활성 뒤 공식 원격 진행 기록을 게시한다. 이미 생긴 skipped Run도 실행 이력으로 보존하며 PASS나 세션 전체 Run 0건으로 표시하지 않는다.
 2. Owner 또는 명시 위임 관리자가 관련 Actions를 먼저 비활성화하고 실제 상태를 확인한다. 이미 실행된 Run·write/publish 상태를 따로 점검한다. 이후 필요한 로컬 코드/문서/테스트와 실패 원장을 완료한다. 준비 중 새 PR·원격 workflow를 시작하지 않는다.

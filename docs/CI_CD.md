@@ -5,7 +5,7 @@ Owner 2026-11-10 결정으로 모든 위험도에 [단일 Issue Lifecycle](ISSUE
 ## 1. 검증과 게시의 선행조건
 
 - [LOCAL_PREPR](LOCAL_PREPR.md)의 공통/영향/위험별 실제 로컬 PASS·같은 clean source admission과 DOCUMENTATION_SYNC, Owner 승인 범위를 확인한다. 검사 FAIL/BLOCKED/NOT TESTED·취소·unknown·source/fixture/환경 drift는 Push·Publish·Close를 차단한다.
-- 첫 main Push 이전 #911 live Ruleset/Actions 전환을 실제로 확인한다. 문서 변경이나 `[skip ci]`는 전환 근거가 아니다.
+- #911의 2026-11-11 완료 이력과 **현재** live Ruleset/Actions 설정을 매 main Push 전에 확인한다. 문서 변경이나 `[skip ci]`는 현재 설정 확인의 대체 근거가 아니다.
 - 최신 main exact commit/tree·lock·Node·Docker/platform·배포 입력을 고정한다. Push 뒤 같은 SHA인지 재조회한다. dirty checkout이나 검증 뒤 변경된 source는 게시하지 않는다.
 - 게시 요청과 운영 배포 요청을 분리한다. 고유 SHA 이미지 게시 승인이 SemVer/rolling tag 변경 승인 또는 운영 배포 승인은 아니다. docs-only는 이미지 N/A(reason)를 기록한다.
 
