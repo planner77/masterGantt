@@ -8417,6 +8417,72 @@
           ]
         }
       ]
+    },
+    {
+      "id": "F917-023",
+      "issue": 917,
+      "ledger": "docs/ISSUE_917_FAILURE_ANALYSIS.md",
+      "relatedIssues": [],
+      "domain": "tooling",
+      "layer": "lint",
+      "keywords": [
+        "nested snapshot",
+        "generated Next",
+        "lint evidence location"
+      ],
+      "cause": "Manager가 interrupted snapshot을 source root 안에 보존하여 rootlint의 생성JS scan을 유발",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/scripts/prepr-snapshot.test.ts",
+          "case": "runs from identical exact-head bytes while strict Next metadata generation leaves the original unchanged",
+          "historical": false,
+          "coverageArea": "원본/임시출력 경계; 실제 증거 외부이관과rootlint는 별도 실행"
+        }
+      ],
+      "residualRisk": "생성물외부이관은검사PASS가아님;새source전체gate필요",
+      "events": [
+        {
+          "id": "fast04-lint-fail",
+          "at": "2026-11-13T09:08:16.624Z",
+          "timeNote": null,
+          "stage": "STATIC",
+          "status": "FAIL",
+          "sourceSha": "b6a1c8886c4b5026bbe4bbee1d7a1bea345cd10f",
+          "fixSourceSha": null,
+          "sourceFingerprint": "4704b914a02b5730f4acedaf9bd66ad0e042473825d72c8ef1325d0b3ee782c4",
+          "sourceNote": "실제고정source",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0; env8bc2b35b",
+          "environmentVersion": "masterGantt0.146.0",
+          "command": [
+            "node",
+            "scripts/verify-prepr.mjs",
+            "--mode=fast",
+            "--base=1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+            "--issue=917",
+            "--report-dir=.prepr-reports/final-fast-04"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "공통9step source/env stable 실제PASS",
+          "actual": "6stepPASS후rootlint1274errors9668warnings/exit1;preserved nestedNext생성JS scan;wholeFAIL",
+          "input": "자기 interrupted snapshot;합성fixture/운영접근없음",
+          "classification": "ENVIRONMENT",
+          "recovery": "최초FAIL보존뒤snapshot전체외부0700이관;56080inventory동일;새source전체재검증",
+          "residualRisk": "후속gate/QA/게시전BLOCKED",
+          "evidenceScope": "EXACT",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+            }
+          ]
+        }
+      ]
     }
   ]
 }

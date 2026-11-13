@@ -94,3 +94,8 @@ a388의 fast02는 PASS였고 targeted02의67파일803Unit/32파일149Chromium은
 ## 세션 복구와 새 검증 source
 
 dbec의 fast03 4009PASS/3기존benchmarkSKIP·Docker03 10stepPASS·exactimage fresh91HTTP/복원/restartPASS는 역사 증거로 보존한다. R01 probe FAIL과 targeted03 중단/env drift는 F917-021/022에 append했다. 미완료 targeted03 67browserPASS/0관측FAIL은 wholeNOT TESTED이며 이전환경 report 재결합은 BLOCKED다. 새 원장 commit을 freeze한뒤 같은 실제 환경의 fast→docker→freshimage runtime→전체targeted→admit를 실행한다. private detached supervisor는 기존 CLI/선정/guard를 바꾸지 않고 child exit를 보존하는 임시 운영 도구다. 실제 별도 read-only qa_docs=/root/qa_resume917와 infra=/root/infra_resume917가 재개했으며 최종QA는 새완결증거 전 NOT TESTED다.
+
+
+## fast04 준비 오류 후 재개
+
+F917-023은 preserved interrupted snapshot 안의 생성JS를 root lint가 읽은 실제FAIL이다. 실행중 source/잔재를 바꾸지 않았으며 종료 뒤 snapshot전체를 밖으로 이관해56080개inventory bytes/hash 동일을확인했다. 원본report/log와별도relocationreceipt는보존한다. 새원장source의fast05/docker05/targeted05/admit05를같은controlled actualenv에서실행하며 이전04는PASS로전용하지않는다. 실제 CLI/선정/ignore/sourceguard는변경없다.

@@ -125,3 +125,8 @@ F898-009~012를 [Primary 원장](ISSUE_898_FAILURE_ANALYSIS.md)에 추가했다.
 ## #917 runtime probe 및 중단/환경 drift 원본
 
 [F917-021/022](ISSUE_917_FAILURE_ANALYSIS.md)에 빈 If-Match의 기대 상태 오류·같은 후보의 fresh91HTTP 복구, targeted03의67browser 이후 중단/환경 변경을 추가했다. 불완전 run과 이전환경 PASS는 신규 admission에 사용하지 않는다. 기존 실제 CLI/guard를 유지한 동일환경 새전체검증 전 Push/Publish/Close BLOCKED다.
+
+
+## #917 중단 증거의 root lint 유입
+
+[F917-023](ISSUE_917_FAILURE_ANALYSIS.md)은 중단 snapshot을 source 아래 보존해 생성 JS가 root lint에 유입된 실제 fast04 FAIL이다. 실패 후 전체 증거를 외부0700 경로로 bytes/hash 동일 이관하고 원본 report/log를 보존했다. ignore/guard/선정은 변경하지 않으며 새 source 전체검증이 필요하다.
