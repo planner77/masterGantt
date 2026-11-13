@@ -99,3 +99,19 @@ dbec의 fast03 4009PASS/3기존benchmarkSKIP·Docker03 10stepPASS·exactimage fr
 ## fast04 준비 오류 후 재개
 
 F917-023은 preserved interrupted snapshot 안의 생성JS를 root lint가 읽은 실제FAIL이다. 실행중 source/잔재를 바꾸지 않았으며 종료 뒤 snapshot전체를 밖으로 이관해56080개inventory bytes/hash 동일을확인했다. 원본report/log와별도relocationreceipt는보존한다. 새원장source의fast05/docker05/targeted05/admit05를같은controlled actualenv에서실행하며 이전04는PASS로전용하지않는다. 실제 CLI/선정/ignore/sourceguard는변경없다.
+
+
+## 검증한 제품과 게시 결과
+
+제품source `9d0e6b8b0d2f38ea4e287d09c21979e18dfa863b`,version0.146.0의공통9step/4009UnitPASS·기존opt-in3SKIP,영향67파일803Unit/32파일149ChromiumPASS·역사before1SKIP,source/env/snapshot불변,Docker10step/admitPASS를확인했다. 실제별도qa_resume917 제품QA PASS·미해결0과Manager게시범위ACCEPT후normalmainFF/exactremote/Actions0확인,29step정식게시/exactdigest Pull/API·SQLite restartPASS다.
+
+태그 `ghcr.io/planner77/mastergantt:sha-9d0e6b8b0d2f38ea4e287d09c21979e18dfa863b`,index `sha256:0c60ffe02a98018abc1b81c5a147a1f2d0575804de7cd5cd25403bff164a7f78`,config `sha256:ad3cf2adb57e125c3fb73f2c191d39abc21a2486fe6232f55c67ed09ee17c281`. SBOM/provenance와동일OCI archive를보존했고rebuild0,실제runtimeR03의freshAES/0038→39/23steps91HTTP/73tables44rows보존/restart2/integrityFK/cleanupPASS는[단일원장](../../ISSUE_917_FAILURE_ANALYSIS.md)에연결했다. F024의Agent preflight환경BLOCKED도append했으며Nodechild/launcherexit·시각미수집을구분한다.
+
+실제추가Agent는infra_resume917(별도runtime증거준비/검산·registry읽기),qa_resume917(read-only 독립제품QA/영수증/문서검토)이며Manager가mainPush/publisher만실행했다. 본후속docs-only의fast/admit/독립문서QA/mainFF/FINAL은아직완료전이며Issue종료를선기록하지않는다. 새문서는제품/테스트/빌드입력변경0이므로image/Chromium/Docker N/A이고제품artifact source는9d로유지한다. 운영배포/Owner수동UAT/실기기/nativezoom/AT/offhost는NOT TESTED·미요청범위그대로다.
+
+
+## 완료 판정과 최종 기록
+
+제품 AC1~7과 로컬 필수 gate, 실제 정식 GHCR 게시/exact digest smoke는 PASS이며 별도 qa_resume917의 제품·게시 QA도 PASS다. 보존 후검산의 원본 ONLY+1 BLOCKED(F025)는 그대로 두고, 기존494 tag names/선정9 full descriptor 보존과 app SHA1+동일 후보 attestation metadata1·graph17blob 일치를 별도 PASS로 기록했다. 미선정486 descriptor NOT TESTED와 metadata PUT actor UNKNOWN을 확대 해석하지 않는다. Reviewer 보조 조회 오류 F026도 최초 exit/교정/시각 미수집과 함께 단일 원장에 append했다.
+
+본 후속 기록의 docs-only 공통 fast/admit·독립 문서 QA·normal main FF 및 최종 AC8/Issue 종료 판정은 Issue FINAL에서 해당 정확 Head에 연결한다. 제품·테스트·빌드 입력은 검증한9d 그대로이므로 새 image/Chromium/Docker는 N/A다. 별도 정식 Git/SemVer tag·rolling/latest 승격·운영 배포는 수행하지 않았다. 원격 작업 branch는 만들지 않았고 로컬 작업 branch 정리와 증거 보존 worktree의 실제 상태도 FINAL에서 구분한다.

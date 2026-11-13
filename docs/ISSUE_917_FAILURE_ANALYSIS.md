@@ -207,3 +207,60 @@ source `a38828a7f7b2dfc59e5202b66ebc39b83b79b427`, Node22.14.0. 실제argv `node
 - 원본 report SHA256 `732673116d19f7bc504d9f38482314205843a5c3b3004026fd5bc0ff6291e1b1`, Lint log `9f737ac01244186128c4f6d144d587771fc021daafb6ed135c7a075b8d2a2b93`.
 - 복구: 실패 후 2026-11-13T09:09:03.755499Z에 `git worktree move`(Python subprocess launcher, exit0)로 자기 interrupted snapshot 전체를 저장소 밖0700 경로로 이관했다. 56080개 file/symlink inventory의 전후 bytes/hash/target 동일, inventory SHA256 `108b126b49833bdd6865b2d54324f44dfae955c4a6e6f8cd9bae579ec5ac5e8b`; Git locator metadata만 공식 move가 갱신했다. 원본 report/log는 불변이고 별도 relocation receipt/전체 inventory를0600로 보존했다. snapshot/sourceguard·ESLint ignore·fixture·검사 선정/skip은 변경하지 않았다.
 - 신규 same-environment 전체 gate 전 Push/Publish/Close BLOCKED다. private supervisor v2는 동일 공식CLI와 실제 환경을 유지하고 게시도 별도 명시 job을 받은 뒤 동일 launcher에서 실행할 수 있게 준비한다. 자동 Push/Publish/Close는 예약하지 않는다.
+
+
+## F917-024 — 별도 Agent 환경의 복원 검사 사전 차단
+
+- source `9d0e6b8b0d2f38ea4e287d09c21979e18dfa863b`, fingerprint `008aa7b158174189c94ce7a7ce8aa7ce4720895496f77cf47aeba9579b395c75`. infra Agent의 실제 direct Node 환경 `8c1b02dafc0e1ee9629e116d204cca1af55afe52f497be9d4e01cd2dbdccf28f`가 공통 검사 환경 `8bc2b35b31a6ce4d7d25acdd2e7c89c999b754fbcbb2a0c98a266a661b9dd906`와 달라 사전 검사 exit2/BLOCKED했다. 원본 probe 실행·backup/container/volume 생성은0이다. Node/npm/ABI/OS·설치 input hashes는 같고 environmentSha256만 달랐으며 raw 환경값을 공개하거나 바꾸지 않았다.
+- 실제 명령은 `node --input-type=module -e <environmentEvidence와 기대 지문 비교 코드>`다. 정확 argv는 index event와 private receipt에 보존했다. 최초 실행 절대시각은 NOT RECORDED이며 receiptRecordedAt `2026-11-13T09:20:02.967541+00:00`을 실행시각으로 추정하지 않는다. 원본 receipt SHA256 `4c56a7d63f82103da112f96f24915bbf3007dddf2dc7e019f4b62b6426a8cfab`.
+- 복구는 Manager의 원본 환경을 같은 process의 existing environmentEvidence로 먼저 검사한 뒤 원본 process.env를 그대로 사용해 fresh probe를 import하는 방식이다. actual Python stdin launcher의 Node child/parent exit0, guard `2026-11-13T09:20:33.316Z`~`2026-11-13T09:20:41.813Z` start/end 지문 동일이다. environment override/ignore 변경·기존report 재귀속은0이다.
+- 새 합성 backup `mg917-runtime-syn-20261113T092033329Z-be5a0a55`의 keygen/backup/verify/restore→0038→0039,23steps/91HTTP,원본73tables44rows 동일·최종126rows/ledger39/integrity ok/FK0,restart2/자기container-volume정리 PASS. 캡처 입력 source `1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca`/image `sha256:4fa043b351734d31047846f30fb468fe4c61bba77e36c37f95a2955e94dcb5ca`와 후보 index `sha256:0c60ffe02a98018abc1b81c5a147a1f2d0575804de7cd5cd25403bff164a7f78`는 다른 목적의 결속이다.
+- 실제 runtime `2026-11-13T09:20:33.329Z`~`2026-11-13T09:20:41.738Z`; 정제summary SHA256 `80807593cab0eb3d684997a0fdecff3f2930c8c4f1e70400bdeb316073472d7e`, rawsummary `19a5a58da5e6f8911f862f6387e87d501d3c15ad61db0fa467a5b72661f1c5c0`, guard `49ab819822aaec0678d53c78103341a36931e733b53faed92c4c8eac20dcf3c0`, probe `6cc13ac1aaa6fb8f20aec1b71e342053ea9cdde448ec766053e71a7afd656f30`. 독립 qa_docs가91status/23steps/36rawloghash/SQL원문/출처·환경을대조했다. 별도owner-marker/backupID/hash검증후자체평문DB/WAL/SHM3개를정리했고 cleanup receipt SHA256 `781543979f5040c3af684d2ed00a0ca2c486a3d1951aea222f74ff6f156dd27b`다. 원본합성38·암호화backup/key/원시증거는보존했다. 운영DB접근0/registrywrite0/배포0/offhost NOT TESTED다.
+
+## 최종 제품 source 검증과 정식 GHCR 게시
+
+실행 source는 `9d0e6b8b0d2f38ea4e287d09c21979e18dfa863b`, baseline `1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca`, application `0.146.0`이다. source fingerprint `008aa7b158174189c94ce7a7ce8aa7ce4720895496f77cf47aeba9579b395c75`, actual environment `8bc2b35b31a6ce4d7d25acdd2e7c89c999b754fbcbb2a0c98a266a661b9dd906`의 start/end가모두같다. 아래실행은기존동일controlled Node launcher를사용했고최초FAIL/BLOCKED·중단/이전source PASS를덮어쓰지않았다.
+
+| mode | 실제 시각 UTC | 결과 | report file SHA256 |
+| --- | --- | --- | --- |
+| fast05 | 2026-11-13T09:10:10.002Z ~ 2026-11-13T09:13:28.094Z | PASS | `3528bd668437a4cc363f82c4e63f8696406b4a54e8c67dc5fc6a6362d2e6cf04` |
+| targeted05 | 2026-11-13T09:17:15.951Z ~ 2026-11-13T10:21:15.475Z | PASS | `1018c9d9c8b9e412216f75fed07ae6a466d18ce37ebf2823ee70a599e88b221f` |
+| docker05 | 2026-11-13T09:13:28.127Z ~ 2026-11-13T09:17:15.915Z | PASS | `7da54c7943975fbb6c17f82ae66ea4a23026f8d6928c96f17721a29f856b5f7e` |
+| admit05 | 2026-11-13T10:21:16.604Z ~ 2026-11-13T10:21:18.673Z | PASS | `96ab9dbab8bcb63cf55f37e1f1fac6486c504ebd7ff098a3faf3b9be7b619dbc` |
+
+fast9step는전체4009Unit/Integration PASS·0FAIL/기존미선정benchmark3SKIP와typecheck/lint/production build를포함한다. targeted는67Unit파일803PASS·32Chromium파일149PASS/0FAIL·역사before캡처1SKIP,workers1/retries0이다. snapshot5266개inventory중허용Next생성2개외변경0/untracked0, audit SHA256 `d6710b05a1aa1ba468b7707586200174981de3a1f80646248389a2a8d2f5169b`다. 직접#91715조합(ko/en/vi×390/768/1024/1440/1920)의PNG30/JSON30·44px/nowrap/내부scroll/keyboard·미지정Unit1/Fleet7실제UI저장/재조회와412/409초안검사가PASS했다. canonical v2manifest/실기기/OwnerUAT는이증거와구분해NOT TESTED다. admit publishAllowed=true는로컬보조이며Owner승인·독립QA를대체하지않는다.
+
+실제별도Reviewer `/root/qa_resume917`의제품독립QA PASS/미해결제품지적0과[Manager게시범위ACCEPT](https://github.com/planner77/masterGantt/issues/917#issuecomment-6850227460)후main을정상fast-forward했다. 원격exactsource일치·Actions0건을확인했고Ruleset deletion/non_fast_forward·Actions disabled·classic protection404를보존했다. 신규PR/Actions/Trusted/Finalizer는N/A(현행Owner정책)다.
+
+정식게시명령은동일controlledlauncher의 `node scripts/publish-local-image.mjs --mode=publish --base=1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca --issue=917`와같은fast/targeted/docker05보고서3개·고정ORAS/authfile·새private log root를인수로사용했다. `2026-11-13T10:24:42.828Z`~`2026-11-13T10:26:27.322Z`,actualexit0/29stepsPASS,published=true/tagState=VERIFIED/publicationEligibility=PASS다. 검증한OCI archive SHA256 `9316b2b8ed2151c366fa5732d7a0504b37e75b4023d0d6f5876afc7814cadd4c`를재빌드없이1회복사했고17blobsgraph/exactdigest Pull/readiness/API권한/SQLite restart·integrity PASS다.
+
+- 고유태그: `ghcr.io/planner77/mastergantt:sha-9d0e6b8b0d2f38ea4e287d09c21979e18dfa863b`.
+- 정식registry index: `sha256:0c60ffe02a98018abc1b81c5a147a1f2d0575804de7cd5cd25403bff164a7f78`.
+- runtime config: `sha256:ad3cf2adb57e125c3fb73f2c191d39abc21a2486fe6232f55c67ed09ee17c281`.
+- 실제SPDX/SLSAv1predicate와runtime subject를검산했고원본SBOM/provenance를보존했다.
+- publish receipt file SHA256 `6a5276e63d642f7362f81de671cf783b4c223fd0690e92cdc71476af4f420935`, integrity `4250d78edb08207dbad6aed0d912401df9d5cd55bcd45c0ac7620b7ea8a0e20e`.
+- 운영배포/실운영DB접근/SemVer·rolling·latest변경/이전image삭제는수행하지않았다. forward-only0039의운영복구는호환DB+image쌍이필요하다.
+
+이후문서전용commit은실제발생한F024·게시/보존근거를append하는별도source다. 제품/테스트/빌드입력은위source그대로이며새image·Chromium·Docker는N/A(reason:기록만변경);새문서의공통fast/admit·독립문서QA·mainFF와최종IssueFINAL이완료되기전최종AC8/종료를선기록하지않는다.
+
+
+## F917-025 — 게시 후 referrers 메타데이터를 놓친 태그 개수 기대
+
+- source `9d0e6b8b0d2f38ea4e287d09c21979e18dfa863b`. 실제 argv `python3 <private-after-root>/collect-after.py`,2026-11-13T10:28:17.461680Z~10:28:26.208085Z. 이 Python process 자체가 SystemExit(2)/BLOCKED했고 Node child는없다. 도구실행 chunk208b42/session83177→완료chunk352482의exit2를보존했다.
+- 기대: 기존494names+새applicationSHA1=495. 실제496/added2/removed0이었다. 기존494names모두보존·선정9descriptor불변·새application index일치는통과했지만 count-only조건이차단했다. 원본snapshot SHA256 `c6923afb2e2aa0d91bfe0efa348e3d7aaacad0ff0f145e2b2786a9204fed4ef6`,정제summary `cdd10de288cf5a00dc6371bf0bd4adaa64c9225747e3b625ab5407156de7358f`를변경하지않았다. 추가태그삭제/덮어쓰기/재게시/원본판정수정은0이다.
+- 별도실제내용검증: `2026-11-13T10:32:11.408469+00:00`~`2026-11-13T10:32:11.625637+00:00`의read-only검산exit0. 추가태그 `sha256-80e2274bc689ae807093181dea8b696d55a3b9e9a8bcabc319903aa1c27eaf79`는363B OCI index `sha256:ec5c63eb4ecbf65bc2cae2ec9a531dad96f90a5a790596afad8d7ab2e3c8e725`이며attestation `sha256:cfe1d8a81ce935bc9b29e4ebf20dee9e3c2a3c75bffe0e34931244e4da61f733` 하나만참조한다. 이child는원래Docker05OCI index의두번째manifest와digest/size/mediaType/platform이같고subject=`sha256:80e2274bc689ae807093181dea8b696d55a3b9e9a8bcabc319903aa1c27eaf79`,SPDX/SLSA2층이같다. 실제localOCI와게시후pulledgraph17blobs의모든이름/크기/hash도일치한다. 추가networkPull/registrywrite0이다.
+- 정확범위: 496=기존494names보존+고유applicationSHA1+그후보attestation metadata1. 기존선정9full descriptor불변이며미선정486tag의descriptor는NOT TESTED다. 모든494tag의내용검증을주장하지않는다. 연결검산receipt SHA256 `95245560f95818b5a8a40c20f999ea1e6d7e6c68e35d8544fd0257cf8090f5e6`,범위별보존summary `ca4c154ed165d2f72933058275aba2e9523665b1955bf36a1a91116fd4f9c72f`,before snapshot `09f0fbaf894741cbd93573989918a88cdc0679a2256519d09276b16863670099`.
+- [OCI Referrers Tag Schema](https://github.com/opencontainers/distribution-spec/blob/main/spec.md#referrers-tag-schema)와[ORAS recursive copy](https://oras.land/docs/commands/oras_cp/)는subject digest를사용하는참조index/recursive referrers를설명한다. 실제이름·내용·subject결속은검증했지만개별metadata PUT actor는로그에없어UNKNOWN이다. ORASrecursive/규격에부합하는생성원인설명은추론이며직접actor증거로쓰지않는다.
+- 독립 qa_docs도같은bytes/graph/규격을대조해정확후보metadata범위PASS에동의했다. Manager는검증한application고유태그와동일SBOM/provenance메타데이터범위만수용하며원본ONLY+1 BLOCKED를PASS로고치지않는다. 실행CLI/gate/allowlist/권한변경은0이다. 이는SemVer/rolling/latest승격이나임의추가태그허용이아니다.
+
+## F917-026 — 독립 QA 보조 descriptor 조회의 파일 선택·join 오류
+
+- source `9d0e6b8b0d2f38ea4e287d09c21979e18dfa863b`,reviewer `/root/qa_resume917`,실제argv `python3 -`,cwd=verificationworktree. 보조진단의절대UTC·실패chunk ID·원본실행환경지문은미수집이다. 원문오류/순서/exit는대화의Reviewer보고로보존했고확인되지않은chunk추정값은사용하지않는다.
+- 첫조회는정렬된record순서와파일번호가같다고가정해거짓mismatch5를출력(exit0)했다. provenance제품불일치로판정하지않았다. 다음조회는`*-descriptor.stdout.private` glob에help 일반텍스트까지포함해json.JSONDecodeError/exit1이었다. 제품/테스트/source/registry변경은0이다.
+- 교정: 숫자파일명regex로JSON대상을제한하고record.stdoutSha256로join했다. 동일실제`python3 -`가exit0(확인된chunkfbdcab),before9/after10 rawJSON·SHA모두일치/mismatch0을확인했다. 보조조회교정은앞선잘못된출력을원본provenanceFAIL로바꾸거나제품gate로대체하지않는다. 기존local-publish의actualgraph/hash검증회귀와수동진단범위를구분한다.
+
+## 게시 독립 QA와 완료 증거의 범위
+
+실제Reviewer `/root/qa_resume917`가publish receipt checksum·동일source/env·nestedadmission·같은OCI게시1회·graph17blob·runtime/API/SQLite restart·cleanup을독립검토해PASS했다. 29steps중태그부재검사2개는인증inventory와ORAS정확notfound원문을함께검사한의도된exit1이며나머지27개는exit0이다. 58암호화stream의실제메모리복호화/AAD/head/attempt/cipher·rawhash/bytes/0600/고유nonce58/truncation0을검산했다. 실제개별metadata PUT actor미수집과미선정486descriptor미검증은이정확범위의제한으로보존한다.
+
+후속문서source는F024/F025/F026및게시근거를기록할뿐제품·테스트·빌드입력을바꾸지않는다. 따라서별도image/Chromium/Docker는N/A이며제품artifact source `9d0e6b8b0d2f38ea4e287d09c21979e18dfa863b`/index `sha256:0c60ffe02a98018abc1b81c5a147a1f2d0575804de7cd5cd25403bff164a7f78`를유지한다. 이문서commit의실제공통fast/admit·독립문서QA·normalmainFF및Issue최종AC8/종료는IssueFINAL에서그정확Head와연결한다. 문서존재자체를검사PASS나미래종료증거로사용하지않는다.

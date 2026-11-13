@@ -8239,6 +8239,52 @@
               "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
             }
           ]
+        },
+        {
+          "id": "exact-product-targeted05",
+          "at": "2026-11-13T10:21:15.475Z",
+          "timeNote": null,
+          "stage": "PLAYWRIGHT",
+          "status": "PASS",
+          "sourceSha": "9d0e6b8b0d2f38ea4e287d09c21979e18dfa863b",
+          "fixSourceSha": null,
+          "sourceFingerprint": "008aa7b158174189c94ce7a7ce8aa7ce4720895496f77cf47aeba9579b395c75",
+          "sourceNote": "검증한제품source9d;후속docs-only source와구분",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0; env=8bc2b35b31a6ce4d7d25acdd2e7c89c999b754fbcbb2a0c98a266a661b9dd906",
+          "environmentVersion": "masterGantt0.146.0",
+          "command": [
+            "node",
+            "scripts/verify-prepr.mjs",
+            "--mode=targeted",
+            "--base=1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+            "--issue=917",
+            "--report-dir=.prepr-reports/final-targeted-05"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "정확 source/env의 실제 완결 검사 및 원본보존",
+          "actual": "wholePASS/source-envstable/strictsnapshotPASS",
+          "input": "격리합성fixture/운영DB접근0",
+          "classification": "VERIFICATION",
+          "recovery": "최초FAIL/BLOCKED/중단보존;새실제검증을후속event로추가",
+          "residualRisk": "운영배포/OwnerUAT/offhost미실증;후속문서최종QA별도",
+          "evidenceScope": "EXACT",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "9d0e6b8b0d2f38ea4e287d09c21979e18dfa863b",
+            "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0; env=8bc2b35b31a6ce4d7d25acdd2e7c89c999b754fbcbb2a0c98a266a661b9dd906",
+            "imageDigest": null,
+            "backupId": null
+          }
         }
       ]
     },
@@ -8343,6 +8389,48 @@
             "imageDigest": null,
             "backupId": null
           }
+        },
+        {
+          "id": "exact-product-runtime-r03",
+          "at": "2026-11-13T09:20:41.738Z",
+          "timeNote": null,
+          "stage": "RESTORE",
+          "status": "PASS",
+          "sourceSha": "9d0e6b8b0d2f38ea4e287d09c21979e18dfa863b",
+          "fixSourceSha": null,
+          "sourceFingerprint": "008aa7b158174189c94ce7a7ce8aa7ce4720895496f77cf47aeba9579b395c75",
+          "sourceNote": "검증한제품source9d;후속docs-only source와구분",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0; env=8bc2b35b31a6ce4d7d25acdd2e7c89c999b754fbcbb2a0c98a266a661b9dd906",
+          "environmentVersion": "masterGantt0.146.0",
+          "command": [
+            "python3",
+            "-"
+          ],
+          "exit": 0,
+          "exitNote": "Python launcher와Nodechild 모두exit0",
+          "expected": "정확 source/env의 실제 완결 검사 및 원본보존",
+          "actual": "fresh23steps91HTTP/source38→39/restart2/integrityFK/cleanupPASS",
+          "input": "격리합성fixture/운영DB접근0",
+          "classification": "VERIFICATION",
+          "recovery": "최초FAIL/BLOCKED/중단보존;새실제검증을후속event로추가",
+          "residualRisk": "운영배포/OwnerUAT/offhost미실증;후속문서최종QA별도",
+          "evidenceScope": "EXACT",
+          "synthetic": true,
+          "imageDigest": "sha256:0c60ffe02a98018abc1b81c5a147a1f2d0575804de7cd5cd25403bff164a7f78",
+          "backupId": "mg917-runtime-syn-20261113T092033329Z-be5a0a55",
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "9d0e6b8b0d2f38ea4e287d09c21979e18dfa863b",
+            "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0; env=8bc2b35b31a6ce4d7d25acdd2e7c89c999b754fbcbb2a0c98a266a661b9dd906",
+            "imageDigest": "sha256:0c60ffe02a98018abc1b81c5a147a1f2d0575804de7cd5cd25403bff164a7f78",
+            "backupId": "mg917-runtime-syn-20261113T092033329Z-be5a0a55"
+          }
         }
       ]
     },
@@ -8415,6 +8503,52 @@
               "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
             }
           ]
+        },
+        {
+          "id": "exact-product-targeted05",
+          "at": "2026-11-13T10:21:15.475Z",
+          "timeNote": null,
+          "stage": "PLAYWRIGHT",
+          "status": "PASS",
+          "sourceSha": "9d0e6b8b0d2f38ea4e287d09c21979e18dfa863b",
+          "fixSourceSha": null,
+          "sourceFingerprint": "008aa7b158174189c94ce7a7ce8aa7ce4720895496f77cf47aeba9579b395c75",
+          "sourceNote": "검증한제품source9d;후속docs-only source와구분",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0; env=8bc2b35b31a6ce4d7d25acdd2e7c89c999b754fbcbb2a0c98a266a661b9dd906",
+          "environmentVersion": "masterGantt0.146.0",
+          "command": [
+            "node",
+            "scripts/verify-prepr.mjs",
+            "--mode=targeted",
+            "--base=1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+            "--issue=917",
+            "--report-dir=.prepr-reports/final-targeted-05"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "정확 source/env의 실제 완결 검사 및 원본보존",
+          "actual": "wholePASS/source-envstable/strictsnapshotPASS",
+          "input": "격리합성fixture/운영DB접근0",
+          "classification": "VERIFICATION",
+          "recovery": "최초FAIL/BLOCKED/중단보존;새실제검증을후속event로추가",
+          "residualRisk": "운영배포/OwnerUAT/offhost미실증;후속문서최종QA별도",
+          "evidenceScope": "EXACT",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "9d0e6b8b0d2f38ea4e287d09c21979e18dfa863b",
+            "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0; env=8bc2b35b31a6ce4d7d25acdd2e7c89c999b754fbcbb2a0c98a266a661b9dd906",
+            "imageDigest": null,
+            "backupId": null
+          }
         }
       ]
     },
@@ -8481,6 +8615,402 @@
               "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
             }
           ]
+        },
+        {
+          "id": "exact-product-fast05",
+          "at": "2026-11-13T09:13:28.094Z",
+          "timeNote": null,
+          "stage": "STATIC",
+          "status": "PASS",
+          "sourceSha": "9d0e6b8b0d2f38ea4e287d09c21979e18dfa863b",
+          "fixSourceSha": null,
+          "sourceFingerprint": "008aa7b158174189c94ce7a7ce8aa7ce4720895496f77cf47aeba9579b395c75",
+          "sourceNote": "검증한제품source9d;후속docs-only source와구분",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0; env=8bc2b35b31a6ce4d7d25acdd2e7c89c999b754fbcbb2a0c98a266a661b9dd906",
+          "environmentVersion": "masterGantt0.146.0",
+          "command": [
+            "node",
+            "scripts/verify-prepr.mjs",
+            "--mode=fast",
+            "--base=1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+            "--issue=917",
+            "--report-dir=.prepr-reports/final-fast-05"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "정확 source/env의 실제 완결 검사 및 원본보존",
+          "actual": "9stepPASS/4009UnitPASS0FAIL3optinSKIP/rootlintPASS/buildPASS",
+          "input": "격리합성fixture/운영DB접근0",
+          "classification": "VERIFICATION",
+          "recovery": "최초FAIL/BLOCKED/중단보존;새실제검증을후속event로추가",
+          "residualRisk": "운영배포/OwnerUAT/offhost미실증;후속문서최종QA별도",
+          "evidenceScope": "EXACT",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "9d0e6b8b0d2f38ea4e287d09c21979e18dfa863b",
+            "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0; env=8bc2b35b31a6ce4d7d25acdd2e7c89c999b754fbcbb2a0c98a266a661b9dd906",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F917-024",
+      "issue": 917,
+      "ledger": "docs/ISSUE_917_FAILURE_ANALYSIS.md",
+      "relatedIssues": [],
+      "domain": "tooling",
+      "layer": "preflight",
+      "keywords": [
+        "separate agent environment",
+        "runtime environment guard",
+        "fail closed"
+      ],
+      "cause": "별도Agent actual환경이기대된공통환경과달라probe실행전차단",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/scripts/prepr-verifier.test.ts",
+          "case": "rejects dirty checkout, changed head/base/content and fixture/environment drift",
+          "historical": false,
+          "coverageArea": "기존환경drift fail-closed;실제sameprocessguard/runtime는별도증거"
+        }
+      ],
+      "residualRisk": "기계PASS는Owner수용/운영배포승인이아님",
+      "events": [
+        {
+          "id": "agent-preflight-blocked",
+          "at": null,
+          "timeNote": "Original command absolute timestamp was not captured; receiptRecordedAt is not execution time. receiptRecordedAt=2026-11-13T09:20:02.967541+00:00",
+          "stage": "LOCAL_PREP",
+          "status": "BLOCKED",
+          "sourceSha": "9d0e6b8b0d2f38ea4e287d09c21979e18dfa863b",
+          "fixSourceSha": null,
+          "sourceFingerprint": "008aa7b158174189c94ce7a7ce8aa7ce4720895496f77cf47aeba9579b395c75",
+          "sourceNote": "검증한제품source9d;후속docs-only source와구분",
+          "environment": "Linux;Node22.14.0/npm11.10.0/ABI127;env=8c1b02dafc0e1ee9629e116d204cca1af55afe52f497be9d4e01cd2dbdccf28f",
+          "environmentVersion": "masterGantt0.146.0",
+          "command": [
+            "node",
+            "--input-type=module",
+            "-e",
+            "import {environmentEvidence} from \"./scripts/prepr-core.mjs\"; const e=environmentEvidence(process.cwd()); const expected=\"8bc2b35b31a6ce4d7d25acdd2e7c89c999b754fbcbb2a0c98a266a661b9dd906\"; console.log(JSON.stringify({status:e.fingerprint===expected?\"PASS\":\"BLOCKED\",expected,actual:e.fingerprint,node:e.node,npm:e.npm,abi:e.abi}));if(e.fingerprint!==expected)process.exitCode=2;"
+          ],
+          "exit": 2,
+          "exitNote": null,
+          "expected": "정확 source/env의 실제 완결 검사 및 원본보존",
+          "actual": "runtime미실행/backup-container-volume생성0/env8c1b≠8bc2/Nodeexit2",
+          "input": "격리합성fixture/운영DB접근0",
+          "classification": "ENVIRONMENT",
+          "recovery": "최초FAIL/BLOCKED/중단보존;새실제검증을후속event로추가",
+          "residualRisk": "운영배포/OwnerUAT/offhost미실증;후속문서최종QA별도",
+          "evidenceScope": "EXACT",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "manager-same-env-runtime-r03",
+          "at": "2026-11-13T09:20:41.738Z",
+          "timeNote": null,
+          "stage": "RESTORE",
+          "status": "PASS",
+          "sourceSha": "9d0e6b8b0d2f38ea4e287d09c21979e18dfa863b",
+          "fixSourceSha": null,
+          "sourceFingerprint": "008aa7b158174189c94ce7a7ce8aa7ce4720895496f77cf47aeba9579b395c75",
+          "sourceNote": "검증한제품source9d;후속docs-only source와구분",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0; env=8bc2b35b31a6ce4d7d25acdd2e7c89c999b754fbcbb2a0c98a266a661b9dd906",
+          "environmentVersion": "masterGantt0.146.0",
+          "command": [
+            "python3",
+            "-"
+          ],
+          "exit": 0,
+          "exitNote": "Python launcher와Nodechild 모두exit0",
+          "expected": "정확 source/env의 실제 완결 검사 및 원본보존",
+          "actual": "Manager원본env8bc일치guard→fresh23steps91HTTP/73tables44rows보존/restart/integrityFK/cleanupPASS",
+          "input": "격리합성fixture/운영DB접근0",
+          "classification": "VERIFICATION",
+          "recovery": "최초FAIL/BLOCKED/중단보존;새실제검증을후속event로추가",
+          "residualRisk": "운영배포/OwnerUAT/offhost미실증;후속문서최종QA별도",
+          "evidenceScope": "EXACT",
+          "synthetic": true,
+          "imageDigest": "sha256:0c60ffe02a98018abc1b81c5a147a1f2d0575804de7cd5cd25403bff164a7f78",
+          "backupId": "mg917-runtime-syn-20261113T092033329Z-be5a0a55",
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "9d0e6b8b0d2f38ea4e287d09c21979e18dfa863b",
+            "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0; env=8bc2b35b31a6ce4d7d25acdd2e7c89c999b754fbcbb2a0c98a266a661b9dd906",
+            "imageDigest": "sha256:0c60ffe02a98018abc1b81c5a147a1f2d0575804de7cd5cd25403bff164a7f78",
+            "backupId": "mg917-runtime-syn-20261113T092033329Z-be5a0a55"
+          }
+        }
+      ]
+    },
+    {
+      "id": "F917-025",
+      "issue": 917,
+      "ledger": "docs/ISSUE_917_FAILURE_ANALYSIS.md",
+      "relatedIssues": [],
+      "domain": "tooling",
+      "layer": "registry-retention",
+      "keywords": [
+        "referrers metadata",
+        "tag count",
+        "ORAS recursive"
+      ],
+      "cause": "단일app태그증가만기대한진단조건이정확후보attestationfallbackindex추가를고려하지않음",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/scripts/local-publish.test.ts",
+          "case": "같은 OCI@digest만 한번 게시하고 exactgraph와runtime PASS 뒤에만 최종 PASS한다",
+          "historical": false,
+          "coverageArea": "기존실제graph/hash/runtime필수;수동tag목록후검산은별도"
+        }
+      ],
+      "residualRisk": "원본count-onlyBLOCKED보존/정확내용범위PASS와actorUNKNOWN구분",
+      "events": [
+        {
+          "id": "original-count-only-blocked",
+          "at": "2026-11-13T10:28:26.208085Z",
+          "timeNote": null,
+          "stage": "LOCAL_PREP",
+          "status": "BLOCKED",
+          "sourceSha": "9d0e6b8b0d2f38ea4e287d09c21979e18dfa863b",
+          "fixSourceSha": null,
+          "sourceFingerprint": "008aa7b158174189c94ce7a7ce8aa7ce4720895496f77cf47aeba9579b395c75",
+          "sourceNote": "frozen제품source에서보조검산;공식게이트환경과구분",
+          "environment": "Linux;Python3/ORAS1.3.6;read-only 진단환경 지문 미수집",
+          "environmentVersion": "masterGantt0.146.0",
+          "command": [
+            "python3",
+            "<private-after-root>/collect-after.py"
+          ],
+          "exit": 2,
+          "exitNote": null,
+          "expected": "실제자료의정확조회/원본보존/제한범위판정",
+          "actual": "494→496/추가2/삭제0;고유appSHA는일치하나only+1조건BLOCKED",
+          "input": "합성후보의GHCR descriptor/graph;운영DB접근0",
+          "classification": "TOOLING",
+          "recovery": "최초오류/차단불변;교정한실제조회는별도event",
+          "residualRisk": "개별metadataPUTactorUNKNOWN/미선정486descriptor NOTTESTED;제품신뢰근거로확대안함",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "exact-metadata-graph-preservation",
+          "at": "2026-11-13T10:32:11.625637+00:00",
+          "timeNote": null,
+          "stage": "SMOKE",
+          "status": "PASS",
+          "sourceSha": "9d0e6b8b0d2f38ea4e287d09c21979e18dfa863b",
+          "fixSourceSha": null,
+          "sourceFingerprint": "008aa7b158174189c94ce7a7ce8aa7ce4720895496f77cf47aeba9579b395c75",
+          "sourceNote": "frozen제품source에서보조검산;공식게이트환경과구분",
+          "environment": "Linux;Python3/ORAS1.3.6;read-only 진단환경 지문 미수집",
+          "environmentVersion": "masterGantt0.146.0",
+          "command": [
+            "python3",
+            "-"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "실제자료의정확조회/원본보존/제한범위판정",
+          "actual": "기존494names/9full descriptor보존;appSHA1+정확후보referrersmetadata1;local/pulled17blob일치/추가write0",
+          "input": "합성후보의GHCR descriptor/graph;운영DB접근0",
+          "classification": "TOOLING",
+          "recovery": "최초오류/차단불변;교정한실제조회는별도event",
+          "residualRisk": "개별metadataPUTactorUNKNOWN/미선정486descriptor NOTTESTED;제품신뢰근거로확대안함",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "9d0e6b8b0d2f38ea4e287d09c21979e18dfa863b",
+            "environment": "Linux;Python3/ORAS1.3.6;read-only 진단환경 지문 미수집",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F917-026",
+      "issue": 917,
+      "ledger": "docs/ISSUE_917_FAILURE_ANALYSIS.md",
+      "relatedIssues": [],
+      "domain": "tooling",
+      "layer": "qa-diagnostic",
+      "keywords": [
+        "JSONDecodeError",
+        "descriptor glob",
+        "hash join"
+      ],
+      "cause": "보조Python조회가파일순서join과help출력glob을잘못선정",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/scripts/local-publish.test.ts",
+          "case": "같은 OCI@digest만 한번 게시하고 exactgraph와runtime PASS 뒤에만 최종 PASS한다",
+          "historical": false,
+          "coverageArea": "공식publisher 실제graph검증과보조진단오류를분리;임의Pythonglob자동회귀주장없음"
+        }
+      ],
+      "residualRisk": "미수집시각/실패chunk를추정하지않고보조성공을제품gate로확대안함",
+      "events": [
+        {
+          "id": "wrong-order-diagnostic",
+          "at": null,
+          "timeNote": "절대UTC미수집;Reviewer보고의실제순서/exit만보존",
+          "stage": "LOCAL_PREP",
+          "status": "FAIL",
+          "sourceSha": "9d0e6b8b0d2f38ea4e287d09c21979e18dfa863b",
+          "fixSourceSha": null,
+          "sourceFingerprint": "008aa7b158174189c94ce7a7ce8aa7ce4720895496f77cf47aeba9579b395c75",
+          "sourceNote": "frozen제품source에서보조검산;공식게이트환경과구분",
+          "environment": "Linux;Python3/ORAS1.3.6;read-only 진단환경 지문 미수집",
+          "environmentVersion": "masterGantt0.146.0",
+          "command": [
+            "python3",
+            "-"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "실제자료의정확조회/원본보존/제한범위판정",
+          "actual": "record순서=파일번호가정으로거짓mismatch5;제품provenance불일치판정않음",
+          "input": "합성후보의GHCR descriptor/graph;운영DB접근0",
+          "classification": "TOOLING",
+          "recovery": "최초오류/차단불변;교정한실제조회는별도event",
+          "residualRisk": "개별metadataPUTactorUNKNOWN/미선정486descriptor NOTTESTED;제품신뢰근거로확대안함",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "help-text-json-error",
+          "at": null,
+          "timeNote": "절대UTC미수집;Reviewer보고의실제순서/exit만보존",
+          "stage": "LOCAL_PREP",
+          "status": "FAIL",
+          "sourceSha": "9d0e6b8b0d2f38ea4e287d09c21979e18dfa863b",
+          "fixSourceSha": null,
+          "sourceFingerprint": "008aa7b158174189c94ce7a7ce8aa7ce4720895496f77cf47aeba9579b395c75",
+          "sourceNote": "frozen제품source에서보조검산;공식게이트환경과구분",
+          "environment": "Linux;Python3/ORAS1.3.6;read-only 진단환경 지문 미수집",
+          "environmentVersion": "masterGantt0.146.0",
+          "command": [
+            "python3",
+            "-"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "실제자료의정확조회/원본보존/제한범위판정",
+          "actual": "descriptor glob에help일반텍스트포함/json.JSONDecodeError",
+          "input": "합성후보의GHCR descriptor/graph;운영DB접근0",
+          "classification": "TOOLING",
+          "recovery": "최초오류/차단불변;교정한실제조회는별도event",
+          "residualRisk": "개별metadataPUTactorUNKNOWN/미선정486descriptor NOTTESTED;제품신뢰근거로확대안함",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "numeric-file-and-hash-join-corrected",
+          "at": null,
+          "timeNote": "절대UTC미수집;Reviewer보고의실제순서/exit만보존",
+          "stage": "LOCAL_PREP",
+          "status": "PASS",
+          "sourceSha": "9d0e6b8b0d2f38ea4e287d09c21979e18dfa863b",
+          "fixSourceSha": null,
+          "sourceFingerprint": "008aa7b158174189c94ce7a7ce8aa7ce4720895496f77cf47aeba9579b395c75",
+          "sourceNote": "frozen제품source에서보조검산;공식게이트환경과구분",
+          "environment": "Linux;Python3/ORAS1.3.6;read-only 진단환경 지문 미수집",
+          "environmentVersion": "masterGantt0.146.0",
+          "command": [
+            "python3",
+            "-"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "실제자료의정확조회/원본보존/제한범위판정",
+          "actual": "숫자파일regex/record.stdoutSha256join으로before9/after10JSON SHA일치mismatch0;실제교정chunkfbdcab",
+          "input": "합성후보의GHCR descriptor/graph;운영DB접근0",
+          "classification": "TOOLING",
+          "recovery": "최초오류/차단불변;교정한실제조회는별도event",
+          "residualRisk": "개별metadataPUTactorUNKNOWN/미선정486descriptor NOTTESTED;제품신뢰근거로확대안함",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "9d0e6b8b0d2f38ea4e287d09c21979e18dfa863b",
+            "environment": "Linux;Python3/ORAS1.3.6;read-only 진단환경 지문 미수집",
+            "imageDigest": null,
+            "backupId": null
+          }
         }
       ]
     }

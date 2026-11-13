@@ -130,3 +130,13 @@ F898-009~012를 [Primary 원장](ISSUE_898_FAILURE_ANALYSIS.md)에 추가했다.
 ## #917 중단 증거의 root lint 유입
 
 [F917-023](ISSUE_917_FAILURE_ANALYSIS.md)은 중단 snapshot을 source 아래 보존해 생성 JS가 root lint에 유입된 실제 fast04 FAIL이다. 실패 후 전체 증거를 외부0700 경로로 bytes/hash 동일 이관하고 원본 report/log를 보존했다. ignore/guard/선정은 변경하지 않으며 새 source 전체검증이 필요하다.
+
+
+## #917 최종 제품 검증·게시와 환경 사전 차단
+
+[F917-024](ISSUE_917_FAILURE_ANALYSIS.md)은별도Agent환경지문불일치의실행전BLOCKED와Manager원본환경fresh복원/runtime91HTTP PASS를각각보존한다. F020/021/022/023에는exact제품source `9d0e6b8b0d2f38ea4e287d09c21979e18dfa863b`의새실제복구event를append했다. fast4009Unit·targeted803Unit/149Chromium·Docker/admit·동일OCI정식게시/exactdigest Pull이PASS이며원본실패·중단은불변이다. 최종문서전용gate/독립QA/종료는IssueFINAL을따른다.
+
+
+## #917 보존 후검산과 Reviewer 보조 조회 교정
+
+[F917-025/026](ISSUE_917_FAILURE_ANALYSIS.md)에494→496태그관측의원본count-only BLOCKED와정확attestation referrer metadata연결검산,Reviewer의파일순서/glob진단오류·교정실행을각각보존했다. 기존494이름/선정9descriptor불변,미선정486descriptor NOT TESTED,개별PUTactor UNKNOWN범위를명시한다. 제품source/검증/권한/CLI변경없이같은후보graph17blobs및독립게시QA가PASS했으며후속문서최종gate/종료는IssueFINAL을따른다.
