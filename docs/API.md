@@ -2001,3 +2001,17 @@ Preview token은 DB secret으로 HMAC 서명하며 원본 UTF-8 content hash/for
 UI locale은 endpoint·route·ID/code·enum·revision/If-Match·날짜·숫자 JSON의 의미를 바꾸지 않는다. locale 변경은 조회나 쓰기 권한이 아니며 새 번역 endpoint를 추가하지 않는다. 관리형 DTO의 name은 원본, translations는 Phase B의 선택 metadata다. 생략은 기존값 보존, 명시적 {}는 전체 해제이며 기존 owner 세션·Origin·CAS 검증이 계속 필요하다. 장비/시스템 편집의 변경 없는 번역은 payload에서 생략하고 사용자 이름·설명·Issue 본문을 자동 변환하지 않는다.
 
 날짜 input과 교환 payload는 기존 date-only/UTC 형식을 유지하고 Intl 포맷 문자열을 API로 전송하지 않는다. 오류 code/requestId·기존 validation field/row detail와 업무 충돌 의미를 보존하며, UI의 allowlisted 번역/context fallback이 서버 응답 계약을 대체하지 않는다. 세부 표시·신뢰 경계는 [Phase C 설계](I18N_PHASE_C.md)를 따른다. 새 Head 원격 회귀는 현재 NOT TESTED다.
+
+
+## Issue #917 — Equipment nullable 주 관리 공정
+
+기존 `/api/projects/{publicId}/logistics/equipment` POST/GET 및 `/{equipmentId}` PATCH 경로를 그대로 사용한다. 응답 `EquipmentDto.processId`는 `string|null`이며 null은 주 관리 공정 미지정이다. Resource/WBS 조회의 `primaryProcessId`도 같은 nullable 의미를 따른다.
+
+| 입력 | POST | PATCH |
+| --- | --- | --- |
+| `processId` 생략 | 미지정 | 기존 값 보존 |
+| `processId: null` | 미지정 | 명시적 해제 |
+| 유효한 같은 Project 공정 ID | 지정 | 지정/변경 |
+| 빈 문자열·잘못된 타입/ID·타 Project ID | 명시 오류 | 명시 오류·부분 저장0 |
+
+신규 비활성 공정 참조는 거부하며 기존 비활성 참조의 무관한 편집은 보존한다. Origin/edit session/strong If-Match/revision·single transaction·code 중복·unit/fleet/역할/제어 System 검증은 유지한다. 주 관리 공정은 WorkArea 검증 입력이 아니며 typed 실제 소유 공정/구역을 독립 검증한다. legacy process-scoped Target membership 등 강한 참조가 남은 변경·해제는409로 거부하고 revision/관계 전체를 rollback한다. Copy/Template7은 null을 보존하며 일정 JSON/일반 Excel 미지원은 [교환 계약](IMPORT_EXPORT.md)을 따른다.

@@ -143,9 +143,11 @@ export function resolveWbsTaskLedger(source: WbsTaskLedgerInput) {
       if (bySystem.get(control.systemId)?.layer !== "controller" || !["primary", "supporting"].includes(control.controlRole)) fail("INVALID_CONTROL_RELATION");
       addConfigSource({ relationKind: "controls", sourceKind: "system-controls", entityKind: "equipment", entityId: row.id, relatedEntityKind: "system", relatedEntityId: control.systemId, role: control.controlRole, dimension: "system" });
     }
-    const processId = logistics.byInstance.get(key("equipment", row.id))!.projectProcessId!;
-    addConfigSource({ relationKind: "membership", sourceKind: "equipment-process", entityKind: "equipment", entityId: row.id, relatedEntityKind: "process", relatedEntityId: processId, dimension: "process" });
-    assertProcess(processId);
+    const processId = logistics.byInstance.get(key("equipment", row.id))!.projectProcessId;
+    if (processId != null) {
+      assertProcess(processId);
+      addConfigSource({ relationKind: "membership", sourceKind: "equipment-process", entityKind: "equipment", entityId: row.id, relatedEntityKind: "process", relatedEntityId: processId, dimension: "process" });
+    }
   }
   // Bottom-up DAG traversal is iterative: long valid graphs cannot overflow the JS stack.
   const descendants = new Map<string, string[]>(), parents = new Map<string, string[]>();

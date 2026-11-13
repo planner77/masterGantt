@@ -160,6 +160,26 @@ export function inventory(root) {
 // A path with no known contract is BLOCKED, never treated as "no affected tests".
 const RULES = [
   {
+    id: "issue-917-equipment-nullable", risk: "HIGH",
+    re: /^src\/(?:contracts\/(?:logistics(?:-dashboard)?|project-templates|wbs-dashboard-views)\.ts|features\/logistics\/(?:project-logistics-(?:management|dashboard)\.tsx|project-logistics-management\.module\.css))$/,
+    unitPaths: ["tests/server/logistics/optional-equipment-contract.test.ts", "tests/server/logistics/logistics-service.test.ts", "tests/server/logistics/logistics-dashboard.test.ts", "tests/features/resources/wbs-view-transport.test.ts", "tests/server/resources/issue-734-equipment-configuration.test.ts", "tests/server/projects/project-copy-logistics.test.ts", "tests/server/templates/logistics-template-graph.test.ts"],
+    browser: ["issue-726-logistics-master", "project-logistics-management", "issue-734-equipment-dashboard", "schedule-views", "browser-task-logistics-links", "logistics-table-density"],
+    reason: "선택 주 관리 공정 DTO/editor → 공정0 CRUD·생략/null·legacy 충돌·Copy/Template·6관점/root/수량·일정/직접연결 회귀",
+  },
+  {
+    id: "issue-917-logistics-locales", risk: "HIGH",
+    re: /^src\/lib\/i18n\/catalogs\/domains\.ts$/,
+    unitPaths: ["tests/lib/i18n-phase-c.test.ts"],
+    browser: ["i18n", "i18n-master-data", "issue-726-logistics-master", "project-logistics-management"],
+    reason: "공유 domain 번역 → ko/en/vi placeholder/원본·미지정/충돌 안내·locale와 초안/포커스 보존",
+  },
+  {
+    id: "issue-917-target-project-fixture", risk: "HIGH",
+    re: /^tests\/e2e\/fixtures\/target-project\.ts$/,
+    browser: ["issue-726-logistics-master", "issue-725-process-workareas", "issue-737-target0-acceptance", "issue-624-logistics-unified", "issue-736-resource-dashboard", "issue-623-resource-mvp", "issue-735-system-dashboard", "issue-734-equipment-dashboard", "issue-622-resource-plan-target", "issue-733-process-workarea-dashboard", "issue-732-milestone-dashboard", "resource-target-dashboard-api", "schedule-views", "issue-621-resource-target", "logistics-target-authoring", "issue-730-view-composer", "issue-726-task-logistics"],
+    reason: "실제 HTTP fixture의 선택 공정0 확장 → 현재 fixture를 import하는 모든 Chromium 소비자; 기존 기본2공정 회귀 보존",
+  },
+  {
     id: "gantt-shared", risk: "HIGH",
     re: /^src\/(features\/gantt|domain\/gantt|lib\/gantt|components\/gantt)\/(.*canonical|.*viewport|.*projection|.*state|.*core|.*axis|.*command|.*svar|.*sync|.*recovery)/i,
     unit: ["canonical-recovery", "canonical-recovery-runtime", "state-consistency-harness", "viewport-coordinator", "axis-transaction", "copy-viewport-continuity"],

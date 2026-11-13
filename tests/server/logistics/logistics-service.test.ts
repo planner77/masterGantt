@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -5,6 +6,10 @@ import type Database from "better-sqlite3";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { openDatabase } from "../../../src/server/db/core";
+import { LogisticsRepository } from "../../../src/server/repositories/logistics-repository-core";
+import { ProcessContextRepository } from "../../../src/server/repositories/process-context-repository-core";
+import { ScheduleRepository } from "../../../src/server/repositories/schedule-repository-core";
+import { ResourceCatalogRepository } from "../../../src/server/repositories/resource-catalog-repository-core";
 import { LogisticsService } from "../../../src/server/logistics/logistics-service-core";
 import { TaskFieldProjectService } from "../../../src/server/projects/task-field-project-service";
 import {
@@ -340,5 +345,97 @@ describe("LogisticsService Core", () => {
     });
     expect(taskMutation.data.logistics).toBeDefined();
     expect(taskMutation.data.logistics!.processes.length).toBe(1);
+  });
+});
+
+describe("Issue #917 optional equipment primary process", () => {
+  it("registers unit/fleet without processes and preserves omission versus null across late assignment", () => {
+    const db = createTestDatabase();
+    try {
+      const { authSession, now, project } = setupProjectWithSession(db);
+      const service = new LogisticsService(db, { clock: () => now });
+      const unit = service.createEquipment(authSession, 1, { code: "UNIT", name: "Unit", equipmentType: "amr", managementUnit: "unit" });
+      const unitId = unit.data.operation.targetPublicId!;
+      expect(unit.data.logistics.equipment[0]).toMatchObject({ id: unitId, processId: null, quantity: 1 });
+      const fleet = service.createEquipment(authSession, 2, { processId: null, code: "FLEET", name: "Fleet", equipmentType: "amr", managementUnit: "fleet", quantity: 7 });
+      expect(fleet.data.logistics.equipment.find(e => e.code === "FLEET")).toMatchObject({ processId: null, quantity: 7 });
+      for (const table of ["project_processes", "project_work_areas", "tasks", "logistics_targets"]) {
+        expect(db.prepare(`SELECT count(*) FROM ${table} WHERE project_id=?`).pluck().get(project.id)).toBe(0);
+      }
+      const first = service.createProcess(authSession, 3, { name: "A" }).data.operation.targetPublicId!;
+      const second = service.createProcess(authSession, 4, { name: "B" }).data.operation.targetPublicId!;
+      const updated = (revision: number, input: Parameters<LogisticsService["updateEquipment"]>[3]) => service.updateEquipment(authSession, revision, unitId, input).data.logistics.equipment.find(e => e.id === unitId)!;
+      expect(updated(5, { processId: first }).processId).toBe(first);
+      expect(updated(6, { name: "Renamed" }).processId).toBe(first);
+      expect(updated(7, { processId: second }).processId).toBe(second);
+      expect(updated(8, { processId: null }).processId).toBeNull();
+      expect(updated(9, { processId: first }).processId).toBe(first);
+      expect(db.pragma("foreign_key_check")).toEqual([]);
+    } finally { db.close(); }
+  });
+
+  it("rejects new inactive and foreign process references while retaining an existing inactive assignment", () => {
+    const db = createTestDatabase();
+    try {
+      const { authSession, now, project } = setupProjectWithSession(db);
+      const service = new LogisticsService(db, { clock: () => now });
+      const id = service.createProcess(authSession, 1, { name: "Inactive later" }).data.operation.targetPublicId!;
+      const equipment = service.createEquipment(authSession, 2, { processId: id, code: "E", name: "E", equipmentType: "amr", managementUnit: "unit" }).data.logistics.equipment[0];
+      service.updateProcess(authSession, 3, id, { active: false });
+      expect(service.updateEquipment(authSession, 4, equipment.id, { processId: id, name: "Retained" }).data.logistics.equipment[0].processId).toBe(id);
+      const input = { code: "NEW", name: "New", equipmentType: "amr", managementUnit: "unit" as const };
+      expect(() => service.createEquipment(authSession, 5, { ...input, processId: id })).toThrowError(expect.objectContaining({ code: "PROCESS_INACTIVE" }));
+      const nullable = service.createEquipment(authSession, 5, input).data.logistics.equipment.find(e => e.code === "NEW")!;
+      expect(() => service.updateEquipment(authSession, 6, nullable.id, { processId: id, name: "ROLLBACK" })).toThrowError(expect.objectContaining({ code: "PROCESS_INACTIVE" }));
+      expect(() => service.updateEquipment(authSession, 6, nullable.id, { processId: "11111111-1111-4111-8111-111111111111" })).toThrow();
+      expect(new ProjectRepository(db).findById(project.id)!.revision).toBe(6);
+      expect(service.getLogisticsDto(project.id).equipment.find(e => e.id === nullable.id)).toMatchObject({ processId: null, name: "New" });
+    } finally { db.close(); }
+  });
+});
+
+describe("Issue #917 independent equipment relationships", () => {
+  it("retains multi-process WorkAreas, owner/System/direct Task links when primary process is assigned and cleared", () => {
+    const db = createTestDatabase();
+    try {
+      const { authSession: auth, now, project } = setupProjectWithSession(db);
+      const service = new LogisticsService(db, { clock: () => now }), repo = new LogisticsRepository(db);
+      const revision = () => new ProjectRepository(db).findById(project.id)!.revision;
+      const a = service.createProcess(auth, revision(), { name: "A" }).data.operation.targetPublicId!;
+      const b = service.createProcess(auth, revision(), { name: "B" }).data.operation.targetPublicId!;
+      const area = (owner: string) => service.mutateWorkArea(auth, revision(), "create", owner, { name: "Area" }).data.operation.targetPublicId!;
+      const links = [{ processId: a, workAreaId: area(a) }, { processId: b, workAreaId: area(b) }];
+      const catalogRevision = new ProcessContextRepository(db).revision();
+      const e = service.createEquipment(auth, revision(), { code: "INDEPENDENT", name: "Fleet", equipmentType: "amr", managementUnit: "fleet", quantity: 9, workAreaLinks: links, processCatalogRevision: catalogRevision }).data.logistics.equipment[0];
+      expect(e).toMatchObject({ processId: null, workAreaLinks: expect.arrayContaining(links) });
+      const system = repo.insertSystem({ projectId: project.id, publicId: randomUUID(), code: "S", name: "S", systemType: "acs", layer: "controller", scope: "project", now: now.toISOString() });
+      service.setEquipmentSystems(auth, revision(), e.id, { systems: [{ systemId: system.publicId, controlRole: "primary" }] });
+      const person = new ResourceCatalogRepository(db).insertResource({ publicId: randomUUID(), name: "Owner", code: "OWNER", description: "", now: now.toISOString() });
+      service.setEquipmentResourceRoles(auth, revision(), e.id, { roles: [{ resourceId: person.publicId, role: "owner", isPrimary: true }] });
+      const task = new ScheduleRepository(db).insertTask({ projectId: project.id, publicId: randomUUID(), externalId: "TASK", name: "Task", type: "task", parentId: null, scheduleMode: "auto", requestedStart: "2026-09-28", startDate: "2026-09-28", endDate: "2026-09-28", duration: 1, progress: 0, sortOrder: 0, createdAt: now.toISOString(), updatedAt: now.toISOString() });
+      service.replaceTaskLogisticsLinks(auth, revision(), task.publicId, { equipmentLinks: [{ equipmentId: e.id, scope: "self" }], systemLinks: [] });
+      const relationships = () => ["equipment_project_work_areas", "project_equipment_systems", "project_equipment_resource_roles", "task_equipment_links"].map(table => db.prepare(`SELECT * FROM ${table} ORDER BY rowid`).all());
+      const before = relationships();
+      for (const processId of [b, null, a, null]) service.updateEquipment(auth, revision(), e.id, { processId });
+      expect(relationships()).toEqual(before);
+      expect(service.getLogisticsDto(project.id).equipment[0]).toMatchObject({ processId: null, quantity: 9, controlSystems: [{ systemId: system.publicId, controlRole: "primary" }], resourceRoles: [expect.objectContaining({ resourceId: person.publicId })] });
+      const rev = revision();
+      expect(() => service.updateEquipment(auth, rev, e.id, { name: "ROLLBACK", workAreaLinks: [{ processId: b, workAreaId: links[0].workAreaId }], processCatalogRevision: catalogRevision })).toThrow();
+      expect(revision()).toBe(rev); expect(relationships()).toEqual(before);
+      expect(db.prepare("SELECT COUNT(*) FROM logistics_targets").pluck().get()).toBe(0);
+    } finally { db.close(); }
+  });
+
+  it("fails explicitly for a corrupt nonnull primary process rather than exporting it as unassigned", () => {
+    const db = createTestDatabase();
+    try {
+      const { authSession, now, project } = setupProjectWithSession(db);
+      const service = new LogisticsService(db, { clock: () => now });
+      service.createEquipment(authSession, 1, { code: "BROKEN", name: "Broken", equipmentType: "amr", managementUnit: "unit" });
+      db.pragma("foreign_keys=OFF");
+      db.prepare("UPDATE project_equipment SET process_id=999999 WHERE project_id=?").run(project.id);
+      db.pragma("foreign_keys=ON");
+      expect(() => service.getLogisticsDto(project.id)).toThrowError(expect.objectContaining({ code: "EQUIPMENT_PROCESS_REFERENCE_INVALID" }));
+    } finally { db.close(); }
   });
 });

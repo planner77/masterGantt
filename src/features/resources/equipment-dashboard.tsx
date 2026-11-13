@@ -67,7 +67,7 @@ function EquipmentSupplement({data}:{data:WbsViewReportDto}) {
     <details><summary>{t("설비 원본 정보")}</summary><p className={styles.subtle}>{t("전체 등록 설비 기준입니다. 유형·기간·작업 필터를 적용한 작업 범위와 구분합니다.")}</p>{view.equipment.map(equipment=><details key={equipment.id}><summary>{displayName(equipment, locale)} · {equipment.managementUnit} · {formatNumber(equipment.quantity)}{t("대 ·")}{" "}{equipment.active?t("활성"):t("비활성")}</summary>
       <dl className={equipmentStyles.metadata}>
         <div><dt>{t("설비 유형")}</dt><dd>{displayName({name:equipment.equipmentTypeName,translations:equipment.equipmentTypeTranslations},locale)}</dd></div>
-        <div><dt>{t("주관리 공정")}</dt><dd>{nameOf("process",equipment.primaryProcessId)}</dd></div>
+        <div><dt>{t("주관리 공정")}</dt><dd>{equipment.primaryProcessId === null ? t("공정 미지정") : nameOf("process",equipment.primaryProcessId)}</dd></div>
         <div><dt>{t("WorkArea (전체 소속)")}</dt><dd>{equipment.workAreaLinks.length?equipment.workAreaLinks.map(area=><p key={`${area.processId}:${area.workAreaId}`}>{nameOf("process",area.processId)} → {nameOf("workArea",area.workAreaId)}</p>):t("구역 미사용 (정상 상태)")}</dd></div>
         <div><dt>Owner</dt><dd>{equipment.resourceRoles.filter(role=>role.role==="owner").map(role=><p key={role.resourceId}>{role.resourceName}{role.isPrimary?t(" · 주담당"):""}{!role.active?t(" · 비활성"):""}</p>)}{!equipment.resourceRoles.some(role=>role.role==="owner")?t("Owner 미설정"):null}</dd></div>
         <div><dt>{t("실제 제어 시스템")}</dt><dd>{equipment.controlSystems.length?equipment.controlSystems.map(control=><p key={control.systemId}>{displayName({name:control.systemName,translations:control.systemTranslations},locale)} · {control.controlRole==="primary"?t("주제어"):t("보조제어")}</p>):t("제어 연결 없음")}</dd></div>

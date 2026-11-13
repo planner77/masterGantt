@@ -1,3 +1,5 @@
+import { validateProjectImportPayload } from "../../../src/contracts/import";
+import { createWorkingCalendar } from "../../../src/domain/scheduling";
 import { inflateRawSync } from "node:zlib";
 
 import { describe, expect, it } from "vitest";
@@ -211,4 +213,33 @@ describe("Excel Logistics export report (Issue #189 LG-06)", () => {
     expect(workbookXml).not.toContain('name="Logistics"');
     expect(entries.has("xl/worksheets/sheet4.xml")).toBe(false);
   });
+  it("keeps unassigned Equipment rows in explicit Logistics reports and rejects schedule-only loss", () => {
+    const snapshot = structuredClone(mockSnapshot);
+    snapshot.data.logistics!.processes = [];
+    snapshot.data.logistics!.equipment[0].processId = null;
+    const request: ProjectExcelExportRequest = {
+      includeDependencies: false, includeLogistics: true, scope: "project", scale: "day",
+      hierarchyDisplay: "expanded", layout: { columns: [{ id: "text", widthPx: 224 }] },
+    };
+    const xml = extractZipEntries(buildProjectExcelWorkbook(snapshot, request)).get("xl/worksheets/sheet4.xml")!;
+    expect(xml).toContain("STK-01"); expect(xml).toContain("공정 미지정");
+    expect(xml).toContain("SCS(주)"); expect(xml).toContain("홍길동(주)[owner]");
+    expect(xml).toContain("eq-uuid-1");
+    expect(() => buildProjectExcelWorkbook(snapshot, { ...request, includeLogistics: false }))
+      .toThrow(expect.objectContaining({ code: "EXPORT_UNSUPPORTED" }));
+    snapshot.data.logistics!.equipment[0].processId = "MISSING";
+    expect(() => buildProjectExcelWorkbook(snapshot, request)).toThrow(expect.objectContaining({ code: "EXPORT_UNSUPPORTED" }));
+  });
+
+  it("rejects unsupported nullable Equipment payloads in schedule JSON instead of ignoring them", () => {
+    const calendar = createWorkingCalendar({ timezone: "Asia/Seoul", weekendDays: [6, 0], holidays: [] });
+    for (const schemaVersion of ["1.0", "1.1"]) {
+      const payload = { schemaVersion, project: { name: "Schedule", description: "" }, tasks: [{ externalId: "S", name: "Summary", type: "summary", parentExternalId: null, predecessors: [] }], equipment: [{ code: "UNASSIGNED", processId: null }] };
+      const checked = validateProjectImportPayload(payload, calendar);
+      expect(checked.success).toBe(false);
+      if (checked.success) throw new Error("Unsupported Equipment must not be silently dropped");
+      expect(checked.details).toEqual(expect.arrayContaining([expect.objectContaining({ code: "UNKNOWN_FIELD" })]));
+    }
+  });
+
 });

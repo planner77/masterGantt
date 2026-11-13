@@ -1,8 +1,7 @@
 import { expectDashboardMetricsReadable } from "./helpers/dashboard-metrics";
 import { openWbsViewControls } from "./helpers/wbs-controls";
 import { waitForWbsReport, type WbsReportCondition } from "./helpers/wbs-report";
-import { mkdir, writeFile } from "node:fs/promises";
-import { resolve } from "node:path";
+import { writeFile } from "node:fs/promises";
 import type { Locator, Page } from "@playwright/test";
 import { test, expect, isolatedApplicationOptions } from "./fixtures/isolated-application";
 import { seedWbsViewComposer, viewResourcePassword } from "./fixtures/wbs-view-composer";
@@ -131,8 +130,6 @@ test("#733 공정 조회 긴 이름·5폭 내부 스크롤·키보드", async ({
   await overview.getByText(/^연관 Milestone 전체 Gate/).click();
   const composer = root(page).locator("details").filter({has:page.locator("summary").filter({hasText:/^조회 구성$/})});
   await composer.locator(":scope > summary").click();
-  const artifactDirectory=resolve("output/playwright/issue-733");
-  await mkdir(artifactDirectory,{recursive:true});
   const geometry = [];
   for(const width of [390,768,1024,1440,1920]) {
     await page.setViewportSize({width,height:1000});
@@ -156,9 +153,9 @@ test("#733 공정 조회 긴 이름·5폭 내부 스크롤·키보드", async ({
     measured.body.forEach((cell,index)=>{expect(Math.abs(cell.left-measured.header[index].left)).toBeLessThanOrEqual(1);expect(Math.abs(cell.width-measured.header[index].width)).toBeLessThanOrEqual(1);});
     expect(measured.owner.overflow).toMatch(/auto|scroll/);if(width<=768)expect(measured.owner.scroll).toBeGreaterThan(measured.owner.client);
     geometry.push({width,...measured,focusBox,boxes});
-    await info.attach(`process-${width}.png`,{contentType:"image/png",body:await root(page).screenshot({path:resolve(artifactDirectory,`process-${width}.png`)})});
+    await info.attach(`process-${width}.png`,{contentType:"image/png",body:await root(page).screenshot({path:info.outputPath(`process-${width}.png`)})});
   }
-  await writeFile(resolve(artifactDirectory,"geometry.json"),JSON.stringify(geometry,null,2));
+  await writeFile(info.outputPath("geometry.json"),JSON.stringify(geometry,null,2));
   await info.attach("process-five-widths",{contentType:"application/json",body:JSON.stringify(geometry)});
 });
 

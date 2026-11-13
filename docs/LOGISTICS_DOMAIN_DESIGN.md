@@ -91,7 +91,7 @@ SQLite + better-sqlite3, 단일 application instance, 기존 Next.js/React/SVAR 
 ```text
 Project
   ├─ Process tree                    (공정 구조: WBS와 독립)
-  │    └─ Equipment                  (주 관리 공정 1개)
+  │    └─ Equipment                  (선택 주 관리 공정 0..1)
   ├─ Logistics System
   │    ├─ process scope              (프로젝트 공통 또는 복수 공정)
   │    ├─ controls ↔ Equipment       (controller만, M:N)
@@ -116,7 +116,7 @@ MCS를 Project와 동일시하지 않는다. 프로젝트에 MCS가 여러 개�
 | 테이블 | 주요 필드 | 계약 |
 | --- | --- | --- |
 | project_processes | public_id, project_id, code, name, parent_id, sort_order, active | 자기참조/순환 금지, 프로젝트 내부 트리 |
-| project_equipment | public_id, project_id, process_id, code, name, equipment_type, management_unit, quantity, manufacturer, model, description, active | 주 관리 공정 1개; unit이면 quantity=1, fleet이면 양의 정수 |
+| project_equipment | public_id, project_id, process_id, code, name, equipment_type, management_unit, quantity, manufacturer, model, description, active | 주 관리 공정 0..1; unit이면 quantity=1, fleet이면 양의 정수 |
 | project_logistics_systems | public_id, project_id, code, name, system_type, layer, scope, vendor, description, active | layer=controller/coordinator; scope=project/processes |
 | project_system_processes | project_id, system_id, process_id | systems와 processes M:N, 동일 쌍 UNIQUE |
 | project_equipment_systems | project_id, equipment_id, system_id, control_role | controller만; primary/supporting, 동일 쌍 UNIQUE; 설비별 primary 최대1 |
@@ -244,7 +244,7 @@ Excel은 선택적 물류 보고용 sheet를 추가하고 직접/파생, code/pu
 
 초기 범위는 구축 계획 관리다. 실시간 설비 관제, 장애 이벤트, PLC/ACS/MCS 명령 송신, 공급사 SLA, 실제 검수 증빙/승인, baseline·실제 완료일·변경 이력, 효과일별 역할 이력, cross-project 설비 재사용, fleet 구성원 추적은 포함하지 않는다. 필요해지면 기존 데이터를 왜곡해 흉내 내지 않고 추가 요구·모델·지표를 별도 설계한다.
 
-안전한 기본안은 대표 책임자 최대1+공동 담당, 설비별 주 관리 공정1, Summary 하위 적용 opt-in이다. 현장의 공동 책임 정책/이동 설비 관리단위/시스템 역할이 이 기본안과 맞지 않으면 LG-01/LG-02 착수 전에 DECISION_REQUIRED로 남기고 schema와 AC를 함께 조정한다. 등록 자체를 막는 미정사항으로 숨기지 않는다.
+안전한 기본안은 대표 책임자 최대1+공동 담당, 설비별 선택 주 관리 공정0..1, Summary 하위 적용 opt-in이다. 현장의 공동 책임 정책/이동 설비 관리단위/시스템 역할이 이 기본안과 맞지 않으면 LG-01/LG-02 착수 전에 DECISION_REQUIRED로 남기고 schema와 AC를 함께 조정한다. 등록 자체를 막는 미정사항으로 숨기지 않는다.
 
 ## 11. 공식 자료와 확인 수준
 
@@ -282,7 +282,7 @@ F3는 Target/member를 Task/Summary에 whole/subset 및 self/subtree로 연결�
 
 ## Issue #719 — 물류 화면 설명과 선행 조건
 
-물류 구성 소개·빈 목록의 생성 학습문구와 관련 Milestone의 상세 정의는 인접 도움말로 이동한다. `Gantt WBS와 독립`, 조회의 평가일·환산·전체 소속/직접 선행 기준 및 물류 KPI 범위 불변은 직접 유지한다. 공정 없는 설비 추가는 mutation 없이 지속 오류로 선행 조건을 알린다.
+물류 구성 소개·빈 목록의 생성 학습문구와 관련 Milestone의 상세 정의는 인접 도움말로 이동한다. `Gantt WBS와 독립`, 조회의 평가일·환산·전체 소속/직접 선행 기준 및 물류 KPI 범위 불변은 직접 유지한다. 공정 없는 설비 추가의 선행 공정 차단은 #917에서 폐기한다. 공정0·미지정 설비는 정상 원본이며 기존 단일 editor로 등록한다.
 
 공유 Target/원본의 수정 영향, 연결 해제와 원본 삭제의 구별, 사용 중 삭제 제한, Primary 역할 제약·readonly·401/412/stale·초안/pending 계약은 기존 UI에 직접 남는다. Domain/API/DB·통합 조회 집계·원본 연결은 변경하지 않는다. [실행 원장](exec-plans/active/ISSUE_719.md)을 따른다.
 
@@ -293,3 +293,10 @@ F3는 Target/member를 Task/Summary에 whole/subset 및 self/subtree로 연결�
 장비/시스템 및 legacy Process dialog는 원본 이름과 수동 ko/en/vi 번역을 분리한다. 변경 없는 번역 필드는 생략해 기존 값을 보존하고 명시적 해제만 replacement로 전송한다. 기존 프로젝트 edit session·Origin·revision/CAS·dirty/uncertain/stale 잠금과 공용 유형 관리자 권한 경계를 유지한다. locale는 fetch·자동 저장·초안 초기화의 trigger가 아니다. TranslationDraftSnapshot/유형 edit 시작 revision의 동시 수정 방어도 유지한다.
 
 앱 소유 오류와 opaque 서버 업무 detail를 구분하고 기존 안전한 validation/충돌 안내를 generic 문구로 잃지 않는다. 날짜 input/API는 canonical date-only, 화면 표시는 Intl이며 재계산 authority는 서버다. [Phase C 설계](I18N_PHASE_C.md)에 전체 상태·알림·신뢰 경계를 기록한다. 새 Head 원격 E2E/최종 UX는 NOT TESTED이며 HIGH / OWNER_MANAGED의 별도 독립 인간 QA·Owner 결정이 필요하다.
+
+
+## Issue #917 — 주 관리 공정 선택 관계
+
+Equipment는 Project 소유의 독립 원본이고 `processId: string|null`은 선택 주 관리 공정0..1이다. 공정0에서도 unit/fleet를 등록하며 공정이 있어도 신규 기본은 미지정이다. WorkArea0..N의 실제 소유 공정, 직접 Task, 제어 System, Owner/Contributor는 별도 관계다. 공정 지정·변경·해제로 해당 관계/수량/ID를 자동 수정하지 않는다. 임시 공정·Target·WBS Task는 만들지 않는다.
+
+POST 생략/null은 미지정, PATCH 생략은 보존/null은 해제이며 빈 문자열/잘못된 참조는 명시 오류다. legacy process-scoped Target member 등 강한 참조가 남으면 변경·해제를409로 원자 거부한다. 전체 설비/유형/모델/root·원본 수량은 미지정도 포함하고 공정별 집계에는 가짜 소속을 만들지 않는다. Template7/Copy는 null을 보존하고 미지원 일정 교환은 silent skip 대신 명시 거부한다. 실제 검증과 운영 미배포는 [Work Packet](exec-plans/active/ISSUE_917.md)을 따른다.

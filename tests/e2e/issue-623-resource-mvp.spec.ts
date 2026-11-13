@@ -7,7 +7,7 @@ import type { AssignedTargetsResponse } from "../../src/contracts/resources";
 import type { ObserveIsolatedApi } from "./fixtures/isolated-application-diagnostics";
 import type { ResourceDashboardDto } from "../../src/contracts/resource-dashboard";
 import { resourceExportFilterInput } from "../../src/features/resources/resource-export-model";
-import { mkdir, writeFile } from "node:fs/promises";
+import { writeFile } from "node:fs/promises";
 import type { Page, Locator } from "@playwright/test";
 import { expect, isolatedApplicationOptions, test as isolatedTest } from "./fixtures/isolated-application";
 import { targetMasterPassword } from "./fixtures/target-project";
@@ -407,8 +407,7 @@ test("#623 여섯 별도 mutation·양방향 동일원본 복귀", async ({ page
   expect(writes[4]).toMatchObject({ method: "PUT", path: `${taskPath}/assignments`, body: { editAssignmentId: assignmentId } });
   expect(writes[5]).toMatchObject({ method: "PUT", path: `${taskPath}/logistics-links` });
   const evidence = { projectId: f.publicId, taskId: f.task.taskId, assignmentId, targetIds: f.targets.map(target => target.id), standardId: f.standardId, siteIds: [f.siteA, f.siteB], rawGolden: union.summary, members: union.targetProjection!.relatedMembers, writes, instance };
-  await mkdir("output/playwright/issue-750", { recursive: true });
-  await writeFile("output/playwright/issue-750/cumulative.json", JSON.stringify(evidence, null, 2));
+  await writeFile(info.outputPath("cumulative.json"), JSON.stringify(evidence, null, 2));
   await info.attach("issue623-cumulative-identity", { contentType: "application/json", body: JSON.stringify(evidence) });
   phaseTiming.finishBody();
 });
@@ -428,7 +427,7 @@ for (const width of [390, 768, 1024, 1440, 1920]) {
     const frame = page.locator(".project-gantt-frame"); const instance = await frame.getAttribute("data-project-gantt-instance");
     const writes: string[] = []; page.on("request", request => { if (new URL(request.url()).pathname.startsWith(`/api/projects/${f.publicId}`) && ["POST", "PUT", "PATCH", "DELETE"].includes(request.method()) && !request.url().includes("/resource-dashboard/query") && !isWbsViewReadQuery(request)) writes.push(request.url()); });
     const start = performance.now(); const root = await resource(page); const renderMilliseconds = performance.now() - start;
-    const measurements = []; await mkdir("output/playwright/issue-750", { recursive: true });
+    const measurements = [];
     for (const layout of ["group", "resource"]) {
       phaseTiming.mark(`ui/${width}px-${layout}-geometry-keyboard`);
       await page.setViewportSize({ width, height: 1000 });
@@ -461,11 +460,11 @@ for (const width of [390, 768, 1024, 1440, 1920]) {
       for (let i = 0; i < geometry.headers.length; i++) { expect(Math.abs(geometry.headers[i].left - geometry.cells[i].left)).toBeLessThanOrEqual(1); expect(Math.abs(geometry.headers[i].right - geometry.cells[i].right)).toBeLessThanOrEqual(1); }
       expect(geometry.buttons.length).toBeGreaterThan(0);
       for (const button of geometry.buttons) { expect(button.left).toBeGreaterThanOrEqual(button.parent.left - 1); expect(button.right).toBeLessThanOrEqual(button.parent.right + 1); }
-      measurements.push({ layout, ...geometry, keyboardMovement }); await page.screenshot({ path: `output/playwright/issue-750/${layout}-${width}.png`, fullPage: true });
+      measurements.push({ layout, ...geometry, keyboardMovement }); await page.screenshot({ path: info.outputPath(`${layout}-${width}.png`), fullPage: true });
     }
     expect(writes).toEqual([]); expect(await f.snapshot()).toEqual(before); await expect(frame).toHaveAttribute("data-project-gantt-instance", instance!);
     const evidence = { synthetic: true, width, projectPublicId: f.publicId, targetCount: f.targets.length, taskCount: before.data.tasks.length, renderMilliseconds, measurements, writes };
-    await writeFile(`output/playwright/issue-750/geometry-${width}.json`, JSON.stringify(evidence, null, 2));
+    await writeFile(info.outputPath(`geometry-${width}.json`), JSON.stringify(evidence, null, 2));
     await info.attach(`issue623-ui-observations-${width}px`, { contentType: "application/json", body: JSON.stringify(evidence) });
     phaseTiming.finishBody();
   });

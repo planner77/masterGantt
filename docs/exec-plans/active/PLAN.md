@@ -48,3 +48,8 @@ Owner의 명시적 운영 배포 요청으로 [#913](https://github.com/planner7
 SQLite Online Backup과 격리 복원·HTTP/권한/쓰기/export/restart 검증 후, clean stop 시점의 전체 `/data` 최종 암호화 백업 `mg-final-20261111T091537Z-2e77d3fb`를 보존했다. 원래 환경파일의 IMAGE_NAME만 exact digest로 영구 반영했고 추가 운영 restart·합성 데이터 쓰기는 하지 않았다. F913-001의 격리 네트워크 첫 실행 실패와 복구는 [Primary 원장](../../ISSUE_913_FAILURE_ANALYSIS.md)에 연결한다. 원시 DB/환경/백업·내부 주소/로그는 비공개다.
 
 후속 문서 Head는 이 실행 결과의 증거 기록이며 새 이미지·재빌드는 N/A다. 문서 검증·정상 fast-forward와 독립 QA/Manager 최종 판정은 #913의 STATUS/FINAL을 따른다. 오프호스트 복원·TLS·실브라우저 수동 UX는 NOT TESTED로 남기며 #912 전체 완료를 주장하지 않는다.
+
+
+## Issue #917 — 설비 주 관리 공정 선택화 착수
+
+[Work Packet](ISSUE_917.md)에 baseline `1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca`의 기존 단일 editor/CRUD·nullable migration0039·Copy/Template7·조회 소비자 확장과 AC1~8을 고정했다. HIGH 위험이며 [원장](../../ISSUE_917_FAILURE_ANALYSIS.md)에 최초 실패·재검증을 보존한다. Owner는 분석/설계/구현/로컬 검사/정식 GHCR 게시/이슈 종료를 요청했으며 운영 배포는 미요청이다. 현행 로컬 direct Push·고유SHA 게시·exact digest smoke를 적용하며 필수 검증 전 Push/Publish/Close하지 않는다. 최신 실제 상태는 Work Packet 및 Issue STATUS/FINAL을 따른다.

@@ -2,8 +2,7 @@ import { openResourceDynamicView } from "./helpers/resource-workspace";
 import { openWbsViewControls } from "./helpers/wbs-controls";
 import { assertDashboardSurface, dashboardSurfaceReceipt, observeDashboardSurface } from "./helpers/ui-geometry";
 import { waitForWbsReport, type WbsReportCondition } from "./helpers/wbs-report";
-import { mkdir, writeFile } from "node:fs/promises";
-import { resolve } from "node:path";
+import { writeFile } from "node:fs/promises";
 import type { Locator, Page } from "@playwright/test";
 import { test, expect, isolatedApplicationOptions } from "./fixtures/isolated-application";
 import { targetMasterPassword } from "./fixtures/target-project";
@@ -58,7 +57,7 @@ async function apply(page: Page, expected: NonNullable<WbsViewSpec["levels"]>) {
   await expect(dashboard(page)).toHaveAttribute("data-ready", "true");
   return (await response.json()).data as WbsViewReportDto;
 }
-async function geometry(page: Page, root: Locator, width: number) {
+async function geometry(page: Page, root: Locator, width: number, info: import("@playwright/test").TestInfo) {
   await page.setViewportSize({ width, height: 1000 });
   await expect.poll(() => page.evaluate(() => document.documentElement.clientWidth)).toBe(width);
   const table = root.getByRole("table", { name: "공통 계층 결과", exact: true });
@@ -89,13 +88,11 @@ async function geometry(page: Page, root: Locator, width: number) {
     }
   }
   const evidence = { ...measurement, pointer, controlMinimum, root: await root.getAttribute("data-root"), buttons };
-  const directory = resolve(process.env.ISSUE730_E2E_ARTIFACT_DIR ?? "output/playwright/issue-730");
-  await mkdir(directory, { recursive: true });
   await root.getByRole("region", { name: "공통 계층 표 스크롤", exact: true }).scrollIntoViewIfNeeded();
   await root.getByRole("region", { name: "공통 계층 표 스크롤", exact: true }).evaluate(element => { element.scrollLeft = 0; });
   const suffix = pointer.coarse || pointer.anyCoarse ? "-coarse" : "";
-  await page.screenshot({ path: resolve(directory, `composer-${width}${suffix}.png`), fullPage: true });
-  await writeFile(resolve(directory, `geometry-${width}${suffix}.json`), JSON.stringify(evidence, null, 2));
+  await page.screenshot({ path: info.outputPath(`composer-${width}${suffix}.png`), fullPage: true });
+  await writeFile(info.outputPath(`geometry-${width}${suffix}.json`), JSON.stringify(evidence, null, 2));
   await test.info().attach(`issue-730-${width}px${suffix}`, { body: JSON.stringify(evidence), contentType: "application/json" });
   return evidence;
 }
@@ -460,13 +457,13 @@ test("#730 실제 HTTP 원본 Task·Assignment 복귀, 응답 역전·오류 차
   await expect(root.getByLabel("작업 검색", { exact: true })).toHaveValue("");
 });
 
-test("#730 실제 HTTP 긴 이름·동일 열 budget·5폭 내부 스크롤·키보드·읽기 전용 가상 그룹", async ({ page, browser, isolatedApplication: origin, observeIsolatedApi }) => {
+test("#730 실제 HTTP 긴 이름·동일 열 budget·5폭 내부 스크롤·키보드·읽기 전용 가상 그룹", async ({ page, browser, isolatedApplication: origin, observeIsolatedApi }, info) => {
   test.setTimeout(180_000);
   const f = await seedWbsViewComposer(page, origin, observeIsolatedApi);
   await openRoot(page, "equipment");
   const root = dashboard(page);
   await expect(root.getByRole("table", { name: "공통 계층 결과", exact: true }).getByRole("rowheader").filter({ hasText: "등록만 설비" })).toBeVisible();
-  for (const width of [390, 768, 1024, 1440, 1920]) await geometry(page, root, width);
+  for (const width of [390, 768, 1024, 1440, 1920]) await geometry(page, root, width, info);
   const config = await composer(root);
   await config.getByRole("button", { name: "하위 축 추가", exact: true }).focus();
   await page.keyboard.press("Enter");
@@ -479,7 +476,7 @@ test("#730 실제 HTTP 긴 이름·동일 열 budget·5폭 내부 스크롤·키
     const readonly = await context.newPage();
     await readonly.goto(`/projects/${f.publicId}`);
     await openRoot(readonly, "resource");
-    await geometry(readonly, dashboard(readonly), 390);
+    await geometry(readonly, dashboard(readonly), 390, info);
     const virtual = dashboard(readonly).getByRole("row").filter({ hasText: "미배정" });
     await expect(virtual).toHaveCount(1);
     await expect(virtual.getByRole("button", { name: "원본", exact: true })).toHaveCount(0);

@@ -77,3 +77,8 @@ backup의 정적 SQL prefix·manifest 검증, publisher `plan`/`verify`, 실제 
 ### UI 산출물 배치 후속 (#898/#899)
 
 기존 sourceguard는 PNG/JSON도 tracked source 변경·untracked 입력으로 판정한다. 따라서 테스트의 새 화면/geometry 출력은 testInfo.outputPath를 사용하며 committed output/playwright의 역사 이미지/JSON은 수정하지 않는다. 알려진4개 legacy 생산자는 같은 Playwright 산출물로 이관했고 test/golden 입력·기대치는 바꾸지 않았다. 실패 보고/trace viewer나 진단 worktree를 source 아래에 보존해 root lint가 생성 JS를 읽는 경우에는 자기 증거를 source 밖으로 이동 보존한다. ESLint나 snapshot 검사를 약화하지 않는다. [최초 원장](ISSUE_898_FAILURE_ANALYSIS.md).
+
+
+### Issue #917 — 설비 nullable 영향 매핑
+
+기존 selectImpact 규칙에 Equipment/Template/WBS 공유 DTO·단일 logistics editor/dashboard·domain 번역 및 실제 target-project HTTP fixture의 직접 소비자를 추가했다. 공정0 nullable 테스트와17개 fixture import 소비자의 Chromium을 선정하며 기존 UNKNOWN/직접 server import/누락·제외/admission 규칙을 유지한다. 매핑은 실행 PASS가 아니고 [Work Packet](exec-plans/active/ISSUE_917.md)의 실제 같은 source 검사로 확인한다.

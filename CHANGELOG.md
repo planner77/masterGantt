@@ -1,3 +1,11 @@
+## [0.146.0] — Issue #917 (2026-11-13)
+
+- 설비의 주 관리 공정을 선택0..1로 확장해 공정0에서도 기존 기준정보 editor에서 등록하고 이후 지정·변경·해제할 수 있다. 공정 미지정 필터와 nullable 조회/Copy/Template7을 연결한다.
+- forward-only SQLite migration0039로 기존 설비/관계/ID·수량을 보존하며 legacy Target 강한 참조 충돌은 명시 거부한다. 미지원 일정 교환은 silent skip 대신 오류를 반환한다.
+- 실제 로컬 gate·원장·고유SHA GHCR 게시 상태는 [Work Packet](docs/exec-plans/active/ISSUE_917.md)에 기록한다. 운영 배포는 요청 범위 밖이다.
+
+---
+
 ## [0.145.2] — Unreleased / Issues #898·#899 (2026-11-12)
 
 - 세 일정 View의 빈 Grid scroll층·Chart 배경에서도 실제 Ctrl+휠 세로 밀도를 처리하고 유효 본문에서 브라우저 확대 기본 동작을 취소한다. 입력/헤더/메뉴/dialog 등의 제외와34/32/30/28·coarse44 정책을 유지한다.

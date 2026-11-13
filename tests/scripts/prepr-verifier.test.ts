@@ -33,6 +33,26 @@ const failure = (runId: string, file: string) => ({
   pr: 695, runId, attempt: 1, headSha: head, status: "FAIL", file,
 });
 describe("Issue #699 — risk/path/real test selection", () => {
+  it("maps nullable Equipment contracts, locale and the reused HTTP fixture without accepting unknown producers", () => {
+    const changed = ["src/contracts/logistics.ts", "src/contracts/logistics-dashboard.ts", "src/contracts/project-templates.ts", "src/contracts/wbs-dashboard-views.ts", "src/features/logistics/project-logistics-management.tsx", "src/features/logistics/project-logistics-dashboard.tsx", "src/lib/i18n/catalogs/domains.ts", "tests/e2e/fixtures/target-project.ts", "src/features/logistics/project-logistics-management.module.css"];
+    const plan = selectImpact({ changed, tests, risk: "HIGH" });
+    expect(plan.state).toBe("READY");
+    expect(plan.unknown).toEqual([]);
+    expect(plan.missing).toEqual([]);
+    expect(plan.selected.map(test => test.path)).toEqual(expect.arrayContaining([
+      "tests/server/logistics/optional-equipment-contract.test.ts",
+      "tests/server/projects/project-copy-logistics.test.ts",
+      "tests/server/templates/logistics-template-graph.test.ts",
+      "tests/server/resources/issue-734-equipment-configuration.test.ts",
+      "tests/e2e/issue-726-logistics-master.spec.ts",
+      "tests/e2e/project-logistics-management.spec.ts",
+      "tests/e2e/issue-737-target0-acceptance.spec.ts",
+      "tests/e2e/schedule-views.spec.ts",
+      "tests/e2e/i18n.spec.ts",
+      "tests/lib/i18n-phase-c.test.ts",
+    ]));
+    expect(selectImpact({ changed: ["src/contracts/new-unknown-equipment.ts"], tests, risk: "HIGH" }).state).toBe("BLOCKED");
+  });
   it("gives docs-only a safe LOW empty-test plan with explicit unselected local coverage", () => {
     const s = selectImpact({ changed: ["docs/README.md"], tests, risk: "LOW" });
     expect(s.state).toBe("READY");

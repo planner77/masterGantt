@@ -518,6 +518,19 @@
 .processTable th:nth-child(6), .processTable td:nth-child(6) { width: 176px; }
 .processTable button[aria-pressed="true"] { border-color: var(--border-control); background: var(--action-selected-subtle); font-weight: 600; }
 
+.equipmentTable td:has(.actionsGroup) {
+  min-width: 22rem;
+}
+.equipmentTable td .actionsGroup {
+  flex-wrap: nowrap;
+  width: max-content;
+}
+.equipmentTable td .actionsGroup button {
+  min-height: 44px;
+  white-space: nowrap;
+  overflow-wrap: normal;
+}
+
 .equipmentTable th:nth-child(2),
 .equipmentTable td:nth-child(2),
 .systemTable th:first-child,

@@ -255,6 +255,8 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
       const code = dialog.getByRole("textbox", { name: "설비 코드", exact: false });
       const name = dialog.getByRole("textbox", { name: "설비명", exact: false });
       const type = dialog.getByRole("combobox", { name: "설비 유형", exact: false });
+      const process = dialog.getByRole("combobox", { name: "주 관리 공정 (선택)", exact: true });
+      await expect(process).toHaveValue("");
       await code.fill("DRAFT-726");
       await name.fill("유형 조회 중 보존할 설비 초안");
       await expect(dialog.getByRole("status").filter({ hasText: "설비 유형 목록을 불러오는 중" })).toBeVisible();
@@ -284,6 +286,11 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
       await expect(dialog.getByRole("button", { name: "저장", exact: true })).toBeEnabled();
       await expect(code).toHaveValue("DRAFT-726");
       await expect(name).toHaveValue("유형 조회 중 보존할 설비 초안");
+      await page.keyboard.press("Escape");
+      await expect(dialog.getByText("저장하지 않은 설비 변경을 폐기할까요?")).toBeVisible();
+      await dialog.getByRole("button", { name: "계속 편집", exact: true }).click();
+      await expect(process).toHaveValue("");
+      await expect(name).toHaveValue("유형 조회 중 보존할 설비 초안");
       await dialog.getByRole("button", { name: "취소", exact: true }).click();
       await dialog.getByRole("button", { name: "변경 폐기", exact: true }).click();
       await expect(dialog).toHaveCount(0);
@@ -297,6 +304,87 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
     } finally {
       releaseLoading();
     }
+  });
+
+  test("#917 미지정 설비 초안은 412 이후 보존하고 최신 canonical 정보를 다시 조회한다", async ({ page }) => {
+    const fixture = await installStatefulProjectFixture(page);
+    fixture.logistics = sampleLogisticsData();
+    fixture.logistics.equipment[0].processId = null;
+    let projectReads = 0;
+    let requestBody: Record<string, unknown> | undefined;
+    await page.route("**/api/logistics-catalog/types", route => route.fulfill({ json: { data: { equipmentTypes: [{ code: "stocker", name: "스토커" }], systemTypes: [] } } }));
+    page.on("request", request => {
+      if (request.method() === "GET" && new URL(request.url()).pathname === `/api/projects/${publicId}`) projectReads++;
+    });
+    await page.route(`**/api/projects/${publicId}/logistics/process-context`, route => route.fulfill({ json: { data: {
+      projectRevision: fixture.project.revision, processCatalogRevision: 1, workAreas: [], occurrences: [], mappings: [],
+    } } }));
+    await page.route(`**/api/projects/${publicId}/logistics/equipment/eq-1/usage`, route => route.fulfill({ json: { data: {
+      projectRevision: fixture.project.revision, kind: "equipment", entityId: "eq-1", relatedTasks: [], directTaskCount: 0, compatibilityTaskCount: 0,
+    } } }));
+    await page.route(`**/api/projects/${publicId}/logistics/equipment/eq-1`, async route => {
+      requestBody = route.request().postDataJSON() as Record<string, unknown>;
+      fixture.project.revision += 1;
+      fixture.logistics!.equipment[0].name = "서버 최신 설비";
+      await route.fulfill({ status: 412, json: { error: { code: "REVISION_MISMATCH", message: "stale" } } });
+    });
+    await page.goto(`/projects/${publicId}`);
+    await openWorkspaceView(page, "equipment");
+    await page.locator("#panel-equipment").getByRole("row").filter({ hasText: "1번 자동창고 스토커" }).getByRole("button", { name: "수정", exact: true }).click();
+    const dialog = page.getByRole("dialog", { name: "설비 수정", exact: true });
+    const process = dialog.getByRole("combobox", { name: "주 관리 공정 (선택)", exact: true });
+    const name = dialog.getByRole("textbox", { name: "설비명", exact: false });
+    await expect(process).toHaveValue("");
+    await name.fill("미지정 설비 보존 초안");
+    await dialog.getByRole("button", { name: "저장", exact: true }).click();
+    const impact = page.getByRole("dialog", { name: "공유 인스턴스 변경 확인", exact: true });
+    const readsBefore = projectReads;
+    await impact.getByRole("button", { name: "공유 사용처 확인 후 원본 저장" }).click();
+    await expect.poll(() => requestBody).toMatchObject({ processId: null, name: "미지정 설비 보존 초안" });
+    await expect.poll(() => projectReads).toBeGreaterThan(readsBefore);
+    await expect(name).toHaveValue("미지정 설비 보존 초안");
+    await expect(process).toHaveValue("");
+    await expect(dialog).toContainText("초안을 보존");
+    await expect(dialog.getByRole("button", { name: "저장", exact: true })).toBeDisabled();
+    await impact.getByRole("button", { name: "원본 변경 취소" }).click();
+    await dialog.getByRole("button", { name: "취소", exact: true }).click();
+    await dialog.getByRole("button", { name: "변경 폐기", exact: true }).click();
+    await expect(page.locator("#panel-equipment").getByRole("row").filter({ hasText: "서버 최신 설비" })).toBeVisible();
+  });
+
+  test("#917 기존 Target 충돌 409는 공정 해제 초안과 현지화된 오류를 보존한다", async ({ page }) => {
+    const fixture = await installStatefulProjectFixture(page);
+    fixture.logistics = sampleLogisticsData();
+    let requestBody: Record<string, unknown> | undefined;
+    await page.route("**/api/logistics-catalog/types", route => route.fulfill({ json: { data: { equipmentTypes: [{ code: "stocker", name: "스토커" }], systemTypes: [] } } }));
+    await page.route(`**/api/projects/${publicId}/logistics/process-context`, route => route.fulfill({ json: { data: {
+      projectRevision: fixture.project.revision, processCatalogRevision: 1, workAreas: [], occurrences: [], mappings: [],
+    } } }));
+    await page.route(`**/api/projects/${publicId}/logistics/equipment/eq-1/usage`, route => route.fulfill({ json: { data: {
+      projectRevision: fixture.project.revision, kind: "equipment", entityId: "eq-1", relatedTasks: [], directTaskCount: 0, compatibilityTaskCount: 0,
+    } } }));
+    await page.route(`**/api/projects/${publicId}/logistics/equipment/eq-1`, async route => {
+      requestBody = route.request().postDataJSON() as Record<string, unknown>;
+      await route.fulfill({ status: 409, json: { error: { code: "TARGET_EQUIPMENT_PROCESS_MISMATCH", message: "conflict" } } });
+    });
+    await page.goto(`/projects/${publicId}`);
+    await openWorkspaceView(page, "equipment");
+    await page.locator("#panel-equipment").getByRole("row").filter({ hasText: "1번 자동창고 스토커" }).getByRole("button", { name: "수정", exact: true }).click();
+    const dialog = page.getByRole("dialog", { name: "설비 수정", exact: true });
+    const process = dialog.getByRole("combobox", { name: "주 관리 공정 (선택)", exact: true });
+    const name = dialog.getByRole("textbox", { name: "설비명", exact: false });
+    await expect(process).toHaveValue("proc-2");
+    await process.selectOption("");
+    await name.fill("충돌 시 유지할 초안");
+    await dialog.getByRole("button", { name: "저장", exact: true }).click();
+    const impact = page.getByRole("dialog", { name: "공유 인스턴스 변경 확인", exact: true });
+    await impact.getByRole("button", { name: "공유 사용처 확인 후 원본 저장" }).click();
+    await expect.poll(() => requestBody).toMatchObject({ processId: null, name: "충돌 시 유지할 초안" });
+    await expect(impact.getByRole("alert")).toContainText("기존 Target 연결로 주 관리 공정을 변경하거나 해제할 수 없습니다");
+    await impact.getByRole("button", { name: "원본 변경 취소" }).click();
+    await expect(process).toHaveValue("");
+    await expect(name).toHaveValue("충돌 시 유지할 초안");
+    expect(fixture.logistics.equipment[0].processId).toBe("proc-2");
   });
 
   test("물류 구성 탭 전환 시 Gantt 인스턴스가 유지되고 공정/설비/시스템/연계 화면이 표시된다", async ({

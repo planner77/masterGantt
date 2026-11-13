@@ -94,7 +94,7 @@ export function prepareResourceKpiTargets(tasks: readonly TaskTargetTask[], inpu
   const byProcess = new Map(processes.map(row => [row.id, row])), byWorkArea = new Map(workAreas.map(row => [row.id, row]));
   for (const row of instances) {
     if ((row.kind !== "equipment" && row.kind !== "system") || !row.entityId || !row.typeCode || !Number.isSafeInteger(row.quantity) || row.quantity < 1 || row.kind === "system" && row.quantity !== 1) fail("INVALID_LOGISTICS_INSTANCE");
-    if (row.kind === "equipment" && (!row.projectProcessId || !byProcess.has(row.projectProcessId))) fail("INSTANCE_PROCESS_UNAVAILABLE");
+    if (row.kind === "equipment" && row.projectProcessId != null && !byProcess.has(row.projectProcessId)) fail("INSTANCE_PROCESS_UNAVAILABLE");
   }
   for (const process of processes) if (!process.id || process.occurrenceId === "") fail("INVALID_PROCESS_ID");
   for (const area of workAreas) {

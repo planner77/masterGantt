@@ -67,7 +67,7 @@ export interface WbsViewEquipmentCatalogItem extends Pick<EquipmentDto, "id" | "
   equipmentTypeName: string;
   translations?: DisplayNameTranslations;
   equipmentTypeTranslations?: DisplayNameTranslations;
-  primaryProcessId: string;
+  primaryProcessId: string | null;
   workAreaLinks: Array<{ processId: string; occurrenceId: string | null; workAreaId: string }>;
   resourceRoles: Array<Pick<EquipmentDto["resourceRoles"][number], "resourceId" | "resourceName" | "role" | "isPrimary" | "active">>;
   controlSystems: Array<EquipmentDto["controlSystems"][number] & { systemName: string; systemTranslations?: DisplayNameTranslations }>;

@@ -1,0 +1,70 @@
+# Issue #917 — 설비 주 관리 공정 선택화
+
+## 범위와 승인
+
+- Issue: https://github.com/planner77/masterGantt/issues/917
+- baseline/main: `1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca`, version `0.145.2`.
+- branch/worktree: `feat/issue-917-optional-equipment-process`, `issue-917`.
+- risk_level=HIGH: SQLite FK/table rebuild, nullable shared DTO, Copy/Template 복원.
+- 요청 범위: 분석·설계·구현·로컬 검사·실패 원장·정식 GHCR 게시·수동 Issue 종료. 현재 대화의 Owner 명시 요청을 publish_authorized=true 및 동일 범위 종료 위임 근거로 기록한다. 운영 배포는 미요청이다.
+- 현행 #905/#906 정책: 강화 로컬 검증→main 직접 fast-forward Push→고유 SHA 이미지 게시/digest smoke. PR/Actions/Trusted/Finalizer 신규 실행 N/A. 2026-11-13 live API: Actions enabled=false; main ruleset은 deletion/non_fast_forward만 존재하며 classic protection은404.
+- 버전 결정: 신규 nullable 기능 MINOR `0.146.0` 예정. 정식 게시 범위는 기존 publisher가 지원하는 `sha-<full SHA>` 고유 태그이며 SemVer/rolling tag는 변경하지 않는다.
+
+## REUSE_REVIEW
+
+REUSE_DECISION=EXTEND. Owner가 작성한 #917 §3/§5의 기존 단일 Equipment editor·CRUD·DTO/서비스/Repository·WorkArea/Task/System·fixture/Playwright 우선 재사용 결정을 그대로 적용한다. 새 CRUD/별도 editor/가짜 공정·Target·Task는 만들지 않는다. `verify-prepr.mjs`, `publish-local-image.mjs`, #912 backup/restore를 재사용하고 이전 source PASS를 승계하지 않는다. 초기 작업공간의 기존 변경은 별도 worktree로 보존했다.
+
+## 설계와 소유권
+
+- Manager: 통합·Work Packet·원장/Regression Index·버전·문서·source admission·Push/publisher·종료. 다른 담당 파일은 소유자와 조정한다.
+- backend: migration0039, DB runner 필요 변경, logistics DTO/parser/service/repository 및 server/logistics·db 테스트. Equipment processId는 `string|null`, create optional/null, patch omitted 보존/null 해제. WorkArea와 독립; legacy Target 충돌은409 원자 롤백.
+- exchange: Project Copy/Template schema 저장·복원·교환 소비자 및 관련 server/projects/templates 테스트. 누락된 비null 참조는 명시 오류, null은 원본 보존; silent skip 금지.
+- frontend: 기존 logistics editor/filter/i18n 및 nullable Resource/WBS 조회 소비자·transport·model와 관련 unit/Chromium 테스트. 미지정 기본·필터·ko/en/vi·5폭/keyboard·dirty/stale/readonly 유지.
+- ui_ux/qa_docs: 별도 read-only 설계/정확 source 검토. 구현자 자체 검토를 독립 PASS로 기록하지 않는다.
+- 공유 interface: `EquipmentDto.processId: string|null`, create/update `processId?: string|null`, WBS `primaryProcessId: string|null`. 파일 writer 중복 금지.
+
+## TEST_LIFECYCLE_REVIEW / AC_TEST_COVERAGE
+
+기존 logistics-service/handlers/repository/resource-roles/task-links/targets, project-copy-logistics/logistics-template-graph/project-excel-logistics, resource-dashboard/wbs-view-transport/model, project-logistics-management/issue-726/734/schedule-views/linked-view의 직접·인접·음성 회귀를 확장한다. 기존 case/assertion/retry/skip 삭제·완화 없음. 신규 migration/nullable 테스트는 기존 seam에 추가한다.
+
+| AC | 직접 검사와 증거 계획 |
+| --- | --- |
+| AC1 | 공정0 unit/fleet HTTP CRUD→SQLite restart, Chromium 실제 저장/재조회, 자동 생성0 |
+| AC2 | parser create omitted/null, patch omitted/null/empty; 지정/변경/해제/재지정, upgrade 원본 유지 |
+| AC3 | WorkArea 타 공정/타 프로젝트, roles/System/Task 링크 유지·거부 |
+| AC4 | 전체/미지정/특정 필터, Resource/WBS nullable transport·집계·root 보존 |
+| AC5 | fresh/upgrade/FK check/restart/실패rollback·격리 backup/restore, Copy/Template/지원 교환 왕복 |
+| AC6 | Origin/session/If-Match/revision·legacy Target 충돌·transaction/dirty/stale 회귀 |
+| AC7 | Chromium390/768/1024/1440/1920·ko/en/vi·keyboard/focus/readonly; 합성 PNG/geometry는 testInfo.outputPath |
+| AC8 | 전체 static+Unit/Integration+production build, 영향 Chromium, Docker/API/SQLite, 같은 최종 source admission·문서/원장 |
+
+## 문서와 실행 계약
+
+DB_SCHEMA/API/LOGISTICS_DOMAIN_DESIGN/PROJECT_UX/REQUIREMENTS/TEST_PLAN/Copy/Template/Import·Export/사용자 매뉴얼/CHANGELOG 영향 갱신. DESIGN은 공정 미선택 정상 원칙 준수; 상충 문구 확인 시만 수정. AGENTS는 정책 추가 없음(N/A).
+
+작업 중 결과는 SCOPED이며 최종 clean commit의 `fast`/`targeted`/`docker`/`admit`를 같은 Node launcher·고정 baseline/환경에서 실행한다. 공통 source 검증 중 제품/fixture 수정 금지. 실패는 `docs/ISSUE_917_FAILURE_ANALYSIS.md`에 최초 결과 보존/후속 event append. unknown·필수 미검증·FAIL이면 Push/Publish/Close BLOCKED. #897 실제 Owner UAT/운영 환경은 합성 검사와 별도이며 자동 PASS 주장 금지.
+
+초기 상태: PLAN / NOT IMPLEMENTED / NOT TESTED / NOT PUBLISHED / NOT DEPLOYED.
+
+
+## 구현 freeze 전 상태 (2026-11-13)
+
+LOCAL_IMPLEMENTED: migration0039/nullable CRUD, null-safe legacy Target409, 손상 비null참조409, 공정0/6관점/KPI·원본수량·provenance, 기존 editor/필터/i18n, Copy/Template7/명시 교환 loss guard를 구현했다. 신규 null Template만 v7을 생성하고 assigned-only는 기존 version 선택을 유지한다. API 오류·표시 문구와 교환 보고서의 `공정 미지정` 표시를 문서와 대조했다.
+
+실제 독립 실행: backend_917(backend), exchange_917(worker Sol/High), frontend_917(worker Terra/Medium), frontend_state_tests_917(worker Terra/Medium), ui_design_917(read-only Terra/Medium), qa_917(read-only qa_docs), infra_readiness_917(infra). 실제 API/runtime에 요청한 역할/모델 설정이며 Manager 부모 모델의 별도 실측은 미확인이다. 여러 writer는 파일별 소유권을 분리했고 commit/Push/registry/Issue 쓰기는 Manager만 수행한다. qa_method=AGENT_LOCAL, independent_reviewer=/root/qa_917; 최종 exact-source QA는 아직 NOT TESTED.
+
+SCOPED 결과: backend20파일175tests/마지막2파일16tests, exchange16파일144tests+graph직접24tests, migration인접6파일81tests, Resource17tests/KPI18tests, prepr-verifier50tests PASS. Chromium1test는공정0실제HTTP CRUD·전체/미지정/지정 필터·지정해제·ko/en/vi×390/768/1024/1440/1920·dialog/Tab/Escape/focus를검사했다. 추가상태2tests는412canonical/초안과legacy409, 기존유형1test는loading/error/readonly/nullableEscape를검사했다. fingerprint미수집dirtysource이므로최종검사로승계하지않는다. 원본실패·증거손실과합성AES CLI/0039격리복원은[원장](../../ISSUE_917_FAILURE_ANALYSIS.md)에기록했다.
+
+최종 영향 계획: `selection.state=READY`, UNKNOWN0/missing0, Unit67파일/Chromium31파일(실행결과아님). 새 계약/UI/locale 및 target-project fixture17개 실제import소비자는기존selectImpact에정확매핑을추가했다. graph는실제exportedfunction직접왕복테스트로미발견소비자를해소했다. 매핑/검사강화이며UNKNOWN/필수gate/requiredchecks/workflow권한은완화하지않는다.
+
+DOCUMENTATION_SYNC: API/DB_SCHEMA/LOGISTICS_DOMAIN_DESIGN/PROJECT_UX/REQUIREMENTS/TEST_PLAN/ISSUE_27_PROJECT_COPY/IMPORT_EXPORT/TARGET_RESOURCE_USER_GUIDE/CHANGELOG와로컬검증매핑관련LOCAL_PREPR/CI_CD/REMOTE_VALIDATION갱신. ARCHITECTURE/SECURITY/SCHEDULING_ENGINE/IMPORT_SCHEMA/DESIGN/AGENTS는기존계층·권한·일정/strictimport·공정미선택정상시각원칙을유지해N/A(새정책/권한변경없음). PLAN/실패원장/Regression Index를연결했고원장append-only/Markdown467파일검산PASS. 자동검산은업무/OwnerUAT승인이아니다.
+
+남은필수: 좁은표관리버튼글자별wrap의최소보완과5폭실측, 최종cleancommit의fast/targeted/docker/admit·독립QA·최신mainfast-forward·정식고유SHA GHCR같은OCI게시/Pull·후보이미지격리복원runtime·FINAL/수동종료. 기존운영DB/서비스/설정에는접근·배포하지않았다. 실기기/nativezoom/보조공학·Owner수동UAT·offhost복원은자동검사와구분하고미검증을PASS로표시하지않는다.
+
+
+## 시각 보완과 최종 source 준비
+
+F917-018의 좁은 관리 버튼 줄바꿈을 기존 설비표 CSS 안에서 보완했다. 새 editor/별도 원장을 추가하지 않고 관리 셀 최소 폭·nowrap과 44px 버튼을 유지하며 기존 내부 가로 스크롤을 사용한다. 직접 15조합 검사1건35.7s PASS는 SCOPED다. 추가 선정된 기존 테스트들의 PNG/JSON 출력도 testInfo.outputPath로 이관해 과거 committed 캡처와 검증 source를 보존한다. assertion·skip·retry·timeout은 변경하지 않는다. 최종 계획은32개 Chromium 파일이며 같은 source의 실제 실행 완료 전 PASS로 판정하지 않는다.
+
+
+구현/테스트/문서 writer가 모두 편집을 종료했다. 최종 선정은67개 Unit/Integration 파일과32개 Chromium 파일이며 UNKNOWN0/missing0이다. 공통 fast는 전체 발견 Unit/Integration과 production build를 별도로 실행한다. 기록용 최종 source commit 뒤 새 clean validation worktree를 만들고 같은 Node/PATH·고정 baseline으로 fast→targeted→docker→admit를 순차 수행한다. 실제 exact SHA·보고서·image/복원/게시 결과는 Issue STATUS/FINAL에 귀속하며, 이 준비 문구만으로 실행 성공이나 종료를 주장하지 않는다.

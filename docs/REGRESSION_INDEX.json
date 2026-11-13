@@ -45,6 +45,11 @@
       "issue": 899,
       "primaryIssue": 898,
       "ledger": "docs/ISSUE_899_FAILURE_ANALYSIS.md"
+    },
+    {
+      "issue": 917,
+      "primaryIssue": 917,
+      "ledger": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
     }
   ],
   "failures": [
@@ -6078,6 +6083,1985 @@
             "imageDigest": null,
             "backupId": null
           }
+        }
+      ]
+    },
+    {
+      "id": "F917-001",
+      "issue": 917,
+      "ledger": "docs/ISSUE_917_FAILURE_ANALYSIS.md",
+      "relatedIssues": [],
+      "domain": "migration",
+      "layer": "integration",
+      "keywords": [
+        "nullable",
+        "equipment",
+        "process",
+        "test_fixture"
+      ],
+      "cause": "기존 migration 개수 기대38/14가 신규0039의39/15와 불일치",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/server/db/issue-623-target-migration.test.ts",
+          "case": "migrates with target relational tables and version ledger",
+          "historical": false,
+          "coverageArea": "Issue917 직접/인접 회귀; 실제 실행 명령과 별도"
+        }
+      ],
+      "residualRisk": "최종 clean source admission/게시/수용은 별도",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "2026-11-13 구현 중 담당자 반환/독립 source 감사; 개별 원본 시각 미수집",
+          "stage": "INTEGRATION",
+          "status": "FAIL",
+          "sourceSha": "1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "작업 중 diff fingerprint 미수집; baseline HEAD이며 최종 exact source 증거 아님",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+          "environmentVersion": "masterGantt0.145.2→0.146.0",
+          "command": [
+            "npm",
+            "test",
+            "--",
+            "tests/server/logistics/logistics-service.test.ts",
+            "tests/server/logistics/logistics-repository.test.ts",
+            "tests/server/db/issue-623-target-migration.test.ts"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "nullable 계약과 기존 보호/회귀 만족",
+          "actual": "16중13PASS/3FAIL: expected38 got39, pending14 got15",
+          "input": "합성 fixture 및 독립 read-only source 감사",
+          "classification": "TEST_FIXTURE",
+          "recovery": "원본 보존; 수정/재시험은 후속 event에 추가",
+          "residualRisk": "최종 exact source admission/GHCR 검증은 별도",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "scoped-retest",
+          "at": null,
+          "timeNote": "2026-11-13 구현 중 담당자 반환/독립 source 감사; 개별 원본 시각 미수집",
+          "stage": "INTEGRATION",
+          "status": "PASS",
+          "sourceSha": "1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "작업 중 diff fingerprint 미수집; baseline HEAD이며 최종 exact source 증거 아님",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+          "environmentVersion": "masterGantt0.145.2→0.146.0",
+          "command": [
+            "npm",
+            "test",
+            "--",
+            "tests/server/logistics",
+            "tests/server/db",
+            "tests/server/migration-cli.test.ts"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "nullable 계약과 기존 보호/회귀 만족",
+          "actual": "20files175tests PASS",
+          "input": "합성 fixture 및 독립 read-only source 감사",
+          "classification": "TEST_FIXTURE",
+          "recovery": "원인교정후실제SCOPED재검사. 최종exactsource gate/게시·수용은별도",
+          "residualRisk": "최종 exact source admission/GHCR 검증은 별도",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+            "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F917-002",
+      "issue": 917,
+      "ledger": "docs/ISSUE_917_FAILURE_ANALYSIS.md",
+      "relatedIssues": [],
+      "domain": "equipment",
+      "layer": "types",
+      "keywords": [
+        "nullable",
+        "equipment",
+        "process",
+        "product"
+      ],
+      "cause": "nullable 공유 계약 전파 중 아직 수정 전 소비자 타입 불일치",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/features/resources/wbs-view-transport.test.ts",
+          "case": "accepts null primary process and rejects blank/missing process identity",
+          "historical": false,
+          "coverageArea": "Issue917 직접/인접 회귀; 실제 실행 명령과 별도"
+        }
+      ],
+      "residualRisk": "최종 clean source admission/게시/수용은 별도",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "2026-11-13 구현 중 담당자 반환/독립 source 감사; 개별 원본 시각 미수집",
+          "stage": "STATIC",
+          "status": "FAIL",
+          "sourceSha": "1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "작업 중 diff fingerprint 미수집; baseline HEAD이며 최종 exact source 증거 아님",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+          "environmentVersion": "masterGantt0.145.2→0.146.0",
+          "command": [
+            "npm",
+            "run",
+            "typecheck"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "nullable 계약과 기존 보호/회귀 만족",
+          "actual": "dashboard3곳 및 exchange export/copy/template3곳 타입 오류",
+          "input": "합성 fixture 및 독립 read-only source 감사",
+          "classification": "PRODUCT",
+          "recovery": "원본 보존; 수정/재시험은 후속 event에 추가",
+          "residualRisk": "최종 exact source admission/GHCR 검증은 별도",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "scoped-retest",
+          "at": null,
+          "timeNote": "2026-11-13 구현 중 담당자 반환/독립 source 감사; 개별 원본 시각 미수집",
+          "stage": "STATIC",
+          "status": "PASS",
+          "sourceSha": "1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "작업 중 diff fingerprint 미수집; baseline HEAD이며 최종 exact source 증거 아님",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+          "environmentVersion": "masterGantt0.145.2→0.146.0",
+          "command": [
+            "npm",
+            "run",
+            "typecheck"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "nullable 계약과 기존 보호/회귀 만족",
+          "actual": "최종생성진입점복원후타입검사exit0;최종exactsource검사는별도",
+          "input": "합성 fixture 및 독립 read-only source 감사",
+          "classification": "PRODUCT",
+          "recovery": "원인교정후실제SCOPED재검사. 최종exactsource gate/게시·수용은별도",
+          "residualRisk": "최종 exact source admission/GHCR 검증은 별도",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+            "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F917-003",
+      "issue": 917,
+      "ledger": "docs/ISSUE_917_FAILURE_ANALYSIS.md",
+      "relatedIssues": [],
+      "domain": "equipment",
+      "layer": "dashboard",
+      "keywords": [
+        "nullable",
+        "equipment",
+        "process",
+        "test_fixture"
+      ],
+      "cause": "새 공정 필터 음성 fixture가 기존 합법 시스템 Task 연결도 포함",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/server/logistics/logistics-dashboard.test.ts",
+          "case": "retains unassigned equipment in totals without inventing a process",
+          "historical": false,
+          "coverageArea": "Issue917 직접/인접 회귀; 실제 실행 명령과 별도"
+        }
+      ],
+      "residualRisk": "최종 clean source admission/게시/수용은 별도",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "2026-11-13 구현 중 담당자 반환/독립 source 감사; 개별 원본 시각 미수집",
+          "stage": "UNIT",
+          "status": "FAIL",
+          "sourceSha": "1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "작업 중 diff fingerprint 미수집; baseline HEAD이며 최종 exact source 증거 아님",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+          "environmentVersion": "masterGantt0.145.2→0.146.0",
+          "command": [
+            "npx",
+            "vitest",
+            "run",
+            "--config",
+            "tests/config/vitest.config.ts",
+            "tests/server/logistics/logistics-dashboard.test.ts",
+            "tests/features/resources/wbs-view-transport.test.ts"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "nullable 계약과 기존 보호/회귀 만족",
+          "actual": "dashboard 신규1FAIL: 공정 필터0 예상이나 시스템 경로가 실제 Task를 합법 포함",
+          "input": "합성 fixture 및 독립 read-only source 감사",
+          "classification": "TEST_FIXTURE",
+          "recovery": "원본 보존; 수정/재시험은 후속 event에 추가",
+          "residualRisk": "최종 exact source admission/GHCR 검증은 별도",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "scoped-retest",
+          "at": null,
+          "timeNote": "2026-11-13 구현 중 담당자 반환/독립 source 감사; 개별 원본 시각 미수집",
+          "stage": "UNIT",
+          "status": "PASS",
+          "sourceSha": "1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "작업 중 diff fingerprint 미수집; baseline HEAD이며 최종 exact source 증거 아님",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+          "environmentVersion": "masterGantt0.145.2→0.146.0",
+          "command": [
+            "npx",
+            "vitest",
+            "run",
+            "--config",
+            "tests/config/vitest.config.ts",
+            "tests/server/logistics/logistics-dashboard.test.ts",
+            "tests/features/resources/wbs-view-transport.test.ts"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "nullable 계약과 기존 보호/회귀 만족",
+          "actual": "2files33tests PASS;합법System경로를fixture에서분리",
+          "input": "합성 fixture 및 독립 read-only source 감사",
+          "classification": "TEST_FIXTURE",
+          "recovery": "원인교정후실제SCOPED재검사. 최종exactsource gate/게시·수용은별도",
+          "residualRisk": "최종 exact source admission/GHCR 검증은 별도",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+            "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F917-004",
+      "issue": 917,
+      "ledger": "docs/ISSUE_917_FAILURE_ANALYSIS.md",
+      "relatedIssues": [],
+      "domain": "migration",
+      "layer": "fixture",
+      "keywords": [
+        "nullable",
+        "equipment",
+        "process",
+        "test_fixture"
+      ],
+      "cause": "새 populated0038 seed의 공정 매핑 triple 필드 누락",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/server/db/optional-equipment-process-migration.test.ts",
+          "case": "upgrades populated 0038 without changing any row/PK/FK and preserves backup, restart and SQL guards",
+          "historical": false,
+          "coverageArea": "Issue917 직접/인접 회귀; 실제 실행 명령과 별도"
+        }
+      ],
+      "residualRisk": "최종 clean source admission/게시/수용은 별도",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "2026-11-13 구현 중 담당자 반환/독립 source 감사; 개별 원본 시각 미수집",
+          "stage": "INTEGRATION",
+          "status": "FAIL",
+          "sourceSha": "1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "작업 중 diff fingerprint 미수집; baseline HEAD이며 최종 exact source 증거 아님",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+          "environmentVersion": "masterGantt0.145.2→0.146.0",
+          "command": [
+            "npm",
+            "test",
+            "--",
+            "tests/server/db/optional-equipment-process-migration.test.ts",
+            "tests/server/logistics/optional-equipment-contract.test.ts",
+            "tests/server/logistics/logistics-service.test.ts"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "nullable 계약과 기존 보호/회귀 만족",
+          "actual": "21중17PASS/4FAIL: seed58 PROJECT_PROCESS_MAPPING_TRIPLE_MISMATCH; migration 검증 도달 전 실패",
+          "input": "합성 fixture 및 독립 read-only source 감사",
+          "classification": "TEST_FIXTURE",
+          "recovery": "원본 보존; 수정/재시험은 후속 event에 추가",
+          "residualRisk": "최종 exact source admission/GHCR 검증은 별도",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "scoped-retest",
+          "at": null,
+          "timeNote": "2026-11-13 구현 중 담당자 반환/독립 source 감사; 개별 원본 시각 미수집",
+          "stage": "INTEGRATION",
+          "status": "PASS",
+          "sourceSha": "1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "작업 중 diff fingerprint 미수집; baseline HEAD이며 최종 exact source 증거 아님",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+          "environmentVersion": "masterGantt0.145.2→0.146.0",
+          "command": [
+            "npm",
+            "test",
+            "--",
+            "tests/server/logistics",
+            "tests/server/db",
+            "tests/server/migration-cli.test.ts"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "nullable 계약과 기존 보호/회귀 만족",
+          "actual": "20files175tests PASS",
+          "input": "합성 fixture 및 독립 read-only source 감사",
+          "classification": "TEST_FIXTURE",
+          "recovery": "원인교정후실제SCOPED재검사. 최종exactsource gate/게시·수용은별도",
+          "residualRisk": "최종 exact source admission/GHCR 검증은 별도",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+            "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F917-005",
+      "issue": 917,
+      "ledger": "docs/ISSUE_917_FAILURE_ANALYSIS.md",
+      "relatedIssues": [],
+      "domain": "equipment",
+      "layer": "ui",
+      "keywords": [
+        "nullable",
+        "equipment",
+        "process",
+        "test_fixture"
+      ],
+      "cause": "E2E가 기존 공유 인스턴스 변경 확인을 승인하지 않고 저장 완료 대기",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/e2e/issue-726-logistics-master.spec.ts",
+          "case": "#917 permits zero-process equipment registration and nullable editing",
+          "historical": false,
+          "coverageArea": "Issue917 직접/인접 회귀; 실제 실행 명령과 별도"
+        }
+      ],
+      "residualRisk": "최종 clean source admission/게시/수용은 별도",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "2026-11-13 구현 중 담당자 반환/독립 source 감사; 개별 원본 시각 미수집",
+          "stage": "PLAYWRIGHT",
+          "status": "FAIL",
+          "sourceSha": "1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "작업 중 diff fingerprint 미수집; baseline HEAD이며 최종 exact source 증거 아님",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+          "environmentVersion": "masterGantt0.145.2→0.146.0",
+          "command": [
+            "npm",
+            "run",
+            "test:e2e",
+            "--",
+            "tests/e2e/issue-726-logistics-master.spec.ts",
+            "-g",
+            "#917",
+            "--workers=1"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "nullable 계약과 기존 보호/회귀 만족",
+          "actual": "수정 저장 후 기존 공유 인스턴스 확인 dialog 미처리로 line160 timeout",
+          "input": "합성 fixture 및 독립 read-only source 감사",
+          "classification": "TEST_FIXTURE",
+          "recovery": "원본 보존; 수정/재시험은 후속 event에 추가",
+          "residualRisk": "최종 exact source admission/GHCR 검증은 별도",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "scoped-retest",
+          "at": null,
+          "timeNote": "2026-11-13 구현 중 담당자 반환/독립 source 감사; 개별 원본 시각 미수집",
+          "stage": "PLAYWRIGHT",
+          "status": "PASS",
+          "sourceSha": "1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "작업 중 diff fingerprint 미수집; baseline HEAD이며 최종 exact source 증거 아님",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+          "environmentVersion": "masterGantt0.145.2→0.146.0",
+          "command": [
+            "npm",
+            "run",
+            "test:e2e",
+            "--",
+            "tests/e2e/issue-726-logistics-master.spec.ts",
+            "-g",
+            "#917",
+            "--workers=1"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "nullable 계약과 기존 보호/회귀 만족",
+          "actual": "1test35.7s PASS;최종CSS보완/실제Tab/관리버튼·dialog15조합",
+          "input": "합성 fixture 및 독립 read-only source 감사",
+          "classification": "TEST_FIXTURE",
+          "recovery": "원인교정후실제SCOPED재검사. 최종exactsource gate/게시·수용은별도",
+          "residualRisk": "최종 exact source admission/GHCR 검증은 별도",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+            "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F917-006",
+      "issue": 917,
+      "ledger": "docs/ISSUE_917_FAILURE_ANALYSIS.md",
+      "relatedIssues": [],
+      "domain": "equipment",
+      "layer": "domain",
+      "keywords": [
+        "nullable",
+        "equipment",
+        "process",
+        "product"
+      ],
+      "cause": "기존 resource snapshot은 primary process falsy를 오류로 거부하고 ledger는 null source를 추가",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/domain/wbs-task-ledger.test.ts",
+          "case": "nullable primary process preserves equipment without phantom process provenance",
+          "historical": false,
+          "coverageArea": "Issue917 직접/인접 회귀; 실제 실행 명령과 별도"
+        }
+      ],
+      "residualRisk": "최종 clean source admission/게시/수용은 별도",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "2026-11-13 구현 중 담당자 반환/독립 source 감사; 개별 원본 시각 미수집",
+          "stage": "STATIC",
+          "status": "FAIL",
+          "sourceSha": "1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "작업 중 diff fingerprint 미수집; baseline HEAD이며 최종 exact source 증거 아님",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+          "environmentVersion": "masterGantt0.145.2→0.146.0",
+          "command": [
+            "rg",
+            "-n",
+            "projectProcessId",
+            "src/domain/resources/resource-kpi-targets.ts",
+            "src/domain/resources/wbs-task-ledger.ts"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "nullable 계약과 기존 보호/회귀 만족",
+          "actual": "독립 QA P1: null 장비가 INSTANCE_PROCESS_UNAVAILABLE 및 equipment-process phantom source 생성 가능",
+          "input": "합성 fixture 및 독립 read-only source 감사",
+          "classification": "PRODUCT",
+          "recovery": "원본 보존; 수정/재시험은 후속 event에 추가",
+          "residualRisk": "최종 exact source admission/GHCR 검증은 별도",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "scoped-retest",
+          "at": null,
+          "timeNote": "2026-11-13 구현 중 담당자 반환/독립 source 감사; 개별 원본 시각 미수집",
+          "stage": "STATIC",
+          "status": "PASS",
+          "sourceSha": "1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "작업 중 diff fingerprint 미수집; baseline HEAD이며 최종 exact source 증거 아님",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+          "environmentVersion": "masterGantt0.145.2→0.146.0",
+          "command": [
+            "npx",
+            "vitest",
+            "run",
+            "--config",
+            "tests/config/vitest.config.ts",
+            "tests/server/resources/issue-734-equipment-configuration.test.ts"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "nullable 계약과 기존 보호/회귀 만족",
+          "actual": "17tests PASS;공정0/6roots/수량·가짜source0·손상참조409",
+          "input": "합성 fixture 및 독립 read-only source 감사",
+          "classification": "PRODUCT",
+          "recovery": "원인교정후실제SCOPED재검사. 최종exactsource gate/게시·수용은별도",
+          "residualRisk": "최종 exact source admission/GHCR 검증은 별도",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+            "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F917-007",
+      "issue": 917,
+      "ledger": "docs/ISSUE_917_FAILURE_ANALYSIS.md",
+      "relatedIssues": [],
+      "domain": "equipment",
+      "layer": "exchange",
+      "keywords": [
+        "nullable",
+        "equipment",
+        "process",
+        "test_fixture"
+      ],
+      "cause": "새 Copy/Template 테스트 fixture에 필수 description 누락 및 잘못된 control role",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/server/projects/project-copy-logistics.test.ts",
+          "case": "preserves equipment without a primary process through copy and template",
+          "historical": false,
+          "coverageArea": "Issue917 직접/인접 회귀; 실제 실행 명령과 별도"
+        }
+      ],
+      "residualRisk": "최종 clean source admission/게시/수용은 별도",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "2026-11-13 구현 중 담당자 반환/독립 source 감사; 개별 원본 시각 미수집",
+          "stage": "INTEGRATION",
+          "status": "FAIL",
+          "sourceSha": "1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "작업 중 diff fingerprint 미수집; baseline HEAD이며 최종 exact source 증거 아님",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+          "environmentVersion": "masterGantt0.145.2→0.146.0",
+          "command": [
+            "npx",
+            "vitest",
+            "run",
+            "--config",
+            "tests/config/vitest.config.ts",
+            "tests/server/projects/project-copy-logistics.test.ts",
+            "tests/server/projects/project-excel-logistics.test.ts",
+            "tests/server/templates/logistics-template-graph.test.ts",
+            "tests/server/templates/project-template-service.test.ts"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "nullable 계약과 기존 보호/회귀 만족",
+          "actual": "31중28PASS/3FAIL: projects.description NOT NULL(507), secondary control_role CHECK(574)",
+          "input": "합성 fixture 및 독립 read-only source 감사",
+          "classification": "TEST_FIXTURE",
+          "recovery": "원본 보존; 수정/재시험은 후속 event에 추가",
+          "residualRisk": "최종 exact source admission/GHCR 검증은 별도",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "scoped-retest",
+          "at": null,
+          "timeNote": "2026-11-13 구현 중 담당자 반환/독립 source 감사; 개별 원본 시각 미수집",
+          "stage": "INTEGRATION",
+          "status": "PASS",
+          "sourceSha": "1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "작업 중 diff fingerprint 미수집; baseline HEAD이며 최종 exact source 증거 아님",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+          "environmentVersion": "masterGantt0.145.2→0.146.0",
+          "command": [
+            "npx",
+            "vitest",
+            "run",
+            "--config",
+            "tests/config/vitest.config.ts",
+            "tests/server/projects/project-copy-logistics.test.ts",
+            "tests/server/projects/project-excel-logistics.test.ts",
+            "tests/server/templates/logistics-template-graph.test.ts",
+            "tests/server/templates/project-template-service.test.ts"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "nullable 계약과 기존 보호/회귀 만족",
+          "actual": "4files32tests PASS;이후관련16files144tests/graph직접24tests도PASS",
+          "input": "합성 fixture 및 독립 read-only source 감사",
+          "classification": "TEST_FIXTURE",
+          "recovery": "원인교정후실제SCOPED재검사. 최종exactsource gate/게시·수용은별도",
+          "residualRisk": "최종 exact source admission/GHCR 검증은 별도",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+            "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F917-008",
+      "issue": 917,
+      "ledger": "docs/ISSUE_917_FAILURE_ANALYSIS.md",
+      "relatedIssues": [],
+      "domain": "exchange",
+      "layer": "integration",
+      "keywords": [
+        "nullable",
+        "equipment",
+        "test_fixture"
+      ],
+      "cause": "신규 Copy/Template fixture의 source/destination session token 재사용",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/server/projects/project-copy-logistics.test.ts",
+          "case": "preserves equipment without a primary process through copy and template",
+          "historical": false,
+          "coverageArea": "직접/인접 회귀; 원본 실제명령은event참조"
+        }
+      ],
+      "residualRisk": "최종clean source gate/게시·수동수용 별도",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "2026-11-13 구현 중 담당자 반환/독립 source 감사; 개별 원본 시각 미수집",
+          "stage": "INTEGRATION",
+          "status": "FAIL",
+          "sourceSha": "1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "작업 중 diff fingerprint 미수집; baseline HEAD이며 최종 exact source 증거 아님",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+          "environmentVersion": "masterGantt0.145.2→0.146.0",
+          "command": [
+            "npx",
+            "vitest",
+            "run",
+            "--config",
+            "tests/config/vitest.config.ts",
+            "tests/server/projects/project-copy-logistics.test.ts",
+            "tests/server/projects/project-excel-logistics.test.ts",
+            "tests/server/templates/logistics-template-graph.test.ts",
+            "tests/server/templates/project-template-service.test.ts"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "nullable 계약과 기존 보호/회귀 만족",
+          "actual": "31중29PASS/2FAIL: edit_sessions.token_hash UNIQUE; destination 별도token으로 교정",
+          "input": "합성 fixture 및 독립 read-only source 감사",
+          "classification": "TEST_FIXTURE",
+          "recovery": "원본 보존; 수정/재시험은 후속 event에 추가",
+          "residualRisk": "최종 exact source admission/GHCR 검증은 별도",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "scoped-retest",
+          "at": null,
+          "timeNote": "2026-11-13 구현 중 담당자 반환/독립 source 감사; 개별 원본 시각 미수집",
+          "stage": "INTEGRATION",
+          "status": "PASS",
+          "sourceSha": "1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "작업 중 diff fingerprint 미수집; baseline HEAD이며 최종 exact source 증거 아님",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+          "environmentVersion": "masterGantt0.145.2→0.146.0",
+          "command": [
+            "npx",
+            "vitest",
+            "run",
+            "--config",
+            "tests/config/vitest.config.ts",
+            "tests/server/projects/project-copy-logistics.test.ts",
+            "tests/server/projects/project-excel-logistics.test.ts",
+            "tests/server/templates/logistics-template-graph.test.ts",
+            "tests/server/templates/project-template-service.test.ts"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "nullable 계약과 기존 보호/회귀 만족",
+          "actual": "4files32tests PASS;이후관련16files144tests/graph직접24tests도PASS",
+          "input": "합성 fixture 및 독립 read-only source 감사",
+          "classification": "TEST_FIXTURE",
+          "recovery": "원인교정후실제SCOPED재검사. 최종exactsource gate/게시·수용은별도",
+          "residualRisk": "최종 exact source admission/GHCR 검증은 별도",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+            "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F917-009",
+      "issue": 917,
+      "ledger": "docs/ISSUE_917_FAILURE_ANALYSIS.md",
+      "relatedIssues": [],
+      "domain": "migration",
+      "layer": "integration",
+      "keywords": [
+        "nullable",
+        "equipment",
+        "test_fixture"
+      ],
+      "cause": "snapshot helper가 WITHOUT ROWID 테이블도 rowid로 정렬",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/server/db/optional-equipment-process-migration.test.ts",
+          "case": "upgrades populated 0038 without changing any row/PK/FK and preserves backup, restart and SQL guards",
+          "historical": false,
+          "coverageArea": "직접/인접 회귀; 원본 실제명령은event참조"
+        }
+      ],
+      "residualRisk": "최종clean source gate/게시·수동수용 별도",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "2026-11-13 구현 중 담당자 반환/독립 source 감사; 개별 원본 시각 미수집",
+          "stage": "INTEGRATION",
+          "status": "FAIL",
+          "sourceSha": "1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "작업 중 diff fingerprint 미수집; baseline HEAD이며 최종 exact source 증거 아님",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+          "environmentVersion": "masterGantt0.145.2→0.146.0",
+          "command": [
+            "npm",
+            "test",
+            "--",
+            "tests/server/db/optional-equipment-process-migration.test.ts",
+            "tests/server/db/issue-623-target-migration.test.ts",
+            "tests/server/db/database.test.ts",
+            "tests/server/migration-cli.test.ts"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "nullable 계약과 기존 보호/회귀 만족",
+          "actual": "35중32PASS/3FAIL: no such column rowid(:32); 실제PK열정렬로 교정",
+          "input": "합성 fixture 및 독립 read-only source 감사",
+          "classification": "TEST_FIXTURE",
+          "recovery": "원본 보존; 수정/재시험은 후속 event에 추가",
+          "residualRisk": "최종 exact source admission/GHCR 검증은 별도",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "scoped-retest",
+          "at": null,
+          "timeNote": "2026-11-13 구현 중 담당자 반환/독립 source 감사; 개별 원본 시각 미수집",
+          "stage": "INTEGRATION",
+          "status": "PASS",
+          "sourceSha": "1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "작업 중 diff fingerprint 미수집; baseline HEAD이며 최종 exact source 증거 아님",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+          "environmentVersion": "masterGantt0.145.2→0.146.0",
+          "command": [
+            "npm",
+            "test",
+            "--",
+            "tests/server/logistics",
+            "tests/server/db",
+            "tests/server/migration-cli.test.ts"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "nullable 계약과 기존 보호/회귀 만족",
+          "actual": "20files175tests PASS",
+          "input": "합성 fixture 및 독립 read-only source 감사",
+          "classification": "TEST_FIXTURE",
+          "recovery": "원인교정후실제SCOPED재검사. 최종exactsource gate/게시·수용은별도",
+          "residualRisk": "최종 exact source admission/GHCR 검증은 별도",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+            "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F917-010",
+      "issue": 917,
+      "ledger": "docs/ISSUE_917_FAILURE_ANALYSIS.md",
+      "relatedIssues": [],
+      "domain": "tooling",
+      "layer": "static",
+      "keywords": [
+        "nullable",
+        "equipment",
+        "environment"
+      ],
+      "cause": "직접E2E Next 생성 경로 누적으로 삭제된 임시타입 참조",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/scripts/prepr-snapshot.test.ts",
+          "case": "keeps original source unchanged while validating exact Next generated metadata",
+          "historical": false,
+          "coverageArea": "직접/인접 회귀; 원본 실제명령은event참조"
+        }
+      ],
+      "residualRisk": "최종clean source gate/게시·수동수용 별도",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "2026-11-13 구현 중 담당자 반환/독립 source 감사; 개별 원본 시각 미수집",
+          "stage": "STATIC",
+          "status": "FAIL",
+          "sourceSha": "1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "작업 중 diff fingerprint 미수집; baseline HEAD이며 최종 exact source 증거 아님",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+          "environmentVersion": "masterGantt0.145.2→0.146.0",
+          "command": [
+            "npm",
+            "run",
+            "typecheck"
+          ],
+          "exit": 2,
+          "exitNote": null,
+          "expected": "nullable 계약과 기존 보호/회귀 만족",
+          "actual": "TS6053 임시.next-e2e-isolated 경로파일4개없음; source변경 아닌 생성진입점/실행경합",
+          "input": "합성 fixture 및 독립 read-only source 감사",
+          "classification": "ENVIRONMENT",
+          "recovery": "원본 보존; 수정/재시험은 후속 event에 추가",
+          "residualRisk": "최종 exact source admission/GHCR 검증은 별도",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "scoped-retest",
+          "at": null,
+          "timeNote": "2026-11-13 구현 중 담당자 반환/독립 source 감사; 개별 원본 시각 미수집",
+          "stage": "STATIC",
+          "status": "PASS",
+          "sourceSha": "1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "작업 중 diff fingerprint 미수집; baseline HEAD이며 최종 exact source 증거 아님",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+          "environmentVersion": "masterGantt0.145.2→0.146.0",
+          "command": [
+            "npm",
+            "run",
+            "typecheck"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "nullable 계약과 기존 보호/회귀 만족",
+          "actual": "최종생성진입점복원후타입검사exit0;최종exactsource검사는별도",
+          "input": "합성 fixture 및 독립 read-only source 감사",
+          "classification": "ENVIRONMENT",
+          "recovery": "원인교정후실제SCOPED재검사. 최종exactsource gate/게시·수용은별도",
+          "residualRisk": "최종 exact source admission/GHCR 검증은 별도",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+            "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F917-011",
+      "issue": 917,
+      "ledger": "docs/ISSUE_917_FAILURE_ANALYSIS.md",
+      "relatedIssues": [],
+      "domain": "equipment",
+      "layer": "unit",
+      "keywords": [
+        "nullable",
+        "equipment",
+        "product"
+      ],
+      "cause": "Resource snapshot INNER JOIN이 미지정설비행 누락",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/server/resources/issue-734-equipment-configuration.test.ts",
+          "case": "preserves an unassigned registered equipment across all six views without a phantom process",
+          "historical": false,
+          "coverageArea": "직접/인접 회귀; 원본 실제명령은event참조"
+        }
+      ],
+      "residualRisk": "최종clean source gate/게시·수동수용 별도",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "2026-11-13 구현 중 담당자 반환/독립 source 감사; 개별 원본 시각 미수집",
+          "stage": "UNIT",
+          "status": "FAIL",
+          "sourceSha": "1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "작업 중 diff fingerprint 미수집; baseline HEAD이며 최종 exact source 증거 아님",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+          "environmentVersion": "masterGantt0.145.2→0.146.0",
+          "command": [
+            "npx",
+            "vitest",
+            "run",
+            "--config",
+            "tests/config/vitest.config.ts",
+            "tests/server/resources/issue-734-equipment-configuration.test.ts"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "nullable 계약과 기존 보호/회귀 만족",
+          "actual": "6view 신규회귀 INSTANCE_REFERENCE_UNAVAILABLE; LEFT JOIN+raw nonnull damagedref409 추가",
+          "input": "합성 fixture 및 독립 read-only source 감사",
+          "classification": "PRODUCT",
+          "recovery": "원본 보존; 수정/재시험은 후속 event에 추가",
+          "residualRisk": "최종 exact source admission/GHCR 검증은 별도",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "scoped-retest",
+          "at": null,
+          "timeNote": "2026-11-13 구현 중 담당자 반환/독립 source 감사; 개별 원본 시각 미수집",
+          "stage": "UNIT",
+          "status": "PASS",
+          "sourceSha": "1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "작업 중 diff fingerprint 미수집; baseline HEAD이며 최종 exact source 증거 아님",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+          "environmentVersion": "masterGantt0.145.2→0.146.0",
+          "command": [
+            "npx",
+            "vitest",
+            "run",
+            "--config",
+            "tests/config/vitest.config.ts",
+            "tests/server/resources/issue-734-equipment-configuration.test.ts"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "nullable 계약과 기존 보호/회귀 만족",
+          "actual": "17tests PASS;공정0/6roots/수량·가짜source0·손상참조409",
+          "input": "합성 fixture 및 독립 read-only source 감사",
+          "classification": "PRODUCT",
+          "recovery": "원인교정후실제SCOPED재검사. 최종exactsource gate/게시·수용은별도",
+          "residualRisk": "최종 exact source admission/GHCR 검증은 별도",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+            "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F917-012",
+      "issue": 917,
+      "ledger": "docs/ISSUE_917_FAILURE_ANALYSIS.md",
+      "relatedIssues": [],
+      "domain": "equipment",
+      "layer": "static",
+      "keywords": [
+        "nullable",
+        "equipment",
+        "product"
+      ],
+      "cause": "손상된 비null 공정 참조가 DTO/LEFT JOIN에서 정상null로 치환",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/server/projects/project-copy-logistics.test.ts",
+          "case": "rejects corrupt nonnull primary process source references during Copy and Template save",
+          "historical": false,
+          "coverageArea": "직접/인접 회귀; 원본 실제명령은event참조"
+        }
+      ],
+      "residualRisk": "최종clean source gate/게시·수동수용 별도",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "2026-11-13 구현 중 담당자 반환/독립 source 감사; 개별 원본 시각 미수집",
+          "stage": "STATIC",
+          "status": "FAIL",
+          "sourceSha": "1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "작업 중 diff fingerprint 미수집; baseline HEAD이며 최종 exact source 증거 아님",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+          "environmentVersion": "masterGantt0.145.2→0.146.0",
+          "command": [
+            "rg",
+            "-n",
+            "processId",
+            "src/server/logistics/logistics-service-core.ts"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "nullable 계약과 기존 보호/회귀 만족",
+          "actual": "독립QA P2: Template save/조회에서 손상참조 은폐; DTO409/raw snapshot409와corrupt회귀추가",
+          "input": "합성 fixture 및 독립 read-only source 감사",
+          "classification": "PRODUCT",
+          "recovery": "원본 보존; 수정/재시험은 후속 event에 추가",
+          "residualRisk": "최종 exact source admission/GHCR 검증은 별도",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "scoped-retest",
+          "at": null,
+          "timeNote": "2026-11-13 구현 중 담당자 반환/독립 source 감사; 개별 원본 시각 미수집",
+          "stage": "STATIC",
+          "status": "PASS",
+          "sourceSha": "1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "작업 중 diff fingerprint 미수집; baseline HEAD이며 최종 exact source 증거 아님",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+          "environmentVersion": "masterGantt0.145.2→0.146.0",
+          "command": [
+            "npx",
+            "vitest",
+            "run",
+            "--config",
+            "tests/config/vitest.config.ts",
+            "tests/server/projects/project-copy-logistics.test.ts",
+            "tests/server/projects/project-excel-logistics.test.ts",
+            "tests/server/templates/logistics-template-graph.test.ts",
+            "tests/server/templates/project-template-service.test.ts"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "nullable 계약과 기존 보호/회귀 만족",
+          "actual": "4files32tests PASS;이후관련16files144tests/graph직접24tests도PASS",
+          "input": "합성 fixture 및 독립 read-only source 감사",
+          "classification": "PRODUCT",
+          "recovery": "원인교정후실제SCOPED재검사. 최종exactsource gate/게시·수용은별도",
+          "residualRisk": "최종 exact source admission/GHCR 검증은 별도",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+            "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F917-013",
+      "issue": 917,
+      "ledger": "docs/ISSUE_917_FAILURE_ANALYSIS.md",
+      "relatedIssues": [],
+      "domain": "equipment",
+      "layer": "static",
+      "keywords": [
+        "nullable",
+        "equipment",
+        "product"
+      ],
+      "cause": "신규409코드가 locale오류mapping에없어영문원문노출",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/e2e/project-logistics-management.spec.ts",
+          "case": "#917 기존 Target 충돌 409는 공정 해제 초안과 현지화된 오류를 보존한다",
+          "historical": false,
+          "coverageArea": "직접/인접 회귀; 원본 실제명령은event참조"
+        }
+      ],
+      "residualRisk": "최종clean source gate/게시·수동수용 별도",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "2026-11-13 구현 중 담당자 반환/독립 source 감사; 개별 원본 시각 미수집",
+          "stage": "STATIC",
+          "status": "FAIL",
+          "sourceSha": "1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "작업 중 diff fingerprint 미수집; baseline HEAD이며 최종 exact source 증거 아님",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+          "environmentVersion": "masterGantt0.145.2→0.146.0",
+          "command": [
+            "rg",
+            "-n",
+            "PROCESS_INACTIVE",
+            "src/features/logistics/project-logistics-management.tsx"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "nullable 계약과 기존 보호/회귀 만족",
+          "actual": "독립QA P2: ko/en/vi공정비활성/Target해제충돌안내누락; 기존error descriptor번역추가",
+          "input": "합성 fixture 및 독립 read-only source 감사",
+          "classification": "PRODUCT",
+          "recovery": "원본 보존; 수정/재시험은 후속 event에 추가",
+          "residualRisk": "최종 exact source admission/GHCR 검증은 별도",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "scoped-retest",
+          "at": null,
+          "timeNote": "2026-11-13 구현 중 담당자 반환/독립 source 감사; 개별 원본 시각 미수집",
+          "stage": "STATIC",
+          "status": "PASS",
+          "sourceSha": "1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "작업 중 diff fingerprint 미수집; baseline HEAD이며 최종 exact source 증거 아님",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+          "environmentVersion": "masterGantt0.145.2→0.146.0",
+          "command": [
+            "npx",
+            "playwright",
+            "test",
+            "--config",
+            "tests/config/playwright.config.ts",
+            "tests/e2e/project-logistics-management.spec.ts",
+            "--grep",
+            "#917",
+            "--workers=1"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "nullable 계약과 기존 보호/회귀 만족",
+          "actual": "2tests PASS;409locale/412초안·canonical",
+          "input": "합성 fixture 및 독립 read-only source 감사",
+          "classification": "PRODUCT",
+          "recovery": "원인교정후실제SCOPED재검사. 최종exactsource gate/게시·수용은별도",
+          "residualRisk": "최종 exact source admission/GHCR 검증은 별도",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+            "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F917-014",
+      "issue": 917,
+      "ledger": "docs/ISSUE_917_FAILURE_ANALYSIS.md",
+      "relatedIssues": [],
+      "domain": "equipment",
+      "layer": "playwright",
+      "keywords": [
+        "nullable",
+        "equipment",
+        "test_fixture"
+      ],
+      "cause": "geometry검사가 실제Tab대신offscreen버튼programmatic focus만수행",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/e2e/issue-726-logistics-master.spec.ts",
+          "case": "#917 공정 없이 설비 생성·재조회와 미지정 필터",
+          "historical": false,
+          "coverageArea": "직접/인접 회귀; 원본 실제명령은event참조"
+        }
+      ],
+      "residualRisk": "최종clean source gate/게시·수동수용 별도",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "2026-11-13 구현 중 담당자 반환/독립 source 감사; 개별 원본 시각 미수집",
+          "stage": "PLAYWRIGHT",
+          "status": "FAIL",
+          "sourceSha": "1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "작업 중 diff fingerprint 미수집; baseline HEAD이며 최종 exact source 증거 아님",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+          "environmentVersion": "masterGantt0.145.2→0.146.0",
+          "command": [
+            "npm",
+            "run",
+            "test:e2e",
+            "--",
+            "tests/e2e/issue-726-logistics-master.spec.ts",
+            "-g",
+            "#917",
+            "--workers=1"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "nullable 계약과 기존 보호/회귀 만족",
+          "actual": "390px focus된수정버튼x1811로viewport밖 FAIL; 실제summary→Tab진입으로owner가로scroll/버튼가시성검증 후35.4sPASS",
+          "input": "합성 fixture 및 독립 read-only source 감사",
+          "classification": "TEST_FIXTURE",
+          "recovery": "원본 보존; 수정/재시험은 후속 event에 추가",
+          "residualRisk": "최종 exact source admission/GHCR 검증은 별도",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "scoped-retest",
+          "at": null,
+          "timeNote": "2026-11-13 구현 중 담당자 반환/독립 source 감사; 개별 원본 시각 미수집",
+          "stage": "PLAYWRIGHT",
+          "status": "PASS",
+          "sourceSha": "1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "작업 중 diff fingerprint 미수집; baseline HEAD이며 최종 exact source 증거 아님",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+          "environmentVersion": "masterGantt0.145.2→0.146.0",
+          "command": [
+            "npm",
+            "run",
+            "test:e2e",
+            "--",
+            "tests/e2e/issue-726-logistics-master.spec.ts",
+            "-g",
+            "#917",
+            "--workers=1"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "nullable 계약과 기존 보호/회귀 만족",
+          "actual": "1test35.7s PASS;최종CSS보완/실제Tab/관리버튼·dialog15조합",
+          "input": "합성 fixture 및 독립 read-only source 감사",
+          "classification": "TEST_FIXTURE",
+          "recovery": "원인교정후실제SCOPED재검사. 최종exactsource gate/게시·수용은별도",
+          "residualRisk": "최종 exact source admission/GHCR 검증은 별도",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+            "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F917-015",
+      "issue": 917,
+      "ledger": "docs/ISSUE_917_FAILURE_ANALYSIS.md",
+      "relatedIssues": [],
+      "domain": "tooling",
+      "layer": "local_prep",
+      "keywords": [
+        "nullable",
+        "equipment",
+        "policy_mapping"
+      ],
+      "cause": "설비nullable 공유계약/UI/fixture의기존영향매핑부재",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/scripts/prepr-verifier.test.ts",
+          "case": "maps nullable Equipment contracts, locale and the reused HTTP fixture without accepting unknown producers",
+          "historical": false,
+          "coverageArea": "직접/인접 회귀; 원본 실제명령은event참조"
+        }
+      ],
+      "residualRisk": "최종clean source gate/게시·수동수용 별도",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "2026-11-13 구현 중 담당자 반환/독립 source 감사; 개별 원본 시각 미수집",
+          "stage": "LOCAL_PREP",
+          "status": "BLOCKED",
+          "sourceSha": "1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "작업 중 diff fingerprint 미수집; baseline HEAD이며 최종 exact source 증거 아님",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+          "environmentVersion": "masterGantt0.145.2→0.146.0",
+          "command": [
+            "node",
+            "scripts/verify-prepr.mjs",
+            "--mode=targeted",
+            "--base=1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+            "--issue=917",
+            "--dry-run",
+            "--report-dir=.prepr-reports/plan-01"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "nullable 계약과 기존 보호/회귀 만족",
+          "actual": "dryrun NOT TESTED,selectionBLOCKED: 계약/UI/i18n/fixture UNKNOWN 및graph directimport미발견; 생성diff도포함",
+          "input": "합성 fixture 및 독립 read-only source 감사",
+          "classification": "POLICY_MAPPING",
+          "recovery": "원본 보존; 수정/재시험은 후속 event에 추가",
+          "residualRisk": "최종 exact source admission/GHCR 검증은 별도",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "scoped-retest",
+          "at": null,
+          "timeNote": "2026-11-13 구현 중 담당자 반환/독립 source 감사; 개별 원본 시각 미수집",
+          "stage": "LOCAL_PREP",
+          "status": "PASS",
+          "sourceSha": "1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "작업 중 diff fingerprint 미수집; baseline HEAD이며 최종 exact source 증거 아님",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+          "environmentVersion": "masterGantt0.145.2→0.146.0",
+          "command": [
+            "npx",
+            "vitest",
+            "run",
+            "--config",
+            "tests/config/vitest.config.ts",
+            "tests/scripts/prepr-verifier.test.ts"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "nullable 계약과 기존 보호/회귀 만족",
+          "actual": "50tests PASS;후속실제selectImpact계획UNKNOWN0/missing0/READY,67Unit32Chromium선정(실행결과아님)",
+          "input": "합성 fixture 및 독립 read-only source 감사",
+          "classification": "POLICY_MAPPING",
+          "recovery": "원인교정후실제SCOPED재검사. 최종exactsource gate/게시·수용은별도",
+          "residualRisk": "최종 exact source admission/GHCR 검증은 별도",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+            "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F917-016",
+      "issue": 917,
+      "ledger": "docs/ISSUE_917_FAILURE_ANALYSIS.md",
+      "relatedIssues": [],
+      "domain": "tooling",
+      "layer": "playwright",
+      "keywords": [
+        "nullable",
+        "equipment",
+        "process"
+      ],
+      "cause": "SCOPED E2E실행중테스트파일변경으로입력불변미충족",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/scripts/prepr-snapshot.test.ts",
+          "case": "rejects source mutations during a browser snapshot run",
+          "historical": false,
+          "coverageArea": "직접/인접 회귀; 원본 실제명령은event참조"
+        }
+      ],
+      "residualRisk": "최종clean source gate/게시·수동수용 별도",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "2026-11-13 구현 중 담당자 반환/독립 source 감사; 개별 원본 시각 미수집",
+          "stage": "PLAYWRIGHT",
+          "status": "BLOCKED",
+          "sourceSha": "1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "작업 중 diff fingerprint 미수집; baseline HEAD이며 최종 exact source 증거 아님",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+          "environmentVersion": "masterGantt0.145.2→0.146.0",
+          "command": [
+            "npm",
+            "run",
+            "test:e2e",
+            "--",
+            "tests/e2e/issue-726-logistics-master.spec.ts",
+            "-g",
+            "#917",
+            "--workers=1"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "nullable 계약과 기존 보호/회귀 만족",
+          "actual": "runner1/1 37.8s지만실행중파일수정으로PASS근거제외; 후속freeze실행35.4sPASS는별도SCOPED",
+          "input": "합성 fixture 및 독립 read-only source 감사",
+          "classification": "PROCESS",
+          "recovery": "원본 보존; 수정/재시험은 후속 event에 추가",
+          "residualRisk": "최종 exact source admission/GHCR 검증은 별도",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "F917-017",
+      "issue": 917,
+      "ledger": "docs/ISSUE_917_FAILURE_ANALYSIS.md",
+      "relatedIssues": [],
+      "domain": "tooling",
+      "layer": "local_prep",
+      "keywords": [
+        "nullable",
+        "equipment",
+        "environment"
+      ],
+      "cause": "백업CLI파일명을추정해잘못된경로호출",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/scripts/sqlite-backup.test.ts",
+          "case": "validates encrypted backup and isolated restore without replacing source files",
+          "historical": false,
+          "coverageArea": "직접/인접 회귀; 원본 실제명령은event참조"
+        }
+      ],
+      "residualRisk": "최종clean source gate/게시·수동수용 별도",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "2026-11-13 구현 중 담당자 반환/독립 source 감사; 개별 원본 시각 미수집",
+          "stage": "LOCAL_PREP",
+          "status": "FAIL",
+          "sourceSha": "1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "작업 중 diff fingerprint 미수집; baseline HEAD이며 최종 exact source 증거 아님",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+          "environmentVersion": "masterGantt0.145.2→0.146.0",
+          "command": [
+            "node",
+            "scripts/sqlite-backup.mjs",
+            "--help"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "nullable 계약과 기존 보호/회귀 만족",
+          "actual": "MODULE_NOT_FOUND; rg실제파일발견뒤verify-sqlite-recovery.mjs사용;실제AESCLI후속PASS",
+          "input": "합성 fixture 및 독립 read-only source 감사",
+          "classification": "ENVIRONMENT",
+          "recovery": "원본 보존; 수정/재시험은 후속 event에 추가",
+          "residualRisk": "최종 exact source admission/GHCR 검증은 별도",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "F917-018",
+      "issue": 917,
+      "ledger": "docs/ISSUE_917_FAILURE_ANALYSIS.md",
+      "relatedIssues": [],
+      "domain": "equipment",
+      "layer": "visual",
+      "keywords": [
+        "nullable",
+        "action",
+        "wrap",
+        "390px"
+      ],
+      "cause": "자동table열배분이관리셀을71.2px로축소해버튼글자별wrap;baseline과인과는미확정",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/e2e/issue-726-logistics-master.spec.ts",
+          "case": "#917 공정 없이 설비 생성·재조회와 미지정 필터",
+          "historical": false,
+          "coverageArea": "ko/en/vi×5폭관리버튼nowrap/44px/수평배치·행160px이하"
+        }
+      ],
+      "residualRisk": "기존CSS취약점과신규문구영향의인과는미확정;최종exactsource시각검토필요",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "2026-11-13 구현 중 담당자 반환/독립 source 감사; 개별 원본 시각 미수집",
+          "stage": "VISUAL",
+          "status": "FAIL",
+          "sourceSha": "1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "작업 중 diff fingerprint 미수집; baseline HEAD이며 최종 exact source 증거 아님",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+          "environmentVersion": "masterGantt0.145.2→0.146.0",
+          "command": [
+            "python3",
+            "-c",
+            "read SCOPED geometry-ko-390.json"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "관리버튼이름한줄/44px/기존내부가로scroll",
+          "actual": "독립UI/QA+geometry직접조회:ko390 actioncol71.2px,44px버튼높이58/118/78/58px,행357.28125px; 글자별wrap 사용성위험",
+          "input": "합성장문설비명+미지정주관리공정 ko390; 당시dirtysource PNG/geometry",
+          "classification": "PRODUCT_UI",
+          "recovery": "원본 보존; 수정/재시험은 후속 event에 추가",
+          "residualRisk": "최종 exact source admission/GHCR 검증은 별도",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "scoped-retest",
+          "at": null,
+          "timeNote": "2026-11-13 구현 중 담당자 반환/독립 source 감사; 개별 원본 시각 미수집",
+          "stage": "VISUAL",
+          "status": "PASS",
+          "sourceSha": "1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "작업 중 diff fingerprint 미수집; baseline HEAD이며 최종 exact source 증거 아님",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+          "environmentVersion": "masterGantt0.145.2→0.146.0",
+          "command": [
+            "npm",
+            "run",
+            "test:e2e",
+            "--",
+            "tests/e2e/issue-726-logistics-master.spec.ts",
+            "-g",
+            "#917",
+            "--workers=1"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "관리버튼이름한줄/44px/기존내부가로scroll",
+          "actual": "1test35.7s PASS;최종CSS보완/실제Tab/관리버튼·dialog15조합",
+          "input": "합성장문설비명+미지정주관리공정 ko390; 당시dirtysource PNG/geometry",
+          "classification": "PRODUCT_UI",
+          "recovery": "원인교정후실제SCOPED재검사. 최종exactsource gate/게시·수용은별도",
+          "residualRisk": "최종 exact source admission/GHCR 검증은 별도",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+            "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+            "imageDigest": null,
+            "backupId": null
+          }
+        },
+        {
+          "id": "command-notation-correction",
+          "at": null,
+          "timeNote": "2026-11-13 구현 중 담당자 반환/독립 source 감사; 개별 원본 시각 미수집",
+          "stage": "VISUAL",
+          "status": "NOT TESTED",
+          "sourceSha": "1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "작업 중 diff fingerprint 미수집; baseline HEAD이며 최종 exact source 증거 아님",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+          "environmentVersion": "masterGantt0.145.2→0.146.0",
+          "command": [
+            "python3",
+            "-"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "관리버튼이름한줄/44px/기존내부가로scroll",
+          "actual": "관측command표기는요약이었으며실제호출은python3 heredoc. 원본geometry numeric조회결과/exit0은같음. 최초event는보존.",
+          "input": "합성장문설비명+미지정주관리공정 ko390; 당시dirtysource PNG/geometry",
+          "classification": "PRODUCT_UI",
+          "recovery": "원본 보존; 수정/재시험은 후속 event에 추가",
+          "residualRisk": "최종 exact source admission/GHCR 검증은 별도",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+            }
+          ]
         }
       ]
     }

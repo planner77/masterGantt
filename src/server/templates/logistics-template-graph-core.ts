@@ -37,7 +37,7 @@ type RawMember = {
  * use typed, project-unique instance codes as snapshot-local keys. */
 export function snapshotLogisticsTemplateGraph(
   db: Database.Database, sourceProjectId: number,
-): { schemaVersion: 2 | 3 | 4 | 5 | 6; projectWorkAreas?: NonNullable<ProjectTemplateSnapshot["logistics"]>["projectWorkAreas"]; equipmentWorkAreas?: NonNullable<ProjectTemplateSnapshot["logistics"]>["equipmentWorkAreas"]; taskContexts?: NonNullable<ProjectTemplateSnapshot["logistics"]>["taskContexts"]; taskTargetBindings?: NonNullable<NonNullable<ProjectTemplateSnapshot["logistics"]>["taskTargetBindings"]>; processMappings: TemplateProcessMappingSnapshotItem[];
+): { schemaVersion: 2 | 3 | 4 | 5 | 6 | 7; projectWorkAreas?: NonNullable<ProjectTemplateSnapshot["logistics"]>["projectWorkAreas"]; equipmentWorkAreas?: NonNullable<ProjectTemplateSnapshot["logistics"]>["equipmentWorkAreas"]; taskContexts?: NonNullable<ProjectTemplateSnapshot["logistics"]>["taskContexts"]; taskTargetBindings?: NonNullable<NonNullable<ProjectTemplateSnapshot["logistics"]>["taskTargetBindings"]>; processMappings: TemplateProcessMappingSnapshotItem[];
      targets: TemplateTargetSnapshotItem[] } {
   assertLegacyTransferIntegrity(db, sourceProjectId);
   const mappings = db.prepare(
@@ -95,11 +95,12 @@ export function snapshotLogisticsTemplateGraph(
   const hasTranslations = projectWorkAreas.some(row => row.translations && Object.keys(row.translations).length) ||
     ["project_processes","project_equipment","project_logistics_systems"].some(owner =>
       Boolean(db.prepare(`SELECT 1 FROM ${owner}_translations tr JOIN ${owner} o ON o.id=tr.owner_id WHERE o.project_id=? LIMIT 1`).get(sourceProjectId)));
+  const hasUnassignedEquipment = Boolean(db.prepare("SELECT 1 FROM project_equipment WHERE project_id=? AND process_id IS NULL LIMIT 1").get(sourceProjectId));
   return {
-    schemaVersion: hasTranslations ? 6 : projectWorkAreas.length ? 5 : hasContexts ? 4 : bindings.length ? 3 : 2,
-    ...(hasTranslations || projectWorkAreas.length ? {projectWorkAreas} : {}),
-    ...(hasTranslations || hasContexts || projectWorkAreas.length ? contexts : {}),
-    ...(hasTranslations || bindings.length || hasContexts || projectWorkAreas.length ? {taskTargetBindings: bindings} : {}),
+    schemaVersion: hasUnassignedEquipment ? 7 : hasTranslations ? 6 : projectWorkAreas.length ? 5 : hasContexts ? 4 : bindings.length ? 3 : 2,
+    ...(hasUnassignedEquipment || hasTranslations || projectWorkAreas.length ? {projectWorkAreas} : {}),
+    ...(hasUnassignedEquipment || hasTranslations || hasContexts || projectWorkAreas.length ? contexts : {}),
+    ...(hasUnassignedEquipment || hasTranslations || bindings.length || hasContexts || projectWorkAreas.length ? {taskTargetBindings: bindings} : {}),
     processMappings: mappings.map((m) => ({
       processCode: m.process_code,
       occurrenceId: m.occurrence_public_id,
@@ -137,21 +138,21 @@ export function restoreLogisticsTemplateGraph(
   graph: NonNullable<ProjectTemplateSnapshot["logistics"]>,
   local: LocalMaps, now: string, tasks: ReadonlyMap<string, {id:number}> = new Map(),
 ): { processMappings: number; targets: number; warnings: string[] } {
-  if (graph.schemaVersion !== 6 && [graph.processes,graph.equipment,graph.systems,graph.projectWorkAreas ?? []].some(rows => rows.some(row => row.translations !== undefined)))
-    reject("TEMPLATE_LOGISTICS_VERSION_UNSUPPORTED", "표시명 번역은 Template version 6에서만 지원합니다.");
-  if (graph.schemaVersion !== 5 && graph.schemaVersion !== 6 && graph.projectWorkAreas !== undefined)
-    reject("TEMPLATE_LOGISTICS_VERSION_UNSUPPORTED", "프로젝트 소속 WorkArea는 Template version 5/6에서만 지원합니다.");
-  if (graph.schemaVersion !== 4 && graph.schemaVersion !== 5 && graph.schemaVersion !== 6 && (graph.equipmentWorkAreas !== undefined || graph.taskContexts !== undefined))
-    reject("TEMPLATE_LOGISTICS_VERSION_UNSUPPORTED", "공정·WorkArea 관계는 Template version 4/5/6에서만 지원합니다.");
+  if ((graph.schemaVersion === undefined || graph.schemaVersion < 6) && [graph.processes,graph.equipment,graph.systems,graph.projectWorkAreas ?? []].some(rows => rows.some(row => row.translations !== undefined)))
+    reject("TEMPLATE_LOGISTICS_VERSION_UNSUPPORTED", "표시명 번역은 Template version 6 이상에서만 지원합니다.");
+  if ((graph.schemaVersion === undefined || graph.schemaVersion < 5) && graph.projectWorkAreas !== undefined)
+    reject("TEMPLATE_LOGISTICS_VERSION_UNSUPPORTED", "프로젝트 소속 WorkArea는 Template version 5 이상에서만 지원합니다.");
+  if ((graph.schemaVersion === undefined || graph.schemaVersion < 4) && (graph.equipmentWorkAreas !== undefined || graph.taskContexts !== undefined))
+    reject("TEMPLATE_LOGISTICS_VERSION_UNSUPPORTED", "공정·WorkArea 관계는 Template version 4 이상에서만 지원합니다.");
   if (graph.schemaVersion === undefined) {
     if (graph.processMappings !== undefined || graph.targets !== undefined || graph.taskTargetBindings !== undefined)
       reject("TEMPLATE_LOGISTICS_VERSION_UNSUPPORTED", "Unversioned template graph must not contain archived logistics relation references.");
     return { processMappings: 0, targets: 0, warnings: [] };
   }
-  if ((graph.schemaVersion !== 2 && graph.schemaVersion !== 3 && graph.schemaVersion !== 4 && graph.schemaVersion !== 5 && graph.schemaVersion !== 6) || !Array.isArray(graph.processMappings) || !Array.isArray(graph.targets) ||
+  if ((graph.schemaVersion !== 2 && graph.schemaVersion !== 3 && graph.schemaVersion !== 4 && graph.schemaVersion !== 5 && graph.schemaVersion !== 6 && graph.schemaVersion !== 7) || !Array.isArray(graph.processMappings) || !Array.isArray(graph.targets) ||
       (graph.schemaVersion >= 3 ? !Array.isArray(graph.taskTargetBindings) : graph.taskTargetBindings !== undefined) ||
       (graph.schemaVersion >= 4 && (!Array.isArray(graph.equipmentWorkAreas) || !Array.isArray(graph.taskContexts))) ||
-      ((graph.schemaVersion === 5 || graph.schemaVersion === 6) && !Array.isArray(graph.projectWorkAreas)))
+      (graph.schemaVersion >= 5 && !Array.isArray(graph.projectWorkAreas)))
     reject("TEMPLATE_LOGISTICS_VERSION_UNSUPPORTED", "Unsupported or incomplete Template graph version.");
 
   const catalog = new ProcessCatalogRepository(db);
@@ -257,7 +258,7 @@ export function restoreLogisticsTemplateGraph(
     db.prepare("UPDATE logistics_targets SET anchor_member_id=? WHERE project_id=? AND id=?")
       .run(member.id,projectId,targetId);
   }
-  const workAreas = (graph.schemaVersion===5 || graph.schemaVersion===6)
+  const workAreas = (graph.schemaVersion>=5)
     ? restoreProjectWorkAreas(db,projectId,graph.projectWorkAreas!,local.processes,now) : undefined;
   if (graph.schemaVersion >= 3) restoreTaskTargetBindings(db, projectId, graph.taskTargetBindings!, tasks, now);
   if (graph.schemaVersion >= 4) restoreProjectContexts(db,projectId,{

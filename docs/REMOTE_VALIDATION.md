@@ -21,3 +21,8 @@ Owner 2026-11-10 결정으로 신규 작업의 원격 검증은 `N/A(정책상 �
 ## 과거 실행 이력
 
 이전 T1~T9·PR/Main/Release/Finalizer·Run/Attempt·Head/base/test-merge·Trusted provenance 계약은 [전체 보존 기록](history/owner-ci-retired-20261110/REMOTE_VALIDATION.md)에 있다. 이 기록의 FAIL/BLOCKED/NOT TESTED와 immutable 출처를 변경하지 않는다. 신규 source의 필수 Gate나 PASS로 재사용하지 않는다.
+
+
+## Issue #917
+
+현행 #905 로컬 정책에 따라 신규 원격 CI는 N/A다. nullable 설비의 실제 로컬 명령·source·migration/교환·Chromium/Docker·backup/restore·admission 및 고유 SHA GHCR digest 결과는 [Work Packet](exec-plans/active/ISSUE_917.md)과 [실패 원장](ISSUE_917_FAILURE_ANALYSIS.md)에 구분한다. 기존 원격 Run을 새 source의 PASS로 사용하지 않는다.

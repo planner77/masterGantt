@@ -2,8 +2,6 @@ import { expectDashboardMetricsReadable } from "./helpers/dashboard-metrics";
 import { openWbsViewControls } from "./helpers/wbs-controls";
 import { waitForWbsReport, type WbsReportCondition } from "./helpers/wbs-report";
 import { readLegacyFixtureCounts } from "./fixtures/legacy-logistics-seed";
-import { mkdir } from "node:fs/promises";
-import { resolve } from "node:path";
 import type { Locator, Page } from "@playwright/test";
 import { test, expect, isolatedApplicationOptions } from "./fixtures/isolated-application";
 import { seedWbsViewComposer, viewResourcePassword } from "./fixtures/wbs-view-composer";
@@ -218,8 +216,7 @@ test("#734 5폭 긴 이름·내부 overflow·열 정렬·native Tab/Escape", asy
     await expect(frame).toHaveAttribute("data-project-gantt-instance", instance!); expect(await gantt!.evaluate(element => element.isConnected)).toBe(true);
     await expect(page.getByRole("button", { name: "◆ Milestone 표시", exact: true })).toHaveCount(0); expect(writes).toEqual([]);
     await info.attach(`equipment-${width}`, { contentType: "application/json", body: JSON.stringify(geometry) });
-    const directory = resolve("output/playwright/issue-734"); await mkdir(directory, { recursive: true });
-    await info.attach(`equipment-${width}.png`, { contentType: "image/png", body: await page.screenshot({ path: resolve(directory, `equipment-${width}.png`) }) });
+    await info.attach(`equipment-${width}.png`, { contentType: "image/png", body: await page.screenshot({ path: info.outputPath(`equipment-${width}.png`) }) });
     }
 });
 

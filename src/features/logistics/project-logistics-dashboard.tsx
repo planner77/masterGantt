@@ -662,7 +662,7 @@ export function ProjectLogisticsDashboard({
                         <tr key={eq.id}>
                           <td><strong>{displayName(eq, locale).trim() || t("이름 확인 필요")}</strong><IdentifierDetails identifiers={[{ label: "설비 코드", value: eq.code }, { label: "설비 ID", value: eq.id }]} /> {!eq.active && <span style={{ color: "#94a3b8" }}>{t("(비활성)")}</span>}</td>
                           <td>{eq.equipmentType} ({formatNumber(eq.quantity)}{t("대)")}</td>
-                          <td>{eq.processName === null ? "-" : displayName({name:eq.processName,translations:eq.processTranslations},locale)}</td>
+                          <td>{eq.processId === null ? t("공정 미지정") : eq.processName === null ? "-" : displayName({name:eq.processName,translations:eq.processTranslations},locale)}</td>
                           <td>{eq.primaryControllerName !== null ? displayName({name:eq.primaryControllerName,translations:eq.primaryControllerTranslations},locale) : <span style={{ color: "#d97706" }}>{t("미지정")}</span>}</td>
                           <td>{eq.ownerName ?? <span style={{ color: "#d97706" }}>{t("미지정")}</span>}</td>
                           <td>{formatNumber(eq.taskCount)}{t("건")}</td>

@@ -205,9 +205,9 @@ export function parseCreateEquipmentInput(
   const localized = translationFields(body, details);
 
   const context = equipmentContextFields(body, details);
-  const processId = typeof body.processId === "string" ? body.processId.trim() : "";
-  if (!processId) {
-    details.push("processId must be specified.");
+  const processId = body.processId == null ? null : typeof body.processId === "string" ? body.processId.trim() : "";
+  if (processId !== null && !processId) {
+    details.push("processId must be null or a non-empty string.");
   }
 
   const code = typeof body.code === "string" ? body.code.trim() : "";
@@ -294,10 +294,12 @@ export function parseUpdateEquipmentRequest(
   const result: UpdateEquipmentRequest = { ...localized, ...equipmentContextFields(body, details) };
 
   if (body.processId !== undefined) {
-    if (typeof body.processId === "string" && body.processId.trim().length > 0) {
+    if (body.processId === null) {
+      result.processId = null;
+    } else if (typeof body.processId === "string" && body.processId.trim().length > 0) {
       result.processId = body.processId.trim();
     } else {
-      details.push("processId must be a non-empty string.");
+      details.push("processId must be null or a non-empty string.");
     }
   }
 

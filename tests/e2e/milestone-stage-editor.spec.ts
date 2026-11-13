@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { writeFile } from "node:fs/promises";
 import { expect, test, isolatedApplicationOptions } from "./fixtures/isolated-application";
 import type { ProjectSnapshotResponse, ProjectTaskDto, TaskMutationResponse } from "../../src/contracts/projects";
 import { chooseTaskInformation } from "./helpers/task-context-menu";
@@ -6,7 +6,7 @@ import { openMilestoneEditor } from "./helpers/milestone-ui";
 
 test.use(isolatedApplicationOptions);
 
-test("#461 실제 SQLite Editor 원자 저장·상속·양쪽 canonical·재개·geometry", async ({ page, baseURL, observeIsolatedApi }) => {
+test("#461 실제 SQLite Editor 원자 저장·상속·양쪽 canonical·재개·geometry", async ({ page, baseURL, observeIsolatedApi }, info) => {
   test.setTimeout(180_000);
   const origin = baseURL!;
   const apiRequest = {
@@ -128,7 +128,6 @@ test("#461 실제 SQLite Editor 원자 저장·상속·양쪽 canonical·재개�
   const hiddenIdentityActions = dialog.locator('#task-editor-panel-memberships tbody details:not([open]) button');
   expect(await hiddenIdentityActions.count()).toBeGreaterThan(0);
   await expect(hiddenIdentityActions.first()).toBeHidden();
-  await mkdir("output/playwright/issue-461", { recursive: true });
   for (const width of [390, 768, 1024, 1440, 1920]) {
     await page.setViewportSize({ width, height: 844 });
     const tab = dialog.getByRole("tab", { name: /소속 작업/ }); await tab.focus(); await tab.press("End"); await expect(dialog.getByRole("tab", { name: /물류 연결/ })).toBeFocused();
@@ -140,9 +139,9 @@ test("#461 실제 SQLite Editor 원자 저장·상속·양쪽 canonical·재개�
     await test.info().attach(`issue-461-membership-geometry-${width}`, { body: JSON.stringify({ width, ...measure }, null, 2), contentType: "application/json" });
     expect(measure.hiddenDisclosureButtons).toBeGreaterThan(0);
     expect(measure.documentWidth).toBeLessThanOrEqual(width); expect(measure.tableWidth).toBeGreaterThanOrEqual(960); expect(measure.tabVisible).toBe(true); expect(measure.tableColumnsAligned).toBe(true); expect(measure.siblingCellsNonOverlapping).toBe(true); expect(measure.firstControlContainedInCell).toBe(true); expect(measure.allControlsContainedInCells).toBe(true); expect(measure.allSiblingControlsNonOverlapping).toBe(true); expect(measure.commandControlCount).toBeGreaterThan(0); expect(measure.filterControlsNonOverlapping).toBe(true); expect(measure.tabsScrollHeight).toBeLessThanOrEqual(measure.tabsClientHeight + 1); expect(measure.focusedTabOutlineVisible).toBe(true); metrics.push({ width, ...measure });
-    await page.screenshot({ path: `output/playwright/issue-461/memberships-${width}.png` });
+    await page.screenshot({ path: info.outputPath(`memberships-${width}.png`) });
   }
-  await writeFile("output/playwright/issue-461/geometry.json", JSON.stringify(metrics, null, 2));
+  await writeFile(info.outputPath("geometry.json"), JSON.stringify(metrics, null, 2));
   // Browser reload above creates the expected new instance; dialog save/tab changes preserve it thereafter.
   expect(instance).toBeTruthy();
   await expect(frame).toHaveAttribute("data-project-gantt-instance", currentInstance!);

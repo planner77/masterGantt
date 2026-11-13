@@ -325,7 +325,7 @@ export function calculateLogisticsDashboardPure(input: CalculateDashboardInput):
         // 설비 연결 확인
         for (const eqId of effective.effectiveEquipmentIds) {
           const eq = equipmentById.get(eqId);
-          if (eq && filterTargetProcessIds.has(eq.processId)) {
+          if (eq?.processId && filterTargetProcessIds.has(eq.processId)) {
             match = true;
             break;
           }
@@ -692,7 +692,7 @@ export function calculateLogisticsDashboardPure(input: CalculateDashboardInput):
       }
     }
 
-    const proc = processById.get(eq.processId);
+    const proc = eq.processId === null ? undefined : processById.get(eq.processId);
     const primarySysMap = eq.controlSystems?.find((s) => s.controlRole === "primary");
     const primarySys = primarySysMap ? systemById.get(primarySysMap.systemId) : null;
     const primaryOwnerRole = eq.resourceRoles?.find((r) => r.role === "owner" && r.isPrimary);

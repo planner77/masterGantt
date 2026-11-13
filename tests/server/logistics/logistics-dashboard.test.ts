@@ -324,6 +324,18 @@ describe("Logistics Dashboard Engine (Deterministic Synthetic Fixture & Edge Cas
     expect(e1Row?.progressPercent).toBeCloseTo(66.6667, 3);
   });
 
+  it("retains unassigned equipment in totals without inventing a process", () => {
+    const fixture = createDeterministicFixture();
+    const logistics = { ...fixture.logistics, equipment: fixture.logistics.equipment.map(row => row.id === "e1" ? { ...row, processId: null } : row) };
+    const result = calculateLogisticsDashboardPure({ ...fixture, logistics });
+    expect(result.quality.totalEquipmentMasterCount).toBe(3);
+    expect(result.quality.totalEquipmentQuantity).toBe(8);
+    expect(result.breakdowns.equipment.find(row => row.id === "e1")).toMatchObject({ processId: null, processName: null });
+    expect(result.breakdowns.processes.map(row => row.id)).toEqual(fixture.logistics.processes.map(row => row.id));
+    const filtered = calculateLogisticsDashboardPure({ ...fixture, logistics: { ...logistics, taskSystemLinks: [] }, filter: { asOfDate: "2026-10-09", processIds: ["p1"] } });
+    expect(filtered.breakdowns.equipment.find(row => row.id === "e1")?.taskCount).toBe(0);
+  });
+
   it("handles C3 coordinator direct view vs coordination view correctly without double counting", () => {
     const fixture = createDeterministicFixture();
 

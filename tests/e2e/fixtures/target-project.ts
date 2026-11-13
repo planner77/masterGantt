@@ -14,7 +14,7 @@ async function successful(response: APIResponse) {
 }
 
 /** Current data uses real HTTP; archived relation fixtures use isolated SQLite services. */
-export async function createTargetProject(page: Page, origin: string, observeApi: ObserveIsolatedApi) {
+export async function createTargetProject(page: Page, origin: string, observeApi: ObserveIsolatedApi, options: { noProcesses?: boolean } = {}) {
   const headers = { Origin: origin };
   await successful(await page.request.post(`${origin}/api/project-master/admin-sessions`, { headers, data: { password: targetMasterPassword } }));
   let masters = await (await successful(await page.request.get(`${origin}/api/project-master/admin/items`))).json() as ProjectMasterAdminResponse;
@@ -101,7 +101,7 @@ export async function createTargetProject(page: Page, origin: string, observeApi
     return successful(await page.request.fetch(`${api}${path}`, { method, headers: { ...headers, "If-Match": `"${current.data.project.revision}"` }, data }));
   };
   const processIds: string[] = [];
-  for (const code of ["A", "B"]) {
+  for (const code of options.noProcesses ? [] : ["A", "B"]) {
     const process = await (await mutate("/logistics/processes", { name: `${code} 공정` })).json() as LogisticsMutationResponse;
     const processId = process.data.logistics.processes.find(row => row.name === `${code} 공정`)!.id;
     processIds.push(processId);

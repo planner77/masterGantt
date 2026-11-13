@@ -550,15 +550,15 @@ export class ProjectCopyService {
         const newBySourceEquipmentId = new Map<number, EquipmentRecord>();
 
         for (const se of sourceEquipment) {
-          const newProcess = newBySourceProcessId.get(se.processId);
-          if (!newProcess) {
-            throw new Error(`Referenced process ${se.processId} not found during equipment copy.`);
+          const newProcess = se.processId === null ? null : newBySourceProcessId.get(se.processId);
+          if (se.processId !== null && !newProcess) {
+            throw new LogisticsConflictError("EQUIPMENT_PROCESS_REFERENCE_INVALID", "설비의 주 관리 공정을 복사 원본에서 찾을 수 없습니다.");
           }
 
           const newEquipment = this.logistics.insertEquipment({
             publicId: randomUUID(),
             projectId: project.id,
-            processId: newProcess.id,
+            processId: newProcess?.id ?? null,
             code: se.code,
             name: se.name,
             equipmentType: se.equipmentType,

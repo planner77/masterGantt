@@ -1,3 +1,9 @@
+import { ProjectExportSnapshotService } from "../../../src/server/exports/project-export-snapshot-service-core";
+import { handleProjectExcelExport } from "../../../src/server/exports/project-excel-export-handler-core";
+import { ResourceDashboardService } from "../../../src/server/resources/resource-dashboard-service-core";
+import { LogisticsRepository } from "../../../src/server/repositories/logistics-repository-core";
+import { ProjectTemplateService } from "../../../src/server/templates/project-template-service-core";
+import { ProjectJsonExportService } from "../../../src/server/exports/project-json-export-core";
 import { randomUUID } from "node:crypto";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -489,4 +495,99 @@ describe("ProjectCopyService with Logistics (Issue #189 LG-06)", () => {
       database.close();
     }
   });
+});
+// A process-free Project still owns Equipment and its direct relations.
+describe("Issue #917 process-free Equipment transfer", () => {
+  it.each(["copy", "template"] as const)("preserves unit/fleet Equipment and relations via %s without creating processes", async (method) => {
+    const { database } = openDatabase({ filename: ":memory:", migrationsDirectory });
+    const stamp = "2026-11-13T00:00:00.000Z";
+    const options = {
+      clock: () => new Date(stamp), hashPassword: async () => fixedPasswordHash(1),
+      generateSessionToken: () => ({ rawToken: "src-token", tokenHash: hashSessionToken("src-token") }),
+    };
+    try {
+      const source = new ProjectService(database, options);
+      const created = await source.create({ name: "Process-free source", description: "", editPassword: "password123" });
+      const publicId = created.response.data.project.publicId;
+      const auth = source.authorize(publicId, "src-token");
+      if (auth.kind !== "authorized") throw new Error("Auth failed");
+      const projectId = (database.prepare("SELECT id FROM projects WHERE public_id=?").get(publicId) as { id: number }).id;
+      const logistics = new LogisticsRepository(database);
+      const system = logistics.insertSystem({ publicId: randomUUID(), projectId, code: "CTRL", name: "Controller", systemType: "scs", layer: "controller", scope: "project", now: stamp });
+      const owner = new ResourceCatalogRepository(database).insertResource({ publicId: randomUUID(), code: "OWNER", name: "Owner", description: "", now: stamp });
+      const task = source.createTask(auth.authorization, 1, { externalId: "T1", name: "Direct Task", type: "task", start: "2026-11-13", duration: 1, progress: 0 }).data.tasks[0];
+      const taskId = (database.prepare("SELECT id FROM tasks WHERE public_id=?").get(task.taskId) as { id: number }).id;
+      for (const [code, managementUnit, quantity] of [["UNIT", "unit", 1], ["FLEET", "fleet", 8]] as const) {
+        const eq = logistics.insertEquipment({ publicId: randomUUID(), projectId, processId: null, code, name: code, equipmentType: "amr", managementUnit, quantity, active: code === "UNIT" ? 1 : 0, manufacturer: "Maker", model: "Model", description: "Independent", now: stamp });
+        logistics.setEquipmentSystems(projectId, eq.id, [{ systemId: system.id, controlRole: "primary" }], stamp);
+        logistics.replaceEquipmentResourceRoles(projectId, eq.id, [{ resourceId: owner.id, role: "owner", isPrimary: 1 }], stamp);
+        logistics.replaceTaskEquipmentLinks(projectId, taskId, [...logistics.listAllTaskEquipmentLinks(projectId).filter(link => link.taskId === taskId).map(link => ({ equipmentId: link.equipmentId, scope: link.scope })), { equipmentId: eq.id, scope: "self" }], stamp);
+      }
+      let resultId: string;
+      if (method === "copy") {
+        resultId = (await new ProjectCopyService(database, { ...options, generateSessionToken: () => ({ rawToken: "copy-token", tokenHash: hashSessionToken("copy-token") }) }).copy(auth.authorization, 2, { name: "Copy", description: "", editPassword: "password123" })).response.data.project.publicId;
+      } else {
+        const templates = new ProjectTemplateService(database, { ...options, generateSessionToken: () => ({ rawToken: "template-token", tokenHash: hashSessionToken("template-token") }) });
+        const template = templates.createTemplateFromProject(auth.authorization, 2, { name: "Independent Equipment" });
+        const payload = JSON.parse((database.prepare("SELECT content_json FROM project_templates WHERE public_id=?").get(template.id) as { content_json: string }).content_json);
+        expect(payload.logistics.schemaVersion).toBe(7);
+        expect(payload.logistics.equipment.map((eq: { processCode: unknown }) => eq.processCode)).toEqual([null, null]);
+        resultId = (await templates.instantiateProject(template.id, { name: "Restored", ownerName: "Owner", editPassword: "password123", projectStartDate: "2026-11-13" })).response.data.project.publicId;
+      }
+      const targetId = (database.prepare("SELECT id FROM projects WHERE public_id=?").get(resultId) as { id: number }).id;
+      const dto = new LogisticsService(database).getLogisticsDto(targetId);
+      expect(dto.processes).toEqual([]);
+      expect(dto.equipment).toHaveLength(2);
+      expect(dto.equipment.map(eq => [eq.code, eq.processId, eq.managementUnit, eq.quantity, eq.active]).sort()).toEqual([["FLEET", null, "fleet", 8, false], ["UNIT", null, "unit", 1, true]]);
+      for (const eq of dto.equipment) {
+        expect(eq.manufacturer).toBe("Maker"); expect(eq.model).toBe("Model"); expect(eq.description).toBe("Independent");
+        expect(eq.controlSystems).toEqual([{ systemId: dto.systems[0].id, controlRole: "primary" }]);
+        expect(eq.resourceRoles).toEqual([expect.objectContaining({ resourceId: owner.publicId, role: "owner", isPrimary: true })]);
+        expect(logistics.listEquipment(projectId).map(row => row.publicId)).not.toContain(eq.id);
+      }
+      expect(dto.taskEquipmentLinks).toHaveLength(2);
+      expect(database.prepare("SELECT COUNT(*) FROM project_work_areas WHERE project_id=?").pluck().get(targetId)).toBe(0);
+      expect(database.prepare("SELECT COUNT(*) FROM logistics_targets WHERE project_id=?").pluck().get(targetId)).toBe(0);
+      expect(database.prepare("SELECT COUNT(*) FROM tasks WHERE project_id=?").pluck().get(targetId)).toBe(1);
+      expect(() => new ProjectJsonExportService(database).get(publicId, 2)).toThrow(expect.objectContaining({ status: 409, code: "EQUIPMENT_PROCESS_EXPORT_UNSUPPORTED" }));
+      const exports = new ProjectExportSnapshotService(database, { clock: options.clock });
+      const request = { includeDependencies: false, scope: "project", scale: "day", hierarchyDisplay: "expanded", layout: { columns: [{ id: "text", widthPx: 224 }] } };
+      const send = (extra: object) => handleProjectExcelExport(new Request(`https://gantt.example/api/projects/${publicId}/exports/excel`, {
+        method: "POST", headers: { Origin: "https://gantt.example", "Content-Type": "application/json", "If-Match": '"2"' }, body: JSON.stringify({ ...request, ...extra }),
+      }), publicId, { service: source, applicationBaseUrl: "https://gantt.example", environment: "production", getExportBundle: (...args) => exports.get(...args) });
+      const unsupported = await send({});
+      expect(unsupported.status).toBe(422);
+      expect((await unsupported.json()).error.code).toBe("EXPORT_UNSUPPORTED");
+      const reportOnly = await send({ includeLogistics: true });
+      expect(reportOnly.status).toBe(200);
+      expect(reportOnly.headers.get("Cache-Control")).toBe("private, no-store");
+      const report = new ResourceDashboardService(database, { clock: options.clock }).getDashboard(publicId, {})!;
+      expect((await send({ resourceDashboard: { basis: "current", expectedReport: { context: report.resourceScopeContext!, snapshotId: report.snapshotId, filters: {} }, granularities: ["month"] } })).status).toBe(200);
+      expect(database.pragma("foreign_key_check")).toEqual([]);
+    } finally { database.close(); }
+  });
+  it("rejects corrupt nonnull primary process source references during Copy and Template save", async () => {
+    const { database } = openDatabase({ filename: ":memory:", migrationsDirectory });
+    const stamp = "2026-11-13T00:00:00.000Z";
+    const options = { clock: () => new Date(stamp), hashPassword: async () => fixedPasswordHash(1), generateSessionToken: () => ({ rawToken: "source", tokenHash: hashSessionToken("source") }) };
+    try {
+      const projects = new ProjectService(database, options);
+      const created = await projects.create({ name: "Corrupt source", description: "", editPassword: "password123" });
+      const publicId = created.response.data.project.publicId;
+      const auth = projects.authorize(publicId, "source");
+      if (auth.kind !== "authorized") throw new Error("Auth failed");
+      const projectId = (database.prepare("SELECT id FROM projects WHERE public_id=?").get(publicId) as { id: number }).id;
+      const eq = new LogisticsRepository(database).insertEquipment({ publicId: randomUUID(), projectId, processId: null, code: "BROKEN", name: "Broken", equipmentType: "amr", managementUnit: "unit", quantity: 1, now: stamp });
+      database.pragma("foreign_keys = OFF");
+      database.prepare("UPDATE project_equipment SET process_id=999999 WHERE id=?").run(eq.id);
+      database.pragma("foreign_keys = ON");
+      const before = database.prepare("SELECT COUNT(*) FROM projects").pluck().get();
+      await expect(new ProjectCopyService(database, options).copy(auth.authorization, 1, { name: "Must rollback", description: "", editPassword: "password123" })).rejects.toMatchObject({ code: "EQUIPMENT_PROCESS_REFERENCE_INVALID" });
+      expect(database.prepare("SELECT COUNT(*) FROM projects").pluck().get()).toBe(before);
+      expect(() => new ProjectTemplateService(database, options).createTemplateFromProject(auth.authorization, 1, { name: "Must reject" })).toThrow(expect.objectContaining({ code: "EQUIPMENT_PROCESS_REFERENCE_INVALID" }));
+      expect(database.prepare("SELECT COUNT(*) FROM project_templates").pluck().get()).toBe(0);
+      expect(database.prepare("SELECT process_id FROM project_equipment WHERE id=?").pluck().get(eq.id)).toBe(999999);
+    } finally { database.close(); }
+  });
+
 });

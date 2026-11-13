@@ -326,7 +326,7 @@ describe("Issue727 persisted Project participation", () => {
       return { table, rows: rows.map(row => Object.fromEntries(Object.entries(row).filter(([name]) => !additions.includes(name)))) };
     });
     const legacyRows = snapshotRows();
-    expect(runMigrations(initial, migrationsDirectory).applied).toEqual(["0029_project_resource_memberships.sql", "0030_project_work_areas.sql", "0031_project_visibility.sql", "0032_project_issues.sql", "0033_project_issue_credentials_soft_delete.sql", "0034_project_issue_business_status.sql", "0035_country_calendar_catalog.sql", "0036_display_name_translations.sql", "0037_project_workspace_tabs.sql", "0038_description_formats.sql"]);
+    expect(runMigrations(initial, migrationsDirectory).applied).toEqual(["0029_project_resource_memberships.sql", "0030_project_work_areas.sql", "0031_project_visibility.sql", "0032_project_issues.sql", "0033_project_issue_credentials_soft_delete.sql", "0034_project_issue_business_status.sql", "0035_country_calendar_catalog.sql", "0036_display_name_translations.sql", "0037_project_workspace_tabs.sql", "0038_description_formats.sql", "0039_optional_equipment_process.sql"]);
     expect(snapshotRows()).toEqual(legacyRows);
     expect(initial.prepare("SELECT description_format FROM tasks WHERE id=?").pluck().get(legacyTask.id)).toBe("plain");
     expect(initial.prepare("SELECT visibility FROM projects WHERE id = ?").pluck().get(legacyProject.id)).toBe("public");

@@ -21,7 +21,7 @@ const node: z.ZodType<CheckedNode> = z.lazy(() => z.object({selector:z.object({d
 const base = z.object({schema:z.enum(["wbs-view-report/1","wbs-view-report/2"]),snapshotId:hash,projectPublicId:z.string(),projectRevision:count,spec,filters:record,range:z.object({from:date,to:date}),asOfDate:date,mdPerMm:z.number().finite().positive().nullable(),metadata:record,sourceContext:resourceDataContextSchema.extend({schema:z.literal("wbs-view-source/1"),contextSourceVersion:z.literal("explicit-task-context:v1"),snapshotId:hash,spec,path:wbsViewPathSchema,scope:scope.optional(),range:z.object({from:date,to:date}),asOfDate:date,mdPerMm:z.number().finite().positive().nullable(),mdPerMmSource:z.enum(["query","environment","unset"]),mdPerMmProvided:z.boolean()})}).passthrough();
 const equipmentCatalogItem = z.object({
   id:z.string().min(1),name:z.string(),equipmentType:z.string().min(1).max(64),equipmentTypeName:z.string(),
-  managementUnit:z.enum(["unit","fleet"]),quantity:z.number().int().nonnegative(),active:z.boolean(),primaryProcessId:z.string().min(1),
+  managementUnit:z.enum(["unit","fleet"]),quantity:z.number().int().nonnegative(),active:z.boolean(),primaryProcessId:z.string().min(1).nullable(),
   workAreaLinks:z.array(z.object({processId:z.string().min(1),occurrenceId:z.string().min(1).nullable(),workAreaId:z.string().min(1)})).max(50000),
   resourceRoles:z.array(z.object({resourceId:z.string().min(1),resourceName:z.string(),role:z.enum(["owner","contributor"]),isPrimary:z.boolean(),active:z.boolean()})).max(50000),
   controlSystems:z.array(z.object({systemId:z.string().min(1),systemName:z.string(),controlRole:z.enum(["primary","supporting"])})).max(50000),

@@ -1,6 +1,6 @@
 import { selectResourceReportView } from "./helpers/resource-workspace";
 import { openWorkspaceView } from "./helpers/workspace-navigation";
-import { mkdir, writeFile } from "node:fs/promises";
+import { writeFile } from "node:fs/promises";
 import { expect, isolatedApplicationOptions, test } from "./fixtures/isolated-application";
 import { targetMasterPassword } from "./fixtures/target-project";
 import { issue621ResourcePassword, seedIssue621 } from "./fixtures/issue-621-target-project";
@@ -36,7 +36,6 @@ test("#622 Target 선택80·Project140·외부 배정 편집 복귀·동일 Exce
   const table = plan.getByRole("region", { name: "개인 기간 계획표", exact: true });
   const before = await f.snapshot();
   const measurements = [];
-  await mkdir("output/playwright/issue-622", { recursive: true });
   for (const width of [390, 768, 1024, 1440, 1920]) {
     await page.setViewportSize({ width, height: 1000 });
     await table.focus();
@@ -46,7 +45,7 @@ test("#622 Target 선택80·Project140·외부 배정 편집 복귀·동일 Exce
     expect(geometry.focused).toBe(true);
     if (width === 390) expect(geometry.scroll).toBeGreaterThan(geometry.client);
     measurements.push(geometry);
-    await page.screenshot({ path: `output/playwright/issue-622/plan-${width}.png`, fullPage: true });
+    await page.screenshot({ path: info.outputPath(`plan-${width}.png`), fullPage: true });
   }
   expect(await f.snapshot()).toEqual(before);
   await table.locator("tbody tr").filter({ hasText: f.resources[0].name }).getByRole("button", { name: /Project 전체 · 초과/ }).first().click();
@@ -80,7 +79,7 @@ test("#622 Target 선택80·Project140·외부 배정 편집 복귀·동일 Exce
     }
     for (const button of geometry.buttons) { expect(button.left).toBeGreaterThanOrEqual(button.parent.left); expect(button.right).toBeLessThanOrEqual(button.parent.right); }
     measurements.push(geometry);
-    await page.screenshot({ path: `output/playwright/issue-622/assignment-${width}.png`, fullPage: true });
+    await page.screenshot({ path: info.outputPath(`assignment-${width}.png`), fullPage: true });
   }
   const assignmentsBefore = (await (await page.request.get(`${f.api}/assigned-targets`)).json()).data.assignments;
   const outsideAssignment = assignmentsBefore.find((assignment: { taskId: string }) => assignment.taskId === f.unset.taskId)!;
@@ -147,6 +146,6 @@ test("#622 Target 선택80·Project140·외부 배정 편집 복귀·동일 Exce
   expect(exportRequests[0]).toHaveProperty("resourceDashboard.expectedReport.filters.systemIds", [systemId]);
   expect(exportRequests[1]).toHaveProperty("resourceDashboard.basis", "project");
   expect(exportRequests[1]).not.toHaveProperty("resourceDashboard.expectedReport.filters");
-  await writeFile("output/playwright/issue-622/evidence.json", JSON.stringify({ measurements, exportRequests }, null, 2));
+  await writeFile(info.outputPath("evidence.json"), JSON.stringify({ measurements, exportRequests }, null, 2));
   await info.attach("issue622-ui-evidence", { contentType: "application/json", body: JSON.stringify({ measurements, exportRequests }) });
 });

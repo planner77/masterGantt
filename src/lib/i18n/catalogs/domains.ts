@@ -3616,6 +3616,30 @@ export const domainsMessages = {
     "en": "All Groups",
     "vi": "Tất cả nhóm"
   },
+  "비활성 공정은 새로 지정할 수 없습니다. 다른 공정을 선택해 주세요. 입력한 초안은 유지됩니다.": {
+    "en": "An inactive process cannot be newly assigned. Choose another process; your draft is preserved.",
+    "vi": "Không thể chỉ định mới công đoạn không hoạt động. Chọn công đoạn khác; bản nháp được giữ lại."
+  },
+  "기존 Target 연결로 주 관리 공정을 변경하거나 해제할 수 없습니다. 기존 연결과 입력한 초안은 유지됩니다.": {
+    "en": "An existing Target link prevents changing or clearing the primary process. The link and your draft are preserved.",
+    "vi": "Liên kết Target hiện có ngăn thay đổi hoặc bỏ công đoạn chính. Liên kết và bản nháp được giữ lại."
+  },
+  "공정 미지정": {
+    "en": "No process assigned",
+    "vi": "Chưa chỉ định công đoạn"
+  },
+  "주 관리 공정 (선택)": {
+    "en": "Primary process (optional)",
+    "vi": "Công đoạn chính (tùy chọn)"
+  },
+  "저장하려면 설비 코드와 설비명을 입력해 주세요.": {
+    "en": "Enter an equipment code and name to save.",
+    "vi": "Nhập mã và tên thiết bị để lưu."
+  },
+  "물류 설비(Stocker, AGV, AMR 등)를 등록하고 필요에 따라 공정과 제어 시스템을 연결하세요.": {
+    "en": "Register logistics equipment (Stocker, AGV, AMR, etc.) and optionally link a process and control system.",
+    "vi": "Đăng ký thiết bị logistics (Stocker, AGV, AMR, v.v.) và liên kết công đoạn và hệ thống điều khiển nếu cần."
+  },
   "전체 공정": {
     "en": "All processes",
     "vi": "Tất cả công đoạn"

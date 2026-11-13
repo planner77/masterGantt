@@ -28,7 +28,7 @@ export interface EquipmentRecord {
   id: number;
   publicId: string;
   projectId: number;
-  processId: number;
+  processId: number | null;
   code: string;
   name: string;
   equipmentType: EquipmentType;
@@ -159,7 +159,7 @@ export interface UpdateProcessRecord {
 export interface InsertEquipmentRecord {
   publicId: string;
   projectId: number;
-  processId: number;
+  processId: number | null;
   code: string;
   name: string;
   equipmentType: EquipmentType;
@@ -173,7 +173,7 @@ export interface InsertEquipmentRecord {
 }
 
 export interface UpdateEquipmentRecord {
-  processId?: number;
+  processId?: number | null;
   code?: string;
   name?: string;
   equipmentType?: EquipmentType;
@@ -572,6 +572,15 @@ export class LogisticsRepository {
       );
 
     return this.findEquipmentById(projectId, id);
+  }
+
+  hasEquipmentTargetProcessConflict(projectId: number, equipmentId: number, processId: number | null): boolean {
+    return this.database.prepare(`
+      SELECT 1 FROM logistics_target_members m
+      JOIN logistics_targets t ON t.project_id=m.project_id AND t.id=m.target_id
+      WHERE m.project_id=? AND m.equipment_id=?
+        AND (t.scope<>'process' OR t.project_process_id IS NOT ?) LIMIT 1
+    `).get(projectId, equipmentId, processId) !== undefined;
   }
 
   deleteEquipment(projectId: number, id: number): boolean {

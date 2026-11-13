@@ -97,7 +97,7 @@ export interface EquipmentControlSystemDto {
 export interface EquipmentDto {
   translations?: DisplayNameTranslations;
   id: string; // public_id
-  processId: string; // process public_id
+  processId: string | null; // optional primary process public_id
   code: string;
   name: string;
   equipmentType: EquipmentType;
@@ -273,7 +273,7 @@ export interface CreateEquipmentRequest {
   workAreaLinks?: EquipmentWorkAreaInput[];
   workAreaIds?: string[];
   processCatalogRevision?: number;
-  processId: string;
+  processId?: string | null;
   code: string;
   name: string;
   equipmentType: EquipmentType;
@@ -290,7 +290,7 @@ export interface UpdateEquipmentRequest {
   workAreaLinks?: EquipmentWorkAreaInput[];
   workAreaIds?: string[];
   processCatalogRevision?: number;
-  processId?: string;
+  processId?: string | null;
   code?: string;
   name?: string;
   equipmentType?: EquipmentType;

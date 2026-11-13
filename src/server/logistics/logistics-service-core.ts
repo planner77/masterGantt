@@ -241,26 +241,32 @@ export class LogisticsService {
 
       const equipmentWorkAreas = new ProcessContextRepository(this.database).equipmentLinks(projectId);
       const taskProcessContexts = new ProcessContextRepository(this.database).taskContexts(projectId);
-      const equipmentDtos: EquipmentDto[] = equipment.map((e) => ({
-        id: e.publicId,
-        processId: processPublicIdById.get(e.processId) ?? "",
-        code: e.code,
-        name: e.name,
-        ...equipmentTranslations.get(String(e.id)),
-        equipmentType: e.equipmentType,
-        managementUnit: e.managementUnit,
-        quantity: e.quantity,
-        manufacturer: e.manufacturer,
-        model: e.model,
-        description: e.description,
-        active: e.active === 1,
-        workAreaIds: equipmentWorkAreas.filter(link => link.equipmentId === e.publicId).map(link => link.workAreaId),
-        workAreaLinks: equipmentWorkAreas.filter(link => link.equipmentId === e.publicId).map(({ processId, workAreaId }) => ({ processId, workAreaId })),
-        controlSystems: eqSystemsByEqId.get(e.id) ?? [],
-        resourceRoles: eqRolesByEqId.get(e.id) ?? [],
-        createdAt: e.createdAt,
-        updatedAt: e.updatedAt,
-      }));
+      const equipmentDtos: EquipmentDto[] = equipment.map((e) => {
+        const processId = e.processId === null ? null : processPublicIdById.get(e.processId);
+        if (processId === undefined) {
+          throw new LogisticsConflictError("EQUIPMENT_PROCESS_REFERENCE_INVALID", "Equipment references an unavailable primary process.");
+        }
+        return {
+          id: e.publicId,
+          processId,
+          code: e.code,
+          name: e.name,
+          ...equipmentTranslations.get(String(e.id)),
+          equipmentType: e.equipmentType,
+          managementUnit: e.managementUnit,
+          quantity: e.quantity,
+          manufacturer: e.manufacturer,
+          model: e.model,
+          description: e.description,
+          active: e.active === 1,
+          workAreaIds: equipmentWorkAreas.filter(link => link.equipmentId === e.publicId).map(link => link.workAreaId),
+          workAreaLinks: equipmentWorkAreas.filter(link => link.equipmentId === e.publicId).map(({ processId, workAreaId }) => ({ processId, workAreaId })),
+          controlSystems: eqSystemsByEqId.get(e.id) ?? [],
+          resourceRoles: eqRolesByEqId.get(e.id) ?? [],
+          createdAt: e.createdAt,
+          updatedAt: e.updatedAt,
+        };
+      });
 
       const systemDtos: LogisticsSystemDto[] = systems.map((s) => ({
         id: s.publicId,
@@ -638,9 +644,12 @@ export class LogisticsService {
       this.verifyEditAccess(authorization, expectedRevision, now);
       const projectId = authorization.projectId;
 
-      const process = this.logisticsRepo.findProcessByPublicId(projectId, input.processId);
-      if (!process) {
+      const process = input.processId == null ? null : this.logisticsRepo.findProcessByPublicId(projectId, input.processId);
+      if (input.processId != null && !process) {
         throw new LogisticsEntityNotFoundError("Process", input.processId);
+      }
+      if (process && !process.active) {
+        throw new LogisticsConflictError("PROCESS_INACTIVE", "Inactive processes cannot be newly assigned to equipment.");
       }
 
       if (this.logisticsRepo.findEquipmentByCode(projectId, input.code)) {
@@ -655,7 +664,7 @@ export class LogisticsService {
         throw new LogisticsConflictError("EQUIPMENT_TYPE_INACTIVE", `Equipment type '${input.equipmentType}' is inactive.`);
       }
 
-      if (input.managementUnit === "unit" && input.quantity !== 1) {
+      if (input.managementUnit === "unit" && (input.quantity ?? 1) !== 1) {
         throw new LogisticsValidationError(["Quantity must be 1 for unit management type."]);
       }
 
@@ -663,7 +672,7 @@ export class LogisticsService {
       const inserted = this.logisticsRepo.insertEquipment({
         publicId,
         projectId,
-        processId: process.id,
+        processId: process?.id ?? null,
         code: input.code,
         name: input.name,
         equipmentType: input.equipmentType,
@@ -734,13 +743,24 @@ export class LogisticsService {
         }
       }
 
-      let processId: number | undefined = undefined;
-      if (input.processId !== undefined) {
+      let processId: number | null | undefined;
+      if (input.processId === null) {
+        processId = null;
+      } else if (input.processId !== undefined) {
         const proc = this.logisticsRepo.findProcessByPublicId(projectId, input.processId);
         if (!proc) {
           throw new LogisticsEntityNotFoundError("Process", input.processId);
         }
+        if (!proc.active && proc.id !== current.processId) {
+          throw new LogisticsConflictError("PROCESS_INACTIVE", "Inactive processes cannot be newly assigned to equipment.");
+        }
         processId = proc.id;
+      }
+      if (processId !== undefined && processId !== current.processId) {
+        const incompatibleTarget = this.logisticsRepo.hasEquipmentTargetProcessConflict(projectId, current.id, processId);
+        if (incompatibleTarget) {
+          throw new LogisticsConflictError("TARGET_EQUIPMENT_PROCESS_MISMATCH", "Existing Target membership prevents changing or clearing the primary process.");
+        }
       }
 
       const mUnit = input.managementUnit ?? current.managementUnit;

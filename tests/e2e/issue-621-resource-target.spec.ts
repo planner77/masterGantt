@@ -1,6 +1,6 @@
 import { isWbsViewReadQuery } from "./helpers/read-only-requests";
 import { openWorkspaceView } from "./helpers/workspace-navigation";
-import { mkdir, writeFile } from "node:fs/promises";
+import { writeFile } from "node:fs/promises";
 import type { Locator, Page } from "@playwright/test";
 import type { ResourceDashboardDto } from "../../src/contracts/resource-dashboard";
 import { expect, isolatedApplicationOptions, test } from "./fixtures/isolated-application";
@@ -188,8 +188,7 @@ test("#621 실물 필터·고유 총계·5폭 내부 scroll·native keyboard·�
   }
   expect(retiredRequests).toEqual([]); expect(writes).toEqual([]); expect(await f.snapshot()).toEqual(before);
   await expect(frame).toHaveAttribute("data-project-gantt-instance",instance!); expect(await core!.evaluate(element=>element.isConnected)).toBe(true);
-  await mkdir("output/playwright/issue-621",{recursive:true});
-  await writeFile("output/playwright/issue-621/physical-geometry.json",JSON.stringify({geometry,writes,retiredRequests}));
+  await writeFile(info.outputPath("physical-geometry.json"),JSON.stringify({geometry,writes,retiredRequests}));
   await info.attach("issue621-physical-observations",{contentType:"application/json",body:JSON.stringify({geometry,systemId,writes,retiredRequests})});
 });
 

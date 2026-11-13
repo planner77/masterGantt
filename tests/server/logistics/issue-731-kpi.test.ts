@@ -54,6 +54,16 @@ describe("#731 explicit integrated logistics KPI consumer", () => {
     expect(f.state()).toEqual(before);
   });
 
+  it("keeps process-free equipment in integrated registered totals without inventing a process", () => {
+    const f = fixture("direct");
+    f.database.prepare("UPDATE project_equipment SET process_id=NULL WHERE id=?").run(f.idleEquipment.id);
+    const data = f.report();
+    expect(data.integrated!.configuration.equipmentIds).toContain(f.idleEquipment.publicId);
+    expect(data.integrated!.configuration.equipmentQuantity).toBe(22);
+    expect(data.breakdowns.equipment.find(row => row.id === f.idleEquipment.publicId)).toMatchObject({ processId: null, processName: null, quantity: 7 });
+    expect(data.breakdowns.processes.map(row => row.id).sort()).toEqual([f.processA.publicId, f.processB.publicId].sort());
+  });
+
   it("Target0 direct-only keeps historical headline/filter/effort/quality behavior", () => {
     const f = fixture("direct");
     for (const filter of [{}, { activeOnly: true }, { systemIds: [f.systems[2].publicId] }, { equipmentIds: [f.equipment[0].publicId], horizonDays: 1 }, { systemView: "coordination" as const }]) {

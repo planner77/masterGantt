@@ -71,7 +71,7 @@ export interface LogisticsDashboardEquipmentRowDto {
   name: string;
   equipmentType: string;
   quantity: number;
-  processId: string;
+  processId: string | null;
   processName: string | null;
   processTranslations?: DisplayNameTranslations;
   primaryControllerName: string | null;

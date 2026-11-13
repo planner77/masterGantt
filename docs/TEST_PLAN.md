@@ -66,3 +66,8 @@ Windows Excel/VBA/DRM, 실제 reverse proxy/TLS, off-host backup/restore·운영
 ## #898/#899 후속 · Playwright 산출물과 source 불변
 
 기존 milestone-dashboard-state(#463), project-summary-bar-visual(#818/#822), project-task-editor-persistence(#258), schedule-views(#880/#889)의 PNG/JSON 출력은 각 testInfo.outputPath 아래에만 생성한다. 기존 committed output/playwright 이미지·geometry와 source를 덮어쓰지 않는다. assertions/fixtures/attachments와 snapshot guard는 유지한다. f4의 개별160PASS 뒤 tracked13/untracked16 산출물 때문에 전체 BLOCKED된 최초 근거는 [F898-014](ISSUE_898_FAILURE_ANALYSIS.md)에 보존한다.
+
+
+## Issue #917 — nullable 설비 AC 회귀
+
+[Work Packet](exec-plans/active/ISSUE_917.md)의 AC1~8을 기존 logistics/service/handlers/repository/Target·resource/WBS·Copy/Template/Excel 및 기존 editor Chromium seam으로 확장한다. fresh/38→39 upgrade·FK/index/trigger/자식 PK 보존·실패 전체 rollback·restart/격리 backup restore, 공정0 CRUD·생략/null/빈값·비활성/foreign·401/403/409/412 및 strong revision, legacy Target 충돌·WorkArea 독립·등록/root/수량 누락0을 검증한다. UI5폭·3언어·keyboard/focus·dirty/stale/readonly와 nullable transport, 공통 full Unit/Integration/build·Docker/API/SQLite·같은 최종 source admission을 구분 기록한다. 원본 테스트/timeout/retry/skip은 약화하지 않는다. 원격 CI는 현행 정책 N/A이며 실제 실행 결과는 [원장](ISSUE_917_FAILURE_ANALYSIS.md)에 추가한다.

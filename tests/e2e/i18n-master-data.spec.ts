@@ -179,7 +179,7 @@ test("Issue #866: 실제 마스터 표시명 저장·새로고침·해제·동�
         }
       }
       const geometry=await page.evaluate(() => ({width:innerWidth,documentWidth:document.documentElement.scrollWidth,overflow:[...document.querySelectorAll("body *")].filter(element=>{if(element.getBoundingClientRect().right<=innerWidth+1)return false;let parent=element.parentElement;while(parent&&parent!==document.body){if(["auto","scroll","hidden"].includes(getComputedStyle(parent).overflowX))return false;parent=parent.parentElement;}return true;}).slice(0,16).map(element=>({tag:element.tagName,className:element.className,right:element.getBoundingClientRect().right,text:element.textContent?.slice(0,80)}))}));
-      await page.screenshot({ path:`output/playwright/issue-866-master-${locale}-${width}.png`, fullPage:true });
+      await page.screenshot({ path:testInfo.outputPath(`issue-866-master-${locale}-${width}.png`), fullPage:true });
       expect(geometry.documentWidth,JSON.stringify(geometry)).toBeLessThanOrEqual(geometry.width+1);
     }
   }
@@ -197,7 +197,7 @@ test("Issue #866: 실제 마스터 표시명 저장·새로고침·해제·동�
     const coarseRows=await touchTable.locator("tbody tr").evaluateAll(rows=>rows.map(row=>row.getBoundingClientRect().height));
     for(const height of coarseRows)expect(height).toBeLessThanOrEqual(52);
     density.push({locale:"vi-coarse",width:390,rowHeights:coarseRows});
-    await touch.screenshot({path:"output/playwright/issue-866-master-coarse-390.png",fullPage:true});
+    await touch.screenshot({path:testInfo.outputPath("issue-866-master-coarse-390.png"),fullPage:true});
     await touchTable.locator('button[aria-haspopup="dialog"]').first().click();
     const dialog=touch.getByRole("dialog");
     await expect(dialog.getByLabel("한국어",{exact:true})).toBeFocused();

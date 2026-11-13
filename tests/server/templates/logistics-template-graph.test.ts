@@ -1,3 +1,5 @@
+import type { ProjectTemplateSnapshot } from "../../../src/contracts/project-templates";
+import { snapshotLogisticsTemplateGraph, restoreLogisticsTemplateGraph } from "../../../src/server/templates/logistics-template-graph-core";
 import { ResourceDashboardService } from "../../../src/server/resources/resource-dashboard-service-core";
 import { TaskHierarchyService } from "../../../src/server/projects/task-hierarchy-service-core";
 import { ProjectCopyService } from "../../../src/server/projects/project-copy-service-core";
@@ -562,5 +564,110 @@ describe("Issue #762 project-owned WorkArea exchange",()=>{
       const report=new ResourceDashboardService(f.db,{clock:()=>now}).getDashboard(f.sourceId,{})!;
       expect(()=>new ProjectExportSnapshotService(f.db,{clock:()=>now}).get(f.sourceId,false,{basis:"current",expectedReport:{context:report.resourceScopeContext!,snapshotId:report.snapshotId,filters:{}},granularities:["month"]})).not.toThrow();
     }finally{f.db.close();}
+  });
+});
+
+describe("Issue #917 Template nullable primary process", () => {
+  it("directly serializes and restores a v7 WorkArea graph for Equipment with no primary process", async () => {
+    const { database: db } = openDatabase({ filename: ":memory:", migrationsDirectory });
+    try {
+      const projects = new ProjectService(db, { clock: () => now, hashPassword: password });
+      const logistics = new LogisticsRepository(db);
+      const create = async (name: string) => {
+        const { response } = await projects.create({ name, description: "", editPassword: "password123" });
+        const projectId = db.prepare("SELECT id FROM projects WHERE public_id=?").pluck().get(response.data.project.publicId) as number;
+        const process = logistics.insertProcess({ publicId: randomUUID(), projectId, code: "AREA-OWNER", name: "Area owner", parentId: null, now: stamp });
+        const equipment = logistics.insertEquipment({ publicId: randomUUID(), projectId, processId: null, code: "INDEPENDENT", name: "Independent fleet", equipmentType: "amr", managementUnit: "fleet", quantity: 4, now: stamp });
+        return { projectId, process, equipment };
+      };
+      const source = await create("Graph source"), destination = await create("Graph destination");
+      const sourceAreaId = randomUUID();
+      db.prepare("INSERT INTO project_work_areas(public_id,project_id,process_id,code,name,active,sort_order,created_at,updated_at) VALUES(?,?,?,?,?,1,0,?,?)").run(sourceAreaId, source.projectId, source.process.id, "AREA", "Independent location", stamp, stamp);
+      const contexts = new ProcessContextRepository(db);
+      contexts.replaceEquipment(source.projectId, source.equipment.id, contexts.validateEquipmentWorkAreas(source.projectId, [{ processId: source.process.publicId, workAreaId: sourceAreaId }]));
+      const graph = snapshotLogisticsTemplateGraph(db, source.projectId);
+      expect(graph.schemaVersion).toBe(7);
+      expect(graph.equipmentWorkAreas).toEqual([{ equipmentCode: "INDEPENDENT", workAreaLinks: [{ processCode: "AREA-OWNER", workAreaId: sourceAreaId }] }]);
+      expect(graph.projectWorkAreas).toEqual([expect.objectContaining({ workAreaId: sourceAreaId, processCode: "AREA-OWNER" })]);
+      expect(graph.taskContexts).toEqual([]); expect(graph.taskTargetBindings).toEqual([]);
+      const snapshot: NonNullable<ProjectTemplateSnapshot["logistics"]> = {
+        processes: [{ code: source.process.code, name: source.process.name, parentCode: null, sortOrder: 0, active: true }],
+        equipment: [{ code: source.equipment.code, name: source.equipment.name, processCode: null, equipmentType: "amr", managementUnit: "fleet", quantity: 4, active: true, controlSystems: [], resourceRoles: [] }],
+        systems: [], taskEquipmentLinks: [], taskSystemLinks: [], ...graph,
+      };
+      const result = db.transaction(() => restoreLogisticsTemplateGraph(db, destination.projectId, JSON.parse(JSON.stringify(snapshot)), {
+        processes: new Map([[destination.process.code, destination.process]]),
+        equipment: new Map([[destination.equipment.code, destination.equipment]]), systems: new Map(),
+      }, stamp)).immediate();
+      expect(result).toEqual({ processMappings: 0, targets: 0, warnings: [] });
+      const restoredAreaId = db.prepare("SELECT public_id FROM project_work_areas WHERE project_id=?").pluck().get(destination.projectId) as string;
+      expect(restoredAreaId).not.toBe(sourceAreaId);
+      expect(contexts.equipmentLinks(destination.projectId)).toEqual([expect.objectContaining({ equipmentId: destination.equipment.publicId, processId: destination.process.publicId, workAreaId: restoredAreaId })]);
+      expect(logistics.listEquipment(destination.projectId)).toEqual([expect.objectContaining({ processId: null, quantity: 4 })]);
+      expect(snapshotLogisticsTemplateGraph(db, destination.projectId)).toMatchObject({ schemaVersion: 7, equipmentWorkAreas: [{ equipmentCode: "INDEPENDENT", workAreaLinks: [{ processCode: "AREA-OWNER", workAreaId: restoredAreaId }] }] });
+      expect(db.pragma("foreign_key_check")).toEqual([]);
+    } finally { db.close(); }
+  });
+
+  it.each(["copy", "template"] as const)("roundtrips unassigned Equipment and independent relations alongside assigned legacy graph via %s", async (method) => {
+    const f = await fixture();
+    try {
+      const repository = new LogisticsRepository(f.db);
+      const eq = repository.insertEquipment({ publicId: randomUUID(), projectId: f.project, processId: null, code: "UNASSIGNED", name: "Unassigned", equipmentType: "amr", managementUnit: "fleet", quantity: 7, now: stamp });
+      repository.setEquipmentSystems(f.project, eq.id, [{ systemId: repository.listSystems(f.project).find(system => system.code === "ACS-A")!.id, controlRole: "supporting" }], stamp);
+      const contexts = new ProcessContextRepository(f.db);
+      const directAreaId = randomUUID();
+      f.db.prepare("INSERT INTO project_work_areas(public_id,project_id,process_id,code,name,active,sort_order,created_at,updated_at) VALUES(?,?,?,?,?,1,0,?,?)").run(directAreaId, f.project, f.pB.id, "DIRECT-B", "Independent area", stamp, stamp);
+      contexts.replaceEquipment(f.project, eq.id, contexts.validateEquipmentWorkAreas(f.project, [{ processId: f.pA.publicId, workAreaId: f.areaPublicId }, { processId: f.pB.publicId, workAreaId: directAreaId }]));
+      f.db.prepare("INSERT INTO project_equipment_translations(owner_id,locale,name) VALUES(?,'en','Unassigned fleet')").run(eq.id);
+      const task = f.projectService.createTask(f.authorization, f.projectRevision(), { name: "Direct", externalId: "DIRECT", type: "task", start: "2026-10-12", duration: 1, progress: 0 }).data.tasks[0];
+      const taskId = (f.db.prepare("SELECT id FROM tasks WHERE public_id=?").get(task.taskId) as { id: number }).id;
+      repository.replaceTaskEquipmentLinks(f.project, taskId, [{ equipmentId: eq.id, scope: "self" }], stamp);
+      const template = f.templates.createTemplateFromProject(f.authorization, f.projectRevision(), { name: "Nullable graph" });
+      const content = JSON.parse((f.db.prepare("SELECT content_json FROM project_templates WHERE public_id=?").get(template.id) as { content_json: string }).content_json);
+      expect(content.logistics.schemaVersion).toBe(7);
+      expect(content.logistics.equipment.find((e: { code: string }) => e.code === "UNASSIGNED").processCode).toBeNull();
+      const { response } = method === "template"
+        ? await f.templates.instantiateProject(template.id, { name: "Nullable clone", ownerName: "Owner", editPassword: "password123", projectStartDate: "2026-10-12" })
+        : await new ProjectCopyService(f.db, { clock: () => now, hashPassword: password }).copy(f.authorization, f.projectRevision(), { name: "Nullable clone", description: "", editPassword: "password123" });
+      const projectId = (f.db.prepare("SELECT id FROM projects WHERE public_id=?").get(response.data.project.publicId) as { id: number }).id;
+      const restored = repository.listEquipment(projectId).find(row => row.code === "UNASSIGNED")!;
+      expect(restored.processId).toBeNull(); expect(restored.quantity).toBe(7); expect(restored.publicId).not.toBe(eq.publicId);
+      expect(repository.listEquipment(projectId)).toHaveLength(3);
+      expect(repository.listEquipmentSystems(projectId, restored.id)).toEqual([expect.objectContaining({ controlRole: "supporting" })]);
+      expect(repository.listAllTaskEquipmentLinks(projectId)).toEqual([expect.objectContaining({ equipmentId: restored.id, scope: "self" })]);
+      const restoredLinks = contexts.equipmentLinks(projectId).filter(link => link.equipmentId === restored.publicId);
+      expect(restoredLinks).toHaveLength(2);
+      expect(restoredLinks).toContainEqual(expect.objectContaining({ workAreaId: f.areaPublicId }));
+      const copiedArea = f.db.prepare("SELECT public_id FROM project_work_areas WHERE project_id=? AND code='DIRECT-B'").pluck().get(projectId);
+      expect(copiedArea).not.toBe(directAreaId);
+      expect(restoredLinks).toContainEqual(expect.objectContaining({ workAreaId: copiedArea }));
+      expect(f.db.prepare("SELECT name FROM project_equipment_translations WHERE owner_id=? AND locale='en'").pluck().get(restored.id)).toBe("Unassigned fleet");
+      expect(new LogisticsTargetService(f.db).list(response.data.project.publicId).targets).toHaveLength(3);
+      expect(f.db.pragma("foreign_key_check")).toEqual([]);
+    } finally { f.db.close(); }
+  });
+
+  it("rejects null in legacy versions and corrupt nonnull process/control/Task references atomically", async () => {
+    const f = await fixture();
+    try {
+      const template = f.templates.createTemplateFromProject(f.authorization, f.projectRevision(), { name: "Strict refs" });
+      const original = JSON.parse((f.db.prepare("SELECT content_json FROM project_templates WHERE public_id=?").get(template.id) as { content_json: string }).content_json);
+      const before = f.db.prepare("SELECT COUNT(*) FROM projects").pluck().get();
+      const cases: Array<{ change: (value: typeof original) => void; code: string }> = [
+        { change: p => { p.logistics.equipment[0].processCode = null; }, code: "TEMPLATE_LOGISTICS_VERSION_UNSUPPORTED" },
+        ...["MISSING", "", undefined].map(processCode => ({ change: (p: typeof original) => { p.logistics.equipment[0].processCode = processCode; }, code: "TEMPLATE_LOGISTICS_REFERENCE_INVALID" })),
+        { change: p => { p.logistics.processes[0].parentCode = "MISSING"; }, code: "TEMPLATE_LOGISTICS_REFERENCE_INVALID" },
+        { change: p => { p.logistics.equipment[0].controlSystems[0].systemCode = "MISSING"; }, code: "TEMPLATE_LOGISTICS_REFERENCE_INVALID" },
+        { change: p => { p.logistics.taskEquipmentLinks = [{ taskExternalId: "MISSING", equipmentCode: "AMR-A", scope: "self" }]; }, code: "TEMPLATE_LOGISTICS_REFERENCE_INVALID" },
+      ];
+      for (const test of cases) {
+        const corrupted = structuredClone(original); test.change(corrupted);
+        f.db.prepare("UPDATE project_templates SET content_json=? WHERE public_id=?").run(JSON.stringify(corrupted), template.id);
+        await expect(f.templates.instantiateProject(template.id, { name: "Must rollback", ownerName: "Owner", editPassword: "password123", projectStartDate: "2026-10-12" })).rejects.toMatchObject({ status: 409, code: test.code });
+        expect(f.db.prepare("SELECT COUNT(*) FROM projects").pluck().get()).toBe(before);
+        expect(f.db.pragma("foreign_key_check")).toEqual([]);
+      }
+    } finally { f.db.close(); }
   });
 });

@@ -620,7 +620,8 @@ function logisticsSheet(snapshot: ProjectSnapshotResponse, tasks: readonly Order
     "설비 ID",
   ]);
   for (const eq of logistics.equipment) {
-    const proc = processById.get(eq.processId);
+    const proc = eq.processId === null ? undefined : processById.get(eq.processId);
+    if (eq.processId !== null && !proc) throw new ProjectExcelExportError("EXPORT_UNSUPPORTED", "Equipment primary process is missing from the snapshot.");
     const controlDesc = eq.controlSystems
       .map((cs) => {
         const sys = systemById.get(cs.systemId);
@@ -641,7 +642,7 @@ function logisticsSheet(snapshot: ProjectSnapshotResponse, tasks: readonly Order
       { column: 3, style: STYLE.text, value: safeText(eq.equipmentType) },
       { column: 4, style: STYLE.text, value: safeText(eq.managementUnit) },
       { column: 5, style: STYLE.integer, type: "number", value: eq.quantity },
-      { column: 6, style: STYLE.text, value: safeText(proc?.code ?? "-") },
+      { column: 6, style: STYLE.text, value: safeText(proc?.code ?? "공정 미지정") },
       { column: 7, style: STYLE.text, value: safeText(controlDesc || "-") },
       { column: 8, style: STYLE.text, value: safeText(roleDesc || "-") },
       { column: 9, style: STYLE.text, value: safeText(eq.manufacturer ?? "") },
@@ -1124,6 +1125,9 @@ export function buildProjectExcelWorkbook(
   const gantt = ganttSheet(snapshot, tasks, dates, request);
   const drawing = request.includeDependencies && snapshot.data.links.length > 0;
   const includeLogistics = Boolean(request.includeLogistics && snapshot.data.logistics);
+  if (!includeLogistics && !request.resourceDashboard && snapshot.data.logistics?.equipment.some(equipment => equipment.processId === null)) {
+    throw new ProjectExcelExportError("EXPORT_UNSUPPORTED", "Unassigned Equipment needs an explicit Logistics or Resource report; schedule Excel is not a roundtrip format.");
+  }
   const includeResourceEffort = Boolean(request.includeResourceEffort);
   if (includeResourceEffort && (!resourceWorkload || resourceWorkload.data.projectRevision !== snapshot.data.project.revision)) {
     throw new ProjectExcelExportError("EXPORT_UNSUPPORTED", "Resource workload must match the exported Project revision.");

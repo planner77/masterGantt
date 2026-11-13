@@ -2,8 +2,7 @@ import { expectDashboardMetricsReadable } from "./helpers/dashboard-metrics";
 import { openWbsViewControls } from "./helpers/wbs-controls";
 import { waitForWbsReport, type WbsReportCondition } from "./helpers/wbs-report";
 import { readLegacyFixtureCounts } from "./fixtures/legacy-logistics-seed";
-import { mkdir, writeFile } from "node:fs/promises";
-import { resolve } from "node:path";
+import { writeFile } from "node:fs/promises";
 import type { Locator, Page } from "@playwright/test";
 import { test, expect, isolatedApplicationOptions } from "./fixtures/isolated-application";
 import { seedWbsViewComposer, viewResourcePassword } from "./fixtures/wbs-view-composer";
@@ -203,8 +202,7 @@ test("#735 System Task·Assignment·일정 왕복과 stale·error 원본 잠금"
 test("#735 긴 System 이름 5폭 내부 스크롤·표 정렬·키보드 focus", async ({ page, isolatedApplication: origin, observeIsolatedApi }, info) => {
   test.setTimeout(180_000);
   const f = await seedSystem(page, origin, observeIsolatedApi); await openSystem(page);
-  await preset(page, "시스템 → 공정 → WorkArea → 설비 → 리소스"); await expand(systemRow(page, f.acsA.id));
-  const directory = resolve("output/playwright/issue-735"); await mkdir(directory, { recursive: true }); const geometry = [];
+  await preset(page, "시스템 → 공정 → WorkArea → 설비 → 리소스"); await expand(systemRow(page, f.acsA.id)); const geometry = [];
   for (const width of [390, 768, 1024, 1440, 1920]) {
     await page.setViewportSize({ width, height: 1000 });
     await expectDashboardMetricsReadable(root(page).getByTestId("system-dashboard-summary"), width);
@@ -222,7 +220,7 @@ test("#735 긴 System 이름 5폭 내부 스크롤·표 정렬·키보드 focus"
     expect(measured.owner.overflow).toMatch(/auto|scroll/); if (width <= 768) expect(measured.owner.scroll).toBeGreaterThan(measured.owner.client);
     await action.press("Shift+Tab"); await expect(toggle).toBeFocused(); geometry.push({ width, ...measured });
     await root(page).evaluate(element => { for (let node = element.parentElement; node; node = node.parentElement) node.scrollTop = 0; window.scrollTo(0, 0); });
-    await info.attach(`system-${width}.png`, { contentType: "image/png", body: await page.screenshot({ path: resolve(directory, `system-${width}.png`) }) });
+    await info.attach(`system-${width}.png`, { contentType: "image/png", body: await page.screenshot({ path: info.outputPath(`system-${width}.png`) }) });
     if (width === 1440) {
       const disclosures = root(page).locator("details").filter({ has: page.locator("summary").filter({ hasText: /^(조회 구성|시스템 속성 필터)$/ }) });
       const opened = [];
@@ -230,11 +228,11 @@ test("#735 긴 System 이름 5폭 내부 스크롤·표 정렬·키보드 focus"
         if (await disclosure.evaluate(node => (node as HTMLDetailsElement).open)) { await disclosure.locator(":scope > summary").click(); opened.push(disclosure); }
       }
       await root(page).evaluate(element => { for (let node = element.parentElement; node; node = node.parentElement) node.scrollTop = 0; });
-      await info.attach("system-overview-1440.png", { contentType: "image/png", body: await root(page).screenshot({ path: resolve(directory, "system-overview-1440.png") }) });
+      await info.attach("system-overview-1440.png", { contentType: "image/png", body: await root(page).screenshot({ path: info.outputPath("system-overview-1440.png") }) });
       for (const disclosure of opened) await disclosure.locator(":scope > summary").click();
     }
   }
-  await writeFile(resolve(directory, "geometry.json"), JSON.stringify(geometry, null, 2)); await info.attach("system-five-widths", { contentType: "application/json", body: JSON.stringify(geometry) });
+  await writeFile(info.outputPath("geometry.json"), JSON.stringify(geometry, null, 2)); await info.attach("system-five-widths", { contentType: "application/json", body: JSON.stringify(geometry) });
 });
 
 test("#735 readonly System 조회는 원본 편집·mutation을 제공하지 않는다", async ({ page, browser, isolatedApplication: origin, observeIsolatedApi }) => {

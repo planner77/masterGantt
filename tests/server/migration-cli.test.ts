@@ -75,7 +75,7 @@ describe("migration CLI", () => {
         "0025_process_catalog.sql",
         "0026_logistics_targets.sql",
         "0027_task_target_bindings.sql",
-        "0028_process_context.sql", "0029_project_resource_memberships.sql", "0030_project_work_areas.sql", "0031_project_visibility.sql", "0032_project_issues.sql", "0033_project_issue_credentials_soft_delete.sql", "0034_project_issue_business_status.sql", "0035_country_calendar_catalog.sql", "0036_display_name_translations.sql", "0037_project_workspace_tabs.sql", "0038_description_formats.sql",
+        "0028_process_context.sql", "0029_project_resource_memberships.sql", "0030_project_work_areas.sql", "0031_project_visibility.sql", "0032_project_issues.sql", "0033_project_issue_credentials_soft_delete.sql", "0034_project_issue_business_status.sql", "0035_country_calendar_catalog.sql", "0036_display_name_translations.sql", "0037_project_workspace_tabs.sql", "0038_description_formats.sql", "0039_optional_equipment_process.sql",
       ],
     });
     expect(diagnosticEvents(first.stderr).map((entry) => entry.event)).toEqual([
@@ -94,11 +94,13 @@ describe("migration CLI", () => {
     const database = new Database(filename, { readonly: true });
     try {
       expect(database.prepare("SELECT count(*) AS count FROM schema_migrations").get())
-        .toEqual({ count: 38 });
+        .toEqual({ count: 39 });
       expect(database.prepare("SELECT name FROM schema_migrations WHERE version=37").pluck().get())
         .toBe("0037_project_workspace_tabs.sql");
       expect(database.prepare("SELECT name FROM schema_migrations WHERE version=38").pluck().get())
         .toBe("0038_description_formats.sql");
+      expect(database.prepare("SELECT name FROM schema_migrations WHERE version=39").pluck().get())
+        .toBe("0039_optional_equipment_process.sql");
       // A fresh CLI migration must expose the checked legacy-safe default on both tables.
       // Verify the real migrated on-disk database, not a mocked migration list.
       for (const table of ["tasks", "project_issues"] as const) {

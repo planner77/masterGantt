@@ -218,7 +218,7 @@ describe('Issue #725 typed process/WorkArea SQLite and HTTP',()=>{
   const legacyTaskId=randomUUID();prior.prepare("INSERT INTO tasks(project_id,external_id,public_id,name,type,schedule_mode,requested_start,start_date,end_date,duration,progress,status,sort_order,created_at,updated_at) VALUES(?,?,?,'legacy','task','auto','2026-10-19','2026-10-19','2026-10-19',1,0,'not_started',0,?,?)").run(legacyProject.id,legacyTaskId,legacyTaskId,now.toISOString(),now.toISOString());
   const legacyRows=prior.prepare('SELECT * FROM tasks').all();
   runMigrations(prior,join(process.cwd(),'db/migrations'));
-   expect(prior.prepare('SELECT version,name FROM schema_migrations ORDER BY version DESC LIMIT 1').get()).toEqual({version:38,name:'0038_description_formats.sql'});
+   expect(prior.prepare('SELECT version,name FROM schema_migrations ORDER BY version DESC LIMIT 1').get()).toEqual({version:39,name:'0039_optional_equipment_process.sql'});
    expect(prior.prepare('SELECT name FROM schema_migrations WHERE version=28').pluck().get()).toBe('0028_process_context.sql');
   const upgradedTasks = prior.prepare('SELECT * FROM tasks').all() as Array<Record<string, unknown>>;
   expect(upgradedTasks.map(({ description_format, ...original }) => original)).toEqual(legacyRows);

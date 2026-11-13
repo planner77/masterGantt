@@ -8,6 +8,8 @@ import { openDatabase } from "../../../src/server/db/core";
 import { LogisticsService } from "../../../src/server/logistics/logistics-service-core";
 import {
   handleCreateProcess,
+  handleCreateEquipment,
+  handleUpdateEquipment,
   handleGetProjectLogistics,
 } from "../../../src/server/logistics/logistics-handlers-core";
 import { TaskFieldProjectService } from "../../../src/server/projects/task-field-project-service";
@@ -219,5 +221,79 @@ describe("Logistics HTTP Handlers", () => {
     expect(
       legacyBody.data.logistics.processes.some((process: { code: string }) => process.code === "TEST_PROC"),
     ).toBe(true);
+  });
+});
+
+describe("Issue #917 nullable equipment HTTP boundary", () => {
+  const appBaseUrl = "https://gantt.example.com";
+  function fixture() {
+    const db = createTestDatabase(), f = setupProject(db);
+    const logisticsService = new LogisticsService(db, { clock: () => f.now });
+    const projectService = new TaskFieldProjectService(db, { clock: () => f.now });
+    const revision = () => new ProjectRepository(db).findById(f.project.id)!.revision;
+    const request = (body: unknown, headers: Record<string, string> = {}, method = "POST") => new Request(`${appBaseUrl}/api/projects/${f.project.publicId}/logistics/equipment`, {
+      method, headers: { Origin: appBaseUrl, Cookie: `${editSessionCookieName("production", new URL(appBaseUrl))}=${f.token.rawToken}`, "If-Match": `"${revision()}"`, "Content-Type": "application/json", ...headers }, body: JSON.stringify(body),
+    });
+    const deps = { logisticsService, projectService, applicationBaseUrl: appBaseUrl, environment: "production" };
+    return { ...f, db, logisticsService, projectService, revision, request, deps };
+  }
+  const base = { code: "E", name: "Equipment", equipmentType: "amr", managementUnit: "unit" };
+  it("POST omitted/null survives canonical GET and SQLite reopen without generating processes or tasks", async () => {
+    const f = fixture();
+    try {
+      expect((await handleCreateEquipment(f.request(base), f.project.publicId, f.deps)).status).toBe(201);
+      expect((await handleCreateEquipment(f.request({ ...base, code: "F", managementUnit: "fleet", quantity: 8, processId: null }), f.project.publicId, f.deps)).status).toBe(201);
+      const response = await handleGetProjectLogistics(new Request(`${appBaseUrl}/api/projects/${f.project.publicId}/logistics`), f.project.publicId, f.deps);
+      const body = await response.json();
+      expect(body.data.logistics.equipment).toEqual(expect.arrayContaining([expect.objectContaining({ code: "E", processId: null, quantity: 1 }), expect.objectContaining({ code: "F", processId: null, quantity: 8 })]));
+      for (const table of ["project_processes", "tasks", "logistics_targets", "project_work_areas"]) expect(f.db.prepare(`SELECT COUNT(*) FROM ${table} WHERE project_id=?`).pluck().get(f.project.id)).toBe(0);
+      const filename = f.db.name; f.db.close();
+      const restarted = openDatabase({ filename, migrationsDirectory }).database;
+      try {
+        expect(new LogisticsService(restarted).getLogisticsDto(f.project.id).equipment).toEqual(body.data.logistics.equipment);
+        expect(restarted.pragma("foreign_key_check")).toEqual([]);
+      } finally { restarted.close(); }
+    } finally { if (f.db.open) f.db.close(); }
+  });
+
+  it("PATCH omitted preserves; null clears; malformed/foreign/inactive and stale/unauthorized updates are atomic", async () => {
+    const f = fixture();
+    try {
+      const authorization = f.projectService.authorize(f.project.publicId, f.token.rawToken);
+      if (authorization.kind !== "authorized") throw new Error("fixture authorization");
+      const auth = authorization.authorization;
+      const processId = f.logisticsService.createProcess(auth, f.revision(), { name: "P" }).data.operation.targetPublicId!;
+      const response = await handleCreateEquipment(f.request({ ...base, processId }), f.project.publicId, f.deps);
+      expect(response.status).toBe(201);
+      const id = (await response.json()).data.operation.targetPublicId;
+      const update = (body: unknown, headers?: Record<string, string>) => handleUpdateEquipment(f.request(body, headers, "PATCH"), f.project.publicId, id, f.deps);
+      expect((await update({ name: "Renamed" })).status).toBe(200);
+      expect(f.logisticsService.getLogisticsDto(f.project.id).equipment[0].processId).toBe(processId);
+      expect((await update({ processId: null })).status).toBe(200);
+      expect(f.logisticsService.getLogisticsDto(f.project.id).equipment[0].processId).toBeNull();
+      const inactive = f.logisticsService.createProcess(auth, f.revision(), { name: "Inactive", active: false }).data.operation.targetPublicId!;
+      const other = new ProjectRepository(f.db).insert({ publicId: "66666666-6666-4666-8666-666666666666", name: "Foreign", description: "", status: "planned", passwordKdf: "scrypt", passwordSalt: Buffer.alloc(16, 1), passwordHash: Buffer.alloc(32, 2), scryptN: 32768, scryptR: 8, scryptP: 3, scryptKeyLength: 32, calendarTimezone: "Asia/Seoul", createdAt: f.now.toISOString(), updatedAt: f.now.toISOString() });
+      f.db.prepare("INSERT INTO project_processes(public_id,project_id,code,name,created_at,updated_at) VALUES(?,?,?,?,?,?)").run("77777777-7777-4777-8777-777777777777", other.id, "P", "Foreign P", f.now.toISOString(), f.now.toISOString());
+      const before = f.logisticsService.getLogisticsDto(f.project.id), revision = f.revision();
+      for (const processId of ["", "  ", 0, false, [], {}]) {
+        expect((await update({ processId, name: "ROLLBACK" })).status).toBe(400);
+        expect((await handleCreateEquipment(f.request({ ...base, code: "INVALID", processId }), f.project.publicId, f.deps)).status).toBe(400);
+      }
+      for (const processId of ["malformed", "77777777-7777-4777-8777-777777777777"]) {
+        expect((await update({ processId, name: "ROLLBACK" })).status).toBe(404);
+        expect((await handleCreateEquipment(f.request({ ...base, code: "INVALID", processId }), f.project.publicId, f.deps)).status).toBe(404);
+      }
+      expect((await update({ processId: inactive, name: "ROLLBACK" })).status).toBe(409);
+      expect((await handleCreateEquipment(f.request({ ...base, code: "INVALID", processId: inactive }), f.project.publicId, f.deps)).status).toBe(409);
+      for (const [headers, status] of [[{ Cookie: "" }, 401], [{ Origin: "https://foreign.example" }, 403], [{ "If-Match": `"${revision - 1}"` }, 412], [{ "If-Match": 'W/"1"' }, 400]] as const) {
+        expect((await update({ processId: null, name: "ROLLBACK" }, headers)).status).toBe(status);
+        expect((await handleCreateEquipment(f.request({ ...base, code: "INVALID", processId: null }, headers), f.project.publicId, f.deps)).status).toBe(status);
+      }
+      expect(f.revision()).toBe(revision);
+      expect(f.logisticsService.getLogisticsDto(f.project.id)).toEqual(before);
+      expect((await update({ processId })).status).toBe(200);
+      expect((await update({ processId: null }, { "If-Match": `"${revision}"` })).status).toBe(412);
+      expect(f.logisticsService.getLogisticsDto(f.project.id).equipment[0].processId).toBe(processId);
+    } finally { f.db.close(); }
   });
 });

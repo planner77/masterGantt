@@ -338,7 +338,7 @@ export function ProjectLogisticsManagement({
     return logistics.equipment.filter((e) => {
       if (kpiOrigin?.revision === revision && kpiOrigin.kind === "equipment" && kpiOrigin.id === e.id) return true;
       if (!includeInactive && !e.active) return false;
-      if (processFilter !== "all" && e.processId !== processFilter) return false;
+      if (processFilter !== "all" && (processFilter === "unassigned" ? e.processId !== null : e.processId !== processFilter)) return false;
       if (!searchQuery.trim()) return true;
       const q = searchQuery.toLowerCase();
   return (
@@ -456,6 +456,10 @@ export function ProjectLogisticsManagement({
           setErrorMessage("이미 동일한 공정 코드가 존재합니다. 다른 코드를 사용해 주세요.");
         } else if (code === "PROCESS_IN_USE") {
           setErrorMessage("하위 공정, 소속 설비 또는 시스템이 매핑되어 있어 삭제할 수 없습니다. 대신 비활성화를 사용해 주세요.");
+        } else if (code === "PROCESS_INACTIVE") {
+          setErrorMessage("비활성 공정은 새로 지정할 수 없습니다. 다른 공정을 선택해 주세요. 입력한 초안은 유지됩니다.");
+        } else if (code === "TARGET_EQUIPMENT_PROCESS_MISMATCH") {
+          setErrorMessage("기존 Target 연결로 주 관리 공정을 변경하거나 해제할 수 없습니다. 기존 연결과 입력한 초안은 유지됩니다.");
         } else if (code === "EQUIPMENT_CODE_ALREADY_EXISTS") {
           setErrorMessage("이미 동일한 설비 코드가 존재합니다. 다른 코드를 사용해 주세요.");
         } else if (code === "EQUIPMENT_WORK_AREA_IN_USE") {
@@ -666,6 +670,7 @@ export function ProjectLogisticsManagement({
                 aria-label={t("공정 필터")}
               >
                 <option value="all">{t("전체 공정")}</option>
+                {activeSubTab === "equipment" ? <option value="unassigned">{t("공정 미지정")}</option> : null}
                 {logistics.processes.map((p) => (
                   <option key={p.id} value={p.id}>
                     {logisticsName(p, logistics.processes, locale)}
@@ -702,10 +707,6 @@ export function ProjectLogisticsManagement({
                 type="button"
                 disabled={busy || isSubmitting}
                 onClick={() => {
-                  if (logistics.processes.length === 0) {
-                    setErrorMessage("설비를 등록하려면 먼저 공정을 최소 1개 이상 생성해야 합니다.");
-                    return;
-                  }
                   setErrorMessage(null);
                   setEquipmentModal({ open: true, mode: "create" });
                 }}
@@ -725,7 +726,6 @@ export function ProjectLogisticsManagement({
                 {t("+ 시스템 추가")}</button>
             ) : null}
           </div>
-          {editable && activeSubTab === "equipment" && logistics.processes.length === 0 ? <p className={styles.workAreaHint}>{t("설비를 추가하려면 기준정보의 공정&WorkArea에서 주 관리 공정을 먼저 등록해 주세요.")}</p> : null}
         </div>
       ) : null}
 
@@ -887,12 +887,12 @@ export function ProjectLogisticsManagement({
               {filteredEquipment.length === 0 ? (
                 <tr>
                   <td colSpan={editable ? 9 : 8} className={styles.emptyState}>
-                    <div className={styles.emptyStateTitle}>{t("등록된 설비가 없습니다.")}<ContextHelp label={t("설비 등록 도움말")}>{t("공정에 물류 설비(Stocker, AGV, AMR 등)를 등록하고 제어 시스템을 연결하세요.")}</ContextHelp></div>
+                    <div className={styles.emptyStateTitle}>{t("등록된 설비가 없습니다.")}<ContextHelp label={t("설비 등록 도움말")}>{t("물류 설비(Stocker, AGV, AMR 등)를 등록하고 필요에 따라 공정과 제어 시스템을 연결하세요.")}</ContextHelp></div>
                   </td>
                 </tr>
               ) : (
                 filteredEquipment.map((eq) => {
-                  const proc = processById.get(eq.processId);
+                  const proc = eq.processId === null ? undefined : processById.get(eq.processId);
                   const primaryRole = eq.resourceRoles.find((r) => r.isPrimary);
                   const otherRoles = eq.resourceRoles.filter((r) => !r.isPrimary);
                   const primarySystemLink = eq.controlSystems.find((s) => s.controlRole === "primary");
@@ -901,7 +901,7 @@ export function ProjectLogisticsManagement({
 
                   return (
                     <tr key={eq.id} id={`logistics-master-equipment-${eq.id}`} tabIndex={-1} className={!eq.active ? styles.inactiveRow : undefined}>
-                      <td>{proc ? logisticsName(proc, logistics.processes, locale) : t("공정 참조 확인 필요")}</td>
+                      <td>{proc ? logisticsName(proc, logistics.processes, locale) : t(eq.processId === null ? "공정 미지정" : "공정 참조 확인 필요")}</td>
                       <td>{eq.workAreaLinks?.length ? t("{value0}개", {value0: eq.workAreaLinks.length}) : t("미연결")}</td>
                       <td><strong>{displayName(eq, locale).trim() || t("이름 확인 필요")}</strong><IdentifierDetails identifiers={[{ label: "설비 코드", value: eq.code }, { label: "설비 ID", value: eq.id }]} /></td>
                       <td>
@@ -1724,7 +1724,7 @@ function EquipmentDialog({
   onSubmit: (data: CreateEquipmentRequest | UpdateEquipmentRequest) => Promise<void>;
 }) {
   const { t, locale, formatNumber } = useI18n();
-  const [processId, setProcessId] = useState(equipment?.processId ?? allProcesses[0]?.id ?? "");
+  const [processId, setProcessId] = useState(equipment?.processId ?? "");
   const [code, setCode] = useState(equipment?.code ?? "");
   const [name, setName] = useState(equipment?.name ?? "");
   const [translations, setTranslations] = useState<DisplayNameTranslations>({...equipment?.translations});
@@ -1771,9 +1771,9 @@ function EquipmentDialog({
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    if (busy || contextState !== "ready" || catalogState !== "ready" || !equipmentType || !context || !code.trim() || !name.trim() || !processId) return;
+    if (busy || contextState !== "ready" || catalogState !== "ready" || !equipmentType || !context || !code.trim() || !name.trim()) return;
     void onSubmit({
-      processId,
+      processId: processId || null,
       workAreaLinks,
       processCatalogRevision: context.processCatalogRevision,
       code: code.trim(),
@@ -1804,14 +1804,14 @@ function EquipmentDialog({
         <div className={styles.formGrid}>
           <TranslationFields value={translations} onChange={setTranslations} disabled={busy} />
           <label className={styles.fieldLabel}>
-            {t("주 관리 공정 *")}<select
+            {t("주 관리 공정 (선택)")}<select
               className={styles.fieldSelect}
-              required
               disabled={busy}
               value={processId}
               onChange={(e) => setProcessId(e.target.value)}
             >
-              {allProcesses.map((p) => (
+              <option value="">{t("공정 미지정")}</option>
+              {allProcesses.filter(p => p.active || p.id === equipment?.processId).map((p) => (
                 <option key={p.id} value={p.id}>
                   {logisticsName(p, allProcesses, locale)}
                 </option>
@@ -1921,11 +1921,11 @@ function EquipmentDialog({
               {t("활성 상태 (체크 해제 시 비활성화)")}</span>
           </label>
         </div>
-        {!code.trim() || !name.trim() || !processId ? <p className={styles.workAreaHint}>{t("저장하려면 주 관리 공정, 설비 코드와 설비명을 입력해 주세요.")}</p> : null}
+        {!code.trim() || !name.trim() ? <p className={styles.workAreaHint}>{t("저장하려면 설비 코드와 설비명을 입력해 주세요.")}</p> : null}
         <div className={styles.dialogActions}>
           <button className="secondary-button" type="button" disabled={pending} onClick={requestClose}>
             {t("취소")}</button>
-          <button className="primary-button" type="submit" disabled={busy || contextState !== "ready" || catalogState !== "ready" || !equipmentType || !code.trim() || !name.trim() || !processId}>
+          <button className="primary-button" type="submit" disabled={busy || contextState !== "ready" || catalogState !== "ready" || !equipmentType || !code.trim() || !name.trim()}>
             {pending ? t("저장 중…") : catalogState === "error" ? t("유형 조회 실패") : t("저장")}
           </button>
         </div>

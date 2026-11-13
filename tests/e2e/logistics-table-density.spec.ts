@@ -38,11 +38,11 @@ async function geometry(page: Page) {
   });
 }
 
-test("#454 before 두 유형과 이름·비밀번호 dialog 5폭 실제 geometry", async ({ page, browser }) => {
+test("#454 before 두 유형과 이름·비밀번호 dialog 5폭 실제 geometry", async ({ page, browser }, testInfo) => {
   test.skip(process.env.LOGISTICS_CAPTURE !== "before", "before 전용 baseline 캡처");
   const mock = await mockLogistics454(page);
   await loginLogistics454(page);
-  const dir = resolve("output/playwright/issue-454/before");
+  const dir = testInfo.outputPath("before");
   await mkdir(dir, { recursive: true });
   for (const width of [390, 768, 1024, 1440, 1920]) {
     await page.setViewportSize({ width, height: 900 });
@@ -76,9 +76,9 @@ function assertDialogFacts(facts: Awaited<ReturnType<typeof geometry>>) {
   expect(Math.abs(footer[0].rect.height-footer[1].rect.height)).toBeLessThanOrEqual(1);
 }
 
-test("#454 after 두 유형·dialog 5폭 정렬과 마지막 action keyboard 접근", async ({ page, browser }) => {
+test("#454 after 두 유형·dialog 5폭 정렬과 마지막 action keyboard 접근", async ({ page, browser }, testInfo) => {
   await mockLogistics454(page); await loginLogistics454(page);
-  const dir=resolve("output/playwright/issue-454/after");await mkdir(dir,{recursive:true});
+  const dir=testInfo.outputPath("after");await mkdir(dir,{recursive:true});
   for(const width of [390,768,1024,1440,1920]){
     await page.setViewportSize({width,height:900});
     for(const [label,key] of [["설비 유형","equipment"],["시스템 유형","system"]]){

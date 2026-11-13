@@ -2,8 +2,7 @@ import { openResourceDynamicView } from "./helpers/resource-workspace";
 import { expectDashboardMetricsReadable } from "./helpers/dashboard-metrics";
 import { openWbsViewControls } from "./helpers/wbs-controls";
 import { readLegacyFixtureCounts } from "./fixtures/legacy-logistics-seed";
-import { mkdir, writeFile } from "node:fs/promises";
-import { resolve } from "node:path";
+import { writeFile } from "node:fs/promises";
 import { isDeepStrictEqual } from "node:util";
 import type { Page } from "@playwright/test";
 import type { WbsViewQueryInput, WbsViewReportDto, WbsViewSpec } from "../../src/contracts/wbs-dashboard-views";
@@ -96,16 +95,15 @@ test("#736 5폭 keyboard·focus·내부 overflow 및 stale/error 잠금",async({
  test.setTimeout(180_000);
  const f=await seedWbsViewComposer(page,origin,observeIsolatedApi);await openResource(page);await preset(page,"리소스 → 공정 → WorkArea → 설비 / 물류 시스템");
  const row=root(page).locator(`tr[data-dimension="resource"][data-entity-id="${f.resource.id}"]`);
- const toggle=row.getByRole("button",{name:/하위 (펼치기|접기)$/});await toggle.click();
- const directory=resolve("output/playwright/issue-736");await mkdir(directory,{recursive:true});const geometry=[];
+ const toggle=row.getByRole("button",{name:/하위 (펼치기|접기)$/});await toggle.click();const geometry=[];
  for(const width of [390,768,1024,1440,1920]){
   await page.setViewportSize({width,height:1000});
     await expectDashboardMetricsReadable(root(page).getByTestId("resource-wbs-summary"), width);await toggle.focus();await toggle.press("Tab");const action=row.getByRole("button",{name:"상세",exact:true});await expect(action).toBeFocused();
   const measured=await action.evaluate(element=>{const button=element.getBoundingClientRect(),owner=element.closest("[data-wbs-scroll]")!,bounds=owner.getBoundingClientRect();return{document:document.documentElement.scrollWidth,viewport:document.documentElement.clientWidth,left:button.left,right:button.right,ownerLeft:bounds.left,ownerRight:bounds.right,scroll:owner.scrollWidth,client:owner.clientWidth};});
   expect(measured.document).toBeLessThanOrEqual(width+1);expect(measured.left).toBeGreaterThanOrEqual(measured.ownerLeft);expect(measured.right).toBeLessThanOrEqual(measured.ownerRight);if(width<=768)expect(measured.scroll).toBeGreaterThan(measured.client);geometry.push({width,...measured});
-  await info.attach(`resource-${width}.png`,{body:await root(page).screenshot({path:resolve(directory,`resource-${width}.png`)}),contentType:"image/png"});
+  await info.attach(`resource-${width}.png`,{body:await root(page).screenshot({path:info.outputPath(`resource-${width}.png`)}),contentType:"image/png"});
  }
- await writeFile(resolve(directory,"geometry.json"),JSON.stringify(geometry,null,2));
+ await writeFile(info.outputPath("geometry.json"),JSON.stringify(geometry,null,2));
  const pattern=`**/api/projects/${f.publicId}/resource-dashboard/views`;
  await page.route(pattern,route=>route.request().postDataJSON().projection?.kind==="scope"?route.fulfill({status:409,json:{error:{code:"REPORT_STALE",message:"stale 검증"}}}):route.continue());
  await row.getByRole("button",{name:"원본",exact:true}).click();await expect(root(page)).toHaveAttribute("data-wbs-state","stale");await expect(root(page).getByRole("button",{name:"계층 Excel 보고서",exact:true})).toBeDisabled();await page.unroute(pattern);
@@ -300,7 +298,7 @@ test("#807 단일 기본 작업면·독립 조건·명시적 기간 인계·숨�
  // #819 EXTEND: all six peers share one compact control contract, while each
  // report keeps its original filters, source IDs and mounted lifecycle.
  const workspace=page.locator("[data-resource-workspace]");
- const matrix=[];await mkdir("output/playwright/issue-819/after",{recursive:true});
+ const matrix=[];
  for(const width of [390,768,1024,1440,1920]){
   await page.setViewportSize({width,height:1000});
   for(const [peer,view] of [["기본 현황","summary"],["차트","charts"],["동적 계층 탐색","dynamic"],["Milestone 교차","milestone"],["Resource Plan","plan"],["견적·Excel","estimate"]]){
@@ -355,7 +353,7 @@ test("#807 단일 기본 작업면·독립 조건·명시적 기간 인계·숨�
    if(width===390)expect(geometry.navigationScroll).toBeGreaterThan(geometry.navigationClient);
    if(peer==="견적·Excel")await expect(report.locator(':scope > .resource-dashboard-view-controls')).toBeHidden();
    matrix.push({width,peer,...geometry});
-   if(width===390||width===1440)await page.screenshot({path:`output/playwright/issue-819/after/${width}-${view}.png`});
+   if(width===390||width===1440)await page.screenshot({path:info.outputPath(`${width}-${view}.png`)});
   }
  }
  // The current peer remains visible when desktop navigation becomes narrow.
@@ -363,7 +361,7 @@ test("#807 단일 기본 작업면·독립 조건·명시적 기간 인계·숨�
  await page.setViewportSize({width:390,height:1000});
  await expect.poll(()=>peers.evaluate(element=>{const nav=element.getBoundingClientRect(),selected=element.querySelector('[aria-pressed="true"]')!.getBoundingClientRect();return selected.left>=nav.left-1&&selected.right<=nav.right+1;})).toBe(true);
  await info.attach("issue819-six-peer-geometry",{body:JSON.stringify(matrix,null,2),contentType:"application/json"});
- await writeFile("output/playwright/issue-819/after/geometry.json",JSON.stringify(matrix,null,2));
+ await writeFile(info.outputPath("geometry.json"),JSON.stringify(matrix,null,2));
  const after=await f.snapshot();expect(after.data).toEqual(before.data);
 });
 

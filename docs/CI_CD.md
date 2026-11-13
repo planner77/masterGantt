@@ -82,3 +82,8 @@ GHCR 권한 부족·오프라인·tag collision·source/digest drift·Smoke FAIL
 운영 배포는 [DEPLOYMENT](DEPLOYMENT.md)의 image-only Compose·기존 project/volume·canonical URL·session·health 계약을 유지한다. 게시 성공과 DEPLOYED_VERIFIED는 다르다. 데이터 위험 배포에는 #912의 일관 백업·새 volume 복원·호환 image 검증이 선행한다. 구 이미지 교체만으로 forward-only DB migration은 취소되지 않는다.
 
 Owner가 통합 승인한 #906 정책·#907 원장/validator·#908 local source gate는 같은 source의 검증·실패 원장에 연결하되 AC별 완료 증거를 구분한다. #909 게시, #911 관리자 전환, #912 복원도 각각 실제 완료 증거가 필요하다. 미완료 선행 이슈를 새 문서나 과거 이미지 성공으로 PASS 처리하지 않는다.
+
+
+## Issue #917 — nullable migration 후보 검증 범위
+
+설비 주 관리 공정 선택화는 migration0039와 Copy/Template7·공유 조회를 바꾸므로 기존 로컬 fast/영향Chromium/Docker 및 #912 합성 backup/격리restore를 같은 source에 연결한다. 영향 매핑은 기존 prepr-core를 확장하며 UNKNOWN/출처·필수gate를 완화하지 않는다. 신규 PR/Actions/Finalizer/required check는 추가하지 않는다. Owner의 게시/종료 요청 범위는 [Work Packet](exec-plans/active/ISSUE_917.md)에 기록하며 운영 배포와 SemVer/rolling 승격은 별도다.

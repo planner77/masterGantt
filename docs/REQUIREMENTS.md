@@ -1,3 +1,7 @@
+## Issue #917 — 설비 독립 등록과 선택 주 관리 공정
+
+설비는 Project 소유의 독립 원본이며 주 관리 공정은 선택0..1이다. 공정0에서도 unit1/fleet양수 등록·조회·수정·재시작 영속과 공정 후지정/변경/해제/재지정을 지원한다. WorkArea0..N·System/역할·직접 Task는 독립이고 자동 공정/Target/Task 생성이나 관계 삭제는 없다. nullable API/DB/조회/Copy/Template와 기존 지정 원본은 무손실 보존하며 legacy 강한 참조 충돌·미지원 교환은 명시 오류로 전체 거부한다. [AC1~8/증거 계획](exec-plans/active/ISSUE_917.md), [실패 원장](ISSUE_917_FAILURE_ANALYSIS.md).
+
 ## 개발·게시 운영의 현행 적용 범위 (#905/#906, 2026-11-10)
 
 제품 기능·보안·데이터 요구는 이 문서를 유지한다. 아래 과거 D04/D05 및 PR·CI·Main/Release·Finalizer 관련 결정/실행 설명은 당시 이력이며 신규 운영 요구는 [Issue Lifecycle](ISSUE_LIFECYCLE.md)과 [CI_CD](CI_CD.md)로 대체한다. 모든 위험도에서 로컬 검증·main 직접 fast-forward Push·승인된 수동 GHCR을 사용하며 PR·원격 CI를 실행하지 않는다. 문서 변경은 live 관리자 전환이나 운영 배포 완료가 아니다.

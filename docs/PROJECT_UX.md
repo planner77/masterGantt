@@ -1793,7 +1793,7 @@ Milestone native 행을 숨겨도 기존 Task↔Milestone leaf 유형 전환은 
 
 Milestone·리소스·물류 구성의 교육용 고정 문단은 인접 도움말로 옮기고 현재 선택/전체 범위·날짜·환산·합산 제한은 짧게 유지한다. 도움말은 readonly에서도 접근 가능하며 canonical mutation·필터/드릴다운·Editor/Gantt instance·viewport·선택·marker-OFF 정책을 변경하지 않는다. 로컬 UI 상태가 권한 근거가 되지 않는다. loading/stale/401/412/network 오류와 복구 action은 기존 지속 피드백을 사용한다.
 
-물류 구성에서 공정 없는 설비 추가는 기존처럼 생성하지 않고, 브라우저 alert 대신 현재 영역의 지속 오류로 공정 등록 선행 조건을 안내한다. 다른 요청을 처리 중이지 않은 편집 상태에서는 `+ 설비 추가`를 누를 수 있으며 공정0이면 모달을 열거나 생성 요청을 보내지 않고 공정 등록 경로를 안내한다. 공정을 먼저 등록한 뒤 같은 추가 흐름을 다시 사용한다. 기준정보의 사용 중 code 잠금 이유와 저장/최신 조회에 따른 미저장 입력 교체 안내는 유지한다. [Work Packet](exec-plans/active/ISSUE_719.md)에서 실측·미검증 환경을 구별한다.
+공정 없는 설비 추가의 선행 공정 차단은 #917에서 폐기한다. 편집권·유형 catalog/loading/stale 조건을 충족하면 공정0에서도 기존 `+ 설비 추가` editor를 연다. 주 관리 공정은 선택이며 공정이 있어도 신규 기본은 `공정 미지정`이다. 기준정보의 사용 중 code 잠금 이유와 저장/최신 조회에 따른 미저장 입력 교체 안내는 유지한다. [Work Packet](exec-plans/active/ISSUE_719.md)에서 실측·미검증 환경을 구별한다.
 
 
 ### Issue #725 — 표 내부 스크롤과 접근성 이름
@@ -1867,3 +1867,12 @@ PR864 REWORK3의 관리자 제목 배치는 [390px](evidence/issue342/rework3/ma
 전환 때문에 navigation/query·열린 modal·dirty 초안·Gantt 인스턴스·선택·scroll·pending/stale 권한 상태를 reset하지 않는다. 번역 초안은 시작 revision과 함께 유지하며 401/412 뒤 현재 revision을 붙여 저장하지 않는다. 알림은 원문 사용자 parameter와 고정 key descriptor를 유지해 현재 언어로 재표시·복사한다. date/number input은 canonical 값을 유지한다. 장문·keyboard/focus/Escape/복원·overflow는 실제 화면 검증이 필요하며 현재 Phase C 새 Head 원격 E2E/최종 수동 UX는 NOT TESTED다. 상세 계약은 [Phase C 설계](I18N_PHASE_C.md)를 따른다.
 
 일반 조회 Grid 셀을 더블클릭해 Editor를 여는 경우에도 클릭한 표시행을 열기 전에 포커스한다. 작업명 열이 보이면 선택 버튼, 숨겨졌으면 프로그램 포커스 Grid를 사용하며 Editor 종료 뒤 같은 rowKey/역할로 돌아간다. 가상행·source/입력 세대의 기존 복원 취소 규칙과 새 Tab 정류점 없음은 유지한다. 실제 검증은 [F898-010](ISSUE_898_FAILURE_ANALYSIS.md)에 연결한다.
+
+
+## Issue #917 — 공정 미지정 설비 등록·필터
+
+기준정보 설비의 기존 단일 editor를 재사용한다. 주 관리 공정 select는 필수 표시/검증 없이 첫 항목 `공정 미지정`을 제공하며 기존 편집은 저장된 ID/null로 연다. 저장·재열기·언어·탭 전환에서 null을 첫 공정으로 치환하지 않는다. 미지정은 정상 상태이며 빈 문자열/깨진 ID와 구별한다.
+
+설비 목록의 공정 필터는 주 관리 공정 기준이다. `전체 공정`은 미지정도 포함하고 `공정 미지정`은 null 원본만, 특정 공정은 해당 주 관리 공정만 조회한다. WorkArea 소유 공정 필터로 재해석하지 않으며 공유 시스템 공정 필터에는 설비 전용 미지정 옵션을 적용하지 않는다. 여러 WorkArea는 주 관리 공정 선택과 독립적으로 기존 소유권 검증을 따른다.
+
+공유 이름 우선·ko/en/vi·readonly·pending/stale/dirty·취소/확인·강한 revision·focus/Escape 규칙을 유지한다. 관련5폭 실제 Chromium/합성 PNG·geometry와 미검증 수동 UX는 [Work Packet](exec-plans/active/ISSUE_917.md)에 연결한다.

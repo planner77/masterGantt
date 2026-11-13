@@ -110,3 +110,8 @@ F898-009~012를 [Primary 원장](ISSUE_898_FAILURE_ANALYSIS.md)에 추가했다.
 ## #898/#899 legacy 생성물과 전체 source 검증
 
 [F898-013/014](ISSUE_898_FAILURE_ANALYSIS.md)에 진단worktree/HTML의 rootlint 오류와 f4 개별160ChromiumPASS 뒤 snapshotBLOCKED를 추가했다. 제품/testbytes·설치 불변과 별개로 tracked13/untracked16 PNG/JSON도 sourceguard가 거부한다. 4개 기존spec의 출력목적지만 testInfo.outputPath로 옮겨 historical이미지/JSON·assertions/golden·gate를 보존한다. 새 exactsource 전체재검증이 필요하며 oldPASS를전용하지않는다.
+
+
+## #917 설비 주 관리 공정 선택화
+
+[Primary 원장](ISSUE_917_FAILURE_ANALYSIS.md)에 migration 개수/합성 seed·공정 필터·공유 변경확인·교환 fixture의 최초 실패와 nullable 공유 계약/도메인 producer의 독립 QA 지적 F917-001~007을 추가했다. 기존 실패/event/Markdown bytes는 그대로 유지한다. 구현 중 SCOPED 결과를 최종 source PASS로 승계하지 않으며 직접 migration/logistics/Copy/Template/Resource/WBS/Chromium seam을 확장한다. 최신 실제 검사·게시 상태는 [Work Packet](exec-plans/active/ISSUE_917.md)과 Issue STATUS/FINAL을 따른다.

@@ -488,3 +488,12 @@ WBS JSON schema1.0/1.1과 기존 Excel 일정 내보내기는 Target binding의 
 ## Issue #620 — Resource Target 보고의 교환 경계
 
 Resource report/detail/drill의 R2 Target 확장은 WBS JSON/CSV·Copy/Template 교환 형식을 변경하지 않는다. Resource Excel은 공통 source fingerprint에 Target 참조를 포함해 서비스 stale409를 공개 Excel API의 `412 REVISION_MISMATCH`로 매핑한다. R2 당시 Target 필터/`projectionOrder` 거부는 #622의 strict current/project 보고서 지원으로 대체됐으며, 조건을 조용히 버린 파일을 성공 처리하지 않는다. 기존 일정/Import의 무손실 포맷 지원을 확대하는 변경은 아니다. 상세 [Excel](EXCEL_EXPORT.md), [API](API.md), [R2 검증](exec-plans/active/ISSUE_620.md)을 따른다.
+
+
+## Issue #917 — 미지정 설비 교환의 무손실 경계
+
+공정0을 포함한 Equipment 원본의 주 관리 공정 null은 Project Copy와 versioned Template7에서 왕복 보존한다. 기존 유효한 지정 공정 Template v2~v6/legacy는 계속 지원하고 없는 비null 공정을 조용히 건너뛰거나 null로 바꾸지 않는다.
+
+일정 JSON1.0/1.1은 설비 원본 그래프를 표현하지 않는다. 미지정 설비가 있으면 JSON 출력은 `409 EQUIPMENT_PROCESS_EXPORT_UNSUPPORTED`, 일반 일정 Excel은 `422 EXPORT_UNSUPPORTED`로 명시 거부한다. 기존 공정/번역/Markdown/Target loss guard가 먼저 적용될 수 있다. 명시 Logistics 포함 또는 Resource opt-in Excel은 기존 보고서 경로를 유지하며 Logistics 설비 보고서는 `공정 미지정`으로 표시하며 Resource 보고서는 기존 지원 열 계약을 따른다. 보고서 표시 문자열은 DTO null을 빈 문자열로 저장하는 계약이 아니며 이 Excel은 전체 설비 그래프를 재가져오는 backup 형식이 아니다.
+
+웹 Import는 기존 strict 일정 schema를 유지하고 새 Equipment 임의 필드를 수용하지 않는다. 지원하지 않는 전체 그래프 교환을 성공으로 가장하지 않으며 안전한 원본 이관은 Copy/Template 또는 호환 DB backup/restore를 사용한다. [AC5와 실제 회귀](exec-plans/active/ISSUE_917.md).

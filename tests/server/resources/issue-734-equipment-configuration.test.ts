@@ -33,6 +33,46 @@ async function query(f: Fixture, body: unknown, origin = "https://example.test")
 }
 
 describe("#734 same-snapshot registered Equipment and exact common-ledger scope", () => {
+  it("preserves an unassigned registered equipment across all six views without a phantom process", () => {
+    const f = wbsDashboardViewsFixture("direct");
+    try {
+      f.database.prepare("UPDATE project_equipment SET process_id=NULL WHERE id=?").run(f.idleEquipment.id);
+      const dashboard = f.service.getDashboard(f.project.publicId)!;
+      expect(dashboard.summary).toBeDefined();
+      for (const root of ["process", "workArea", "equipment", "system", "resource", "milestone"] as const) {
+        const data = report(f, { spec: { ...spec, root } });
+        expect(data.configurationCatalog.equipment.find(row => row.id === f.idleEquipment.publicId)).toMatchObject({ primaryProcessId: null, quantity: 7 });
+        expect(data.totals.configurationReference.equipmentQuantity).toBe(22);
+        expect(data.configurationCatalog.processes.every(row => !!row.id)).toBe(true);
+        if (root === "equipment") {
+          const item = child(data, "equipment", f.idleEquipment.publicId);
+          expect(item.totals.configurationReference.equipmentQuantity).toBe(7);
+        }
+        expect(data.configuration.sources.some(source => source.sourceKind === "equipment-process" && source.entityId === f.idleEquipment.publicId)).toBe(false);
+      }
+    } finally { f.database.close(); }
+  });
+
+  it("keeps process-free registration in all six views and rejects a broken nonnull process reference", () => {
+    const f = wbsDashboardViewsFixture("direct");
+    try {
+      const project = f.createProject();
+      const equipment = f.logistics.insertEquipment({ publicId: randomUUID(), projectId: project.id, processId: null, code: "NONE", name: "공정 없는 설비", equipmentType: "amr", managementUnit: "fleet", quantity: 7, now });
+      for (const root of ["process", "workArea", "equipment", "system", "resource", "milestone"] as const) {
+        const data = f.service.queryWbsView(project.publicId, { spec: { ...spec, root }, filters }) as WbsViewReportDto;
+        expect(data.configurationCatalog.processes).toEqual([]);
+        expect(data.configurationCatalog.equipment).toMatchObject([{ id: equipment.publicId, primaryProcessId: null, quantity: 7 }]);
+        expect(data.totals.configurationReference.equipmentQuantity).toBe(7);
+        expect(data.configuration.sources.some(source => source.sourceKind === "equipment-process")).toBe(false);
+        if (root === "equipment") expect(child(data, "equipment", equipment.publicId).totals.configurationReference.equipmentQuantity).toBe(7);
+      }
+      f.database.pragma("foreign_keys = OFF");
+      f.database.prepare("UPDATE project_equipment SET process_id=? WHERE id=?").run(999999, equipment.id);
+      f.database.pragma("foreign_keys = ON");
+      expect(() => f.service.queryWbsView(project.publicId, { spec, filters })).toThrow(expect.objectContaining({ status: 409, code: "LOGISTICS_SOURCE_INVALID" }));
+    } finally { f.database.close(); }
+  });
+
   it("returns original inactive/idle metadata, explicit owner and actual controls without Task-derived relationships", async () => {
     const f = wbsDashboardViewsFixture("mixed");
     try {

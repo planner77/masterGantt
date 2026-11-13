@@ -539,14 +539,14 @@ Issue #261의 NO_EFFECT 예외도 원래 dayType을 저장한다. 글로벌 Grou
 
 ### 5.15 `project_equipment`
 
-프로젝트 내 설비를 정의한다. 설비는 반드시 하나의 특정 공정(`process_id`)에 소속된다.
+프로젝트 소유의 독립 설비 원본을 정의한다. 주 관리 공정(`process_id`)은 선택(0..1)이며 미지정은 SQL NULL이다. 실제 WorkArea 소유 공정과 독립이다.
 
 | Column | Type | Null | 의미 |
 |---|---|---:|---|
 | `id` | INTEGER | N | PK |
 | `public_id` | TEXT | N | UUID public 식별자 (UNIQUE) |
 | `project_id` | INTEGER | N | Project FK, cascade |
-| `process_id` | INTEGER | N | 소속 공정 PK (동일 프로젝트 composite FK, NO ACTION DEFERRED) |
+| `process_id` | INTEGER | Y | 선택 주 관리 공정 PK (동일 프로젝트 composite FK, NO ACTION DEFERRED); NULL은 미지정 |
 | `code` | TEXT | N | 설비 코드 (Project 내 UNIQUE) |
 | `name` | TEXT | N | 설비명 (1~200자) |
 | `equipment_type` | TEXT | N | `stocker \| agv \| amr \| oht \| conveyor \| other` |
@@ -857,3 +857,10 @@ project_issues: id PK, public_id UUID unique, project_id -> projects ON DELETE C
 Project가 계산하는 authority는 기존 `work_calendar_rules/work_calendar_dates`다. 국가 catalog 변경은 이 저장소에 쓰지 않는다. 명시적 Calendar 저장에서만 최신 OFFICIAL 원본을 복제하고 날짜별 sourceVersion을 보존한다. Copy/Template/Task 변경은 현재 materialized snapshot을 사용한다.
 
 신규 Project의 seed availability는 같은 UTC year 현재 OFFICIAL KR → 국가 rule 없이 기본 주간 규칙이다. 과거 연도 fallback/미래 추정은 없다. 명시적 국가 적용은 미확보 시 422로 실패한다. migration/file reopen 및 mid-insert·revision failure rollback은 국가 catalog integration/service test에서 검증한다.
+
+
+## Issue #917 — 설비 주 관리 공정 선택화 (migration 0039)
+
+`project_equipment.process_id`만 NULL 허용으로 확장한다. 기존 0009/0015 등 checksum은 변경하지 않으며 모든 기존 비NULL 공정 값·정수 PK/public UUID·수량/역할/활성·timestamps·UNIQUE/FK·index/trigger를 보존한다. 부모 table rebuild는 기존 migration runner의 referenced-table-rebuild 경계를 사용하고 전체 transaction 내 복원·`foreign_key_check` 후 성공한다. 실패 시 ledger/DDL/관계 전체가 rollback되어야 한다.
+
+자식 설비-System/Resource/Task/WorkArea/legacy Target/번역은 동일 원본을 참조한다. 미지정은 공정 FK를 만들지 않으며 실제 비NULL은 같은 프로젝트 공정 FK로 보호한다. legacy Target member가 남은 주 관리 공정 변경·해제는 null-safe DB guard와 service409로 차단한다. 공정 변경으로 WorkArea/Task/Owner/수량을 자동 재귀속하지 않는다. forward-only migration이므로 운영 복구에는 호환 DB snapshot과 digest 쌍이 필요하며 이미지 교체만으로 schema가 복원되지 않는다. 합성 upgrade/실패 rollback/restart/격리 복원 결과는 [Work Packet](exec-plans/active/ISSUE_917.md)과 [원장](ISSUE_917_FAILURE_ANALYSIS.md)에 구분한다.

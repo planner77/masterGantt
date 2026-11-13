@@ -124,6 +124,12 @@ export interface ProjectTemplateServiceOptions {
   generateSessionToken?: () => NewSessionToken;
 }
 
+function requiredLogisticsReference<K, V>(references: ReadonlyMap<K, V>, key: K, label: string): V {
+  const value = references.get(key);
+  if (value === undefined) throw new PublicApiError(409, "TEMPLATE_LOGISTICS_REFERENCE_INVALID", `${label} 참조를 찾을 수 없습니다.`);
+  return value;
+}
+
 export class ProjectTemplateService {
   private readonly templates: ProjectTemplateRepository;
   private readonly projects: ProjectRepository;
@@ -286,7 +292,7 @@ export class ProjectTemplateService {
         code: p.code,
         name: p.name,
         ...(p.translations ? { translations: p.translations } : {}),
-        parentCode: p.parentProcessId ? (processCodeById.get(p.parentProcessId) ?? null) : null,
+        parentCode: p.parentProcessId === null ? null : requiredLogisticsReference(processCodeById, p.parentProcessId, "상위 공정"),
         sortOrder: p.sortOrder,
         active: p.active,
       }));
@@ -298,8 +304,8 @@ export class ProjectTemplateService {
         systemType: s.systemType,
         layer: s.layer,
         scope: s.scope,
-        processCodes: s.processIds.map((pid) => processCodeById.get(pid)).filter(Boolean) as string[],
-        coordinatedSystemCodes: s.coordinatedSystemIds.map((cid) => systemCodeById.get(cid)).filter(Boolean) as string[],
+        processCodes: s.processIds.map((pid) => requiredLogisticsReference(processCodeById, pid, "시스템 담당 공정")),
+        coordinatedSystemCodes: s.coordinatedSystemIds.map((cid) => requiredLogisticsReference(systemCodeById, cid, "조율 시스템")),
         resourceRoles: s.resourceRoles.map((r) => ({
           resourcePublicId: r.resourceId,
           role: r.role,
@@ -317,9 +323,9 @@ export class ProjectTemplateService {
         equipmentType: e.equipmentType,
         managementUnit: e.managementUnit,
         quantity: e.quantity,
-        processCode: processCodeById.get(e.processId) ?? "",
+        processCode: e.processId === null ? null : requiredLogisticsReference(processCodeById, e.processId, "설비 주 관리 공정"),
         controlSystems: e.controlSystems.map((cs) => ({
-          systemCode: systemCodeById.get(cs.systemId) ?? "",
+          systemCode: requiredLogisticsReference(systemCodeById, cs.systemId, "설비 제어 시스템"),
           controlRole: cs.controlRole,
         })),
         resourceRoles: e.resourceRoles.map((r) => ({
@@ -337,23 +343,25 @@ export class ProjectTemplateService {
         logisticsDto.taskEquipmentLinks ?? []
       ).map((l) => {
         const task = tasks.find((t) => t.publicId === l.taskId);
+        if (!task) throw new PublicApiError(409, "TEMPLATE_LOGISTICS_REFERENCE_INVALID", "Template Task 연결 참조를 찾을 수 없습니다.");
         return {
-          taskExternalId: task ? task.externalId : "",
-          equipmentCode: equipmentCodeById.get(l.equipmentId) ?? "",
+          taskExternalId: task.externalId,
+          equipmentCode: requiredLogisticsReference(equipmentCodeById, l.equipmentId, "Task·설비"),
           scope: l.scope,
         };
-      }).filter((l) => l.taskExternalId && l.equipmentCode);
+      });
 
       const taskSystemLinkSnapshots: TemplateTaskSystemLinkSnapshotItem[] = (
         logisticsDto.taskSystemLinks ?? []
       ).map((l) => {
         const task = tasks.find((t) => t.publicId === l.taskId);
+        if (!task) throw new PublicApiError(409, "TEMPLATE_LOGISTICS_REFERENCE_INVALID", "Template Task 연결 참조를 찾을 수 없습니다.");
         return {
-          taskExternalId: task ? task.externalId : "",
-          systemCode: systemCodeById.get(l.systemId) ?? "",
+          taskExternalId: task.externalId,
+          systemCode: requiredLogisticsReference(systemCodeById, l.systemId, "Task·시스템"),
           scope: l.scope,
         };
-      }).filter((l) => l.taskExternalId && l.systemCode);
+      });
 
       const selectedMaster = this.projectMaster.projectSelectionDto(source.id);
       const snapshot: ProjectTemplateSnapshot = {
@@ -822,13 +830,13 @@ export class ProjectTemplateService {
               active: p.active ? 1 : 0,
               now: nowText,
             });
-            if (p.translations !== undefined && logisticsSnapshot.schemaVersion !== 6) throw new PublicApiError(409,"TEMPLATE_LOGISTICS_VERSION_UNSUPPORTED","표시명 번역은 Template version 6에서만 지원합니다.");
+            if (p.translations !== undefined && (logisticsSnapshot.schemaVersion === undefined || logisticsSnapshot.schemaVersion < 6)) throw new PublicApiError(409,"TEMPLATE_LOGISTICS_VERSION_UNSUPPORTED","표시명 번역은 Template version 6 이상에서만 지원합니다.");
             writeDisplayNameTranslations(this.database,"project_processes",newProc.id,parseDisplayNameTranslations(p.translations,()=>{throw new PublicApiError(409,"TEMPLATE_LOGISTICS_REFERENCE_INVALID","표시명 번역을 복원할 수 없습니다.");}));
             processByCode.set(p.code, { id: newProc.id, publicId: newProc.publicId });
             pendingProcs.splice(i, 1);
             insertedProc += 1;
           }
-          if (insertedProc === 0) break;
+          if (insertedProc === 0) throw new PublicApiError(409, "TEMPLATE_LOGISTICS_REFERENCE_INVALID", "Template 공정의 상위 참조가 없거나 순환합니다.");
         }
 
         // 7.2 시스템
@@ -847,14 +855,12 @@ export class ProjectTemplateService {
             active: s.active ? 1 : 0,
             now: nowText,
           });
-          if (s.translations !== undefined && logisticsSnapshot.schemaVersion !== 6) throw new PublicApiError(409,"TEMPLATE_LOGISTICS_VERSION_UNSUPPORTED","표시명 번역은 Template version 6에서만 지원합니다.");
+          if (s.translations !== undefined && (logisticsSnapshot.schemaVersion === undefined || logisticsSnapshot.schemaVersion < 6)) throw new PublicApiError(409,"TEMPLATE_LOGISTICS_VERSION_UNSUPPORTED","표시명 번역은 Template version 6 이상에서만 지원합니다.");
             writeDisplayNameTranslations(this.database,"project_logistics_systems",newSys.id,parseDisplayNameTranslations(s.translations,()=>{throw new PublicApiError(409,"TEMPLATE_LOGISTICS_REFERENCE_INVALID","표시명 번역을 복원할 수 없습니다.");}));
             systemByCode.set(s.code, { id: newSys.id, publicId: newSys.publicId });
 
           // 담당 공정
-          const procIds = s.processCodes
-            .map((c) => processByCode.get(c)?.id)
-            .filter((id): id is number => typeof id === "number");
+          const procIds = s.processCodes.map((c) => requiredLogisticsReference(processByCode, c, "시스템 담당 공정").id);
           if (procIds.length > 0) {
             this.logisticsRepo.setSystemProcesses(project.id, newSys.id, procIds, nowText);
           }
@@ -862,15 +868,16 @@ export class ProjectTemplateService {
           // 리소스 역할
           const roles = s.resourceRoles.map((r) => {
             const res = this.resources.findResourceByPublicId(r.resourcePublicId);
-            if (!res?.active) {
+            if (!res) throw new PublicApiError(409, "TEMPLATE_LOGISTICS_REFERENCE_INVALID", "Template 시스템 담당 리소스를 찾을 수 없습니다.");
+            if (!res.active) {
               warnings.push(`시스템(${s.code}) 담당 리소스(${r.resourcePublicId})가 비활성 상태입니다.`);
             }
             return {
-              resourceId: res ? res.id : 0,
+              resourceId: res.id,
               role: r.role,
               isPrimary: r.isPrimary ? 1 : 0,
             };
-          }).filter((r) => r.resourceId > 0);
+          });
           if (roles.length > 0) {
             this.logisticsRepo.replaceSystemResourceRoles(project.id, newSys.id, roles, nowText);
           }
@@ -880,9 +887,7 @@ export class ProjectTemplateService {
         for (const s of logisticsSnapshot.systems) {
           const sourceSys = systemByCode.get(s.code);
           if (!sourceSys || !s.coordinatedSystemCodes?.length) continue;
-          const targetIds = s.coordinatedSystemCodes
-            .map((c) => systemByCode.get(c)?.id)
-            .filter((id): id is number => typeof id === "number");
+          const targetIds = s.coordinatedSystemCodes.map((c) => requiredLogisticsReference(systemByCode, c, "조율 시스템").id);
           if (targetIds.length > 0) {
             this.logisticsRepo.setCoordinatedSystems(project.id, sourceSys.id, targetIds, nowText);
           }
@@ -891,13 +896,15 @@ export class ProjectTemplateService {
         // 7.3 설비
         const equipmentByCode = new Map<string, { id: number; publicId: string }>();
         for (const e of logisticsSnapshot.equipment) {
-          const proc = processByCode.get(e.processCode);
-          if (!proc) continue;
+          if (e.processCode === null && logisticsSnapshot.schemaVersion !== 7) {
+            throw new PublicApiError(409, "TEMPLATE_LOGISTICS_VERSION_UNSUPPORTED", "공정 미지정 설비는 Template version 7에서만 지원합니다.");
+          }
+          const proc = e.processCode === null ? null : requiredLogisticsReference(processByCode, e.processCode, "설비 주 관리 공정");
 
           const newEq = this.logisticsRepo.insertEquipment({
             publicId: randomUUID(),
             projectId: project.id,
-            processId: proc.id,
+            processId: proc?.id ?? null,
             code: e.code,
             name: e.name,
             equipmentType: e.equipmentType,
@@ -909,18 +916,18 @@ export class ProjectTemplateService {
             active: e.active ? 1 : 0,
             now: nowText,
           });
-          if (e.translations !== undefined && logisticsSnapshot.schemaVersion !== 6) throw new PublicApiError(409,"TEMPLATE_LOGISTICS_VERSION_UNSUPPORTED","표시명 번역은 Template version 6에서만 지원합니다.");
+          if (e.translations !== undefined && (logisticsSnapshot.schemaVersion === undefined || logisticsSnapshot.schemaVersion < 6)) throw new PublicApiError(409,"TEMPLATE_LOGISTICS_VERSION_UNSUPPORTED","표시명 번역은 Template version 6 이상에서만 지원합니다.");
             writeDisplayNameTranslations(this.database,"project_equipment",newEq.id,parseDisplayNameTranslations(e.translations,()=>{throw new PublicApiError(409,"TEMPLATE_LOGISTICS_REFERENCE_INVALID","표시명 번역을 복원할 수 없습니다.");}));
             equipmentByCode.set(e.code, { id: newEq.id, publicId: newEq.publicId });
 
           // 제어 시스템
           const controlSystems = e.controlSystems.map((cs) => {
-            const sys = systemByCode.get(cs.systemCode);
+            const sys = requiredLogisticsReference(systemByCode, cs.systemCode, "설비 제어 시스템");
             return {
-              systemId: sys ? sys.id : 0,
+              systemId: sys.id,
               controlRole: cs.controlRole,
             };
-          }).filter((cs) => cs.systemId > 0);
+          });
           if (controlSystems.length > 0) {
             this.logisticsRepo.setEquipmentSystems(project.id, newEq.id, controlSystems, nowText);
           }
@@ -928,15 +935,16 @@ export class ProjectTemplateService {
           // 리소스 역할
           const roles = e.resourceRoles.map((r) => {
             const res = this.resources.findResourceByPublicId(r.resourcePublicId);
-            if (!res?.active) {
+            if (!res) throw new PublicApiError(409, "TEMPLATE_LOGISTICS_REFERENCE_INVALID", "Template 설비 담당 리소스를 찾을 수 없습니다.");
+            if (!res.active) {
               warnings.push(`설비(${e.code}) 담당 리소스(${r.resourcePublicId})가 비활성 상태입니다.`);
             }
             return {
-              resourceId: res ? res.id : 0,
+              resourceId: res.id,
               role: r.role,
               isPrimary: r.isPrimary ? 1 : 0,
             };
-          }).filter((r) => r.resourceId > 0);
+          });
           if (roles.length > 0) {
             this.logisticsRepo.replaceEquipmentResourceRoles(project.id, newEq.id, roles, nowText);
           }
@@ -947,7 +955,7 @@ export class ProjectTemplateService {
         for (const l of logisticsSnapshot.taskEquipmentLinks) {
           const task = newByExternalId.get(l.taskExternalId);
           const eq = equipmentByCode.get(l.equipmentCode);
-          if (!task || !eq) continue;
+          if (!task || !eq) throw new PublicApiError(409, "TEMPLATE_LOGISTICS_REFERENCE_INVALID", "Template Task·설비 연결 참조를 찾을 수 없습니다.");
           const list = eqLinksByTaskId.get(task.id) ?? [];
           list.push({ equipmentId: eq.id, scope: l.scope });
           eqLinksByTaskId.set(task.id, list);
@@ -960,7 +968,7 @@ export class ProjectTemplateService {
         for (const l of logisticsSnapshot.taskSystemLinks) {
           const task = newByExternalId.get(l.taskExternalId);
           const sys = systemByCode.get(l.systemCode);
-          if (!task || !sys) continue;
+          if (!task || !sys) throw new PublicApiError(409, "TEMPLATE_LOGISTICS_REFERENCE_INVALID", "Template Task·시스템 연결 참조를 찾을 수 없습니다.");
           const list = sysLinksByTaskId.get(task.id) ?? [];
           list.push({ systemId: sys.id, scope: l.scope });
           sysLinksByTaskId.set(task.id, list);

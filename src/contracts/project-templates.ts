@@ -85,7 +85,8 @@ export interface TemplateEquipmentSnapshotItem {
   equipmentType: EquipmentType;
   managementUnit: ManagementUnit;
   quantity: number;
-  processCode: string;
+  /** Null is an unassigned primary process, supported from logistics version 7. */
+  processCode: string | null;
   controlSystems: Array<{ systemCode: string; controlRole: ControlRole }>;
   resourceRoles: Array<{ resourcePublicId: string; role: EquipmentRole; isPrimary: boolean }>;
   manufacturer?: string;
@@ -194,8 +195,8 @@ export interface ProjectTemplateSnapshot {
     systems: TemplateSystemSnapshotItem[];
     taskEquipmentLinks: TemplateTaskEquipmentLinkSnapshotItem[];
     taskSystemLinks: TemplateTaskSystemLinkSnapshotItem[];
-    /** Omitted for historical (pre-F2) snapshots. F2 snapshots must use version 2. */
-    schemaVersion?: 2 | 3 | 4 | 5 | 6;
+    /** Omitted for historical snapshots; version 7 adds nullable Equipment primary process codes. */
+    schemaVersion?: 2 | 3 | 4 | 5 | 6 | 7;
     /** Version 5 preserves all project-owned areas, including unused areas. */
     projectWorkAreas?: TemplateProjectWorkAreaSnapshotItem[];
     /** Version 4 preserves explicit Equipment locations and Task contexts, including empty selections. */

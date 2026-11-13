@@ -104,3 +104,10 @@ CI의 version consistency, typecheck, lint, Vitest, production build, Chromium E
 Project Template는 #725 직접 문맥이 없고 binding이 있으면 `logistics.schemaVersion=3`과 `taskTargetBindings=[{taskExternalId,targetCode,scope,selection,members:[{kind,instanceCode,coverage}]}]`를 저장한다. binding 없는 기존 v2와 legacy snapshot은 계속 지원하되 v2/unversioned에 신규 binding 필드를 끼워 넣지 못한다. 복원은 Project/Task/물류 graph와 같은 outer transaction에서 모든 참조를 검증하고 새 UUID로 생성한다. broken/unknown 참조는 `409 TASK_TARGET_TRANSFER_INVALID` 등 명시 오류로 전체 rollback한다. 앞의 #615 “mapped Template 미지원”은 당시 이력이며 현재 v2/v3/v4 구현이 우선한다.
 
 명시 연결/상속 구분·새 ID·원본 불변·legacy·Milestone·실패 rollback 검증과 exact Head 상태는 [#617 Work Packet](exec-plans/active/ISSUE_617.md)을 따른다.
+
+
+## Issue #917 — 공정 미지정 설비 무손실 복사·Template7
+
+Project Copy는 주 관리 공정이 null인 설비도 새 local Equipment ID로 복제하며 공정0을 이유로 실패/건너뛰지 않는다. 비null 공정은 기존 새 공정 ID에 매핑하고 실제 비null 참조 누락은 명시 오류로 전체 rollback한다. 수량/활성/유형·모델·Task/System/Owner/여러 WorkArea·번역은 기존 그래프 계약을 유지한다.
+
+Template logistics schemaVersion7은 `equipment[].processCode: string|null`을 사용한다. null은 미지정이고 비null은 snapshot-local 공정 코드다. 생략/빈 문자열/존재하지 않는 비null 코드는 미지정으로 정규화하지 않고 거부한다. 기존 v2~v6와 legacy의 유효한 지정 공정 복원은 유지하며 구버전 null은 새 버전으로 위장하지 않는다. 복원 실패는 Project/Task/설비/관계/session 전체 rollback이며 source는 불변이다. 기존 Template API/편집권·revision·loss guard를 재사용한다. [실행 계획/결과](exec-plans/active/ISSUE_917.md).

@@ -221,7 +221,7 @@ describe("catalog and materialized calendar boundaries", () => {
     ];
     const before = aggregate(legacy); legacy.close();
     const upgraded = openDatabase({ filename, migrationsDirectory: sourceMigrations });
-    expect(upgraded.migrations.applied).toEqual(["0035_country_calendar_catalog.sql", "0036_display_name_translations.sql", "0037_project_workspace_tabs.sql", "0038_description_formats.sql"]);
+    expect(upgraded.migrations.applied).toEqual(["0035_country_calendar_catalog.sql", "0036_display_name_translations.sql", "0037_project_workspace_tabs.sql", "0038_description_formats.sql", "0039_optional_equipment_process.sql"]);
     expect(aggregate(upgraded.database)).toEqual(before);
     expect(new ProjectRepository(upgraded.database).findById(project.id)?.workspaceTabs).toEqual({ issue: true, dashboard: true, master: true });
     expect(upgraded.database.prepare("PRAGMA foreign_key_check").all()).toEqual([]);

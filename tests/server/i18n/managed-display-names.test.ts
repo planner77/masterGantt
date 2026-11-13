@@ -190,7 +190,7 @@ describe("#866 manual managed display names", () => {
     const publicId = randomUUID(), stamp = now.toISOString();
     const inserted = old.prepare("INSERT INTO project_master_items(public_id,category,code,name,active,sort_order,created_at,updated_at) VALUES(?,'PRODUCT','EXISTING','원문',1,0,?,?)").run(publicId, stamp, stamp);
     const before = old.prepare("SELECT * FROM project_master_items").all();
-    expect(runMigrations(old, migrationsDirectory).applied).toEqual(["0036_display_name_translations.sql", "0037_project_workspace_tabs.sql", "0038_description_formats.sql"]);
+    expect(runMigrations(old, migrationsDirectory).applied).toEqual(["0036_display_name_translations.sql", "0037_project_workspace_tabs.sql", "0038_description_formats.sql", "0039_optional_equipment_process.sql"]);
     expect(old.prepare("SELECT * FROM project_master_items").all()).toEqual(before);
     expect(readDisplayNameTranslations(old, "project_master_items", Number(inserted.lastInsertRowid))).toEqual({});
     old.transaction(() => writeDisplayNameTranslations(old, "project_master_items", Number(inserted.lastInsertRowid), translations)).immediate(); old.close();
