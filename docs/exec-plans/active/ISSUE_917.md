@@ -73,3 +73,19 @@ F917-018의 좁은 관리 버튼 줄바꿈을 기존 설비표 CSS 안에서 보
 ## AC1/AC4 직접 소비자 보강
 
 754의 공통 Gate는9step/전체4009tests·production build PASS였으나 새 source의 성공으로 승계하지 않는다. 독립QA의 coverage 지적으로 기존 #917 실제 Chromium에 공정/WorkArea/Task/Target0의Unit1·Fleet7등록, 이름/코드검색·미지정필터·inactive, 실제Equipment Dashboard/일정View nullable원본렌더를추가했다. 기존150초timeout/권한/dirty·geometry검사를유지하며후속clean source로fast/targeted/docker/admit를다시수행한다. 직접추가실행1건44.1s PASS는SCOPED다.
+
+
+## 최종 검증 재작업 — F917-020
+
+a388의 fast02는 PASS였고 targeted02의67파일803Unit/32파일149Chromium은rawPASS였으나, 최종 snapshot에서 docs/evidence의390/1440PNG가변해전체targeted는BLOCKED였다. 원장/Issue EXCEPTION에보존했고기존ResourceDrillUI의출력두곳만testInfo로이관했다. AST보호호출101개는동일하다. 독립QA의69파일출력감사를추가했으며새HEAD의공통/영향전체/Docker/admit전Push/게시/종료를금지한다.
+
+## UI_EVIDENCE_CONTRACT와 미수집 경계
+
+| 범위 | 기준과 실제 수집 | 상태 경계 |
+| --- | --- | --- |
+| 선택 공정/미지정·등록/지정해제·검색/비활성 | DESIGN의공정미선택정상/이름우선, PROJECT_UX#917; 실제HTTP+canonical재조회·#917Chromium | rawassertion PASS와snapshot 최종판정분리 |
+| 390/768/1024/1440/1920×ko/en/vi | 직접30PNG/30JSON;document=viewport,관리버튼4개44px/nowrap/동일행,행105.28125px,dialog/focus/내부scroll | 같은runner provenance·최종guard완료뒤direct증거로판정 |
+| #896 canonical v2 manifest | 이#917 testcase는captureSyntheticUiEvidence helper/v2manifest를생성하지않음 | NOT TESTED,현행StageA advisory;사후재구성으로PASS를만들지않음 |
+| Owner수동UAT/실기기/AT/native125%/production | 자동Chromium/합성PNG와다른환경 | NOT TESTED;운영배포는요청범위밖 |
+
+원본149PASS는sourceauditBLOCKED를대체하지않는다. 최종새HEAD에서같은직접수용기준과출력불변을다시실행한다. 후속문서의실제source/receipt/게시·종료기록은코드이미지와문서전용commit을구분한다.

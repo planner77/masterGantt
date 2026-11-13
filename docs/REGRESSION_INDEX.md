@@ -115,3 +115,8 @@ F898-009~012를 [Primary 원장](ISSUE_898_FAILURE_ANALYSIS.md)에 추가했다.
 ## #917 설비 주 관리 공정 선택화
 
 [Primary 원장](ISSUE_917_FAILURE_ANALYSIS.md)에 migration 개수/합성 seed·공정 필터·공유 변경확인·교환 fixture의 최초 실패와 nullable 공유 계약/도메인 producer의 독립 QA 지적 F917-001~007을 추가했다. 기존 실패/event/Markdown bytes는 그대로 유지한다. 구현 중 SCOPED 결과를 최종 source PASS로 승계하지 않으며 직접 migration/logistics/Copy/Template/Resource/WBS/Chromium seam을 확장한다. 최신 실제 검사·게시 상태는 [Work Packet](exec-plans/active/ISSUE_917.md)과 Issue STATUS/FINAL을 따른다.
+
+
+## #917 검증 보조 조회와 snapshot PNG 오염
+
+[F917-019/020](ISSUE_917_FAILURE_ANALYSIS.md)은 runner 상대 경로 조회 ENOENT 교정과, 원본149 Chromium PASS 후에도 docs PNG 오염으로 최종 snapshot BLOCKED한 근거를 보존한다. 원본/code/env와 테스트 산출물 경계를 구별하며 기존 guard를 완화하지 않는다. Resource Drill의 출력만 testInfo로 이관하고 새 source의 실제 전체 gate가 필요하다.

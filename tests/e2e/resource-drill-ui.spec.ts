@@ -296,7 +296,7 @@ test("#528 실제 SQLite 일정·리소스 왕복과 정확한 배정·Editor", 
       geometry.push({...observation, focusRing:ring});
       if (width === 390 || width === 1440)
         await p.screenshot({
-          path: `docs/evidence/issue-528/resource-drill-${width}.png`,
+          path: testInfo.outputPath(`resource-drill-${width}.png`),
           fullPage: false,
         });
     }

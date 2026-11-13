@@ -8064,6 +8064,183 @@
           ]
         }
       ]
+    },
+    {
+      "id": "F917-019",
+      "issue": 917,
+      "ledger": "docs/ISSUE_917_FAILURE_ANALYSIS.md",
+      "relatedIssues": [],
+      "domain": "tooling",
+      "layer": "review",
+      "keywords": [
+        "runner",
+        "relative-path",
+        "ENOENT"
+      ],
+      "cause": "독립QA가runner.resultFile의reportDir상대경로를cwd상대로해석",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/scripts/prepr-verifier.test.ts",
+          "case": "로컬 runner 보고서의 파일 bytes/SHA와 동일 source 검산",
+          "historical": false,
+          "coverageArea": "보고서계약검사;실제보조조회명령은events와원장참조"
+        }
+      ],
+      "residualRisk": "제품/게이트검사실패와보조조회명령오류구분",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "정확한 보조조회 시각 미수집; fast02 완료 2026-11-13T06:56:34.335Z 이후 최초조회→즉시교정 순서",
+          "stage": "LOCAL_PREP",
+          "status": "FAIL",
+          "sourceSha": "a38828a7f7b2dfc59e5202b66ebc39b83b79b427",
+          "fixSourceSha": null,
+          "sourceFingerprint": "d83665d0a2d52c47a5cdbcb16ba0d866b9e1273d445a9d2f776090011ed44b71",
+          "sourceNote": "실제 고정된 a388 보고서/출력 감사; source fingerprint는 해당 run 원본",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+          "environmentVersion": "masterGantt0.146.0",
+          "command": [
+            "node",
+            "--input-type=module"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "관리버튼이름한줄/44px/기존내부가로scroll",
+          "actual": "ENOENT open 'vitest-results.json'; stdin script가 runner.resultFile을cwd로해석",
+          "input": "합성장문설비명+미지정주관리공정 ko390; 당시dirtysource PNG/geometry",
+          "classification": "TOOLING",
+          "recovery": "최초결과보존;후속교정과새HEAD의실제검증을구분",
+          "residualRisk": "최종 exact source admission/GHCR 검증은 별도",
+          "evidenceScope": "EXACT",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "corrected-read",
+          "at": null,
+          "timeNote": "정확한 보조조회 시각 미수집; fast02 완료 2026-11-13T06:56:34.335Z 이후 최초조회→즉시교정 순서",
+          "stage": "LOCAL_PREP",
+          "status": "PASS",
+          "sourceSha": "a38828a7f7b2dfc59e5202b66ebc39b83b79b427",
+          "fixSourceSha": null,
+          "sourceFingerprint": "d83665d0a2d52c47a5cdbcb16ba0d866b9e1273d445a9d2f776090011ed44b71",
+          "sourceNote": "실제 고정된 a388 보고서/출력 감사; source fingerprint는 해당 run 원본",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+          "environmentVersion": "masterGantt0.146.0",
+          "command": [
+            "node",
+            "--input-type=module"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "관리버튼이름한줄/44px/기존내부가로scroll",
+          "actual": "절대경로이면그대로/상대면reportDir에join하여조회;fast02checksum/9logSHA/raw4009PASS0FAIL3pending/sourceenv안정확인",
+          "input": "합성장문설비명+미지정주관리공정 ko390; 당시dirtysource PNG/geometry",
+          "classification": "TOOLING",
+          "recovery": "최초결과보존;후속교정과새HEAD의실제검증을구분",
+          "residualRisk": "최종 exact source admission/GHCR 검증은 별도",
+          "evidenceScope": "EXACT",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "a38828a7f7b2dfc59e5202b66ebc39b83b79b427",
+            "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F917-020",
+      "issue": 917,
+      "ledger": "docs/ISSUE_917_FAILURE_ANALYSIS.md",
+      "relatedIssues": [],
+      "domain": "tooling",
+      "layer": "snapshot",
+      "keywords": [
+        "resource-drill",
+        "docs/evidence",
+        "screenshot",
+        "sourceguard"
+      ],
+      "cause": "기존ResourceDrillUI의PNGwriter가docs/evidence원본캡처를덮어써snapshot불변계약위반",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/e2e/resource-drill-ui.spec.ts",
+          "case": "#528 실제 SQLite 일정·리소스 왕복과 정확한 배정·Editor",
+          "historical": false,
+          "coverageArea": "PNG390/1440은testInfo.outputPath로만출력;실제같은snapshotguard검사필요"
+        },
+        {
+          "path": "tests/scripts/prepr-snapshot.test.ts",
+          "case": "rejects source and fixture mutations during snapshot verification",
+          "historical": false,
+          "coverageArea": "sourceguard강도보존;run별audit실증별도"
+        }
+      ],
+      "residualRisk": "rawassertion149PASS는snapshotBLOCKED를대체하지않음;새source전체Gate미완료",
+      "events": [
+        {
+          "id": "blocked-run",
+          "at": "2026-11-13T07:57:09.208Z",
+          "timeNote": null,
+          "stage": "PLAYWRIGHT",
+          "status": "BLOCKED",
+          "sourceSha": "a38828a7f7b2dfc59e5202b66ebc39b83b79b427",
+          "fixSourceSha": null,
+          "sourceFingerprint": "d83665d0a2d52c47a5cdbcb16ba0d866b9e1273d445a9d2f776090011ed44b71",
+          "sourceNote": "실제 고정된 a388 보고서/출력 감사; source fingerprint는 해당 run 원본",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+          "environmentVersion": "masterGantt0.146.0",
+          "command": [
+            "node",
+            "scripts/verify-prepr.mjs",
+            "--mode=targeted",
+            "--base=1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+            "--issue=917",
+            "--report-dir=.prepr-reports/final-targeted-02"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "관리버튼이름한줄/44px/기존내부가로scroll",
+          "actual": "2026-11-13T06:57:30.685Z~07:57:09.208Z:803UnitPASS/149ChromiumPASS0FAIL1historicalSKIP;최종snapshot docs/evidence/issue-528/resource-drill-1440.png 변경으로BLOCKED;parent source/envStable=true",
+          "input": "합성장문설비명+미지정주관리공정 ko390; 당시dirtysource PNG/geometry",
+          "classification": "TEST_OUTPUT",
+          "recovery": "최초결과보존;후속교정과새HEAD의실제검증을구분",
+          "residualRisk": "최종 exact source admission/GHCR 검증은 별도",
+          "evidenceScope": "EXACT",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+            }
+          ]
+        }
+      ]
     }
   ]
 }

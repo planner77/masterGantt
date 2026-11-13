@@ -166,3 +166,18 @@ F917-001~015/018에 직접 소비자의 실제 exit0 재검사 event를 추가�
 source `754786c688a15f8f9cd4586f8874c32927045a95`에서 2026-11-13T06:46:39.926Z~06:50:32.224Z fast-01의9step 모두exit0/PASS: 전체321파일4009tests PASS/기존opt-in benchmark3SKIP, typecheck/lint/production build. 독립QA가source fingerprint `c88a7edc9b3a6729ff6d65e8a1299d5c714310d73e7255e303faa8575b23d4ba` 전후동일/envStable/report checksum/9개로그SHA/원본runner를대조했다. 이성공은754의것이며후속source에승계하지않는다.
 
 독립QA는AC1의공정0Fleet UI직접증거부재와fixture가명시Task2개를만들던점, AC4의null검색/비활성교집합및실제대시보드·일정렌더증거를추가지적했다. 제품실행FAIL로잘못표시하지않고coverage NOT TESTED로분리해기존#917 E2E를확장했다. fixture child/summary를실제DELETE setup후공정/Project WorkArea/Task/Target0 baseline에서Unit1·Fleet7을UI로각POST201하고GET/reload에서서로다른ID/수량·Task0/Target0을확인했다. 이름/코드×전체/미지정검색·비활성hide/show/reload, 설비Dashboard의공정미지정/총량8/Fleet7, 일정EquipmentView의유형/모델/원본idle렌더도직접확인했다. 단일실행44.1s/1test exit0은dirtySCOPED이고최종HEAD Gate에서재실행한다. 기존150초test timeout은유지한다.
+
+
+## F917-019 — 독립 QA 보고서 상대 경로 조회 오류
+
+source `a38828a7f7b2dfc59e5202b66ebc39b83b79b427`, Node22.14.0. 실제argv `node --input-type=module`,stdin heredoc,cwd=검증worktree. `runner.resultFile`의`vitest-results.json`을cwd에서읽어ENOENT/open/exit1. reportDir상대경로로`path.join`하고절대경로는그대로읽도록즉시교정한동일argv의exit0에서fast02checksum/9개logSHA/runnerSHA/4009PASS0FAIL3pending/source·env안정성을확인했다. 두명령의정확UTC시각은미수집이며fast02완료2026-11-13T06:56:34.335Z이후의순서만알려져있다. 제품/테스트FAIL과구분한다. Reviewer는제품/테스트/문서·원격상태read-only였고초기검색출력1개를`/tmp`에저장한보조I/O는있었다.
+
+## F917-020 — Chromium 원본149 PASS 뒤 docs PNG 오염으로 snapshot BLOCKED
+
+- source: `a38828a7f7b2dfc59e5202b66ebc39b83b79b427`; fingerprint `d83665d0a2d52c47a5cdbcb16ba0d866b9e1273d445a9d2f776090011ed44b71`.
+- 실제명령: `node scripts/verify-prepr.mjs --mode=targeted --base=1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca --issue=917 --report-dir=.prepr-reports/final-targeted-02`.
+- 시각: 2026-11-13T06:57:30.685Z~07:57:09.208Z; exit1/최종BLOCKED. 영향67Unit파일803PASS,32Chromium파일149PASS/0FAIL/역사before캡처1SKIP(N/A),retries0·workers1·58.6분. rawassertions와최종admission판정은별개다.
+- 최초오류: `BLOCKED: snapshot source/fixture 변경을 거부합니다: docs/evidence/issue-528/resource-drill-1440.png`. 전체5266개before/after목록을비교한실제변경은해당1440/390PNG두개와설치된Next의정확생성출력next-env/tsconfig두개뿐이다. untracked0,parent sourceStable/environmentStable=true.
+- 원인: `resource-drill-ui.spec.ts`가`docs/evidence/issue-528`에직접screenshot을썼다. 기존output/playwright검색만으로모든writer를확인하지못했다. 원본PNG는정리된일회용snapshot에있었으므로bytes는보존되지않았지만before/afterhash·audit·원본runner/로그/일반test-results는유지한다. auditSHA256 `7c100357e6d5f2cbf4740a214ffa1aa3a291a994c4b7070a703c68b1ca06d0c2`, rawChromiumJSON `844074bbe83341cfe43b2bdcc2753c6c6b6d8625bfb8de38a384b16ca316e60e`.
+- 수정: PNG390/1440경로만기존`testInfo.outputPath`로이관. 파일명·옵션·101개AST assertion/skip/retry/timeout호출은동일하며typecheck/lint/diff검산exit0. 독립QA는선정32spec의상대import/export/require/dynamicimport를재귀추적한69파일의writer를감사했다. 명시경로override3개는현재환경ABSENT이며defaultwriter는testInfo/attach또는fixture소유runtime경로다. 정적감사는임의동적문자열실행까지보증하지않는다.
+- 복구조건: 새cleanHEAD에서공통fast·영향Chromium전체·Docker·admit를실행한다. a388의BLOCKED를PASS로승계하거나sourceguard를완화하거나사후PNG복원으로PASS를만들지않는다. Push/Publish/Close는계속차단한다.
