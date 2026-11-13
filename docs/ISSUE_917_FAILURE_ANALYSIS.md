@@ -159,3 +159,10 @@ backend20files175tests/마지막2files16tests, exchange16files144tests/직접gra
 F917-001~015/018에 직접 소비자의 실제 exit0 재검사 event를 추가했다. 원본 FAIL/BLOCKED event·Markdown prefix는 그대로다. F917-016의 실행중파일변경은 뒤의 PASS로소급승인하지않으며최종snapshot sourceguard로새로검증한다. F917-017의잘못된CLI명은실제기존verify-sqlite-recovery CLI로keygen/backup/verify/restore 성공한위별도근거를따른다. F917-018관측command표기는요약이며실제Python heredoc(`python3 -`)였음을후속정정event로남겼다.
 
 선정된산출물11spec의경로이관은독립QA가TypeScript AST로expect/test.skip/setTimeout/slow/fixme/fail/retries호출을HEAD와비교하여기존호출동일을확인했다. finalsource에서실제실행하는testInfo보고root가새PNG/JSON을보존하며과거committedoutput은변경하지않는다.
+
+
+## 754786c 공통 Gate 및 AC 직접 증거 보강
+
+source `754786c688a15f8f9cd4586f8874c32927045a95`에서 2026-11-13T06:46:39.926Z~06:50:32.224Z fast-01의9step 모두exit0/PASS: 전체321파일4009tests PASS/기존opt-in benchmark3SKIP, typecheck/lint/production build. 독립QA가source fingerprint `c88a7edc9b3a6729ff6d65e8a1299d5c714310d73e7255e303faa8575b23d4ba` 전후동일/envStable/report checksum/9개로그SHA/원본runner를대조했다. 이성공은754의것이며후속source에승계하지않는다.
+
+독립QA는AC1의공정0Fleet UI직접증거부재와fixture가명시Task2개를만들던점, AC4의null검색/비활성교집합및실제대시보드·일정렌더증거를추가지적했다. 제품실행FAIL로잘못표시하지않고coverage NOT TESTED로분리해기존#917 E2E를확장했다. fixture child/summary를실제DELETE setup후공정/Project WorkArea/Task/Target0 baseline에서Unit1·Fleet7을UI로각POST201하고GET/reload에서서로다른ID/수량·Task0/Target0을확인했다. 이름/코드×전체/미지정검색·비활성hide/show/reload, 설비Dashboard의공정미지정/총량8/Fleet7, 일정EquipmentView의유형/모델/원본idle렌더도직접확인했다. 단일실행44.1s/1test exit0은dirtySCOPED이고최종HEAD Gate에서재실행한다. 기존150초test timeout은유지한다.

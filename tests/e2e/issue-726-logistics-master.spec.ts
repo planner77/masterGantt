@@ -111,7 +111,17 @@ test("#726 Target0 master 설비·시스템 생성, 유형 실패 복구, Fleet�
 test("#917 공정 없이 설비 생성·재조회와 미지정 필터", async ({ page, isolatedApplication: origin, observeIsolatedApi }, testInfo) => {
   test.setTimeout(150_000);
   const f = await createTargetProject(page, origin, observeIsolatedApi, { noProcesses: true });
-  expect((await f.snapshot()).data.logistics?.processes).toHaveLength(0);
+  await f.mutate(`/tasks/${f.task.taskId}`, {}, "delete");
+  await f.mutate(`/tasks/${f.parentTask.taskId}`, {}, "delete");
+  const baseline = (await f.snapshot()).data;
+  expect(baseline.tasks).toHaveLength(0);
+  expect(baseline.logistics?.processes).toHaveLength(0);
+  const contextResponse = await page.request.get(`${f.api}/logistics/process-context`);
+  expect(contextResponse.status()).toBe(200);
+  const context = (await contextResponse.json()).data;
+  expect(context.projectWorkAreas).toEqual([]);
+  await page.reload();
+  expect(readLegacyFixtureCounts(origin, f.publicId)).toEqual({ targets: 0, members: 0, bindings: 0, selectedMembers: 0 });
   await openWorkspaceView(page, "equipment");
   let failContext = true;
   await page.route("**/logistics/process-context", async route => {
@@ -144,7 +154,8 @@ test("#917 공정 없이 설비 생성·재조회와 미지정 필터", async ({
   const saved = (await f.snapshot()).data.logistics!;
   expect(saved.processes).toHaveLength(0);
   expect(saved.equipment).toHaveLength(1);
-  expect(saved.equipment[0]).toMatchObject({ code: "NO-PROCESS", processId: null });
+  expect(saved.equipment[0]).toMatchObject({ code: "NO-PROCESS", processId: null, managementUnit: "unit", quantity: 1 });
+  const unitId = saved.equipment[0].id;
   await page.reload(); await openWorkspaceView(page, "equipment");
   const filter = page.getByRole("combobox", { name: "공정 필터" });
   await filter.selectOption("unassigned");
@@ -226,6 +237,82 @@ test("#917 공정 없이 설비 생성·재조회와 미지정 필터", async ({
       await expect(trigger).toBeFocused();
     }
   }
+  // A second real UI POST must work with no processes, including fleet quantity.
+  await add.click();
+  const fleetDialog = page.getByRole("dialog", { name: "설비 추가", exact: true });
+  await expect(fleetDialog.getByRole("combobox", { name: "주 관리 공정 (선택)" })).toHaveValue("");
+  await fleetDialog.getByRole("textbox", { name: "설비 코드", exact: false }).fill("NO-PROCESS-FLEET");
+  await fleetDialog.getByRole("textbox", { name: "설비명", exact: false }).fill("공정 없는 Fleet");
+  await fleetDialog.getByRole("combobox", { name: "관리 단위", exact: true }).selectOption("fleet");
+  await fleetDialog.getByRole("spinbutton", { name: /수량/ }).fill("7");
+  const fleetPost = page.waitForResponse(response => response.request().method() === "POST" && new URL(response.url()).pathname === `/api/projects/${f.publicId}/logistics/equipment`);
+  await fleetDialog.getByRole("button", { name: "저장", exact: true }).click();
+  const fleetResponse = await fleetPost;
+  expect(fleetResponse.status()).toBe(201);
+  const fleetData = (await fleetResponse.json() as { data: { logistics: { equipment: Array<{ id: string; code: string; processId: string | null; managementUnit: string; quantity: number }> } } }).data.logistics;
+  const fleet = fleetData.equipment.find(item => item.code === "NO-PROCESS-FLEET")!;
+  expect(fleet).toMatchObject({ processId: null, managementUnit: "fleet", quantity: 7 });
+  expect(fleet.id).toBeTruthy(); expect(fleet.id).not.toBe(unitId);
+  await expect(fleetDialog).toHaveCount(0);
+  await page.reload(); await openWorkspaceView(page, "equipment");
+  await expect(page.locator("#panel-equipment").getByRole("row").filter({ hasText: "공정 없는 Fleet" })).toContainText("공정 미지정");
+  const reloaded = (await f.snapshot()).data;
+  expect(reloaded.logistics!.processes).toHaveLength(0);
+  expect(reloaded.logistics!.equipment).toHaveLength(2);
+  expect(reloaded.logistics!.equipment.find(item => item.id === unitId)).toMatchObject({ code: "NO-PROCESS", processId: null, managementUnit: "unit", quantity: 1 });
+  expect(reloaded.logistics!.equipment.find(item => item.id === fleet.id)).toMatchObject({ code: "NO-PROCESS-FLEET", processId: null, managementUnit: "fleet", quantity: 7 });
+  expect(reloaded.tasks).toEqual(baseline.tasks);
+  expect(readLegacyFixtureCounts(origin, f.publicId)).toEqual({ targets: 0, members: 0, bindings: 0, selectedMembers: 0 });
+
+  // Search intersects both process filters, including canonical code and name.
+  const search = page.getByRole("searchbox", { name: "물류 항목 검색" });
+  const currentFilter = page.getByRole("combobox", { name: "공정 필터" });
+  const fleetRow = page.locator("#panel-equipment").getByRole("row").filter({ hasText: "공정 없는 Fleet" });
+  for (const selection of ["all", "unassigned"]) {
+    await currentFilter.selectOption(selection);
+    for (const query of ["공정 없는 Fleet", "NO-PROCESS-FLEET"]) {
+      await search.fill(query); await expect(fleetRow).toBeVisible();
+      await expect(page.locator("#panel-equipment").getByRole("row").filter({ hasText: "미지정 설비 LongEquipment" })).toHaveCount(0);
+    }
+  }
+  await search.fill("");
+  await f.mutate(`/logistics/equipment/${fleet.id}`, { active: false }, "patch");
+  await page.reload(); await openWorkspaceView(page, "equipment");
+  await expect(fleetRow).toHaveCount(0);
+  await page.getByRole("checkbox", { name: "비활성 항목 포함" }).check();
+  await expect(fleetRow).toContainText("비활성");
+  await page.reload(); await openWorkspaceView(page, "equipment");
+  const includeInactive = page.getByRole("checkbox", { name: "비활성 항목 포함" });
+  if (!await includeInactive.isChecked()) await includeInactive.check();
+  await expect(fleetRow).toContainText("비활성");
+  await includeInactive.uncheck(); await expect(fleetRow).toHaveCount(0);
+  await f.mutate(`/logistics/equipment/${fleet.id}`, { active: true }, "patch");
+  await page.reload();
+
+  // Both read surfaces consume the same unassigned canonical equipment.
+  await openWorkspaceView(page, "equipment");
+  await page.getByRole("tablist", { name: "프로젝트 작업공간" }).getByRole("tab", { name: "대시보드", exact: true }).click();
+  await page.getByRole("tablist", { name: "대시보드 보기" }).getByRole("tab", { name: "설비", exact: true }).click();
+  const dashboard = page.getByTestId("wbs-view-dashboard").filter({ visible: true });
+  await expect(dashboard).toHaveAttribute("data-ready", "true");
+  await expect(dashboard.getByTestId("equipment-summary").getByLabel("등록 구성 참고")).toContainText("8대");
+  const sourceDetails = dashboard.locator("details").filter({ has: page.locator("summary").filter({ hasText: /^설비 원본 정보$/ }) });
+  await sourceDetails.locator(":scope > summary").click();
+  const fleetDetails = sourceDetails.locator("details").filter({ has: page.locator("summary").filter({ hasText: "공정 없는 Fleet" }) });
+  await fleetDetails.locator(":scope > summary").click();
+  await expect(fleetDetails).toContainText("공정 미지정");
+  await expect(fleetDetails).toContainText("7대");
+  await openWorkspaceView(page, "schedule");
+  await page.getByLabel("View", { exact: true }).selectOption("equipment");
+  const equipmentView = page.locator('[data-schedule-view="equipment"]');
+  await expect(equipmentView).toBeVisible();
+  const idle = equipmentView.locator(`[data-view-group-kind="equipment"][data-view-entity-id="${fleet.id}"]`);
+  await expect(idle).toContainText("공정 없는 Fleet");
+  await expect(idle).toContainText("하위 작업 없음");
+  await expect(equipmentView.locator('[data-view-group-kind="equipmentType"]')).not.toHaveCount(0);
+  await expect(equipmentView.locator('[data-view-group-kind="model"]')).toContainText("모델 미지정");
+  expect((await f.snapshot()).data.tasks).toHaveLength(0);
+  await openWorkspaceView(page, "equipment");
   const created = await (await f.mutate("/logistics/processes", { name: "새 공정" })).json() as { data: { logistics: { processes: Array<{ id: string; name: string }> } } };
   const processId = created.data.logistics.processes.find(item => item.name === "새 공정")!.id;
   await page.reload(); await openWorkspaceView(page, "equipment");
@@ -241,7 +328,7 @@ test("#917 공정 없이 설비 생성·재조회와 미지정 필터", async ({
   await edit.getByRole("button", { name: "저장", exact: true }).click();
   await page.getByRole("dialog", { name: "공유 인스턴스 변경 확인" }).getByRole("button", { name: "공유 사용처 확인 후 원본 저장" }).click();
   await expect(edit).toHaveCount(0);
-  expect((await f.snapshot()).data.logistics!.equipment[0].processId).toBe(processId);
+  expect((await f.snapshot()).data.logistics!.equipment.find(item => item.id === unitId)!.processId).toBe(processId);
   await page.getByRole("combobox", { name: "공정 필터" }).selectOption("unassigned");
   await expect(editRow).toHaveCount(0);
   await page.getByRole("combobox", { name: "공정 필터" }).selectOption(processId);
@@ -251,5 +338,5 @@ test("#917 공정 없이 설비 생성·재조회와 미지정 필터", async ({
   await edit.getByRole("button", { name: "저장", exact: true }).click();
   await page.getByRole("dialog", { name: "공유 인스턴스 변경 확인" }).getByRole("button", { name: "공유 사용처 확인 후 원본 저장" }).click();
   await expect(edit).toHaveCount(0);
-  expect((await f.snapshot()).data.logistics!.equipment[0].processId).toBeNull();
+  expect((await f.snapshot()).data.logistics!.equipment.find(item => item.id === unitId)!.processId).toBeNull();
 });

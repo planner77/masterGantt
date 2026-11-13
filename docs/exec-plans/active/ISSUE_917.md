@@ -68,3 +68,8 @@ F917-018의 좁은 관리 버튼 줄바꿈을 기존 설비표 CSS 안에서 보
 
 
 구현/테스트/문서 writer가 모두 편집을 종료했다. 최종 선정은67개 Unit/Integration 파일과32개 Chromium 파일이며 UNKNOWN0/missing0이다. 공통 fast는 전체 발견 Unit/Integration과 production build를 별도로 실행한다. 기록용 최종 source commit 뒤 새 clean validation worktree를 만들고 같은 Node/PATH·고정 baseline으로 fast→targeted→docker→admit를 순차 수행한다. 실제 exact SHA·보고서·image/복원/게시 결과는 Issue STATUS/FINAL에 귀속하며, 이 준비 문구만으로 실행 성공이나 종료를 주장하지 않는다.
+
+
+## AC1/AC4 직접 소비자 보강
+
+754의 공통 Gate는9step/전체4009tests·production build PASS였으나 새 source의 성공으로 승계하지 않는다. 독립QA의 coverage 지적으로 기존 #917 실제 Chromium에 공정/WorkArea/Task/Target0의Unit1·Fleet7등록, 이름/코드검색·미지정필터·inactive, 실제Equipment Dashboard/일정View nullable원본렌더를추가했다. 기존150초timeout/권한/dirty·geometry검사를유지하며후속clean source로fast/targeted/docker/admit를다시수행한다. 직접추가실행1건44.1s PASS는SCOPED다.
