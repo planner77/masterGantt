@@ -120,3 +120,8 @@ F898-009~012를 [Primary 원장](ISSUE_898_FAILURE_ANALYSIS.md)에 추가했다.
 ## #917 검증 보조 조회와 snapshot PNG 오염
 
 [F917-019/020](ISSUE_917_FAILURE_ANALYSIS.md)은 runner 상대 경로 조회 ENOENT 교정과, 원본149 Chromium PASS 후에도 docs PNG 오염으로 최종 snapshot BLOCKED한 근거를 보존한다. 원본/code/env와 테스트 산출물 경계를 구별하며 기존 guard를 완화하지 않는다. Resource Drill의 출력만 testInfo로 이관하고 새 source의 실제 전체 gate가 필요하다.
+
+
+## #917 runtime probe 및 중단/환경 drift 원본
+
+[F917-021/022](ISSUE_917_FAILURE_ANALYSIS.md)에 빈 If-Match의 기대 상태 오류·같은 후보의 fresh91HTTP 복구, targeted03의67browser 이후 중단/환경 변경을 추가했다. 불완전 run과 이전환경 PASS는 신규 admission에 사용하지 않는다. 기존 실제 CLI/guard를 유지한 동일환경 새전체검증 전 Push/Publish/Close BLOCKED다.

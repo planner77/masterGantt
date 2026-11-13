@@ -8241,6 +8241,182 @@
           ]
         }
       ]
+    },
+    {
+      "id": "F917-021",
+      "issue": 917,
+      "ledger": "docs/ISSUE_917_FAILURE_ANALYSIS.md",
+      "relatedIssues": [],
+      "domain": "tooling",
+      "layer": "runtime",
+      "keywords": [
+        "If-Match",
+        "empty header",
+        "runtime probe"
+      ],
+      "cause": "합성runtime probe가 빈 If-Match400을 누락428과 혼동",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/server/logistics/logistics-handlers.test.ts",
+          "case": "PATCH omitted preserves; null clears; malformed/foreign/inactive and stale/unauthorized updates are atomic",
+          "historical": false,
+          "coverageArea": "기존HTTP 계약; 수동 exact-image91HTTP는 별도 증거"
+        }
+      ],
+      "residualRisk": "새 source/환경 전체 admission 및 실제 게시 전 PASS 승계 금지",
+      "events": [
+        {
+          "id": "runtime-r01",
+          "at": "2026-11-13T08:18:17.269Z",
+          "timeNote": null,
+          "stage": "SMOKE",
+          "status": "FAIL",
+          "sourceSha": "dbec24261b940cf3e7ef73891ecd5a6cd88e7a20",
+          "fixSourceSha": null,
+          "sourceFingerprint": "280a5144702d078461c2ceaa84d04108b4d5849fbfa19f38dc7769e9c2385f9b",
+          "sourceNote": "실제 dbec 고정 source; 새 source 결과로 승계 금지",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+          "environmentVersion": "masterGantt0.146.0",
+          "command": [
+            "python3",
+            "-"
+          ],
+          "exit": 0,
+          "exitNote": "command는 실제 Python launcher exit0; Nodechild exit1이며 whole runtime FAIL",
+          "expected": "정상 API 계약 및 동일 source/env의 실제 완결 검사",
+          "actual": "Node child exit1/Python launcher exit0;74HTTP 뒤 75번째 빈IfMatch expected428 actual400;wholeFAIL",
+          "input": "격리 합성 fixture; 운영DB 접근 없음",
+          "classification": "TOOLING",
+          "recovery": "최초결과 보존, 새source 동일실제환경 전체검증",
+          "residualRisk": "현재 admission/GHCR/종료는 새 실행 전 BLOCKED",
+          "evidenceScope": "EXACT",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "runtime-r02",
+          "at": "2026-11-13T08:19:24.439Z",
+          "timeNote": null,
+          "stage": "SMOKE",
+          "status": "PASS",
+          "sourceSha": "dbec24261b940cf3e7ef73891ecd5a6cd88e7a20",
+          "fixSourceSha": null,
+          "sourceFingerprint": "280a5144702d078461c2ceaa84d04108b4d5849fbfa19f38dc7769e9c2385f9b",
+          "sourceNote": "실제 dbec 고정 source; 새 source 결과로 승계 금지",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+          "environmentVersion": "masterGantt0.146.0",
+          "command": [
+            "python3",
+            "-"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "정상 API 계약 및 동일 source/env의 실제 완결 검사",
+          "actual": "Node child/Python exit0;fresh AES/schema0038→0039/23steps/91HTTP/two restarts/integrity/FK/cleanupPASS;old image/source 역사",
+          "input": "격리 합성 fixture; 운영DB 접근 없음",
+          "classification": "TOOLING",
+          "recovery": "최초결과 보존, 새source 동일실제환경 전체검증",
+          "residualRisk": "현재 admission/GHCR/종료는 새 실행 전 BLOCKED",
+          "evidenceScope": "EXACT",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "dbec24261b940cf3e7ef73891ecd5a6cd88e7a20",
+            "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F917-022",
+      "issue": 917,
+      "ledger": "docs/ISSUE_917_FAILURE_ANALYSIS.md",
+      "relatedIssues": [],
+      "domain": "tooling",
+      "layer": "controller",
+      "keywords": [
+        "daemon restart",
+        "environment drift",
+        "incomplete browser"
+      ],
+      "cause": "세션 중단으로 targeted03 report/exit 소실 및 재개 환경fingerprint 변경",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/scripts/prepr-verifier.test.ts",
+          "case": "rejects dirty checkout, changed head/base/content and fixture/environment drift",
+          "historical": false,
+          "coverageArea": "existing fail-closed admission; 실제browser 새전체실행 필요"
+        },
+        {
+          "path": "tests/scripts/prepr-verifier.test.ts",
+          "case": "rejects partial results, fabricated status/command coverage and modified report bytes",
+          "historical": false,
+          "coverageArea": "불완전/변조 report 거부; 실제 세션 중단 진단은 별도"
+        }
+      ],
+      "residualRisk": "새 source/환경 전체 admission 및 실제 게시 전 PASS 승계 금지",
+      "events": [
+        {
+          "id": "interrupted-targeted03",
+          "at": "2026-11-13T08:57:43.386165Z",
+          "timeNote": null,
+          "stage": "PLAYWRIGHT",
+          "status": "BLOCKED",
+          "sourceSha": "dbec24261b940cf3e7ef73891ecd5a6cd88e7a20",
+          "fixSourceSha": null,
+          "sourceFingerprint": "280a5144702d078461c2ceaa84d04108b4d5849fbfa19f38dc7769e9c2385f9b",
+          "sourceNote": "실제 dbec 고정 source; 새 source 결과로 승계 금지",
+          "environment": "Linux; Node22.14.0; npm11.10.0; Docker29.8.0",
+          "environmentVersion": "masterGantt0.146.0",
+          "command": [
+            "node",
+            "scripts/verify-prepr.mjs",
+            "--mode=targeted",
+            "--base=1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca",
+            "--issue=917",
+            "--report-dir=.prepr-reports/final-targeted-03"
+          ],
+          "exit": null,
+          "exitNote": "세션 중단으로 child exit 미수집",
+          "expected": "정상 API 계약 및 동일 source/env의 실제 완결 검사",
+          "actual": "803Unit/67browserPASS0관측FAIL;최종report없음 wholeNOT TESTED;env a8ac→8bc drift,변경keyUNKNOWN",
+          "input": "격리 합성 fixture; 운영DB 접근 없음",
+          "classification": "ENVIRONMENT",
+          "recovery": "최초결과 보존, 새source 동일실제환경 전체검증",
+          "residualRisk": "현재 admission/GHCR/종료는 새 실행 전 BLOCKED",
+          "evidenceScope": "EXACT",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+            }
+          ]
+        }
+      ]
     }
   ]
 }

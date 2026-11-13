@@ -89,3 +89,8 @@ a388의 fast02는 PASS였고 targeted02의67파일803Unit/32파일149Chromium은
 | Owner수동UAT/실기기/AT/native125%/production | 자동Chromium/합성PNG와다른환경 | NOT TESTED;운영배포는요청범위밖 |
 
 원본149PASS는sourceauditBLOCKED를대체하지않는다. 최종새HEAD에서같은직접수용기준과출력불변을다시실행한다. 후속문서의실제source/receipt/게시·종료기록은코드이미지와문서전용commit을구분한다.
+
+
+## 세션 복구와 새 검증 source
+
+dbec의 fast03 4009PASS/3기존benchmarkSKIP·Docker03 10stepPASS·exactimage fresh91HTTP/복원/restartPASS는 역사 증거로 보존한다. R01 probe FAIL과 targeted03 중단/env drift는 F917-021/022에 append했다. 미완료 targeted03 67browserPASS/0관측FAIL은 wholeNOT TESTED이며 이전환경 report 재결합은 BLOCKED다. 새 원장 commit을 freeze한뒤 같은 실제 환경의 fast→docker→freshimage runtime→전체targeted→admit를 실행한다. private detached supervisor는 기존 CLI/선정/guard를 바꾸지 않고 child exit를 보존하는 임시 운영 도구다. 실제 별도 read-only qa_docs=/root/qa_resume917와 infra=/root/infra_resume917가 재개했으며 최종QA는 새완결증거 전 NOT TESTED다.
