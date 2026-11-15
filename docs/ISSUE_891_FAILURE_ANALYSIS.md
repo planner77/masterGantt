@@ -171,3 +171,30 @@ Root/snapshot소스·원본trace·보고서수정없이종료했고실제FAIL은
 2026-11-15T02:28:36Z~02:31:23Z 실제 `npx playwright test --config tests/config/playwright.config.ts tests/e2e/project-task-editor-persistence.spec.ts --grep 'Issue #891 .* toolbar'`는exit0/2PASS(Task56.1초/Issue54.7초)다. HEAD6b270c2ee78d2f56efe64daeec70eb5f02b0b432 및 소유테스트diffSHA `50750d5ec1d6b0f2b84550045c28ac2e10a2d1161a849068caa4453a56585e28` 시작·종료동일한SCOPED이며controlled최종snapshot전체PASS는아니다. 원본로그/합성evidence는LOCAL:891-atomic-pass-112836에보존한다.
 
 독립qa891은동일hover→focus→Escape순서의count/text/visible/focus/rect/viewport/nativeDialog/disabled검사가compound expect.poll로유지되고missingtooltip이통과할수없음을확인했다. rich.focus는실제client내용DOM준비를확인하는기존actionautoWait이며이후visible5초·전체90초검사를유지한다. 이준비동작을Editor초기default-focus증거로확대하지않고기존Editor고유테스트를유지한다. 제품/snapshot/timeout/retry/skip변경0이며이두case를정식게시용전체검증으로확대하지않는다.
+
+
+## F891-022 · Manager 검증 순서와 완료 증거의 root lint 유입
+
+2026-11-15T02:36:31.140Z~02:43:20.294Z frozen0fe의 `891-fast02`는 exit1/FAIL이다. source/envStable=true, source지문b9921539c9e6906f0476ef73df515255a7922f16321e0b4b1f86c363e58029af다. Manager가 완료된 이전traceviewer를source아래남긴채fast와targeted를동시실행해rootlint가이전HTML과진행중snapshot생성JS를읽었다. 실제Lint259errors/2835warnings,390099ms이며제품lint문제로단정하지않는다. 원본report/log/hash와즉시외부F022영수증·IssueEXCEPTION을보존한다.
+
+완료된generated만파일별SHA동일하게source밖으로이관하고canonicalreport/runnerJSON/log/audit는원래경로에보존한다. ignore·sourceguard·선정은바꾸지않고fast lint와snapshot을동시에실행하지않는다. 기존외부계획은같은0fe fast재실행후게시·문서append였으나F023의실제producer교정이필요해지금새source에두실패를함께append한다. 이후새Head의전체필수gate를실행하며원본FAIL을대체하지않는다.
+
+## F891-023 · legacy 회귀 산출물이 snapshot source를 덮어씀
+
+2026-11-15T02:36:32.515Z~03:11:22.133Z `891-targeted02`는Unit142PASS와Chromium87PASS/0FAIL/0SKIP였으나최종snapshotaudit불일치로exit1/BLOCKED다. 원본source/envStable=true이며같은0fe/b992지문이다. 독립qa891이before/after5276파일을직접검산했다. tracked변경84개는허용Next2파일외#456 output/playwright/issue-456/after의81개PNG/JSON과#461 picker-geometry.json1개다. untracked는#456 gantt-public-events.json/gantt-state-phases.json2개다. index/HEAD/dependency복사·실행전후는같다. 원본report/audit/runner/log/화면은LOCAL:891-targeted02로보존하며87성공을전체modePASS로확대하지않는다.
+
+이는제품기능assertion실패가아닌기존테스트출력producer의source오염이다. #898/#899의기존배치정책에맞춰두spec의출력위치만testInfo.outputPath로이관한다. historicalcommittedoutput을수정하거나sourceguard허용목록/fixture/assertion/timeout/retry/skip을바꾸지않는다. 교정후직접case빠른검증과새cleanHead의fast/targeted/Docker/admit·독립QA를분리실행한다. 검증전게시·종료는BLOCKED다.
+
+
+### F891-023 후속 · 두 producer의 직접 빠른 검증
+
+#456 단일fullscreencase는03:16:47~03:17:10Z exit0/1PASS(15.7초),#461 단일picker는03:17:40~03:17:57Z exit0/1PASS(11.3초)다. 담당자소유specdiff SHA는각각61823962d29e554f2526f5f45208accd424ba16a3f3f7038fa18e5d6f6008d71/8c8a0a35d14d4f9ace7bf45564a52f53ccc96a014bebb7cd4338b8fc8d7b8778이며시작끝동일,HEAD0fe의WIP SCOPED다. 두source output경로의변경/신규0과test-results전용출력을확인했다. 독립qa891은두diff가출력경로만바꾸고geometry/keyboard/Gantt/readonly/assertion/timeout을유지함을확인했다. Next생성변경을보존하며최종전체snapshotaudit는새cleanHead에서별도다.
+
+## F891-024 · 신규 원장 draft의 테스트 경로 오타
+
+문서WIP작성중Manager의F022 신규draft가존재하지않는tests/scripts/local-prepr.test.ts를참조해실제 `node scripts/verify-issue-ledger.mjs --base=0bf0e4e54cc445058b16c3764f79c27b81f5dd97` exit1/FAIL이었다. 정확개별시각은미수집(2026-11-15),공식최종mode가아닌SCOPED다. 실제경로tests/scripts/prepr-verifier.test.ts로신규draft만교정하고기존committed원장prefix는유지한다. validator와새source전체gate재시험전완료로주장하지않는다.
+
+
+### F891-024 후속 · draft 경로 교정 검산
+
+실재경로교정뒤같은validator명령은exit0/PASS(98failure/190event,기존prefix보존)였다. 문서WIP의SCOPED정적결과이며실제전체mode검증은새cleanHead에서실행한다.

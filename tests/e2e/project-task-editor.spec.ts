@@ -1091,7 +1091,7 @@ test("#461 picker UUID·동명이인·긴 후보 keyboard·Summary 필드·리�
   for (let index = 0; index < 18; index++) await picker.press("ArrowDown");
   const visible = await picker.evaluate((element) => { const active = document.getElementById(element.getAttribute("aria-activedescendant")!)!, list = document.getElementById(element.getAttribute("aria-controls")!)!, body = element.closest("dialog")!.querySelector('[class*="body"]')!; const a = active.getBoundingClientRect(), b = list.getBoundingClientRect(), input = element.getBoundingClientRect(), owner = body.getBoundingClientRect(); return { activeOptionTop: a.top, activeOptionBottom: a.bottom, listOwnerTop: b.top, listOwnerBottom: b.bottom, activeOptionVisible: a.top >= b.top && a.bottom <= b.bottom, inputTop: input.top, inputBottom: input.bottom, bodyTop: owner.top, bodyBottom: owner.bottom, focusedInputVisible: input.top >= owner.top && input.bottom <= owner.bottom, focusedInputRetained: element === document.activeElement, listScrollTop: list.scrollTop }; });
   expect(visible.activeOptionVisible).toBe(true); expect(visible.focusedInputVisible).toBe(true); expect(visible.focusedInputRetained).toBe(true);
-  await mkdir("output/playwright/issue-461", { recursive: true }); await writeFile("output/playwright/issue-461/picker-geometry.json", JSON.stringify(visible, null, 2));
+  await mkdir(test.info().outputPath("issue-461"), { recursive: true }); await writeFile(test.info().outputPath("issue-461", "picker-geometry.json"), JSON.stringify(visible, null, 2));
   await picker.press("Escape");
   await dialog.getByRole("button", { name: "직접 지정 해제 · 상속으로 복귀", exact: true }).click();
   await expect(dialog).toContainText("Summary에서 상속");

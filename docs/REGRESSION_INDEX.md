@@ -169,3 +169,11 @@ F898-009~012를 [Primary 원장](ISSUE_898_FAILURE_ANALYSIS.md)에 추가했다.
 ## #891 최종snapshot의protocol예산·client준비
 
 [F891-020/021](ISSUE_891_FAILURE_ANALYSIS.md)은고정6b의Task90초예산소진과Issue coldclient준비누락을구분한다. 약1502protocol관측을atomic batch하고기존action준비를재사용하며모든assertion/timeout을유지한다. 원본44PASS/2FAIL/1interrupted/40notrun과엄격coverage44/43을구별하고새source전체검증전게시를차단한다.
+
+
+## #891 lint 실행 순서와 legacy 산출물 source 오염
+
+[F891-022/023](ISSUE_891_FAILURE_ANALYSIS.md)은Manager의동시lint/snapshot준비오류와별개legacy#456/#461출력producer의실제sourceguard차단을보존한다. 첫fastFAIL과다음Unit142/Chromium87PASS후전체BLOCKED를구분한다. 완료generated는SHA동일외부보존하고두producer만기존testInfo.outputPath정책으로이관한다. ignore/guard/assertion/timeout변경없이새Head전체gate필수다.
+
+
+[F891-024](ISSUE_891_FAILURE_ANALYSIS.md)은신규draft의test경로오타로발생한원장validator실패와실재경로교정을보존한다. 기존append-only원본과검사규칙은유지한다.

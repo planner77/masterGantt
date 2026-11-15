@@ -139,3 +139,8 @@ DOCUMENTATION_SYNC추가: CI_CD의버전/정식수동승격절차는UPDATED(동�
 관측batch는모든기존16도구×locale hover/focus/Escape·label/visibility·좌표/nativeDialog/disabled조건을유지한채독립DOM읽기를같은시점으로묶는다. 첫rich.focus는기존action자동준비계약을명시하며내용/모드/API를변경하지않는다. 기존visible5초와case전체90초는동일하며Source모드클릭·임의sleep·재시도·테스트분할/축소는없다. Editor초기default-focus는기존고유테스트의책임으로남긴다.
 
 별도qa891정적검토PASS후WIP2case실제실행이02:28:36~02:31:23Z exit0/2PASS(Task56.1초,Issue54.7초)였다. 원본부분지문과원문은F020/021에보존했고새frozen전체source의공통/영향/Docker/admit·최종독립QA는여전히필수다. 제품코드는6b와같고변경은동일계약을검사하는하네스및실패/추적문서다. 0.147.0은미발행후보로유지한다.
+
+
+## F022/F023 산출물 배치 REWORK
+
+0fe의Docker10step는PASS,Unit142/Chromium87case도실제PASS였으나fast는동시lint/snapshot운영준비오류로FAIL했고targeted전체는legacy#456/#461PNG/JSON출력의source오염으로BLOCKED다. 최초실패/audit/원본증거와추가원인을단일원장F022/F023에보존했다. 완료generated만SHA동일외부이관하고fast완료후targeted를실행한다. 두기존spec의출력위치만testInfo.outputPath로교정하며fixture/assertion/timeout/retry/skip/guard는유지한다. 새cleanHead의공통/영향/Docker/admit·독립QA후에만동일0.147.0후보의Push/게시/종료를진행한다. 이전0fe의성공을새Head로전용하지않는다.

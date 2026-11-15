@@ -7,7 +7,6 @@ import { chooseTaskInformation } from "./helpers/task-context-menu";
 import { editor, openRow, publicId, relationEditor, setup } from "./fixtures/task-editor-density";
 
 const phase = process.env.ISSUE456_CAPTURE_PHASE ?? "after";
-const output = `output/playwright/issue-456/${phase}`;
 const widths = [390, 768, 1024, 1440, 1920];
 async function geometry(dialog: Locator) {
   return dialog.evaluate((element) => {
@@ -25,6 +24,7 @@ async function geometry(dialog: Locator) {
 
 test("#456 동일 유효 자료로 다섯 폭의 Task Resource Relation과 nested Baseline footer를 측정한다", async ({ page, browser }) => {
   test.setTimeout(120_000);
+  const output = test.info().outputPath("issue-456", phase);
   await mkdir(output, { recursive: true });
   const fixture = await setup(page, { assignmentTargets: true, links: true });
   const identity = await page.locator(".project-gantt-frame").getAttribute("data-project-gantt-api-instance");
@@ -93,6 +93,7 @@ test("#456 동일 유효 자료로 다섯 폭의 Task Resource Relation과 neste
 
 test("#456 Milestone 동적 소속과 물류 탭의 조회 geometry를 다섯 폭에 기록한다", async ({ page }) => {
   test.setTimeout(90_000);
+  const output = test.info().outputPath("issue-456", phase);
   await mkdir(output, { recursive: true });
   const fixture = await setup(page);
   await installMilestoneDashboardFixture(page, fixture);
@@ -122,6 +123,7 @@ test("#456 Milestone 동적 소속과 물류 탭의 조회 geometry를 다섯 �
 });
 
 test("#456 실제 keyboard 100%·날짜 오류·pending action 폭과 닫기 잠금을 보존한다", async ({ page }) => {
+  const output = test.info().outputPath("issue-456", phase);
   await mkdir(output, { recursive: true });
   const fixture = await setup(page);
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -157,6 +159,7 @@ test("#456 실제 keyboard 100%·날짜 오류·pending action 폭과 닫기 잠
 });
 
 test("#456 비기본 WBS fullscreen scroll tree column scale selection은 Editor와 metadata 저장 후 유지된다", async ({ page }) => {
+  const output = test.info().outputPath("issue-456", phase);
   await mkdir(output, { recursive: true });
   // Exact 120px preservation must start with real scoped Task date extent.
   const fixture = await setup(page, { longList: true, scrollCapacityWitness: true });
@@ -265,6 +268,7 @@ test("#456 필터 ID 변경·빈집합·해제와 새 API는 필요한 행을 �
 
 
 test("#456 active name filter의 metadata 저장으로 실제 ID 집합이 바뀌면 이전 viewport를 복원하지 않는다", async ({ page }) => {
+  const output = test.info().outputPath("issue-456", phase);
   await mkdir(output, { recursive: true });
   const fixture = await setup(page, { longList: true });
   await page.setViewportSize({ width: 1440, height: 900 });

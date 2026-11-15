@@ -11342,6 +11342,367 @@
           }
         }
       ]
+    },
+    {
+      "id": "F891-022",
+      "issue": 891,
+      "ledger": "docs/ISSUE_891_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        898,
+        899
+      ],
+      "domain": "local-validation",
+      "layer": "test",
+      "keywords": [
+        "source-guard",
+        "artifact-placement"
+      ],
+      "cause": "완료된HTML증거와진행중snapshot을root lint가읽은Manager준비·실행순서오류",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/scripts/prepr-verifier.test.ts",
+          "case": "기존 source 안정성 및 admission 계약",
+          "historical": false,
+          "coverageArea": "기존CLI환경·sourcegate불변"
+        }
+      ],
+      "residualRisk": "새Head동일환경필수gate·독립QA완료전Push/Publish/CloseBLOCKED",
+      "events": [
+        {
+          "id": "observed",
+          "at": "2026-11-15T02:43:20.294Z",
+          "timeNote": "mode시작2026-11-15T02:36:31.140Z",
+          "stage": "STATIC",
+          "status": "FAIL",
+          "sourceSha": "0feae375c2d793db8e71d8639c8b57efba24202e",
+          "fixSourceSha": null,
+          "sourceFingerprint": "b9921539c9e6906f0476ef73df515255a7922f16321e0b4b1f86c363e58029af",
+          "sourceNote": "원본source/envStabletrue;mode판정은실패/차단이며case성공과구분",
+          "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; Playwright1.63.0 Chromium153.0.8010.12; controlled exact-HEAD browser snapshot",
+          "environmentVersion": "masterGantt0.147.0 frozen candidate",
+          "command": [
+            "node",
+            "scripts/verify-prepr.mjs",
+            "--mode=fast",
+            "--base=0bf0e4e54cc445058b16c3764f79c27b81f5dd97",
+            "--issue=891",
+            "--report-dir=.prepr-reports/891-fast02"
+          ],
+          "exit": 1,
+          "exitNote": "실제outerCLIexit1;개별원본보고서보존",
+          "expected": "검증규칙불변·완료증거를source밖보존·lint와snapshot실행분리",
+          "actual": "Lint259errors/2835warnings;oldtraceviewer+동시snapshot생성JS유입",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "TOOLING",
+          "recovery": "완료generated만SHA동일외부이관;원본report/log/audit보존;ignore변경없이새source fast실행",
+          "residualRisk": "새Head동일환경필수gate·독립QA완료전Push/Publish/CloseBLOCKED",
+          "evidenceScope": "EXACT",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-fast02"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "F891-023",
+      "issue": 891,
+      "ledger": "docs/ISSUE_891_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        898,
+        899
+      ],
+      "domain": "local-validation",
+      "layer": "test",
+      "keywords": [
+        "source-guard",
+        "artifact-placement"
+      ],
+      "cause": "legacy#456/#461출력producer가snapshot의trackedPNG/JSON82개와untrackedJSON2개를기록",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/e2e/task-editor-form-density.spec.ts",
+          "case": "기존 #456 산출물 생성5case",
+          "historical": false,
+          "coverageArea": "source불변과동일UI·Gantt계약"
+        },
+        {
+          "path": "tests/e2e/project-task-editor.spec.ts",
+          "case": "기존 #461 picker geometry 산출물",
+          "historical": false,
+          "coverageArea": "source불변과동일picker계약"
+        }
+      ],
+      "residualRisk": "새Head동일환경필수gate·독립QA완료전Push/Publish/CloseBLOCKED",
+      "events": [
+        {
+          "id": "observed",
+          "at": "2026-11-15T03:11:22.133Z",
+          "timeNote": "mode시작2026-11-15T02:36:32.515Z",
+          "stage": "PLAYWRIGHT",
+          "status": "BLOCKED",
+          "sourceSha": "0feae375c2d793db8e71d8639c8b57efba24202e",
+          "fixSourceSha": null,
+          "sourceFingerprint": "b9921539c9e6906f0476ef73df515255a7922f16321e0b4b1f86c363e58029af",
+          "sourceNote": "원본source/envStabletrue;mode판정은실패/차단이며case성공과구분",
+          "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; Playwright1.63.0 Chromium153.0.8010.12; controlled exact-HEAD browser snapshot",
+          "environmentVersion": "masterGantt0.147.0 frozen candidate",
+          "command": [
+            "node",
+            "scripts/verify-prepr.mjs",
+            "--mode=targeted",
+            "--base=0bf0e4e54cc445058b16c3764f79c27b81f5dd97",
+            "--issue=891",
+            "--report-dir=.prepr-reports/891-targeted02"
+          ],
+          "exit": 1,
+          "exitNote": "실제outerCLIexit1;개별원본보고서보존",
+          "expected": "허용Next생성2파일외모든source불변·산출물은testInfo.outputPath",
+          "actual": "Unit142PASS/Chromium87PASS;tracked84변경(Next2+45681+4611),untracked2;최종snapshotauditBLOCKED",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "TOOLING",
+          "recovery": "두기존producer만testInfo.outputPath이관;assertion/fixture/timeout/retry/skip/guard불변;새Head전체검증",
+          "residualRisk": "새Head동일환경필수gate·독립QA완료전Push/Publish/CloseBLOCKED",
+          "evidenceScope": "EXACT",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-targeted02"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "output-456-scoped-retest",
+          "at": "2026-11-15T03:17:10Z",
+          "timeNote": "개별시작03:16:47Z/03:17:40Z;담당자원본로그",
+          "stage": "PLAYWRIGHT",
+          "status": "PASS",
+          "sourceSha": "0feae375c2d793db8e71d8639c8b57efba24202e",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED WIP소유specdiffSHA61823962d29e554f2526f5f45208accd424ba16a3f3f7038fa18e5d6f6008d71 시작끝동일;전체최종source아님",
+          "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; Playwright1.63.0 Chromium153.0.8010.12; original worktree WIP isolated synthetic application",
+          "environmentVersion": "masterGantt0.147.0 WIP output-producer correction",
+          "command": [
+            "npx",
+            "playwright",
+            "test",
+            "--config",
+            "tests/config/playwright.config.ts",
+            "tests/e2e/task-editor-form-density.spec.ts",
+            "--grep",
+            "#456 비기본 WBS fullscreen"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "허용Next생성2파일외모든source불변·산출물은testInfo.outputPath",
+          "actual": "1PASS/15.7초;source output/playwright/issue-456 변경·신규0",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "TOOLING",
+          "recovery": "출력위치만교정;새cleanHead전체gate별도",
+          "residualRisk": "새Head동일환경필수gate·독립QA완료전Push/Publish/CloseBLOCKED",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-output-path-retest"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "0feae375c2d793db8e71d8639c8b57efba24202e",
+            "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; Playwright1.63.0 Chromium153.0.8010.12; original worktree WIP isolated synthetic application",
+            "imageDigest": null,
+            "backupId": null
+          }
+        },
+        {
+          "id": "output-461-scoped-retest",
+          "at": "2026-11-15T03:17:57Z",
+          "timeNote": "개별시작03:16:47Z/03:17:40Z;담당자원본로그",
+          "stage": "PLAYWRIGHT",
+          "status": "PASS",
+          "sourceSha": "0feae375c2d793db8e71d8639c8b57efba24202e",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED WIP소유specdiffSHA8c8a0a35d14d4f9ace7bf45564a52f53ccc96a014bebb7cd4338b8fc8d7b8778 시작끝동일;전체최종source아님",
+          "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; Playwright1.63.0 Chromium153.0.8010.12; original worktree WIP isolated synthetic application",
+          "environmentVersion": "masterGantt0.147.0 WIP output-producer correction",
+          "command": [
+            "npx",
+            "playwright",
+            "test",
+            "--config",
+            "tests/config/playwright.config.ts",
+            "tests/e2e/project-task-editor.spec.ts",
+            "--grep",
+            "#461 picker UUID"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "허용Next생성2파일외모든source불변·산출물은testInfo.outputPath",
+          "actual": "1PASS/11.3초;source output/playwright/issue-461 변경·신규0",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "TOOLING",
+          "recovery": "출력위치만교정;새cleanHead전체gate별도",
+          "residualRisk": "새Head동일환경필수gate·독립QA완료전Push/Publish/CloseBLOCKED",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-461-output-retest"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "0feae375c2d793db8e71d8639c8b57efba24202e",
+            "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; Playwright1.63.0 Chromium153.0.8010.12; original worktree WIP isolated synthetic application",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F891-024",
+      "issue": 891,
+      "ledger": "docs/ISSUE_891_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        907
+      ],
+      "domain": "issue-ledger",
+      "layer": "documentation",
+      "keywords": [
+        "path",
+        "draft"
+      ],
+      "cause": "Manager신규F022draft의실재하지않는test경로오타",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/scripts/issue-ledger-verifier.test.ts",
+          "case": "실제test경로및append-only검사",
+          "historical": false,
+          "coverageArea": "기존원장계약"
+        }
+      ],
+      "residualRisk": "정정후validator·새cleanHead필수gate실행",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "2026-11-15 문서WIP작성중;개별exact시각미수집",
+          "stage": "STATIC",
+          "status": "FAIL",
+          "sourceSha": "0feae375c2d793db8e71d8639c8b57efba24202e",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED 문서WIP;공식최종mode아님",
+          "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; original worktree documentation WIP",
+          "environmentVersion": "masterGantt0.147.0 documentation draft",
+          "command": [
+            "node",
+            "scripts/verify-issue-ledger.mjs",
+            "--base=0bf0e4e54cc445058b16c3764f79c27b81f5dd97"
+          ],
+          "exit": 1,
+          "exitNote": "실제outerCLIexit1;개별원본보고서보존",
+          "expected": "등록된실제기존테스트경로",
+          "actual": "누락된 경로: tests/scripts/local-prepr.test.ts",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "TOOLING",
+          "recovery": "draft F022의오타경로를실재prepr-verifier.test.ts로교정;기존원장prefix불변",
+          "residualRisk": "새Head동일환경필수gate·독립QA완료전Push/Publish/CloseBLOCKED",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "draft-path-corrected",
+          "at": null,
+          "timeNote": "2026-11-15 정정직후동일명령실행;개별exact시각미수집",
+          "stage": "STATIC",
+          "status": "PASS",
+          "sourceSha": "0feae375c2d793db8e71d8639c8b57efba24202e",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED 문서WIP;공식최종mode아님",
+          "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; original worktree documentation WIP",
+          "environmentVersion": "masterGantt0.147.0 documentation draft",
+          "command": [
+            "node",
+            "scripts/verify-issue-ledger.mjs",
+            "--base=0bf0e4e54cc445058b16c3764f79c27b81f5dd97"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "등록된실제기존테스트경로",
+          "actual": "validator PASS/98failure190event;existing prefixes preserved",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "TOOLING",
+          "recovery": "draft F022의오타경로를실재prepr-verifier.test.ts로교정;기존원장prefix불변",
+          "residualRisk": "새Head동일환경필수gate·독립QA완료전Push/Publish/CloseBLOCKED",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "0feae375c2d793db8e71d8639c8b57efba24202e",
+            "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; original worktree documentation WIP",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
     }
   ]
 }
