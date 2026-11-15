@@ -125,3 +125,17 @@ DOCUMENTATION_SYNC추가: CI_CD의버전/정식수동승격절차는UPDATED(동�
 로컬빠른검증이끝난후3100포트가비었음을확인했다. next-env/tsconfig의실제생성차이를외부소유자전용archive에백업하고,이worktree의Playwright/Next출력·합성DB를파일별SHA동일대조후source밖으로이관했다(각각238/2/1/9/252개파일). 10PASS run의전체원본산출물은별도LOCAL:891-eleven-103202에이미보존돼있다. Next두파일은기준원문으로준비했으며이후최종검사중sourceguard실패를복원·무시한것이아니다. 최종clean commit뒤에는제품/테스트/문서/fixture/설치환경을고정하고직접Node launcher의fast/targeted/docker/admit를실행한다.
 
 최종head QA는실제별도qa891·ux891가보고서/선정·PNG/geometry·snapshot audit를검토한뒤판정한다. 실제모델설정요청과별도Agent실행은구분하며runtime식별메타데이터가없으면모델검증PASS로표현하지않는다. 원격PR/Actions/Trusted/Finalizer·운영배포는N/A(Owner범위);정식게시와종료는로컬gate후에만수행한다. 최종실제명령·case수·source/env지문·image/OCI/digest·승인·IssueFINAL은같은정확source의외부실행보고에연결해추가문서작성으로검증source를바꾸지않는다.
+
+
+## F020/F021 공식 gate REWORK
+
+6b candidate의fast4013PASS/3기존optinSKIP·Docker10stepPASS·targetedUnit142PASS는실제독립검산됐으나Chrome은Task전수관측예산과Issue coldclient준비경계에서2FAIL했다. 원본44PASS/2FAIL/1interrupted/40notrun을보존하고Manager가남은run을중단해targetedmode는BLOCKED다. 제품소스의Escape닫힘이나module실패로단정하지않으며protocol시간/네트워크/실제frame으로원인을구분했다.
+
+원래90초/default5초기능assertion·모든도구/locale/hover/focus/Escape를유지하면서독립DOM관측batch와기존비변경action준비계약을재사용한다. testcase분할/선정축소/timeout·retry완화0이다. 새source를확정해같은baseline0bf의공통/전체영향/Docker/admit를다시실행한다. 이시점main은#918의0bf이며6b는미Push/미게시이고0.147.0정식태그는아직발행하지않았다. source변경뒤이전6b성공을재사용하지않는다.
+
+
+## 하네스 REWORK 빠른 검증
+
+관측batch는모든기존16도구×locale hover/focus/Escape·label/visibility·좌표/nativeDialog/disabled조건을유지한채독립DOM읽기를같은시점으로묶는다. 첫rich.focus는기존action자동준비계약을명시하며내용/모드/API를변경하지않는다. 기존visible5초와case전체90초는동일하며Source모드클릭·임의sleep·재시도·테스트분할/축소는없다. Editor초기default-focus는기존고유테스트의책임으로남긴다.
+
+별도qa891정적검토PASS후WIP2case실제실행이02:28:36~02:31:23Z exit0/2PASS(Task56.1초,Issue54.7초)였다. 원본부분지문과원문은F020/021에보존했고새frozen전체source의공통/영향/Docker/admit·최종독립QA는여전히필수다. 제품코드는6b와같고변경은동일계약을검사하는하네스및실패/추적문서다. 0.147.0은미발행후보로유지한다.

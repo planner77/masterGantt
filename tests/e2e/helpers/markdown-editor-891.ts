@@ -62,6 +62,7 @@ export async function openMarkdownTask891(page: Page, task: MarkdownFixture891["
   await page.locator(`.wx-row[data-id=":${task.taskId}"]`).getByText(task.name, { exact: true }).click({ button: "right" });
   await chooseTaskInformation(page);
   const dialog = page.getByRole("dialog", { name: "작업 정보", exact: true });
+  await dialog.locator('.mastergantt-markdown-contenteditable[contenteditable="true"]').focus();
   await expect(dialog.locator('.mastergantt-markdown-contenteditable[contenteditable="true"]')).toBeVisible();
   return dialog;
 }
@@ -71,6 +72,7 @@ export async function openMarkdownIssue891(page: Page, name?: string): Promise<L
   const workspace = page.getByTestId("project-issue-workspace");
   await workspace.getByRole("button", { name: name ?? "Issue 등록", exact: true }).click();
   const dialog = workspace.getByRole("dialog");
+  await dialog.locator('.mastergantt-markdown-contenteditable[contenteditable="true"]').focus();
   await expect(dialog.locator('.mastergantt-markdown-contenteditable[contenteditable="true"]')).toBeVisible();
   return dialog;
 }
@@ -108,36 +110,39 @@ export async function dialogGeometry891(page: Page, dialog: Locator) {
 
 export async function checkToolbarTooltips891(page: Page, field: Locator, noShortcut: string) {
   const actions = field.locator(".mdxeditor-toolbar button");
-  expect(await actions.count()).toBeGreaterThanOrEqual(2);
+  const metadata = await actions.evaluateAll(buttons => buttons.map(button => ({
+    label: button.getAttribute("aria-label"), disabled: button.hasAttribute("disabled"), icon: !!button.querySelector("span"),
+  })));
+  expect(metadata.length).toBeGreaterThanOrEqual(2);
   const labels: string[] = [];
-  for (const action of await actions.all()) {
-    const label = (await action.getAttribute("aria-label"))!;
+  for (const [index, data] of metadata.entries()) {
+    const action = actions.nth(index);
+    const label = data.label!;
     expect(label).toMatch(/.+ \(.+\)$/);
     expect(label.includes(noShortcut) || /Ctrl\+|⌘/.test(label)).toBe(true);
     labels.push(label);
     // MDXEditor's native hover trigger is the inner icon span (or outer select span).
     await page.mouse.move(0, 0);
-    const icon = action.locator("span").first();
-    await (await icon.count() ? icon : action).hover();
-    const tip = page.getByRole("tooltip");
-    await expect(tip).toHaveCount(1);
-    await expect(tip).toHaveText(label);
-    await expect(tip).toBeVisible();
+    await (data.icon ? action.locator("span").first() : action).hover();
+    const observe = (focus: boolean) => field.evaluate((element, args) => {
+      const buttons = element.querySelectorAll<HTMLButtonElement>(".mdxeditor-toolbar button");
+      const tips = [...document.querySelectorAll<HTMLElement>('[role="tooltip"]')].filter(tip => {
+        const style = getComputedStyle(tip);
+        return !tip.closest('[aria-hidden="true"]') && style.visibility === "visible" && style.display !== "none" && tip.getClientRects().length > 0;
+      });
+      const tip = tips[0];
+      const rect = tip?.getBoundingClientRect();
+      return { count: tips.length, text: tip?.textContent ?? null, visible: !!rect && rect.width > 0 && rect.height > 0,
+        focused: !args.focus || document.activeElement === buttons[args.index],
+        within: !args.focus || (!!rect && rect.x >= 0 && rect.y >= 0 && rect.right <= innerWidth + 1 && rect.bottom <= innerHeight + 1),
+        sameDialog: !args.focus || (tip?.closest("dialog")?.id ?? null) === (element.closest("dialog")?.id ?? null),
+      };
+    }, { focus, index });
+    await expect.poll(() => observe(false)).toEqual({ count: 1, text: label, visible: true, focused: true, within: true, sameDialog: true });
     await page.mouse.move(0, 0);
-    if (await action.getAttribute("disabled") !== null) continue;
+    if (data.disabled) continue;
     await action.focus();
-    await expect(action).toBeFocused();
-    await expect(page.getByRole("tooltip")).toHaveCount(1);
-    await expect(page.getByRole("tooltip")).toHaveText(label);
-    const rect = (await page.getByRole("tooltip").boundingBox())!;
-    const view = await page.evaluate(() => ({ width: innerWidth, height: innerHeight }));
-    expect(rect.x).toBeGreaterThanOrEqual(0);
-    expect(rect.y).toBeGreaterThanOrEqual(0);
-    expect(rect.x + rect.width).toBeLessThanOrEqual(view.width + 1);
-    expect(rect.y + rect.height).toBeLessThanOrEqual(view.height + 1);
-    expect(await page.getByRole("tooltip").evaluate(element => getComputedStyle(element).visibility)).toBe("visible");
-    const nativeDialog = await field.evaluate(element => element.closest("dialog")?.id ?? null);
-    expect(await page.getByRole("tooltip").evaluate(element => element.closest("dialog")?.id ?? null)).toBe(nativeDialog);
+    await expect.poll(() => observe(true)).toEqual({ count: 1, text: label, visible: true, focused: true, within: true, sameDialog: true });
     await page.keyboard.press("Escape");
     await expect(page.getByRole("tooltip")).toHaveCount(0);
   }

@@ -11092,6 +11092,256 @@
           }
         }
       ]
+    },
+    {
+      "id": "F891-020",
+      "issue": 891,
+      "ledger": "docs/ISSUE_891_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        885,
+        869
+      ],
+      "domain": "markdown-editor",
+      "layer": "ui",
+      "keywords": [
+        "toolbar",
+        "protocol-batch",
+        "budget"
+      ],
+      "cause": "전수tooltip검사약1502protocol조회누적으로90초단일예산소진",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/e2e/project-task-editor-persistence.spec.ts",
+          "case": "Issue #891 task toolbar labels, actual shortcuts, locale history and vertical resize",
+          "historical": false,
+          "coverageArea": "동일기능assertion/timeout유지한client준비·전수관측"
+        }
+      ],
+      "residualRisk": "교정새source2case및전체공식gate/독립QA필수;현재GateBLOCKED",
+      "events": [
+        {
+          "id": "observed",
+          "at": "2026-11-15T02:25:46.316Z",
+          "timeNote": "mode시작2026-11-15T01:54:49.985Z;특정case원본start/duration은단일원장참조",
+          "stage": "PLAYWRIGHT",
+          "status": "FAIL",
+          "sourceSha": "6b270c2ee78d2f56efe64daeec70eb5f02b0b432",
+          "fixSourceSha": null,
+          "sourceFingerprint": "99fd19967784309bdc97842480f97d6a3ec625cf3c30283793fe07d18842e427",
+          "sourceNote": "controlledSnapshot입력이frozenHEAD와같음;source/envStabletrue;부분중단NOTTESTED구분",
+          "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; Playwright1.63.0 Chromium153.0.8010.12; controlled exact-HEAD browser snapshot",
+          "environmentVersion": "masterGantt0.147.0 frozen candidate",
+          "command": [
+            "node",
+            "scripts/verify-prepr.mjs",
+            "--mode=targeted",
+            "--base=0bf0e4e54cc445058b16c3764f79c27b81f5dd97",
+            "--issue=891",
+            "--report-dir=.prepr-reports/891-targeted01"
+          ],
+          "exit": 1,
+          "exitNote": "outerCLIexit1;Chrome단계는SIGINT;실제2FAIL은중단이전관측",
+          "expected": "90초/동일hover-focus-Escape·label/visibility/geometry/native/disabled전수계약유지",
+          "actual": "Task37 timedOut90sec;마지막frameTaskOPEN/예상밖navigation0;raw44PASS/2FAIL/1interrupted/40notrun;coverage44/43는미실행포함",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "TOOLING",
+          "recovery": "독립DOM관측atomic batch·모든assert유지;timeout/retry/sleep증가0",
+          "residualRisk": "현재공식modeBLOCKED·남은NOTTESTED;새Head필수검증전Push/Publish/Close금지",
+          "evidenceScope": "EXACT",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-targeted01"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "atomic-readiness-scoped-retest",
+          "at": "2026-11-15T02:31:23Z",
+          "timeNote": "실행시작02:28:36Z",
+          "stage": "PLAYWRIGHT",
+          "status": "PASS",
+          "sourceSha": "6b270c2ee78d2f56efe64daeec70eb5f02b0b432",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED WIP소유테스트diffSHA50750d5ec1d6b0f2b84550045c28ac2e10a2d1161a849068caa4453a56585e28 시작끝동일;전체최종source지문아님",
+          "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; Playwright1.63.0 Chromium153.0.8010.12; original worktree WIP isolated synthetic application",
+          "environmentVersion": "masterGantt0.147.0 WIP harness correction",
+          "command": [
+            "npx",
+            "playwright",
+            "test",
+            "--config",
+            "tests/config/playwright.config.ts",
+            "tests/e2e/project-task-editor-persistence.spec.ts",
+            "--grep",
+            "Issue #891 .* toolbar"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "90초/동일hover-focus-Escape·label/visibility/geometry/native/disabled전수계약유지",
+          "actual": "Task56.1sec/Issue54.7sec 2PASS;동일90sec와모든tooltip/stateassert유지",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "TOOLING",
+          "recovery": "atomic DOM 관측과실제rich.focus준비후기존visible5s유지;새frozen전체gate별도",
+          "residualRisk": "WIP2casePASS를새head전체/admit/QA/게시PASS로확대하지않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-atomic-pass-112836"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "6b270c2ee78d2f56efe64daeec70eb5f02b0b432",
+            "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; Playwright1.63.0 Chromium153.0.8010.12; original worktree WIP isolated synthetic application",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F891-021",
+      "issue": 891,
+      "ledger": "docs/ISSUE_891_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        885,
+        869
+      ],
+      "domain": "markdown-editor",
+      "layer": "ui",
+      "keywords": [
+        "mdx",
+        "cold-chunk",
+        "readiness"
+      ],
+      "cause": "client-onlyMDX coldchunk완료전새helper의visible5초준비경계종료",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/e2e/project-task-editor-persistence.spec.ts",
+          "case": "Issue #891 issue toolbar labels, actual shortcuts, locale history and vertical resize",
+          "historical": false,
+          "coverageArea": "동일기능assertion/timeout유지한client준비·전수관측"
+        }
+      ],
+      "residualRisk": "교정새source2case및전체공식gate/독립QA필수;현재GateBLOCKED",
+      "events": [
+        {
+          "id": "observed",
+          "at": "2026-11-15T02:25:46.316Z",
+          "timeNote": "mode시작2026-11-15T01:54:49.985Z;특정case원본start/duration은단일원장참조",
+          "stage": "PLAYWRIGHT",
+          "status": "FAIL",
+          "sourceSha": "6b270c2ee78d2f56efe64daeec70eb5f02b0b432",
+          "fixSourceSha": null,
+          "sourceFingerprint": "99fd19967784309bdc97842480f97d6a3ec625cf3c30283793fe07d18842e427",
+          "sourceNote": "controlledSnapshot입력이frozenHEAD와같음;source/envStabletrue;부분중단NOTTESTED구분",
+          "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; Playwright1.63.0 Chromium153.0.8010.12; controlled exact-HEAD browser snapshot",
+          "environmentVersion": "masterGantt0.147.0 frozen candidate",
+          "command": [
+            "node",
+            "scripts/verify-prepr.mjs",
+            "--mode=targeted",
+            "--base=0bf0e4e54cc445058b16c3764f79c27b81f5dd97",
+            "--issue=891",
+            "--report-dir=.prepr-reports/891-targeted01"
+          ],
+          "exit": 1,
+          "exitNote": "outerCLIexit1;Chrome단계는SIGINT;실제2FAIL은중단이전관측",
+          "expected": "실제client편집제어준비뒤원래visible5초와90초전체예산유지",
+          "actual": "Issue38 visible5초FAIL/loading;lazyJS16개200/3.75~4.205초;raw44PASS/2FAIL/1interrupted/40notrun;coverage44/43는미실행포함",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "TOOLING",
+          "recovery": "기존actionautoWait계약의상태비변경richfocus준비;Source전환/sleep/timeout증가0",
+          "residualRisk": "현재공식modeBLOCKED·남은NOTTESTED;새Head필수검증전Push/Publish/Close금지",
+          "evidenceScope": "EXACT",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-targeted01"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "atomic-readiness-scoped-retest",
+          "at": "2026-11-15T02:31:23Z",
+          "timeNote": "실행시작02:28:36Z",
+          "stage": "PLAYWRIGHT",
+          "status": "PASS",
+          "sourceSha": "6b270c2ee78d2f56efe64daeec70eb5f02b0b432",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED WIP소유테스트diffSHA50750d5ec1d6b0f2b84550045c28ac2e10a2d1161a849068caa4453a56585e28 시작끝동일;전체최종source지문아님",
+          "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; Playwright1.63.0 Chromium153.0.8010.12; original worktree WIP isolated synthetic application",
+          "environmentVersion": "masterGantt0.147.0 WIP harness correction",
+          "command": [
+            "npx",
+            "playwright",
+            "test",
+            "--config",
+            "tests/config/playwright.config.ts",
+            "tests/e2e/project-task-editor-persistence.spec.ts",
+            "--grep",
+            "Issue #891 .* toolbar"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "실제client편집제어준비뒤원래visible5초와90초전체예산유지",
+          "actual": "Task56.1sec/Issue54.7sec 2PASS;동일90sec와모든tooltip/stateassert유지",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "TOOLING",
+          "recovery": "atomic DOM 관측과실제rich.focus준비후기존visible5s유지;새frozen전체gate별도",
+          "residualRisk": "WIP2casePASS를새head전체/admit/QA/게시PASS로확대하지않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-atomic-pass-112836"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "6b270c2ee78d2f56efe64daeec70eb5f02b0b432",
+            "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; Playwright1.63.0 Chromium153.0.8010.12; original worktree WIP isolated synthetic application",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
     }
   ]
 }

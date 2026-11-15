@@ -164,3 +164,8 @@ F898-009~012를 [Primary 원장](ISSUE_898_FAILURE_ANALYSIS.md)에 추가했다.
 ## #891 native125와정확한읽기query
 
 [F891-019](ISSUE_891_FAILURE_ANALYSIS.md)은실제native125검사중readonlyWBS조회POST를mutation으로센TOOLING실패다. 기존정확분류helper와Project/Issuecanonical동등성을재사용하고모든일반POST/PUT/PATCH/DELETE0을유지한다. 원본10PASS/1FAIL과native단일재시험1PASS를구분하며최종same-source gate는별도다. F016~018의Task단일1PASS도제한범위교정관측으로연결했다.
+
+
+## #891 최종snapshot의protocol예산·client준비
+
+[F891-020/021](ISSUE_891_FAILURE_ANALYSIS.md)은고정6b의Task90초예산소진과Issue coldclient준비누락을구분한다. 약1502protocol관측을atomic batch하고기존action준비를재사용하며모든assertion/timeout을유지한다. 원본44PASS/2FAIL/1interrupted/40notrun과엄격coverage44/43을구별하고새source전체검증전게시를차단한다.

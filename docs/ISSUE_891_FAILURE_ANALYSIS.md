@@ -145,3 +145,29 @@ Rich locale 왕복은 통과했으나 translation 동기화 컴포넌트를 Diff
 ### F891-016~018 후속 · 제한범위 교정 관측과 최종 경계
 
 물리KeyZ교정Task단일검사는2026-11-15T01:30:06Z~01:31:38Z exit0/1PASS이며제품/테스트diffSHA `56e40b19dad8bad2063c49d38898a3ee615a6b146d2512f487a5600b83cf01dc` 시작·종료동일이었다. Rich/Source locale·undo/redo·같은editor·resize/min/max·긴본문scroll의실제교정관측이며LOCAL:891-task-pass-103006에보존한다. 이후끝scroll상태의toolbar/footer검사를더강화한213source의Task/Issue2case도개별PASS이나전체run은위F019로exit1이므로전체source PASS로확대하지않는다. 원래실패를삭제하지않고최종정확source의결과는IssueFINAL/검증보고서와대조한다.
+
+
+## F891-020 · 고정 소스 전수 tooltip 검사의 protocol 누적 예산 소진
+
+고정source6b270c2ee78d2f56efe64daeec70eb5f02b0b432의targeted01은2026-11-15T01:54:49.985Z~02:25:46.316Z에실행했다. 실제Task toolbar case37은runner startTime02:13:08.672Z/duration92,876ms이며90,000ms제한으로timedOut했다. 독립qa891은trace의약1,502browsercalls(517expect/290waitForSelector/128getAttribute/134mouseMove/64hover)와첫~마지막90.051초를확인했다. 마지막실제frame에는Taskdialog가열려있고예상밖navigation도없었다. teardown뒤DOM부재를Escape제품결함으로단정하지않는다. 개별완료call최대2.175초와많은독립DOM조회누적이90초를소진한TOOLING경계다.
+
+현재candidate의게시를차단하고원본trace/JSON/log/sourceaudit를LOCAL:891-targeted01에보존했다. 동일90초·모든locale/도구의hover/focus/Escape·label/visibility/좌표/nativeDialog/disabledassertion을유지하면서독립DOM관측을atomic snapshot으로batch하는교정이다. timeout/retry/sleep증가나case수축소는하지않는다. 교정Source의실제2case와최종새Head전체gate를다시실행한다.
+
+## F891-021 · client-only MDX 준비 경계가 cold chunk 도중 종료
+
+동일targeted01의Issue toolbar case38은runner startTime02:15:16.652Z/duration19,558ms,richvisible기본5초검사FAIL이다. 마지막DOM은“Markdown편집기를불러오는중…”이고MDXlazyJS16개는모두HTTP200이었다. 독립trace의HAR요청시각02:16:05.237~05.248Z,응답3.75~4.205초는그대로보존하며runner와browser관측시계의차이를추정해서고치지않는다. module/consoleerror근거는없으며client초기화가준비됐다는서버health/API GET만으로는보장되지않는다.
+
+기존885는실제편집제어action의auto-wait를준비경계로사용하지만새helper는최초visible5초만요구했다. 기존상태비변경focus행동으로실제rich준비를확인한뒤기존visible5초assertion을유지한다. Source클릭으로mode를바꾸거나고정sleep·timeout증가로통과시키지않는다. 초기준비와실제기능검증을분리한TOOLING교정이며제품결함으로확정한것이아니다.
+
+### targeted01 중단·공식 결과 경계
+
+두실패원인이확인된뒤Manager는불필요한나머지실행을SIGINT로중단했다. 최종mode는BLOCKED/interrupted=true,source/environmentStable=true,outerCLI exit1이다. 원본Playwright는44PASS/2FAIL/1interrupted/40did-not-run(87계획),stats.expected44/unexpected2/skipped41/flaky0을보존한다. 엄격coverage파서는미실행까지미충족으로포함해44passed/43failed로계산했으며43개의실제assertionFAIL로표현하지않는다. TargetedUnit142PASS와기존fast4013PASS/3SKIP·DockerPASS도이Head의개별결과일뿐게시허가가아니다.
+
+Root/snapshot소스·원본trace·보고서수정없이종료했고실제FAIL은FAIL,중단된남은검사는NOT TESTED다. 아직mainPush/registrywrite/tag생성0으로0.147.0은미발행후보이며승인된같은version에서하네스를교정한다. 새commit에모든필수모드를재실행하고이전성공을전용하지않는다.
+
+
+### F891-020/021 후속 · 동일 assertion/예산의 atomic 관측·실제 준비 재시험
+
+2026-11-15T02:28:36Z~02:31:23Z 실제 `npx playwright test --config tests/config/playwright.config.ts tests/e2e/project-task-editor-persistence.spec.ts --grep 'Issue #891 .* toolbar'`는exit0/2PASS(Task56.1초/Issue54.7초)다. HEAD6b270c2ee78d2f56efe64daeec70eb5f02b0b432 및 소유테스트diffSHA `50750d5ec1d6b0f2b84550045c28ac2e10a2d1161a849068caa4453a56585e28` 시작·종료동일한SCOPED이며controlled최종snapshot전체PASS는아니다. 원본로그/합성evidence는LOCAL:891-atomic-pass-112836에보존한다.
+
+독립qa891은동일hover→focus→Escape순서의count/text/visible/focus/rect/viewport/nativeDialog/disabled검사가compound expect.poll로유지되고missingtooltip이통과할수없음을확인했다. rich.focus는실제client내용DOM준비를확인하는기존actionautoWait이며이후visible5초·전체90초검사를유지한다. 이준비동작을Editor초기default-focus증거로확대하지않고기존Editor고유테스트를유지한다. 제품/snapshot/timeout/retry/skip변경0이며이두case를정식게시용전체검증으로확대하지않는다.
