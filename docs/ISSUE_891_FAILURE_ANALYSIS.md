@@ -234,3 +234,23 @@ TOOLING누적관측예산원인을독립qa891이원본trace/DOM/실제frame으�
 | final | 04:25:15~04:25:44 | 0 / 1PASS, 19.2초 | 5a11745413d274f2003c6878975ff42aa91a73348edb70abcb81540daf02236f | region2 role노출/단일성보강;최종동등정적QA PASS |
 
 원본단독21.6초와최종19.2초를안정적인성능보장으로해석하지않는다(label판29.8초변동도보존). 동일trace정의의test.trace pw:api247→172, browser1-trace before377→332이다. 명시적접근성검증으로expect133→163(+30),waitForSelector107→37,click40→40,screenshot5→5다. 최종소스는5폭/30초/summary실제click·tab/key·visibility·focus·scroll·footer·Gantt·쓰기0와기존Nodegeometryassert를유지하며label4의정확연결/region2의노출·단일성을명시해동등성을복원했다. hidden/zeroarea를가짜rect로통과시키지않는다. 제품/src/config/fixture변경0이며독립qa891정적PASS후최종소스별도실행이다. 새cleanHead전체fast/targeted/Docker/admit·최종QA는필수이며아직미실행이다.
+
+
+## F891-028 · resize·자동 스크롤 정착 중 기존 메뉴가 실제 소실
+
+94c5의targeted04는04:36:03.663~05:07:02.209Z실행후exit1/FAIL이다. Unit142PASS·Chromium86PASS/1FAIL/0SKIP,source/env불변·중단0·snapshotguardPASS/untracked0다. F027의#1305폭case는같은전체회귀에서22.1초PASS했고#891전용11개도전부PASS였으나이번전체FAIL을대체하지않는다. 원본LOCAL:891-targeted04 report/audit/runner/log/trace를보존한다.
+
+실패#81은기존#456첫5폭case의390×844첫openRow다(9.7초). helper의menu toBeVisible은PASS했으나다음toHaveCount1이0으로5초FAIL했다. qa891은두실제frame의OPEN→CLOSED와DOM의HTMLscrollTop130→108px변화를직접확인했다. 추가사용자click/Escape는없다. setViewport완료에도coordinatorAPPLYING/RANGE_EXTENSION이고rowvisible뒤SUPERSEDED/writes3였으며현재Core/native geometry의3RAF정착barrier는없었다. rightclick의기본autoWait는여러자동scroll·devportal/html pointerintercept뒤실제click을완료했다. 메뉴가보인뒤document22px이동은제품의scroll-close정책과일치하지만정확listener호출순서는원본trace에없어UNKNOWN으로보존한다. 제품geometry검사까지도달하지않았다.
+
+기존source의메뉴는실제viewportresize·조상scrollchange에닫히며이는안전한위치계약이다. 이를완화할근거는없다. 탐색mdx_readiness는setup/openRow가행visible/APIinstance만확인하고resize후projection/viewport/Core/native정착을확인하지않음을코드로확인했다. 같은spec의기존waitForGanttReadiness는현재source·API/revision/scale/scope·publicreceipt·nativegeometry와3RAF안정성key를검사하므로재사용후보다. 다른case의week값을그대로복사하거나blind sleep/강제click/메뉴reopen·retry/timeout·폭·assertion변경으로통과시키지않는다.
+
+외부원본singlecase와읽기전용resize/capture-scroll/pointer/menuMutation시각을관측해trigger·준비경합을구분한다. 진단단계의UNKNOWN과후속확인분류를분리하고정착된실제사용자경로로최소교정후새cleanHead전체gate·독립QA를다시실행한다. Push/Publish/Close는계속BLOCKED이며0.147.0정식태그/registry쓰기는아직없다.
+
+
+### F891-028 후속 · 계측 원본과 최소 준비 교정의 단일 실행
+
+외부94c5archive+독립복사deps에서같은원래case명령 `npx playwright test --config tests/config/playwright.config.ts tests/e2e/task-editor-form-density.spec.ts --grep "#456 동일 유효 자료" --trace=on`을각1회실행했다. 원래specSHA9c09f28e6825fd3b82077b3fc9d746119bacf9ce18c1303081ba64dd9d264ab5를보존하고외부계측본에만resize/capture-scroll/pointer/contextmenu/메뉴·coordinatorMutation시각관찰을추가했다(specSHA5eb3b7e25131934d76c6a13b7e63d1b6a93e5ef0c5564191dead3ab9a2f72fd5). 05:12:35~05:13:19Z exit0/1PASS31.3초였고APPLYING→SETTLING/writes3→SUPERSEDED·문서108뒤menuopen을관측했으나메뉴닫힘은이번재현되지않았다. 관찰타이밍영향을인정하며정확최초callbackUNKNOWN과공식FAIL은유지한다.
+
+최소교정은첫5폭case의setViewport직후동일UUID4행scrollIntoView로원래rightclick자동준비를명시하고,기존waitForGanttReadiness가day/revision20/동일API/scope null/query빈값/canonical5/visible4·현재receipt와Core/nativegeometry의초기+3RAF동일key를검사한뒤원래openRow를실행한다. 공통helper는변경하지않았다. allowCancelledPriorWork는임의현재실패를통과시키지않으며활성/실패/UNKNOWN은계속차단한다. helper가종류까지제한하지않는점을독립QA가지적해SUPERSEDED반환때RANGE_EXTENSION을해당case에서명시assert했다. 메뉴visible/count1/미리editor0/수정enabled·실제click/menu0/editor1·5폭·geometry·mutation0·120초와모든기존검사는유지했다.
+
+독립qa891최종9줄diff정적PASS후별도최종archive에서05:18:14~05:18:59Z exit0/1PASS32.0초였다. specSHA0b8e79bff24d466ae51135ec2c8ce7cf696c18a1ef78e2754f604c99e3291104시작끝동일,diffSHA8919e83c06f6cac77373af5445707a14afc1440dad0e548f2b810677adfe611b다. browsertrace viewport5/click40/screenshot25는계측원본과같다. 정확listener를단정하지않고확인된fixture정착준비불변식을보강한것이며제품closeguard/비즈니스코드수정은없다. 현재이PASS는SCOPED이고새cleanHead전체fast/targeted/Docker/admit·실제최종QA전Push/Publish/Close는BLOCKED다.

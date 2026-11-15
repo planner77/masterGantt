@@ -31,6 +31,15 @@ test("#456 동일 유효 자료로 다섯 폭의 Task Resource Relation과 neste
   await writeFile(`${output}/environment.json`, JSON.stringify({ browser: browser.version(), phase, zoom: "browser default 100%; native 125% NOT TESTED", fixture: { nameCharacters: Array.from(fixture.tasks[3].name).length, descriptionCharacters: Array.from(fixture.tasks[3].description!).length, urlCharacters: Array.from(fixture.tasks[3].url!).length, baselineDuration: fixture.tasks[3].baselineDuration }, browserEnvironment: await page.evaluate(() => ({ locale: navigator.language, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone, userAgent: navigator.userAgent, devicePixelRatio, visualViewportScale: visualViewport?.scale })) }, null, 2));
   for (const width of widths) {
     await page.setViewportSize({ width, height: width === 390 ? 844 : 900 });
+    // Finish the row's ordinary auto-scroll and resize work before opening its menu.
+    await page.locator(`.project-gantt-widget .wx-table-container .wx-row[data-id=":${fixture.tasks[3].taskId}"]`).first().scrollIntoViewIfNeeded();
+    const ready = await waitForGanttReadiness(page.locator(".project-gantt-frame"), {
+      operation: "observe", api: identity, revision: fixture.project.revision, scale: "day", scope: null, query: "",
+      queryWitness: { kind: "unchanged" }, canonicalIds: fixture.tasks.map(task => task.taskId),
+      visibleIds: fixture.tasks.filter(task => task.type !== "milestone").map(task => task.taskId),
+      requireRenderedRows: true, allowCancelledPriorWork: true,
+    });
+    if (ready.currentWork?.phase === "SUPERSEDED") expect(ready.currentWork.kind).toBe("RANGE_EXTENSION");
     await openRow(page);
     const dialog = editor(page);
     for (const [label, key] of [["작업 정보", "task"], ["리소스", "resource"], ["관계", "relation"]]) {

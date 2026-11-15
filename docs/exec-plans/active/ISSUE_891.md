@@ -156,3 +156,13 @@ AC01실제풍선은같은d523검증이미지의source불변보충probe108geometr
 ## F027 교정 인계
 
 기존#130case의동일상태geometry/overflow/margin관측만batch했다. 원래getByLabel4/getByRole2의암묵적접근성조건도명시적으로보존하며30초/5폭/실제동작·screenshot·assertion을유지한다. 독립qa891최종정적PASS,최종외부단일case19.2초/1PASS이며원본단독21.6초와중간판19.9/20.1/29.8초도각source별원장에보존했다. 단발시간차이는성능보장이아니고원본공식FAIL을숨기지않는다. 새source에서공통/전체영향/Docker/admit를다시실행하며제품src/의존성/version후보는불변이다.
+
+
+## F028 메뉴 준비 경합 REWORK
+
+94c5 fast/DockerPASS및targetedUnit142PASS·#13022.1초PASS·#89111casePASS가있으나targeted전체는86PASS/기존#456첫메뉴1FAIL이다. menuvisible후문서130→108px이동/메뉴소실실제증거와정확listenerUNKNOWN을단일원장F028에append했다. 제품변경근거없이현재Gantt/public/native정착준비barrier를재사용해외부singlecase이벤트진단/최소교정을진행한다. 기존메뉴/closeguard/5폭/timeout/assertion유지후새source전체gate필수이며아직mainPush/정식게시/태그/종료는미실행이다.
+
+
+## F028 최소 준비 교정 인계
+
+기존첫#4565폭case에만동일행scroll준비→기존현재3RAFreadiness→SUPERSEDED이면RANGE_EXTENSION명시검사→원래우클릭경로를추가했다. 공통helper/제품guard와기존메뉴/5폭/geometry/쓰기0/120초를유지했고독립qa891정적PASS다. 외부계측원본1PASS31.3초와최종별도소스1PASS32.0초를분리보존했다. 최초닫힘callbackUNKNOWN은유지하며현재source/geometry정착준비불변식보완을새Head전체PASS로확대하지않는다. 새cleanHead의모든필수gate를다시수행하며제품src·의존성·0.147후보는불변이다.

@@ -12431,6 +12431,186 @@
           }
         }
       ]
+    },
+    {
+      "id": "F891-028",
+      "issue": 891,
+      "ledger": "docs/ISSUE_891_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        456,
+        816,
+        822
+      ],
+      "domain": "gantt-context-menu",
+      "layer": "validation",
+      "keywords": [
+        "viewport",
+        "native-scroll",
+        "readiness"
+      ],
+      "cause": "viewport전환·자동scroll정착중메뉴실제소실;정확닫힘triggerUNKNOWN",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/e2e/task-editor-form-density.spec.ts",
+          "case": "#456 동일 유효 자료로 다섯 폭의 Task Resource Relation과 nested Baseline footer를 측정한다",
+          "historical": false,
+          "coverageArea": "동일5폭·실제메뉴경로·Task/Resource/Relation/nestedBaseline·mutation0"
+        }
+      ],
+      "residualRisk": "현재targetedFAIL;닫힘원인UNKNOWN·준비경합우선가설;새source전체검증전Push/Publish/CloseBLOCKED",
+      "events": [
+        {
+          "id": "observed",
+          "at": "2026-11-15T05:07:02.209Z",
+          "timeNote": "mode시작2026-11-15T04:36:03.663Z",
+          "stage": "PLAYWRIGHT",
+          "status": "FAIL",
+          "sourceSha": "94c5b241a169a30f527c59db83e021c81ad08045",
+          "fixSourceSha": null,
+          "sourceFingerprint": "153168e53655c314e6774492cdff0d24e5cb701e575410d6110516adc40fc3ee",
+          "sourceNote": "clean frozen94c5;source/envStabletrue;interruptedfalse;snapshotguardPASS/untracked0",
+          "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; Playwright1.63.0 Chromium; controlled exact-HEAD browser snapshot",
+          "environmentVersion": "masterGantt0.147.0 frozen candidate",
+          "command": [
+            "node",
+            "scripts/verify-prepr.mjs",
+            "--mode=targeted",
+            "--base=0bf0e4e54cc445058b16c3764f79c27b81f5dd97",
+            "--issue=891",
+            "--report-dir=.prepr-reports/891-targeted04"
+          ],
+          "exit": 1,
+          "exitNote": "실제outerCLI/Chromiumexit1;Unit142PASS·Chromium86PASS/1FAIL/0SKIP",
+          "expected": "resize후정착된5폭에서동일실제rightclick→메뉴1개→기존편집/geometry·mutation0검증",
+          "actual": "기존#456첫5폭case9.7초:390x844첫openRow에서menuvisiblePASS뒤count1vs0/5초FAIL;문서scrollTop130→108와실제frameOPEN→CLOSED;setViewport뒤coordinatorAPPLYING/RANGE_EXTENSION→SUPERSEDED,안정화barrier없음;정확listenerUNKNOWN",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "UNKNOWN",
+          "recovery": "외부원본singlecase와scroll/resize/pointer/menu telemetry로trigger분리;기존현재source publicreadiness재사용검토;메뉴/closeguard/assert/timeout/폭유지",
+          "residualRisk": "현재targetedFAIL;닫힘원인UNKNOWN·준비경합우선가설;새source전체검증전Push/Publish/CloseBLOCKED",
+          "evidenceScope": "EXACT",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-targeted04"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "scoped-diagnostic",
+          "at": "2026-11-15T05:13:19Z",
+          "timeNote": "실제시작2026-11-15T05:12:35Z",
+          "stage": "PLAYWRIGHT",
+          "status": "PASS",
+          "sourceSha": "94c5b241a169a30f527c59db83e021c81ad08045",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED external94c5archive+copieddeps;specSHA5eb3b7e25131934d76c6a13b7e63d1b6a93e5ef0c5564191dead3ab9a2f72fd5시작끝동일;전체공식source지문아님",
+          "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; fixed Playwright1.63.0 Chromium; external archive and copied dependencies",
+          "environmentVersion": "masterGantt0.147.0 external F028 single-case diagnostic",
+          "command": [
+            "npx",
+            "playwright",
+            "test",
+            "--config",
+            "tests/config/playwright.config.ts",
+            "tests/e2e/task-editor-form-density.spec.ts",
+            "--grep",
+            "#456 동일 유효 자료",
+            "--trace=on"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "resize후정착된5폭에서동일실제rightclick→메뉴1개→기존편집/geometry·mutation0검증",
+          "actual": "1PASS/31.3sec;외부원본계측;원래spec9c09f28e6825fd3b82077b3fc9d746119bacf9ce18c1303081ba64dd9d264ab5에만읽기전용event관찰추가;APPLYING→SETTLING→SUPERSEDED·문서108후menuopen,이번닫힘재현없음/관측타이밍영향",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "UNKNOWN",
+          "recovery": "기존첫5폭case의setViewport후동일행scroll준비·현재3RAFreadiness·SUPERSEDED이면RANGE_EXTENSION명시검사후원래menu경로;공통helper/제품guard불변",
+          "residualRisk": "최초callback정확원인은미확인;계측단발PASS와준비불변식보완을새Head전체PASS로확대하지않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-f028-diagnostic"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "94c5b241a169a30f527c59db83e021c81ad08045",
+            "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; fixed Playwright1.63.0 Chromium; external archive and copied dependencies",
+            "imageDigest": null,
+            "backupId": null
+          }
+        },
+        {
+          "id": "scoped-final",
+          "at": "2026-11-15T05:18:59Z",
+          "timeNote": "실제시작2026-11-15T05:18:14Z",
+          "stage": "PLAYWRIGHT",
+          "status": "PASS",
+          "sourceSha": "94c5b241a169a30f527c59db83e021c81ad08045",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED external94c5archive+copieddeps;specSHA0b8e79bff24d466ae51135ec2c8ce7cf696c18a1ef78e2754f604c99e3291104시작끝동일;전체공식source지문아님",
+          "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; fixed Playwright1.63.0 Chromium; external archive and copied dependencies",
+          "environmentVersion": "masterGantt0.147.0 external F028 single-case diagnostic",
+          "command": [
+            "npx",
+            "playwright",
+            "test",
+            "--config",
+            "tests/config/playwright.config.ts",
+            "tests/e2e/task-editor-form-density.spec.ts",
+            "--grep",
+            "#456 동일 유효 자료",
+            "--trace=on"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "resize후정착된5폭에서동일실제rightclick→메뉴1개→기존편집/geometry·mutation0검증",
+          "actual": "1PASS/32.0sec;최종준비교정;diffSHA8919e83c06f6cac77373af5445707a14afc1440dad0e548f2b810677adfe611b;viewport5/click40/screenshot25동일,정확최초callback은UNKNOWN",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "UNKNOWN",
+          "recovery": "기존첫5폭case의setViewport후동일행scroll준비·현재3RAFreadiness·SUPERSEDED이면RANGE_EXTENSION명시검사후원래menu경로;공통helper/제품guard불변",
+          "residualRisk": "최초callback정확원인은미확인;계측단발PASS와준비불변식보완을새Head전체PASS로확대하지않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-f028-final"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "94c5b241a169a30f527c59db83e021c81ad08045",
+            "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; fixed Playwright1.63.0 Chromium; external archive and copied dependencies",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
     }
   ]
 }

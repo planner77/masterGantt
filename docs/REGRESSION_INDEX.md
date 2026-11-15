@@ -182,3 +182,8 @@ F898-009~012를 [Primary 원장](ISSUE_898_FAILURE_ANALYSIS.md)에 추가했다.
 ## #891 보충 hover oracle과 5폭 protocol 예산
 
 [F891-025/026/027](ISSUE_891_FAILURE_ANALYSIS.md)은보충probe의fixedportal/locale선택자원본실패와108geometry·대표12PNG의한정검산,정식targeted03의기존5폭case30초소진을각각보존한다. 86PASS/1FAIL과snapshotguardPASS를구분하며30초/5폭/기능assertion유지한관측batch후새Head전체gate필수다. [F918-002](ISSUE_918_FAILURE_ANALYSIS.md)은원래localmain사전차단과기존ref·사용자Compose/untrackedbytes를보존한새branch정렬이다.
+
+
+## #891 기존 메뉴의 viewport·native scroll 준비 경합
+
+[F891-028](ISSUE_891_FAILURE_ANALYSIS.md)은menuvisible직후실제document130→108px이동과메뉴count0의기능FAIL을보존한다. 정확닫힘listener는UNKNOWN이며기존publicreadiness/3RAF/Core/native정착검사를재사용해진단한다. closeguard/실제메뉴경로/timeout/5폭/assertion은유지하고새source전체gate전게시금지다. 같은run의#13022.1초PASS와전체86PASS/1FAIL·sourceguardPASS를구분한다.
