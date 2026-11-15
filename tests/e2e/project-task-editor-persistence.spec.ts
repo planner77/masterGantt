@@ -319,3 +319,291 @@ test("linked requested dates, metadata, baseline and successor schedules persist
     await expect(frame).toHaveAttribute("data-project-gantt-instance", gestureInstance!);
   }
 });
+
+// #891 extends the same actual HTTP/SQLite editor fixture, persistence and readonly boundaries.
+import { captureSyntheticUiEvidence } from "./helpers/ui-evidence";
+import {
+  seedMarkdownFixture891, openMarkdownTask891, openMarkdownIssue891, dialogGeometry891,
+  checkToolbarTooltips891, resizeMarkdown891, longMarkdown891,
+} from "./helpers/markdown-editor-891";
+
+for (const surface of ["task", "issue"] as const) test(`Issue #891 ${surface} toolbar labels, actual shortcuts, locale history and vertical resize`, async ({ page }, info) => {
+  test.setTimeout(90_000);
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  const fixture = await seedMarkdownFixture891(page);
+  if (surface === "task") await openMarkdownTask891(page, fixture.tasks[0]);
+  else await openMarkdownIssue891(page, fixture.issues[0].name);
+  const dialog = surface === "task" ? page.locator("dialog[open]", { has: page.locator("#task-description") })
+    : page.getByTestId("project-issue-workspace").getByRole("dialog");
+  const field = dialog.locator(surface === "task" ? "#task-description" : "#project-issue-description");
+  const writes: string[] = [];
+  page.on("request", request => { if (["POST", "PATCH", "DELETE"].includes(request.method())) writes.push(request.method() + " " + new URL(request.url()).pathname); });
+  const rich = field.locator('.mastergantt-markdown-contenteditable[contenteditable="true"]');
+  const richIdentity = await rich.elementHandle();
+  const untouched = await rich.innerText();
+  const unavailableRedo = field.getByRole("button", { name: /^다시 실행 / });
+  await expect(unavailableRedo).toHaveAttribute("aria-disabled", "true");
+  await unavailableRedo.focus();
+  await expect(unavailableRedo).toBeFocused();
+  await expect(page.getByRole("tooltip")).toHaveText(/다시 실행/);
+  await unavailableRedo.press("Enter");
+  await unavailableRedo.press("Space");
+  await unavailableRedo.click({ force: true });
+  expect(await rich.innerText()).toBe(untouched);
+  await rich.fill("Shortcut fixture");
+  await rich.press("ControlOrMeta+a");
+  await rich.press("ControlOrMeta+b");
+  await expect(rich.locator("strong, b")).toHaveText("Shortcut fixture");
+  await rich.press("ControlOrMeta+b");
+  await rich.press("ControlOrMeta+i");
+  await expect(rich.locator("em, i")).toHaveText("Shortcut fixture");
+  await rich.press("ControlOrMeta+i");
+  await rich.press("ControlOrMeta+u");
+  await expect(rich.locator("u, [style*='underline'], [class*='underline']")).toHaveCount(1);
+  await rich.press("ControlOrMeta+u");
+  await rich.press("ControlOrMeta+k");
+  await expect(page.locator(".mdxeditor-popup-container input").first()).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeVisible();
+  for (const name of ["글머리표 목록", "번호 목록", "체크 목록"]) {
+    const list = field.getByRole("button", { name: `${name} (단축키 없음)`, exact: true });
+    await list.click();
+    await expect(list).toHaveAttribute("aria-pressed", "true");
+    await expect(rich.locator("ul, ol")).toHaveCount(1);
+    await list.click();
+    await expect(list).toHaveAttribute("aria-pressed", "false");
+    await expect(rich.locator("ul, ol")).toHaveCount(0);
+    await expect(rich).toHaveText("Shortcut fixture");
+  }
+  await rich.fill("Undo original");
+  await rich.press("End");
+  await rich.press("Enter");
+  await rich.pressSequentially(" undo marker");
+  await rich.press("ControlOrMeta+z");
+  await expect(rich).not.toContainText("undo marker");
+  await rich.press("Control+Shift+z");
+  await expect(rich).toContainText("undo marker");
+  await rich.press("ControlOrMeta+z");
+  await expect(rich).not.toContainText("undo marker");
+  await rich.press("Control+y");
+  await expect(rich).toContainText("undo marker");
+  await field.getByRole("button", { name: "표 삽입 (단축키 없음)", exact: true }).click();
+  await rich.locator("td").first().click();
+  const tableText = await rich.innerText();
+  for (const name of ["글머리표 목록", "번호 목록", "체크 목록", "표 삽입"]) {
+    const unavailable = field.getByRole("button", { name: `${name} (단축키 없음)`, exact: true });
+    await expect(unavailable).toHaveAttribute("aria-disabled", "true");
+    await unavailable.focus();
+    await expect(unavailable).toBeFocused();
+    await expect(page.getByRole("tooltip")).toHaveText(`${name} (단축키 없음)`);
+    await unavailable.press("Enter");
+    await unavailable.press("Space");
+    await unavailable.click({ force: true });
+    expect(await rich.innerText()).toBe(tableText);
+    await expect(rich.locator("table")).toHaveCount(1);
+  }
+  await rich.locator("td").first().click();
+  await rich.press("ControlOrMeta+z");
+  await expect(rich.locator("table")).toHaveCount(0);
+  await expect(rich).toContainText("undo marker");
+  const resize = await resizeMarkdown891(page, dialog, field, "rich");
+  const selection = () => page.evaluate(() => {
+    const selected = getSelection();
+    return { text: selected?.toString(), anchor: selected?.anchorOffset, focus: selected?.focusOffset };
+  });
+  for (const { locale, noShortcut } of [
+    { locale: "ko", noShortcut: "단축키 없음" }, { locale: "vi", noShortcut: "Không có phím tắt" },
+    { locale: "en", noShortcut: "No keyboard shortcut" }, { locale: "ko", noShortcut: "단축키 없음" },
+  ]) {
+    await rich.focus();
+    await rich.press("ControlOrMeta+a");
+    const beforeSelection = await selection();
+    // Native dialog makes the global selector inert; its public locale store still receives the same browser event.
+    await page.evaluate(value => {
+      const selector = document.querySelector<HTMLSelectElement>('.app-locale-select, select[aria-label="표시 언어"], select[aria-label="Display language"], select[aria-label="Ngôn ngữ hiển thị"]');
+      if (!selector) throw new Error("global locale selector missing");
+      selector.value = value;
+      selector.dispatchEvent(new Event("change", { bubbles: true }));
+    }, locale);
+    await expect(page.locator("html")).toHaveAttribute("lang", locale);
+    expect(await selection()).toEqual(beforeSelection);
+    await checkToolbarTooltips891(page, field, noShortcut);
+    expect(await rich.evaluate((element, original) => element === original, richIdentity)).toBe(true);
+    await expect(rich).toContainText("undo marker");
+  }
+  await rich.focus();
+  await rich.press("ControlOrMeta+z");
+  await expect(rich).not.toContainText("undo marker");
+  await rich.press("Control+Shift+z");
+  await expect(rich).toContainText("undo marker");
+  await field.getByRole("radio", { name: /원문 모드/ }).click();
+  const source = field.locator('.cm-content[contenteditable="true"]');
+  await source.fill("# Source draft\n\nLong source text");
+  const sourceIdentity = await source.elementHandle();
+  const sourceResize = await resizeMarkdown891(page, dialog, field, "source");
+  await checkToolbarTooltips891(page, field, "단축키 없음");
+  await source.focus();
+  await source.press("ControlOrMeta+End");
+  await source.pressSequentially(" source marker");
+  for (const { locale, mode, noShortcut } of [
+    { locale: "vi", mode: /Chế độ mã nguồn/, noShortcut: "Không có phím tắt" },
+    { locale: "en", mode: /Source mode/, noShortcut: "No keyboard shortcut" },
+    { locale: "ko", mode: /원문 모드/, noShortcut: "단축키 없음" },
+  ]) {
+    await source.focus();
+    await source.press("ControlOrMeta+a");
+    const beforeSelection = await selection();
+    await page.evaluate(value => {
+      const selector = document.querySelector<HTMLSelectElement>('select[aria-label="표시 언어"], select[aria-label="Display language"], select[aria-label="Ngôn ngữ hiển thị"]')!;
+      selector.value = value; selector.dispatchEvent(new Event("change", { bubbles: true }));
+    }, locale);
+    await expect(page.locator("html")).toHaveAttribute("lang", locale);
+    expect(await selection()).toEqual(beforeSelection);
+    await expect(field.getByRole("radio", { name: mode })).toBeChecked();
+    expect(await source.evaluate((element, original) => element === original, sourceIdentity)).toBe(true);
+    await expect(source).toContainText("# Source draft");
+    await expect(source).toContainText("source marker");
+    await checkToolbarTooltips891(page, field, noShortcut);
+  }
+  await source.focus();
+  await source.press("ControlOrMeta+z");
+  await expect(source).not.toContainText("source marker");
+  await source.press("Control+Shift+z");
+  await expect(source).toContainText("source marker");
+  expect(writes).toEqual([]);
+  await captureSyntheticUiEvidence(page, info, {
+    issue: 891, acceptanceCriteria: ["AC01", "AC02", "AC03", "AC05"], state: `${surface}-source-ko-resized`,
+    fixture: "synthetic-mdx-editor-http", fixtureData: { surface, resize, sourceResize, writes }, locale: "ko",
+    flow: { id: "toolbar-source-resize", steps: ["actual shortcuts", "KO-VI-EN-KO tooltips", "rich/source drag", "source locale identity"], outcome: "PASS" },
+    elements: [{ name: "dialog", locator: dialog }, { name: "description", locator: field }],
+  });
+});
+
+for (const height of [900, 1200, 1600]) test(`Issue #891 same-fixture dialog baseline ratio at 1440x${height}`, async ({ page }, info) => {
+  test.setTimeout(90_000);
+  await page.setViewportSize({ width: 1440, height });
+  const fixture = await seedMarkdownFixture891(page);
+  const measurements: unknown[] = [];
+  for (const task of fixture.tasks) {
+    const dialog = await openMarkdownTask891(page, task);
+    const geometry = await dialogGeometry891(page, dialog);
+    const baseline = height === 900 ? 810 : 896;
+    expect(geometry.box.width).toBe(1120);
+    expect(geometry.box.height).toBeCloseTo(height === 900 ? 810 : height === 1200 ? 1080 : 1344, 0);
+    measurements.push({ kind: task.type, long: task.long, baseline, after: geometry.box.height, ratio: geometry.box.height / baseline, viewportLimited: height !== 1600 });
+    await dialog.getByRole("button", { name: "취소", exact: true }).click();
+  }
+  for (const issue of [null, ...fixture.issues]) {
+    const dialog = await openMarkdownIssue891(page, issue?.name);
+    for (const long of issue ? [issue.long] : [false, true]) {
+      if (!issue && long) await dialog.locator('.mastergantt-markdown-contenteditable[contenteditable="true"]').fill(longMarkdown891);
+      const geometry = await dialogGeometry891(page, dialog);
+      const baseline = height === 900 ? 792 : 864;
+      expect(geometry.box.width).toBe(736);
+      expect(geometry.box.height).toBeCloseTo(height === 900 ? 792 : height === 1200 ? 1056 : 1296, 0);
+      measurements.push({ kind: issue ? "issue-existing" : "issue-new", long, baseline, after: geometry.box.height, ratio: geometry.box.height / baseline, viewportLimited: height !== 1600 });
+    }
+    if (!issue) page.once("dialog", confirm => confirm.accept());
+    await dialog.getByRole("button", { name: "취소", exact: true }).click();
+  }
+  await info.attach("issue-891-before-after-geometry", { body: Buffer.from(JSON.stringify(measurements, null, 2)), contentType: "application/json" });
+});
+
+for (const width of [390, 768, 1024, 1440, 1920]) test(`Issue #891 responsive headers and actions at ${width}px including low height`, async ({ page }, info) => {
+  test.setTimeout(90_000);
+  await page.setViewportSize({ width, height: 900 });
+  const fixture = await seedMarkdownFixture891(page);
+  for (const task of fixture.tasks.filter(task => !task.long)) {
+    const dialog = await openMarkdownTask891(page, task);
+    for (const height of [900, 480]) {
+      await page.setViewportSize({ width, height });
+      await dialogGeometry891(page, dialog);
+      await expect(dialog.getByRole("button", { name: "저장", exact: true })).toBeVisible();
+    }
+    await dialog.getByRole("button", { name: "취소", exact: true }).click();
+    await page.setViewportSize({ width, height: 900 });
+  }
+  const dialog = await openMarkdownIssue891(page, fixture.issues[1].name);
+  for (const height of [900, 480]) {
+    await page.setViewportSize({ width, height });
+    await dialogGeometry891(page, dialog);
+    await expect(dialog.getByRole("button", { name: "수정 저장", exact: true })).toBeVisible();
+    const body = dialog.locator("[class*='editorBody']");
+    await body.evaluate(element => { element.scrollTop = element.scrollHeight; });
+    await expect(dialog.locator("#project-issue-title")).toBeVisible();
+    await expect(dialog.locator("#project-issue-password")).toBeVisible();
+    await dialogGeometry891(page, dialog);
+  }
+  await captureSyntheticUiEvidence(page, info, {
+    issue: 891, acceptanceCriteria: ["AC04", "AC05"], state: `issue-low-height-${width}`, fixture: "synthetic-mdx-editor-http", locale: "ko",
+    fixtureData: { width, height: 480, longDescription: true },
+    flow: { id: "responsive-dialog", steps: ["Task/Summary/Milestone at normal and low height", "Issue password/title/footer after body scroll"], outcome: "PASS" },
+    elements: [{ name: "dialog", locator: dialog }, { name: "title", locator: dialog.locator("#project-issue-title") }],
+  });
+});
+
+import { chromium } from "@playwright/test";
+import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+
+test("Issue #891 native Chromium 125 percent zoom preserves dialog actions and drafts", async ({ page }, info) => {
+  test.setTimeout(90_000);
+  const fixture = await seedMarkdownFixture891(page);
+  const temporary = await mkdtemp(join(tmpdir(), "mastergantt-mdx891-zoom-"));
+  const extension = join(temporary, "extension");
+  await mkdir(extension);
+  await writeFile(join(extension, "manifest.json"), JSON.stringify({ manifest_version: 3, name: "Synthetic tab zoom validation", version: "1.0", permissions: ["tabs"], background: { service_worker: "background.js" } }));
+  await writeFile(join(extension, "background.js"), "chrome.runtime.onInstalled.addListener(() => {});\n");
+  try {
+    const context = await chromium.launchPersistentContext(join(temporary, "profile"), {
+      channel: "chromium", headless: true, viewport: { width: 1440, height: 900 }, locale: "ko-KR",
+      args: [`--disable-extensions-except=${extension}`, `--load-extension=${extension}`],
+    });
+    try {
+      await context.addCookies(await page.context().cookies());
+      let worker = context.serviceWorkers()[0];
+      if (!worker) worker = await context.waitForEvent("serviceworker");
+      const check = context.pages()[0] ?? await context.newPage();
+      await check.goto(fixture.origin + fixture.path);
+      const before = await check.evaluate(() => ({ width: innerWidth, height: innerHeight, dpr: devicePixelRatio }));
+      const zoom = await worker.evaluate(async url => {
+        const tabs = (globalThis as unknown as { chrome: { tabs: {
+          query: (query: object) => Promise<Array<{ id: number; url: string }>>;
+          setZoomSettings: (id: number, settings: object) => Promise<void>;
+          setZoom: (id: number, factor: number) => Promise<void>;
+          getZoom: (id: number) => Promise<number>;
+        } } }).chrome.tabs;
+        const tab = (await tabs.query({})).find(tab => tab.url === url);
+        if (!tab) throw new Error("synthetic tab missing");
+        await tabs.setZoomSettings(tab.id, { mode: "automatic", scope: "per-tab" });
+        await tabs.setZoom(tab.id, 1.25);
+        return tabs.getZoom(tab.id);
+      }, check.url());
+      expect(zoom).toBe(1.25);
+      await expect.poll(() => check.evaluate(() => devicePixelRatio)).toBe(before.dpr * 1.25);
+      const actual = await check.evaluate(() => ({ width: innerWidth, height: innerHeight, dpr: devicePixelRatio,
+        htmlZoom: getComputedStyle(document.documentElement).zoom, bodyZoom: getComputedStyle(document.body).zoom,
+        visualScale: visualViewport!.scale }));
+      expect(actual.width).toBeCloseTo(before.width / 1.25, 0);
+      expect(actual.height).toBeCloseTo(before.height / 1.25, 0);
+      expect(actual.htmlZoom).toBe("1"); expect(actual.bodyZoom).toBe("1"); expect(actual.visualScale).toBe(1);
+      let writes = 0;
+      check.on("request", request => { if (["POST", "PATCH", "DELETE"].includes(request.method())) writes++; });
+      for (const task of fixture.tasks.filter(task => !task.long)) {
+        const dialog = await openMarkdownTask891(check, task);
+        await dialogGeometry891(check, dialog);
+        await expect(dialog.getByRole("button", { name: "저장", exact: true })).toBeVisible();
+        await dialog.getByRole("button", { name: "취소", exact: true }).click();
+      }
+      const issue = await openMarkdownIssue891(check, fixture.issues[1].name);
+      await dialogGeometry891(check, issue);
+      await issue.locator("#project-issue-title").fill("Native zoom draft preserved");
+      await expect(issue.locator("#project-issue-title")).toHaveValue("Native zoom draft preserved");
+      await expect(issue.getByRole("button", { name: "수정 저장", exact: true })).toBeVisible();
+      expect(writes).toBe(0);
+      await info.attach("native-browser-zoom-125", { body: Buffer.from(JSON.stringify({ before, zoom, actual, writes })), contentType: "application/json" });
+      await check.screenshot({ path: info.outputPath("native-browser-zoom-125.png") });
+    } finally { await context.close(); }
+  } finally { await rm(temporary, { recursive: true, force: true }); }
+});

@@ -33,6 +33,32 @@ const failure = (runId: string, file: string) => ({
   pr: 695, runId, attempt: 1, headSha: head, status: "FAIL", file,
 });
 describe("Issue #699 — risk/path/real test selection", () => {
+  it("maps the shared Markdown editor and Issue host to both form consumers and safety without accepting unrelated producers", () => {
+    const changed = ["src/features/markdown/mdx-client-editor.tsx", "src/features/markdown/description-field.tsx", "src/features/markdown/description-field.module.css", "src/features/markdown/description-translations.ts", "src/features/projects/project-issue-workspace.tsx", "src/features/projects/project-issue-workspace.module.css"];
+    const plan = selectImpact({ changed, tests, risk: "MEDIUM" });
+    expect(plan.state).toBe("READY");
+    expect(plan.unknown).toEqual([]);
+    expect(plan.missing).toEqual([]);
+    expect(plan.selected.map(test => test.path)).toEqual(expect.arrayContaining([
+      "tests/server/projects/markdown-description-885.test.ts",
+      "tests/server/projects/description-format-projections-885.test.ts",
+      "tests/e2e/project-issues.spec.ts",
+      "tests/e2e/project-task-editor.spec.ts",
+      "tests/e2e/project-task-editor-persistence.spec.ts",
+      "tests/e2e/task-editor-form-density.spec.ts",
+      "tests/e2e/i18n.spec.ts",
+    ]));
+    expect(selectImpact({ changed: ["src/features/projects/new-unknown-editor.tsx"], tests, risk: "MEDIUM" }).state).toBe("BLOCKED");
+    const missing = selectImpact({ changed, tests: { unit: [], e2e: [] }, risk: "MEDIUM" });
+    expect(missing.state).toBe("BLOCKED");
+    expect(missing.missing.map(test => test.path)).toContain("tests/e2e/project-issues.spec.ts");
+    const helper = selectImpact({ changed: ["tests/e2e/helpers/markdown-editor-891.ts"], tests, risk: "HIGH" });
+    expect(helper.state).toBe("READY");
+    expect(helper.selected.map(test => test.path)).toEqual(expect.arrayContaining([
+      "tests/e2e/project-issues.spec.ts", "tests/e2e/project-task-editor.spec.ts",
+      "tests/e2e/project-task-editor-persistence.spec.ts", "tests/e2e/i18n.spec.ts",
+    ]));
+  });
   it("maps nullable Equipment contracts, locale and the reused HTTP fixture without accepting unknown producers", () => {
     const changed = ["src/contracts/logistics.ts", "src/contracts/logistics-dashboard.ts", "src/contracts/project-templates.ts", "src/contracts/wbs-dashboard-views.ts", "src/features/logistics/project-logistics-management.tsx", "src/features/logistics/project-logistics-dashboard.tsx", "src/lib/i18n/catalogs/domains.ts", "tests/e2e/fixtures/target-project.ts", "src/features/logistics/project-logistics-management.module.css"];
     const plan = selectImpact({ changed, tests, risk: "HIGH" });

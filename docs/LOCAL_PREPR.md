@@ -1,3 +1,7 @@
+## Issue #891 — 공통 Markdown/Issue 영향 소비자
+
+기존 영향 매핑에 공통 Markdown editor/translation/CSS와 Issue host의 직접·인접 소비자를 추가한다. 기존 Issue/Task/폼 밀도/i18n Chromium과 서버 Markdown AST·형식 projection을 함께 선정한다. 이는 실행 PASS가 아니며 UNKNOWN/missing·source/fixture/환경·필수검사·admission 차단 기준을 유지한다. [실제 같은 source 검증](exec-plans/active/ISSUE_891.md).
+
 # 로컬 검증 Gate
 
 `npm run verify:prepr`는 기존 #697/#699 실행기를 확장한 **로컬 전용** 도구다. 현행 운영은 [Issue Lifecycle](ISSUE_LIFECYCLE.md), 테스트 선정은 [TEST_PLAN](TEST_PLAN.md)이 원본이다. PR·GitHub Actions·원격 CI·Trusted QA·Finalizer를 실행하지 않는다. `ci-like`는 로컬 모드 이름이며 원격 CI가 아니다.

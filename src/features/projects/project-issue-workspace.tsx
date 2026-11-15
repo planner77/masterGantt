@@ -471,7 +471,7 @@ export function ProjectIssueWorkspace({
           <input ref={titleInput} id="project-issue-title" required type="text" maxLength={160}
             value={form.title} onChange={event => updateForm({ title: event.target.value })} disabled={locked} />
         </div>
-        <div className={styles.editorBody} data-testid="project-issue-editor-body">
+        <div className={styles.editorBody} data-editor-body="issue" data-testid="project-issue-editor-body">
         <div className={styles.threeColumns}>
           <div className={styles.field}><label htmlFor="project-issue-created">{t("등록일")}</label>
             <input id="project-issue-created" type="date" readOnly

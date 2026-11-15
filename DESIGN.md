@@ -1,3 +1,9 @@
+## Issue #891 — 공통 Markdown 편집 도구와 세로 작업 면적
+
+Issue/Task의 기존 공통 MDXEditor를 유지한다. 모든 편집 도구의 기능명과 실제 단축키를 현재 언어의 hover/focus 툴팁으로 제공하며, 없는 단축키는 명시한다. 툴팁은 편집창·스크롤 경계에 잘리지 않고 native dialog에서도 같은 계층에서 표시한다. 원문·selection·undo·언어 변경과 저장 계약은 표시 변경으로 초기화하지 않는다.
+
+내용 입력 영역은 전용 컨테이너의 우측 하단에서 세로로만 조절한다. 최소 본문 높이11.5rem과 편집창 안전 가용 높이를 지키며 너비와 주변 폼의 순서는 유지한다. Issue·Task 편집창 전체의 기본 높이는 동일 fixture의 기존 실제 높이1.5배를 목표로 하되 기존 viewport 상한을 우선하고 제목·닫기·하단 동작과 본문 스크롤을 분리한다. 실제 수치·상한 사유와 환경별 검증은 [Work Packet](docs/exec-plans/active/ISSUE_891.md)에 기록한다.
+
 ## Issues #898 / #899 — 일정 본문 입력과 Task 선택
 
 Ctrl+휠 세로 밀도 조작은 현재 가시 Grid/Chart 본문(행·Bar·빈 배경·scroll layer)에 한정한다. 헤더·툴바·입력·메뉴·dialog·일정 외부의 브라우저 동작은 점유하지 않는다. 기존 fine34/32/30/28px·coarse44px와 system font/semantic token을 유지한다. Resource/설비 Grid 일반 단일 선택은 클릭한 표시행의 Chart 시작점을 sticky Grid 경계에 맞추고 Editor를 자동으로 열지 않는다. Editor는 명시 정보 버튼·더블클릭·기존 Chart Bar로 연다. 기존 이름 우선/compact layout과 keyboard focus를 보존한다. 실제 검증/미검증은 [실행 계획](docs/exec-plans/active/ISSUE_898.md)에 연결한다.

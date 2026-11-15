@@ -1,3 +1,7 @@
+## 진행 중: Issue #891 공통 Markdown 편집 UI
+
+[Work Packet](ISSUE_891.md)의 baseline9a98265e에서 기존 MDXEditor/DescriptionField와 Issue/Task 폼을 확장한다. 전체 툴팁·실제 단축키·Rich/Source 세로 resize와 Dialog 전체 기본 높이1.5배(기존 viewport 상한 우선)를 구현하고 실제 before/after·5폭/keyboard/locale·HTTP/SQLite·공통 로컬gate·독립 QA를 검증한다. Owner는 최신 main의 로컬/direct Push·고유SHA 정식 GHCR·수동 종료를 명시 승인했으며 운영 배포는 미요청이다. 실제 결과와 실패는 [단일 원장](../../ISSUE_891_FAILURE_ANALYSIS.md)과 Issue 상태를 따른다. 미완료 gate를 PASS로 표시하지 않는다.
+
 # 현재 실행 계획
 
 ## 진행 중: #898 / #899 실제 입력·조회 선택 재작업

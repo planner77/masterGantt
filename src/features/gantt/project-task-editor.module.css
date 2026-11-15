@@ -1,7 +1,8 @@
 .dialog {
   width: min(70rem, calc(100vw - 2rem));
   max-width: 100%;
-  max-height: min(90dvh, 56rem);
+  height: min(90dvh, 84rem);
+  max-height: min(90dvh, 84rem);
   margin: auto;
   padding: 0;
   overflow: hidden;

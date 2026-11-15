@@ -1,3 +1,9 @@
+## Issue #891 — Markdown 툴팁·resize·Dialog 높이 검증
+
+기존 MDXEditor의 translation/tooltip API를 우선하고 설치4.3.3의 실제 keymap과 기능명을 교차 확인한다. 버튼·토글·선택 trigger·모드 전환·disabled 동작까지 hover/focus 접근과 현재 언어를 검사한다. native title 중복·overflow clipping·native dialog 뒤 portal을 허용하지 않는다. locale 왕복은 동일 editor/undo/source 초안·선택을 유지하고 저장 전 network write를 만들지 않는다.
+
+전용 resizable container에만 vertical resize/overflow를 주고 Rich/Source의 실제 가용 본문 높이와 내부 scroll을 함께 검사한다. min11.5rem·host의 안전 max·100%폭을 지키며 다른 폼·페이지 크기를 바꾸지 않는다. Dialog 전체 기본 높이는 동일 fixture의 실제 before×1.5와 after를 비교한다. viewport 상한이면 기존 cap·비율·제한 이유를 기록하고 max-height 변경만으로 확대 PASS를 주장하지 않는다.5폭/낮은 화면·125%에서 제목/Issue명/footer·오류·비밀번호·focus가 가려지지 않아야 한다. emulated CSS viewport·DPR/CSS zoom과 실제 browser-chrome125%는 구분한다. [AC/증거 계획](exec-plans/active/ISSUE_891.md).
+
 ## Issues #898 / #899 — 조회 선택·휠 실제 입력 검증
 
 조회 Grid 선택과 Editor 명시 진입을 분리한다. 이름 선택 버튼·정보 버튼·Chart Bar의 접근성 이름/기능을 구별하고 Editor 종료 시 유효한 원래 trigger에 focus를 복원한다. DOM 교체 시 동일 rowKey·역할을 우선하며 새 사용자 입력/source가 과거 복원을 취소한다. 기존 End/Home/Arrow의 정보 버튼/Group 확장 이동 계약을 보존한다.

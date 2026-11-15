@@ -1,3 +1,7 @@
+## Issue #891 — 편집 도구 안내와 세로 크기
+
+Task/Summary/Milestone의 공통 Markdown 편집 도구는 hover와 keyboard focus에 기능명·실제 단축키를 표시한다. 단축키가 없는 도구도 현재 언어로 안내한다. 시각적/원문 편집의 내용 영역은 우측 하단에서 세로로 조절하며 폭은 유지한다. 편집창 전체 기본 높이는 기존 실제 열림 높이의1.5배를 목표로 하되 현재 화면의 안전 상한을 우선한다. 상단 제목·탭·하단 저장/취소와 본문 스크롤을 분리하고 legacy plain·readonly·저장·revision/dirty/stale 계약은 유지한다. [설계·실측/검증 범위](exec-plans/active/ISSUE_891.md).
+
 ## Issue #899 — 조회 Grid의 선택과 Editor 진입 분리
 
 Resource/설비 Grid 일반 클릭은 선택/Chart 시작점 탐색이며 Editor를 자동으로 열지 않는다. 더블클릭·명시 `작업 정보 열기` 버튼 Enter/Space/터치·기존 Chart Bar는 동일 canonical Task Editor를 사용한다. Group 행은 expand/collapse만 한다. 권한/초안/취소는 기존 단일 Editor 계약을 유지한다.

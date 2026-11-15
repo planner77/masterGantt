@@ -24,8 +24,29 @@ const translations: Record<string, [string,string]> = {
   "toolbar.toggleGroup": ["편집 도구 그룹", "Nhóm công cụ chỉnh sửa"]
 };
 
-export function translateMarkdownToolbar(locale: AppLocale, key: string, fallback: string, vars?: Record<string, unknown>): string {
+const toolbarActions = new Set([
+  "toolbar.richText", "toolbar.source", "toolbar.undo", "toolbar.redo", "toolbar.bold", "toolbar.removeBold",
+  "toolbar.italic", "toolbar.removeItalic", "toolbar.underline", "toolbar.removeUnderline",
+  "toolbar.inlineCode", "toolbar.removeInlineCode", "toolbar.bulletedList", "toolbar.numberedList", "toolbar.checkList",
+  "toolbar.table", "toolbar.codeBlock", "toolbar.thematicBreak", "toolbar.link",
+  "toolbar.blockTypeSelect.selectBlockTypeTooltip",
+]);
+
+/** Bindings verified against the installed Lexical key matcher and link-dialog plugin; typing shortcuts are not hotkeys. */
+export function translateMarkdownToolbar(locale: AppLocale, key: string, fallback: string, vars?: Record<string, unknown>, apple = false): string {
   const pair = translations[key];
-  const translated = locale === "en" || !pair ? fallback : pair[locale === "ko" ? 0 : 1];
+  let translated = locale === "en" || !pair ? fallback : pair[locale === "ko" ? 0 : 1];
+  if (toolbarActions.has(key)) {
+    translated = translated.replace(/\s*\{\{shortcut\}\}/g, "");
+    const modifier = apple ? "⌘" : "Ctrl+";
+    const shortcuts: Record<string, string> = {
+      "toolbar.undo": modifier + "Z", "toolbar.redo": apple ? "⌘⇧Z" : "Ctrl+Y / Ctrl+Shift+Z",
+      "toolbar.bold": modifier + "B", "toolbar.removeBold": modifier + "B",
+      "toolbar.italic": modifier + "I", "toolbar.removeItalic": modifier + "I",
+      "toolbar.underline": modifier + "U", "toolbar.removeUnderline": modifier + "U", "toolbar.link": modifier + "K",
+    };
+    const noShortcut = locale === "ko" ? "단축키 없음" : locale === "vi" ? "Không có phím tắt" : "No keyboard shortcut";
+    translated += ` (${shortcuts[key] ?? noShortcut})`;
+  }
   return translated.replace(/\{\{(\w+)\}\}/g, (match, name: string) => vars?.[name] === undefined ? match : String(vars[name]));
 }

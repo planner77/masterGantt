@@ -68,7 +68,8 @@
   flex-direction: column;
   margin: auto;
   width: min(46rem, calc(100vw - 2rem));
-  max-height: min(88vh, 54rem);
+  height: min(88dvh, 81rem);
+  max-height: min(88dvh, 81rem);
   border: 1px solid var(--border-default);
   border-radius: 10px;
   box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.16);

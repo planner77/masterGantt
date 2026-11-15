@@ -160,6 +160,19 @@ export function inventory(root) {
 // A path with no known contract is BLOCKED, never treated as "no affected tests".
 const RULES = [
   {
+    id: "issue-891-shared-markdown", risk: "MEDIUM",
+    re: /^src\/features\/(?:markdown\/[^/]+\.(?:tsx?|css)|projects\/project-issue-workspace\.(?:tsx|module\.css))$/,
+    unitPaths: ["tests/server/projects/markdown-description-885.test.ts", "tests/server/projects/description-format-projections-885.test.ts"],
+    browser: ["project-issues", "project-task-editor", "project-task-editor-persistence", "task-editor-form-density", "i18n"],
+    reason: "공통 Markdown/Issue 표시 → 전체 toolbar·실제 keymap·locale/undo/source 초안·resize·Dialog geometry·Task handoff·HTTP/SQLite 원문/안전성 회귀",
+  },
+  {
+    id: "issue-891-markdown-test-helper", risk: "HIGH",
+    re: /^tests\/e2e\/helpers\/markdown-editor-891\.ts$/,
+    browser: ["project-issues", "project-task-editor", "project-task-editor-persistence", "i18n"],
+    reason: "공통 Markdown 합성 browser helper → 실제 import하는 Issue/Task/i18n의 tooltip·drag·state/geometry assertions 보존",
+  },
+  {
     id: "issue-917-equipment-nullable", risk: "HIGH",
     re: /^src\/(?:contracts\/(?:logistics(?:-dashboard)?|project-templates|wbs-dashboard-views)\.ts|features\/logistics\/(?:project-logistics-(?:management|dashboard)\.tsx|project-logistics-management\.module\.css))$/,
     unitPaths: ["tests/server/logistics/optional-equipment-contract.test.ts", "tests/server/logistics/logistics-service.test.ts", "tests/server/logistics/logistics-dashboard.test.ts", "tests/features/resources/wbs-view-transport.test.ts", "tests/server/resources/issue-734-equipment-configuration.test.ts", "tests/server/projects/project-copy-logistics.test.ts", "tests/server/templates/logistics-template-graph.test.ts"],

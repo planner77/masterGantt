@@ -50,6 +50,11 @@
       "issue": 917,
       "primaryIssue": 917,
       "ledger": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+    },
+    {
+      "issue": 891,
+      "primaryIssue": 891,
+      "ledger": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
     }
   ],
   "failures": [
@@ -9011,6 +9016,1351 @@
             "imageDigest": null,
             "backupId": null
           }
+        }
+      ]
+    },
+    {
+      "id": "F891-001",
+      "issue": 891,
+      "ledger": "docs/ISSUE_891_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        885,
+        869
+      ],
+      "domain": "markdown-editor",
+      "layer": "test-fixture",
+      "keywords": [
+        "baseline",
+        "geometry",
+        "project-create",
+        "locale"
+      ],
+      "cause": "baseline 합성 프로젝트 생성 전 catalog ready 대기 누락",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/e2e/fixtures/isolated-application.ts",
+          "case": "waitForProjectMasterCatalogReady/submitProjectAndExpectCreated 재사용",
+          "historical": false,
+          "coverageArea": "재사용 준비/locale 경계; 실제 baseline 결과는 event/원장 참조"
+        }
+      ],
+      "residualRisk": "최종 같은 source의 실제 geometry/Chromium·admission 별도",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "2026-11-14 구현 전 baseline 담당자 보고; 개별 실행 시작/종료시각 미수집",
+          "stage": "LOCAL_PREP",
+          "status": "FAIL",
+          "sourceSha": "9a98265ea7526feb2d589461146312e439206167",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "baseline HEAD의 제품 UI; 문서/버전 작업 병행 중 source diff fingerprint 미수집. 최종 exact source 증거 아님",
+          "environment": "Linux; Node22.14.0; Playwright1.63.0 Chromium; isolated synthetic application",
+          "environmentVersion": "masterGantt0.146.0 baseline UI",
+          "command": [
+            "node",
+            "/tmp/issue891/baseline.cjs"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "합성 프로젝트를 준비한 뒤 동일 desktop fixture의 변경 전 geometry 수집",
+          "actual": "POST0, 생성 폼이 거부해 waitForURL30s timeout/exit1",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "TEST_FIXTURE",
+          "recovery": "waitForProjectMasterCatalogReady/submitProjectAndExpectCreated 재사용; 후속 실제 결과를 별도 event로 추가",
+          "residualRisk": "baseline 수치·제품 동작 검증 미완료; harness 실패를 제품 FAIL과 혼동하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:issue891/baseline-harness"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "baseline-retest",
+          "at": null,
+          "timeNote": "2026-11-14 baseline run6 실제 exit0 담당자 반환; exact시각 미수집",
+          "stage": "LOCAL_PREP",
+          "status": "PASS",
+          "sourceSha": "9a98265ea7526feb2d589461146312e439206167",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "Editor/host/CSS는9a98265e bytes,version/docs는WIP0.147.0. clean전체baseline 또는 최종source PASS아님",
+          "environment": "Linux; Node22.14.0; Playwright1.63.0 Chromium; isolated synthetic application",
+          "environmentVersion": "masterGantt0.146.0 baseline UI",
+          "command": [
+            "node",
+            "/tmp/issue891/baseline.cjs"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "합성 프로젝트를 준비한 뒤 동일 desktop fixture의 변경 전 geometry 수집",
+          "actual": "동일합성10종×3높이=30geometry 및PNG 수집완료. Task810/896/896px,Issue792/864/864px;폭1120/736px",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "TEST_FIXTURE",
+          "recovery": "기존 helper/실제 계약/단일 contenteditable locator로 fixture준비교정. 최종제품source gate는별도",
+          "residualRisk": "baseline 수치·제품 동작 검증 미완료; harness 실패를 제품 FAIL과 혼동하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:issue891/baseline-harness"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "9a98265ea7526feb2d589461146312e439206167",
+            "environment": "Linux; Node22.14.0; Playwright1.63.0 Chromium; isolated synthetic application",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F891-002",
+      "issue": 891,
+      "ledger": "docs/ISSUE_891_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        885,
+        869
+      ],
+      "domain": "markdown-editor",
+      "layer": "test-fixture",
+      "keywords": [
+        "baseline",
+        "geometry",
+        "project-create",
+        "locale"
+      ],
+      "cause": "baseline 단발 진단 context locale 미고정",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/e2e/project-issues.spec.ts",
+          "case": "ko-KR 고정 및 기존 fixture 준비 재사용",
+          "historical": false,
+          "coverageArea": "재사용 준비/locale 경계; 실제 baseline 결과는 event/원장 참조"
+        }
+      ],
+      "residualRisk": "최종 같은 source의 실제 geometry/Chromium·admission 별도",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "2026-11-14 구현 전 baseline 담당자 보고; 개별 실행 시작/종료시각 미수집",
+          "stage": "LOCAL_PREP",
+          "status": "FAIL",
+          "sourceSha": "9a98265ea7526feb2d589461146312e439206167",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "baseline HEAD의 제품 UI; 문서/버전 작업 병행 중 source diff fingerprint 미수집. 최종 exact source 증거 아님",
+          "environment": "Linux; Node22.14.0; Playwright1.63.0 Chromium; isolated synthetic application",
+          "environmentVersion": "masterGantt0.146.0 baseline UI",
+          "command": [
+            "node",
+            "/tmp/issue891/baseline.cjs"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "합성 프로젝트를 준비한 뒤 동일 desktop fixture의 변경 전 geometry 수집",
+          "actual": "en-US 기본 context에서 Korean owner locator timeout/exit1",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "TEST_FIXTURE",
+          "recovery": "ko-KR 고정 및 기존 fixture 준비 재사용; 후속 실제 결과를 별도 event로 추가",
+          "residualRisk": "baseline 수치·제품 동작 검증 미완료; harness 실패를 제품 FAIL과 혼동하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:issue891/baseline-harness"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "baseline-retest",
+          "at": null,
+          "timeNote": "2026-11-14 baseline run6 실제 exit0 담당자 반환; exact시각 미수집",
+          "stage": "LOCAL_PREP",
+          "status": "PASS",
+          "sourceSha": "9a98265ea7526feb2d589461146312e439206167",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "Editor/host/CSS는9a98265e bytes,version/docs는WIP0.147.0. clean전체baseline 또는 최종source PASS아님",
+          "environment": "Linux; Node22.14.0; Playwright1.63.0 Chromium; isolated synthetic application",
+          "environmentVersion": "masterGantt0.146.0 baseline UI",
+          "command": [
+            "node",
+            "/tmp/issue891/baseline.cjs"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "합성 프로젝트를 준비한 뒤 동일 desktop fixture의 변경 전 geometry 수집",
+          "actual": "동일합성10종×3높이=30geometry 및PNG 수집완료. Task810/896/896px,Issue792/864/864px;폭1120/736px",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "TEST_FIXTURE",
+          "recovery": "기존 helper/실제 계약/단일 contenteditable locator로 fixture준비교정. 최종제품source gate는별도",
+          "residualRisk": "baseline 수치·제품 동작 검증 미완료; harness 실패를 제품 FAIL과 혼동하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:issue891/baseline-harness"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "9a98265ea7526feb2d589461146312e439206167",
+            "environment": "Linux; Node22.14.0; Playwright1.63.0 Chromium; isolated synthetic application",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F891-003",
+      "issue": 891,
+      "ledger": "docs/ISSUE_891_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        885,
+        869
+      ],
+      "domain": "markdown-editor",
+      "layer": "test-fixture",
+      "keywords": [
+        "baseline",
+        "geometry",
+        "project-create",
+        "locale"
+      ],
+      "cause": "baseline harness의 사업부 선택 label을 실제 accessible name과 다르게 지정",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/e2e/fixtures/isolated-application.ts",
+          "case": "기존 waitForProjectMasterCatalogReady와 실제 catalog control id 재사용",
+          "historical": false,
+          "coverageArea": "baseline 합성 준비만; 제품 최종 검증 아님"
+        }
+      ],
+      "residualRisk": "최종 같은 source의 실제 geometry/Chromium·admission 별도",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "2026-11-14 담당자 보고; 원본 로그 mtime 약2026-11-13T22:22~23Z, exact 시작/종료시각 미수집",
+          "stage": "LOCAL_PREP",
+          "status": "FAIL",
+          "sourceSha": "9a98265ea7526feb2d589461146312e439206167",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "baseline HEAD의 제품 UI; 문서/버전 작업 병행 중 source diff fingerprint 미수집. 최종 exact source 증거 아님",
+          "environment": "Linux; Node22.14.0; Playwright1.63.0 Chromium; isolated synthetic application",
+          "environmentVersion": "masterGantt0.146.0 baseline UI",
+          "command": [
+            "node",
+            "/tmp/issue891/baseline.cjs"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "합성 프로젝트를 준비한 뒤 동일 desktop fixture의 변경 전 geometry 수집",
+          "actual": "exact 사업부 locator30s timeout",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "TEST_FIXTURE",
+          "recovery": "기존 waitForProjectMasterCatalogReady와 실제 catalog control id 재사용; 실제 성공은 후속 event에 별도 추가",
+          "residualRisk": "baseline 수치·제품 동작 검증 미완료; harness 실패를 제품 FAIL과 혼동하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:issue891/baseline-harness"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "baseline-retest",
+          "at": null,
+          "timeNote": "2026-11-14 baseline run6 실제 exit0 담당자 반환; exact시각 미수집",
+          "stage": "LOCAL_PREP",
+          "status": "PASS",
+          "sourceSha": "9a98265ea7526feb2d589461146312e439206167",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "Editor/host/CSS는9a98265e bytes,version/docs는WIP0.147.0. clean전체baseline 또는 최종source PASS아님",
+          "environment": "Linux; Node22.14.0; Playwright1.63.0 Chromium; isolated synthetic application",
+          "environmentVersion": "masterGantt0.146.0 baseline UI",
+          "command": [
+            "node",
+            "/tmp/issue891/baseline.cjs"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "합성 프로젝트를 준비한 뒤 동일 desktop fixture의 변경 전 geometry 수집",
+          "actual": "동일합성10종×3높이=30geometry 및PNG 수집완료. Task810/896/896px,Issue792/864/864px;폭1120/736px",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "TEST_FIXTURE",
+          "recovery": "기존 helper/실제 계약/단일 contenteditable locator로 fixture준비교정. 최종제품source gate는별도",
+          "residualRisk": "baseline 수치·제품 동작 검증 미완료; harness 실패를 제품 FAIL과 혼동하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:issue891/baseline-harness"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "9a98265ea7526feb2d589461146312e439206167",
+            "environment": "Linux; Node22.14.0; Playwright1.63.0 Chromium; isolated synthetic application",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F891-004",
+      "issue": 891,
+      "ledger": "docs/ISSUE_891_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        885,
+        869
+      ],
+      "domain": "markdown-editor",
+      "layer": "test-fixture",
+      "keywords": [
+        "baseline",
+        "geometry",
+        "project-create",
+        "locale"
+      ],
+      "cause": "baseline milestone 생성 fixture의 필수 duration0 누락",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/e2e/project-task-editor-persistence.spec.ts",
+          "case": "기존 Task create contract의 milestone duration0 적용",
+          "historical": false,
+          "coverageArea": "baseline 합성 준비만; 제품 최종 검증 아님"
+        }
+      ],
+      "residualRisk": "최종 같은 source의 실제 geometry/Chromium·admission 별도",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "2026-11-14 담당자 보고; 원본 로그 mtime 약2026-11-13T22:22~23Z, exact 시작/종료시각 미수집",
+          "stage": "LOCAL_PREP",
+          "status": "FAIL",
+          "sourceSha": "9a98265ea7526feb2d589461146312e439206167",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "baseline HEAD의 제품 UI; 문서/버전 작업 병행 중 source diff fingerprint 미수집. 최종 exact source 증거 아님",
+          "environment": "Linux; Node22.14.0; Playwright1.63.0 Chromium; isolated synthetic application",
+          "environmentVersion": "masterGantt0.146.0 baseline UI",
+          "command": [
+            "node",
+            "/tmp/issue891/baseline.cjs"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "합성 프로젝트를 준비한 뒤 동일 desktop fixture의 변경 전 geometry 수집",
+          "actual": "실제 API400 거부; 앞 Task/Summary4개 생성 성공",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "TEST_FIXTURE",
+          "recovery": "기존 Task create contract의 milestone duration0 적용; 실제 성공은 후속 event에 별도 추가",
+          "residualRisk": "baseline 수치·제품 동작 검증 미완료; harness 실패를 제품 FAIL과 혼동하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:issue891/baseline-harness"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "baseline-retest",
+          "at": null,
+          "timeNote": "2026-11-14 baseline run6 실제 exit0 담당자 반환; exact시각 미수집",
+          "stage": "LOCAL_PREP",
+          "status": "PASS",
+          "sourceSha": "9a98265ea7526feb2d589461146312e439206167",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "Editor/host/CSS는9a98265e bytes,version/docs는WIP0.147.0. clean전체baseline 또는 최종source PASS아님",
+          "environment": "Linux; Node22.14.0; Playwright1.63.0 Chromium; isolated synthetic application",
+          "environmentVersion": "masterGantt0.146.0 baseline UI",
+          "command": [
+            "node",
+            "/tmp/issue891/baseline.cjs"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "합성 프로젝트를 준비한 뒤 동일 desktop fixture의 변경 전 geometry 수집",
+          "actual": "동일합성10종×3높이=30geometry 및PNG 수집완료. Task810/896/896px,Issue792/864/864px;폭1120/736px",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "TEST_FIXTURE",
+          "recovery": "기존 helper/실제 계약/단일 contenteditable locator로 fixture준비교정. 최종제품source gate는별도",
+          "residualRisk": "baseline 수치·제품 동작 검증 미완료; harness 실패를 제품 FAIL과 혼동하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:issue891/baseline-harness"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "9a98265ea7526feb2d589461146312e439206167",
+            "environment": "Linux; Node22.14.0; Playwright1.63.0 Chromium; isolated synthetic application",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F891-005",
+      "issue": 891,
+      "ledger": "docs/ISSUE_891_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        885,
+        869
+      ],
+      "domain": "markdown-editor",
+      "layer": "test-fixture",
+      "keywords": [
+        "baseline",
+        "geometry",
+        "project-create",
+        "locale"
+      ],
+      "cause": "baseline harness가 Milestone을 일반 WBS Grid에서 검색",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/e2e/helpers/milestone-ui.ts",
+          "case": "기존 Dashboard navigation·UUID검색·상세 열기 helper 재사용",
+          "historical": false,
+          "coverageArea": "baseline synthetic UI 준비 경계"
+        }
+      ],
+      "residualRisk": "최종 같은 source의 실제 geometry/Chromium·admission 별도",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "2026-11-14 baseline run4/run5 담당자 보고; exact 개별 시작/종료시각 미수집",
+          "stage": "LOCAL_PREP",
+          "status": "FAIL",
+          "sourceSha": "9a98265ea7526feb2d589461146312e439206167",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "baseline HEAD의 제품 UI; 문서/버전 작업 병행 중 source diff fingerprint 미수집. 최종 exact source 증거 아님",
+          "environment": "Linux; Node22.14.0; Playwright1.63.0 Chromium; isolated synthetic application",
+          "environmentVersion": "masterGantt0.146.0 baseline UI",
+          "command": [
+            "node",
+            "/tmp/issue891/baseline.cjs"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "합성 프로젝트를 준비한 뒤 동일 desktop fixture의 변경 전 geometry 수집",
+          "actual": "일반WBS에Milestone행이없어locator timeout/exit1",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "TEST_FIXTURE",
+          "recovery": "기존 Dashboard navigation·UUID검색·상세 열기 helper 재사용; 실제 성공은 후속 event 참조",
+          "residualRisk": "baseline 수치·제품 동작 검증 미완료; harness 실패를 제품 FAIL과 혼동하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:issue891/baseline-harness"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "baseline-retest",
+          "at": null,
+          "timeNote": "2026-11-14 baseline run6 실제 exit0 담당자 반환; exact시각 미수집",
+          "stage": "LOCAL_PREP",
+          "status": "PASS",
+          "sourceSha": "9a98265ea7526feb2d589461146312e439206167",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "Editor/host/CSS는9a98265e bytes,version/docs는WIP0.147.0. clean전체baseline 또는 최종source PASS아님",
+          "environment": "Linux; Node22.14.0; Playwright1.63.0 Chromium; isolated synthetic application",
+          "environmentVersion": "masterGantt0.146.0 baseline UI",
+          "command": [
+            "node",
+            "/tmp/issue891/baseline.cjs"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "합성 프로젝트를 준비한 뒤 동일 desktop fixture의 변경 전 geometry 수집",
+          "actual": "동일합성10종×3높이=30geometry 및PNG 수집완료. Task810/896/896px,Issue792/864/864px;폭1120/736px",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "TEST_FIXTURE",
+          "recovery": "기존 helper/실제 계약/단일 contenteditable locator로 fixture준비교정. 최종제품source gate는별도",
+          "residualRisk": "baseline 수치·제품 동작 검증 미완료; harness 실패를 제품 FAIL과 혼동하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:issue891/baseline-harness"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "9a98265ea7526feb2d589461146312e439206167",
+            "environment": "Linux; Node22.14.0; Playwright1.63.0 Chromium; isolated synthetic application",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F891-006",
+      "issue": 891,
+      "ledger": "docs/ISSUE_891_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        885,
+        869
+      ],
+      "domain": "markdown-editor",
+      "layer": "test-fixture",
+      "keywords": [
+        "baseline",
+        "geometry",
+        "project-create",
+        "locale"
+      ],
+      "cause": "빈 MDX placeholder와 실제 contenteditable에 동일 class가 있어 단일 locator가 중복",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/e2e/project-issues.spec.ts",
+          "case": "실제 [contenteditable=true] 본문으로 대상 제한",
+          "historical": false,
+          "coverageArea": "baseline synthetic UI 준비 경계"
+        }
+      ],
+      "residualRisk": "최종 같은 source의 실제 geometry/Chromium·admission 별도",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "2026-11-14 baseline run4/run5 담당자 보고; exact 개별 시작/종료시각 미수집",
+          "stage": "LOCAL_PREP",
+          "status": "FAIL",
+          "sourceSha": "9a98265ea7526feb2d589461146312e439206167",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "baseline HEAD의 제품 UI; 문서/버전 작업 병행 중 source diff fingerprint 미수집. 최종 exact source 증거 아님",
+          "environment": "Linux; Node22.14.0; Playwright1.63.0 Chromium; isolated synthetic application",
+          "environmentVersion": "masterGantt0.146.0 baseline UI",
+          "command": [
+            "node",
+            "/tmp/issue891/baseline.cjs"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "합성 프로젝트를 준비한 뒤 동일 desktop fixture의 변경 전 geometry 수집",
+          "actual": "strict locator2개 매칭/exit1; 앞 geometry수집은 일부완료",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "TEST_FIXTURE",
+          "recovery": "실제 [contenteditable=true] 본문으로 대상 제한; 실제 성공은 후속 event 참조",
+          "residualRisk": "baseline 수치·제품 동작 검증 미완료; harness 실패를 제품 FAIL과 혼동하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:issue891/baseline-harness"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "baseline-retest",
+          "at": null,
+          "timeNote": "2026-11-14 baseline run6 실제 exit0 담당자 반환; exact시각 미수집",
+          "stage": "LOCAL_PREP",
+          "status": "PASS",
+          "sourceSha": "9a98265ea7526feb2d589461146312e439206167",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "Editor/host/CSS는9a98265e bytes,version/docs는WIP0.147.0. clean전체baseline 또는 최종source PASS아님",
+          "environment": "Linux; Node22.14.0; Playwright1.63.0 Chromium; isolated synthetic application",
+          "environmentVersion": "masterGantt0.146.0 baseline UI",
+          "command": [
+            "node",
+            "/tmp/issue891/baseline.cjs"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "합성 프로젝트를 준비한 뒤 동일 desktop fixture의 변경 전 geometry 수집",
+          "actual": "동일합성10종×3높이=30geometry 및PNG 수집완료. Task810/896/896px,Issue792/864/864px;폭1120/736px",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "TEST_FIXTURE",
+          "recovery": "기존 helper/실제 계약/단일 contenteditable locator로 fixture준비교정. 최종제품source gate는별도",
+          "residualRisk": "baseline 수치·제품 동작 검증 미완료; harness 실패를 제품 FAIL과 혼동하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:issue891/baseline-harness"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "9a98265ea7526feb2d589461146312e439206167",
+            "environment": "Linux; Node22.14.0; Playwright1.63.0 Chromium; isolated synthetic application",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F891-007",
+      "issue": 891,
+      "ledger": "docs/ISSUE_891_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        885,
+        869
+      ],
+      "domain": "markdown-editor",
+      "layer": "ui",
+      "keywords": [
+        "eslint",
+        "immutability",
+        "ref",
+        "overlay"
+      ],
+      "cause": "새 toolbar overlay 구현의 React hooks lint 계약 위반",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/e2e/project-task-editor.spec.ts",
+          "case": "공통toolbar focus/portal/source와기존Task상태보존",
+          "historical": false,
+          "coverageArea": "실제제품회귀; 정적원본은event명령"
+        }
+      ],
+      "residualRisk": "최종 같은 source의 실제 geometry/Chromium·admission 별도",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "담당자보고2026-11-13T22:34경; exact시작/종료시각미수집",
+          "stage": "STATIC",
+          "status": "FAIL",
+          "sourceSha": "9a98265ea7526feb2d589461146312e439206167",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "baseline HEAD의 제품 UI; 문서/버전 작업 병행 중 source diff fingerprint 미수집. 최종 exact source 증거 아님",
+          "environment": "Linux; Node22.14.0; Playwright1.63.0 Chromium; isolated synthetic application",
+          "environmentVersion": "masterGantt0.146.0 baseline UI",
+          "command": [
+            "npm run typecheck",
+            "npx eslint src/features/markdown/*.tsx src/features/markdown/description-translations.ts"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "합성 프로젝트를 준비한 뒤 동일 desktop fixture의 변경 전 geometry 수집",
+          "actual": "typecheck PASS 후 scoped ESLint2FAIL: react-hooks/immutability overlay.dataset prop수정, set-state-in-effect host생성후setOverlay",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "PRODUCT",
+          "recovery": "DOM setAttribute와stable callbackref host부착으로교정; 후속실행별도기록",
+          "residualRisk": "baseline 수치·제품 동작 검증 미완료; harness 실패를 제품 FAIL과 혼동하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:issue891/baseline-harness"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "F891-008",
+      "issue": 891,
+      "ledger": "docs/ISSUE_891_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        885,
+        869
+      ],
+      "domain": "markdown-editor",
+      "layer": "ui",
+      "keywords": [
+        "resize",
+        "rich-text",
+        "source",
+        "flex-height"
+      ],
+      "cause": "resizable wrapper의 변경 높이가 Rich/Source 본문에 전파되지 않음",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/e2e/project-issues.spec.ts",
+          "case": "실제drag전후wrapper뿐아닌Rich/Source가용본문높이와내부scroll검증",
+          "historical": false,
+          "coverageArea": "공통editor의실제browser resize"
+        }
+      ],
+      "residualRisk": "최종 같은 source의 실제 geometry/Chromium·admission 별도",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "2026-11-14 qa891 독립WIP browser진단; exact개별시각미수집",
+          "stage": "PLAYWRIGHT",
+          "status": "FAIL",
+          "sourceSha": "9a98265ea7526feb2d589461146312e439206167",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "baseline HEAD의 제품 UI; 문서/버전 작업 병행 중 source diff fingerprint 미수집. 최종 exact source 증거 아님",
+          "environment": "Linux; Node22.14.0; Playwright1.63.0 Chromium; isolated synthetic application",
+          "environmentVersion": "masterGantt0.146.0 baseline UI",
+          "command": [
+            "node",
+            "LOCAL:qa891/wip-resize-probe"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "합성 프로젝트를 준비한 뒤 동일 desktop fixture의 변경 전 geometry 수집",
+          "actual": "1440x1200 Issue신규 native drag wrapper256→439→542px,Richcontenteditable184px·Sourcecm184px/cm-scroller28.796875px고정. 관측명령exit0지만AC03제품assertionFAIL",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "PRODUCT",
+          "recovery": "공식 mdxeditor-full-height opt-in과전체 flex/height chain교정후실제본문증가/scroll회귀필수",
+          "residualRisk": "baseline 수치·제품 동작 검증 미완료; harness 실패를 제품 FAIL과 혼동하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:issue891/baseline-harness"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "F891-009",
+      "issue": 891,
+      "ledger": "docs/ISSUE_891_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        885,
+        869
+      ],
+      "domain": "markdown-editor",
+      "layer": "ui",
+      "keywords": [
+        "toolbar",
+        "tooltip",
+        "accessibility",
+        "layout"
+      ],
+      "cause": "블록 선택기의 visible placeholder에 전체 툴팁 suffix를 넣어 인접 아이콘과 겹침",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/e2e/project-issues.spec.ts",
+          "case": "전체 toolbar hover/focus·disabled와선택 trigger의레이아웃/언어/접근성",
+          "historical": false,
+          "coverageArea": "실제 합성 editor와 toolbar 표시"
+        }
+      ],
+      "residualRisk": "최종 같은 source의 실제 geometry/Chromium·admission 별도",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "2026-11-14 ux891/qa891 WIP 감사; disabled진단UTC2026-11-13T22:30~22:31, exact시작/종료미수집",
+          "stage": "VISUAL",
+          "status": "FAIL",
+          "sourceSha": "9a98265ea7526feb2d589461146312e439206167",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "baseline HEAD의 제품 UI; 문서/버전 작업 병행 중 source diff fingerprint 미수집. 최종 exact source 증거 아님",
+          "environment": "Linux; Node22.14.0; Playwright1.63.0 Chromium; isolated synthetic application",
+          "environmentVersion": "masterGantt0.146.0 baseline UI",
+          "command": [
+            "view_image",
+            "LOCAL:issue891/after-task-short-900.png"
+          ],
+          "exit": null,
+          "exitNote": "시각 도구 관측이며 프로세스 exit 없음",
+          "expected": "모든 현재 toolbar action의 기능명/실제shortcut이 hover와 keyboard focus에서 겹침없이 접근 가능",
+          "actual": "ux891 WIP PNG 비교에서 BlockTypeSelect의 기능명+단축키없음 visible text가 다음 목록아이콘과 겹침",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "PRODUCT",
+          "recovery": "짧은 visible placeholder와 전체 tooltip/aria를 분리한다; 후속검사별도",
+          "residualRisk": "baseline 수치·제품 동작 검증 미완료; harness 실패를 제품 FAIL과 혼동하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:issue891/baseline-harness"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "F891-010",
+      "issue": 891,
+      "ledger": "docs/ISSUE_891_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        885,
+        869
+      ],
+      "domain": "markdown-editor",
+      "layer": "ui",
+      "keywords": [
+        "toolbar",
+        "tooltip",
+        "accessibility",
+        "layout"
+      ],
+      "cause": "native disabled Undo/Redo에 keyboard tooltip 접근 대안이 없음",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/e2e/project-issues.spec.ts",
+          "case": "전체 toolbar hover/focus·disabled와선택 trigger의레이아웃/언어/접근성",
+          "historical": false,
+          "coverageArea": "실제 합성 editor와 toolbar 표시"
+        }
+      ],
+      "residualRisk": "최종 같은 source의 실제 geometry/Chromium·admission 별도",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "2026-11-14 ux891/qa891 WIP 감사; disabled진단UTC2026-11-13T22:30~22:31, exact시작/종료미수집",
+          "stage": "PLAYWRIGHT",
+          "status": "FAIL",
+          "sourceSha": "9a98265ea7526feb2d589461146312e439206167",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "baseline HEAD의 제품 UI; 문서/버전 작업 병행 중 source diff fingerprint 미수집. 최종 exact source 증거 아님",
+          "environment": "Linux; Node22.14.0; Playwright1.63.0 Chromium; isolated synthetic application",
+          "environmentVersion": "masterGantt0.146.0 baseline UI",
+          "command": [
+            "node <<'NODE'",
+            "standalone Playwright diagnostic stdin"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "모든 현재 toolbar action의 기능명/실제shortcut이 hover와 keyboard focus에서 겹침없이 접근 가능",
+          "actual": "빈 Issue390x900의 role=radio Undo/Redo가 disabled=true/tabIndex=-1; focus 호출 후 실제focus=false/tooltip0",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "PRODUCT",
+          "recovery": "native disabled 명령 차단을 보존하고 포커스 가능한 설명과 상태/Tab 전환을 검증한다; 후속검사별도",
+          "residualRisk": "baseline 수치·제품 동작 검증 미완료; harness 실패를 제품 FAIL과 혼동하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:issue891/baseline-harness"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "F891-011",
+      "issue": 891,
+      "ledger": "docs/ISSUE_891_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        885,
+        869
+      ],
+      "domain": "markdown-editor",
+      "layer": "environment",
+      "keywords": [
+        "playwright-cli",
+        "browser-revision",
+        "environment"
+      ],
+      "cause": "독립 UI CLI 최신 browser 요구가 저장소 고정 Playwright browser와 다름",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/e2e/helpers/ui-evidence.ts",
+          "case": "고정 browser/runtime의 실제 UI 증거 출처를 구분",
+          "historical": false,
+          "coverageArea": "증거수집 경계; CLI실행실패는 원본 event참조"
+        }
+      ],
+      "residualRisk": "최종 같은 source의 실제 geometry/Chromium·admission 별도",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "2026-11-14 ux891 담당자 보고; exact 실행시각 미수집",
+          "stage": "LOCAL_PREP",
+          "status": "BLOCKED",
+          "sourceSha": "9a98265ea7526feb2d589461146312e439206167",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "baseline HEAD의 제품 UI; 문서/버전 작업 병행 중 source diff fingerprint 미수집. 최종 exact source 증거 아님",
+          "environment": "Linux; Node22.14.0; Playwright1.63.0 Chromium; isolated synthetic application",
+          "environmentVersion": "masterGantt0.146.0 baseline UI",
+          "command": [
+            "/home/planner/.codex/skills/playwright/scripts/playwright_cli.sh",
+            "open",
+            "LOCAL:issue891/synthetic-preview"
+          ],
+          "exit": null,
+          "exitNote": "담당자보고에 원본CLI exit 미수집",
+          "expected": "저장소에 고정된 Chromium 환경에서 독립 UI 관측",
+          "actual": "독립 Playwright CLI가 revision1254를 요구했으나 repository 고정1.63.0은 revision1243. CLI browser기동불가; 기존제품테스트환경변경0",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "ENVIRONMENT",
+          "recovery": "CLI를 위해 고정 환경을 바꾸지 않는다. qa891의기존1243실제진단과frontend고정Playwright테스트로제품검증; ux891는PNG/API비교범위로제한",
+          "residualRisk": "baseline 수치·제품 동작 검증 미완료; harness 실패를 제품 FAIL과 혼동하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:issue891/baseline-harness"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "F891-012",
+      "issue": 891,
+      "ledger": "docs/ISSUE_891_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        885,
+        869
+      ],
+      "domain": "markdown-editor",
+      "layer": "ui",
+      "keywords": [
+        "toolbar",
+        "typecheck",
+        "isolated-application",
+        "rate-limit"
+      ],
+      "cause": "공개 HistoryExtension API의 필수 TypeScript generic 누락",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/e2e/project-task-editor-persistence.spec.ts",
+          "case": "실제 격리HTTP/SQLite editor toolbar와history/resize 회귀",
+          "historical": false,
+          "coverageArea": "기존서버격리fixture·실제toolbar동작"
+        }
+      ],
+      "residualRisk": "최종 같은 source의 실제 geometry/Chromium·admission 별도",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "2026-11-14 frontend891 담당자 보고; exact개별시각 미수집",
+          "stage": "STATIC",
+          "status": "FAIL",
+          "sourceSha": "9a98265ea7526feb2d589461146312e439206167",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "baseline HEAD의 제품 UI; 문서/버전 작업 병행 중 source diff fingerprint 미수집. 최종 exact source 증거 아님",
+          "environment": "Linux; Node22.14.0; Playwright1.63.0 Chromium; isolated synthetic application",
+          "environmentVersion": "masterGantt0.146.0 baseline UI",
+          "command": [
+            "npm",
+            "run",
+            "typecheck"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "공개 API 타입검사와 격리 fixture에서 실제 toolbar검증 성공",
+          "actual": "공개 getPeerDependencyFromEditor 호출의 타입오류3개; adapter typecheck FAIL",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "PRODUCT",
+          "recovery": "공식 d.ts의 <typeof HistoryExtension> generic을 지정하고 타입규칙은 유지한다",
+          "residualRisk": "baseline 수치·제품 동작 검증 미완료; harness 실패를 제품 FAIL과 혼동하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:issue891/baseline-harness"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "F891-013",
+      "issue": 891,
+      "ledger": "docs/ISSUE_891_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        885,
+        869
+      ],
+      "domain": "markdown-editor",
+      "layer": "test-fixture",
+      "keywords": [
+        "toolbar",
+        "typecheck",
+        "isolated-application",
+        "rate-limit"
+      ],
+      "cause": "baseline 공유 합성 서버에 프로젝트 생성이 누적돼 rate limit 도달",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/e2e/project-task-editor-persistence.spec.ts",
+          "case": "실제 격리HTTP/SQLite editor toolbar와history/resize 회귀",
+          "historical": false,
+          "coverageArea": "기존서버격리fixture·실제toolbar동작"
+        }
+      ],
+      "residualRisk": "최종 같은 source의 실제 geometry/Chromium·admission 별도",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "2026-11-14 frontend891 담당자 보고; exact개별시각 미수집",
+          "stage": "PLAYWRIGHT",
+          "status": "FAIL",
+          "sourceSha": "9a98265ea7526feb2d589461146312e439206167",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "baseline HEAD의 제품 UI; 문서/버전 작업 병행 중 source diff fingerprint 미수집. 최종 exact source 증거 아님",
+          "environment": "Linux; Node22.14.0; Playwright1.63.0 Chromium; isolated synthetic application",
+          "environmentVersion": "masterGantt0.146.0 baseline UI",
+          "command": [
+            "npx",
+            "playwright",
+            "test",
+            "--config",
+            "tests/config/playwright.config.ts",
+            "tests/e2e/project-task-editor-persistence.spec.ts",
+            "--grep",
+            "Issue #891 task toolbar"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "공개 API 타입검사와 격리 fixture에서 실제 toolbar검증 성공",
+          "actual": "test-toolbar1 프로젝트생성429/RetryAfter2879, 원본 assertion FAIL; 제품toolbar 검증 전 fixture 준비 실패",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "TEST_FIXTURE",
+          "recovery": "기존 isolatedApplication fixture로 서버/SQLite를 격리해 재실행하며 rate limit 정책은 바꾸지 않는다",
+          "residualRisk": "baseline 수치·제품 동작 검증 미완료; harness 실패를 제품 FAIL과 혼동하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:issue891/baseline-harness"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "F891-014",
+      "issue": 891,
+      "ledger": "docs/ISSUE_891_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        885,
+        869
+      ],
+      "domain": "markdown-editor",
+      "layer": "ui",
+      "keywords": [
+        "tooltip",
+        "Escape",
+        "Radix",
+        "keyboard"
+      ],
+      "cause": "Escape로 keyboard tooltip을 닫은 뒤 내장 tooltip이 남음",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/e2e/project-task-editor-persistence.spec.ts",
+          "case": "toolbar 전수 focus tooltip을 Escape로 닫아 개수0과Dialog보존 확인",
+          "historical": false,
+          "coverageArea": "동일nativeTaskdialog의keyboardtooltip/내장tooltip중복"
+        }
+      ],
+      "residualRisk": "최종 같은 source의 실제 geometry/Chromium·admission 별도",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "2026-11-14 frontend891 test-toolbar2.log; exact시각 미수집",
+          "stage": "PLAYWRIGHT",
+          "status": "FAIL",
+          "sourceSha": "9a98265ea7526feb2d589461146312e439206167",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "baseline HEAD의 제품 UI; 문서/버전 작업 병행 중 source diff fingerprint 미수집. 최종 exact source 증거 아님",
+          "environment": "Linux; Node22.14.0; Playwright1.63.0 Chromium; isolated synthetic application",
+          "environmentVersion": "masterGantt0.146.0 baseline UI",
+          "command": [
+            "npx",
+            "playwright",
+            "test",
+            "--config",
+            "tests/config/playwright.config.ts",
+            "tests/e2e/project-task-editor-persistence.spec.ts",
+            "--grep",
+            "Issue #891 task toolbar"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "전수keyboard tooltip을 Escape로 닫으면 tooltip0개와상위Dialog보존",
+          "actual": "Issue #891 task toolbar 실제case1FAIL: helper131행 Escape 뒤 getByRole(tooltip) 기대0/실제1,5000ms timeout",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "PRODUCT",
+          "recovery": "원본test-toolbar2.log·trace 보존. custom/native tooltip의close와억제전환을교정하고같은회귀재실행",
+          "residualRisk": "baseline 수치·제품 동작 검증 미완료; harness 실패를 제품 FAIL과 혼동하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:issue891/baseline-harness"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "F891-015",
+      "issue": 891,
+      "ledger": "docs/ISSUE_891_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        885,
+        869
+      ],
+      "domain": "markdown-editor",
+      "layer": "ui",
+      "keywords": [
+        "toolbar",
+        "hover",
+        "pointer-events",
+        "disabled"
+      ],
+      "cause": "비활성 toolbar의 upstream data-disabled 스타일이 hover pointer를 차단",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/e2e/project-task-editor-persistence.spec.ts",
+          "case": "toolbar 전수 focus tooltip을 Escape로 닫아 개수0과Dialog보존 확인",
+          "historical": false,
+          "coverageArea": "동일nativeTaskdialog의keyboardtooltip/내장tooltip중복"
+        }
+      ],
+      "residualRisk": "최종 같은 source의 실제 geometry/Chromium·admission 별도",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "2026-11-14 frontend891 test-toolbar3.log; exact시각 미수집",
+          "stage": "PLAYWRIGHT",
+          "status": "FAIL",
+          "sourceSha": "9a98265ea7526feb2d589461146312e439206167",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "baseline HEAD의 제품 UI; 문서/버전 작업 병행 중 source diff fingerprint 미수집. 최종 exact source 증거 아님",
+          "environment": "Linux; Node22.14.0; Playwright1.63.0 Chromium; isolated synthetic application",
+          "environmentVersion": "masterGantt0.146.0 baseline UI",
+          "command": [
+            "npx",
+            "playwright",
+            "test",
+            "--config",
+            "tests/config/playwright.config.ts",
+            "tests/e2e/project-task-editor-persistence.spec.ts",
+            "--grep",
+            "Issue #891 task toolbar"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "비활성명령은차단하면서hover/focus tooltip은접근가능",
+          "actual": "두번째 비활성 action의 span hover를 toolbar가 intercept해90000ms test timeout/1caseFAIL. 설치toolbarButton[data-disabled]의pointer-events:none이원인",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "PRODUCT",
+          "recovery": "aria-disabled=true에pointer-events:auto를명시하고명령guard유지. forcehover/timeout증가0",
+          "residualRisk": "baseline 수치·제품 동작 검증 미완료; harness 실패를 제품 FAIL과 혼동하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:issue891/baseline-harness"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ]
         }
       ]
     }

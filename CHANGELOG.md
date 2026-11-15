@@ -1,3 +1,11 @@
+## [0.147.0] — Issue #891 (2026-11-14)
+
+- Issue/Task 공통 MDXEditor의 모든 편집 도구에 현재 언어의 기능명과 실제 단축키 안내를 제공하고 본문을 세로로 조절할 수 있도록 확장한다.
+- Issue·Task/Summary/Milestone 편집창의 기본 높이는 기존 실제 높이의1.5배를 목표로 하며 화면 안전 상한·고정 제목/하단 동작·본문 스크롤을 유지한다. 저장·권한·Markdown 원문 계약은 동일하다.
+- 실제 변경 전후 geometry·로컬 검사·독립 검토·GHCR exact digest 상태는 [Work Packet](docs/exec-plans/active/ISSUE_891.md)과 [실패 원장](docs/ISSUE_891_FAILURE_ANALYSIS.md)을 따른다. 운영 배포는 요청 범위 밖이다.
+
+---
+
 ## [0.146.0] — Issue #917 (2026-11-13)
 
 - 설비의 주 관리 공정을 선택0..1로 확장해 공정0에서도 기존 기준정보 editor에서 등록하고 이후 지정·변경·해제할 수 있다. 공정 미지정 필터와 nullable 조회/Copy/Template7을 연결한다.

@@ -162,8 +162,8 @@ test("#838-#840 Issue tab: register, resource/Task lookup, completion date, secu
   await expect(detail.getByLabel("등록일")).toHaveValue("2026-10-28");
   const unchangedRevision = state.project.revision;
   const detailDescription = detail.locator("#project-issue-description");
-  const detailSource = detailDescription.getByRole("radio", { name: "원문 모드", exact: true });
-  const detailVisual = detailDescription.getByRole("radio", { name: "시각적 편집", exact: true });
+  const detailSource = detailDescription.getByRole("radio", { name: "원문 모드 (단축키 없음)", exact: true });
+  const detailVisual = detailDescription.getByRole("radio", { name: "시각적 편집 (단축키 없음)", exact: true });
   for (let cycle = 0; cycle < 2; cycle++) {
     await detailSource.click();
     await expect(detailSource).toBeChecked();

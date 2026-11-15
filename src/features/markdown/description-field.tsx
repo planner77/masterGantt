@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import type { DescriptionFormat } from "@/contracts/description-format";
 import { MarkdownDescription } from "./markdown-description";
 import { plainToMarkdownLiteral } from "./plain-to-markdown";
@@ -32,14 +32,23 @@ export function DescriptionField({ id, label, value, format, maxLength, identity
   const ui = descriptionUi[locale];
   const [error, setError] = useState<string | null>(null);
   const plain = format !== "markdown";
+  const attachResizer = useCallback((element: HTMLDivElement | null) => {
+    const body = element?.closest<HTMLElement>("[data-editor-body]");
+    if (!element || !body) return;
+    const update = () => element.style.setProperty("--description-safe-height", `${body.clientHeight - 12}px`);
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(body);
+    return () => observer.disconnect();
+  }, []);
   return <div className={styles.container} id={id} role="group" aria-label={label} data-description-format={format}>
-    {plain || readOnly ? <MarkdownDescription value={value} format={format} /> : <ClientEditor
+    {plain || readOnly ? <MarkdownDescription value={value} format={format} /> : <div ref={attachResizer} className={styles.resizable} data-markdown-resizer="true"><ClientEditor
       key={identity} markdown={value} disabled={disabled} onChange={next => {
         if (Array.from(next).length > maxLength) {
           setError(ui.length);
         } else setError(null);
         onChange(next, "markdown");
-      }} onError={message => setError(message)} />}
+      }} onError={message => setError(message)} /></div>}
     {plain && !readOnly && !disabled ? <button type="button" className="secondary-button" onClick={() => {
       onChange(plainToMarkdownLiteral(value), "markdown");
       setError(null);

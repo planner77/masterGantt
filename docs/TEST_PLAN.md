@@ -1,3 +1,7 @@
+## Issue #891 — 공통 Markdown UI 회귀
+
+기존 Issue/Task/i18n·폼 밀도·실제 HTTP/SQLite Markdown 저장/안전성 케이스를 확장한다. 모든 toolbar action의 hover/focus·실제 플랫폼 키·언어 왕복과 동일 editor/selection/undo/source draft, 두 모드의 실제 resize drag·min/max/폭·본문 scroll, 동일 fixture Dialog before/after 높이·5폭/낮은 화면/125%를 검사한다. 인접 handoff/권한/If-Match/412·plain·길이/AST·Escape/focus·Gantt instance 계약은 유지한다. 고유 missing boundary 외 중복 suite·기존 assertions/timeout/retry/skip 변경은 하지 않는다. 공통 fast·영향 targeted·Docker/runtime/SQLite·같은 exact source admit와 독립 QA는 [Work Packet](exec-plans/active/ISSUE_891.md), 최초 실패·후속 재검증은 [원장](ISSUE_891_FAILURE_ANALYSIS.md)에 귀속한다. 신규 원격 CI/8shard/Required3는 Owner 정책상 N/A다.
+
 ## Issues #898 / #899 — 실제 휠·조회 시작점 재작업
 
 [Work Packet](exec-plans/active/ISSUE_898.md)의 REUSE_REVIEW/TEST_LIFECYCLE_REVIEW/AC_TEST_COVERAGE를 따른다. 기존 #822 물리 wheel, #889 세 View/5폭/Day·Week, #880 실제 SQLite/HTTP·중복/85행·Editor/keyboard/source 회귀를 확장하고 원본 assertions/timeout/retry/skip을 유지한다. 새 reveal Unit은 날짜/scroll capacity/미측정 typed 결과만 검사하며 실제 UI 정렬을 대신하지 않는다. 원래 #904 최초 실패는 [보존 원장](ISSUE_898_899_FAILURE_ANALYSIS.md), 현재 source의 실패/재시험은 [Primary 원장](ISSUE_898_FAILURE_ANALYSIS.md)에 추가한다.

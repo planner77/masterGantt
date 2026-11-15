@@ -1,0 +1,647 @@
+{
+  "schemaVersion": 1,
+  "issue": 891,
+  "captureScope": "SCOPED WIP synthetic observation; final clean-source targeted evidence is separate",
+  "baselineProductFilesSha": "9a98265ea7526feb2d589461146312e439206167",
+  "baselineNote": "Editor/host/CSS bytes were unchanged from baseline; docs/version were WIP0.147.0, so this is not a clean full-source baseline",
+  "command": [
+    "node",
+    "LOCAL:issue891/baseline.cjs"
+  ],
+  "exit": 0,
+  "fixture": "same synthetic Task/Summary/Milestone and new/existing Issue, short/long text, ko-KR",
+  "beforeArtifactSha256": "f6902c0b60dafdbd8177d0e8458c9217d8212d66495102e876b536991d872ec7",
+  "afterArtifactSha256": "2a9572f9346e81b3b88aa04d45e4c71083e1332fb04311240fdf73739a8356b1",
+  "measurements": [
+    {
+      "case": "task-short",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "before": {
+        "x": 160,
+        "y": 45,
+        "width": 1120,
+        "height": 810
+      },
+      "after": {
+        "x": 160,
+        "y": 45,
+        "width": 1120,
+        "height": 810
+      },
+      "ratio": 1.0,
+      "limitReason": "viewport safe cap (Task90dvh/Issue88dvh)"
+    },
+    {
+      "case": "task-long",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "before": {
+        "x": 160,
+        "y": 45,
+        "width": 1120,
+        "height": 810
+      },
+      "after": {
+        "x": 160,
+        "y": 45,
+        "width": 1120,
+        "height": 810
+      },
+      "ratio": 1.0,
+      "limitReason": "viewport safe cap (Task90dvh/Issue88dvh)"
+    },
+    {
+      "case": "summary-short",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "before": {
+        "x": 160,
+        "y": 45,
+        "width": 1120,
+        "height": 810
+      },
+      "after": {
+        "x": 160,
+        "y": 45,
+        "width": 1120,
+        "height": 810
+      },
+      "ratio": 1.0,
+      "limitReason": "viewport safe cap (Task90dvh/Issue88dvh)"
+    },
+    {
+      "case": "summary-long",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "before": {
+        "x": 160,
+        "y": 45,
+        "width": 1120,
+        "height": 810
+      },
+      "after": {
+        "x": 160,
+        "y": 45,
+        "width": 1120,
+        "height": 810
+      },
+      "ratio": 1.0,
+      "limitReason": "viewport safe cap (Task90dvh/Issue88dvh)"
+    },
+    {
+      "case": "milestone-short",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "before": {
+        "x": 160,
+        "y": 45,
+        "width": 1120,
+        "height": 810
+      },
+      "after": {
+        "x": 160,
+        "y": 45,
+        "width": 1120,
+        "height": 810
+      },
+      "ratio": 1.0,
+      "limitReason": "viewport safe cap (Task90dvh/Issue88dvh)"
+    },
+    {
+      "case": "milestone-long",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "before": {
+        "x": 160,
+        "y": 45,
+        "width": 1120,
+        "height": 810
+      },
+      "after": {
+        "x": 160,
+        "y": 45,
+        "width": 1120,
+        "height": 810
+      },
+      "ratio": 1.0,
+      "limitReason": "viewport safe cap (Task90dvh/Issue88dvh)"
+    },
+    {
+      "case": "issue-new-short",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "before": {
+        "x": 352,
+        "y": 54,
+        "width": 736,
+        "height": 792
+      },
+      "after": {
+        "x": 352,
+        "y": 54,
+        "width": 736,
+        "height": 792
+      },
+      "ratio": 1.0,
+      "limitReason": "viewport safe cap (Task90dvh/Issue88dvh)"
+    },
+    {
+      "case": "issue-new-long",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "before": {
+        "x": 352,
+        "y": 54,
+        "width": 736,
+        "height": 792
+      },
+      "after": {
+        "x": 352,
+        "y": 54,
+        "width": 736,
+        "height": 792
+      },
+      "ratio": 1.0,
+      "limitReason": "viewport safe cap (Task90dvh/Issue88dvh)"
+    },
+    {
+      "case": "issue-existing-short",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "before": {
+        "x": 352,
+        "y": 54,
+        "width": 736,
+        "height": 792
+      },
+      "after": {
+        "x": 352,
+        "y": 54,
+        "width": 736,
+        "height": 792
+      },
+      "ratio": 1.0,
+      "limitReason": "viewport safe cap (Task90dvh/Issue88dvh)"
+    },
+    {
+      "case": "issue-existing-long",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "before": {
+        "x": 352,
+        "y": 54,
+        "width": 736,
+        "height": 792
+      },
+      "after": {
+        "x": 352,
+        "y": 54,
+        "width": 736,
+        "height": 792
+      },
+      "ratio": 1.0,
+      "limitReason": "viewport safe cap (Task90dvh/Issue88dvh)"
+    },
+    {
+      "case": "task-short",
+      "viewport": {
+        "width": 1440,
+        "height": 1200
+      },
+      "before": {
+        "x": 160,
+        "y": 152,
+        "width": 1120,
+        "height": 896
+      },
+      "after": {
+        "x": 160,
+        "y": 60,
+        "width": 1120,
+        "height": 1080
+      },
+      "ratio": 1.2053571428571428,
+      "limitReason": "viewport safe cap (Task90dvh/Issue88dvh)"
+    },
+    {
+      "case": "task-long",
+      "viewport": {
+        "width": 1440,
+        "height": 1200
+      },
+      "before": {
+        "x": 160,
+        "y": 152,
+        "width": 1120,
+        "height": 896
+      },
+      "after": {
+        "x": 160,
+        "y": 60,
+        "width": 1120,
+        "height": 1080
+      },
+      "ratio": 1.2053571428571428,
+      "limitReason": "viewport safe cap (Task90dvh/Issue88dvh)"
+    },
+    {
+      "case": "summary-short",
+      "viewport": {
+        "width": 1440,
+        "height": 1200
+      },
+      "before": {
+        "x": 160,
+        "y": 152,
+        "width": 1120,
+        "height": 896
+      },
+      "after": {
+        "x": 160,
+        "y": 60,
+        "width": 1120,
+        "height": 1080
+      },
+      "ratio": 1.2053571428571428,
+      "limitReason": "viewport safe cap (Task90dvh/Issue88dvh)"
+    },
+    {
+      "case": "summary-long",
+      "viewport": {
+        "width": 1440,
+        "height": 1200
+      },
+      "before": {
+        "x": 160,
+        "y": 152,
+        "width": 1120,
+        "height": 896
+      },
+      "after": {
+        "x": 160,
+        "y": 60,
+        "width": 1120,
+        "height": 1080
+      },
+      "ratio": 1.2053571428571428,
+      "limitReason": "viewport safe cap (Task90dvh/Issue88dvh)"
+    },
+    {
+      "case": "milestone-short",
+      "viewport": {
+        "width": 1440,
+        "height": 1200
+      },
+      "before": {
+        "x": 160,
+        "y": 152,
+        "width": 1120,
+        "height": 896
+      },
+      "after": {
+        "x": 160,
+        "y": 60,
+        "width": 1120,
+        "height": 1080
+      },
+      "ratio": 1.2053571428571428,
+      "limitReason": "viewport safe cap (Task90dvh/Issue88dvh)"
+    },
+    {
+      "case": "milestone-long",
+      "viewport": {
+        "width": 1440,
+        "height": 1200
+      },
+      "before": {
+        "x": 160,
+        "y": 152,
+        "width": 1120,
+        "height": 896
+      },
+      "after": {
+        "x": 160,
+        "y": 60,
+        "width": 1120,
+        "height": 1080
+      },
+      "ratio": 1.2053571428571428,
+      "limitReason": "viewport safe cap (Task90dvh/Issue88dvh)"
+    },
+    {
+      "case": "issue-new-short",
+      "viewport": {
+        "width": 1440,
+        "height": 1200
+      },
+      "before": {
+        "x": 352,
+        "y": 168,
+        "width": 736,
+        "height": 864
+      },
+      "after": {
+        "x": 352,
+        "y": 72,
+        "width": 736,
+        "height": 1056
+      },
+      "ratio": 1.2222222222222223,
+      "limitReason": "viewport safe cap (Task90dvh/Issue88dvh)"
+    },
+    {
+      "case": "issue-new-long",
+      "viewport": {
+        "width": 1440,
+        "height": 1200
+      },
+      "before": {
+        "x": 352,
+        "y": 168,
+        "width": 736,
+        "height": 864
+      },
+      "after": {
+        "x": 352,
+        "y": 72,
+        "width": 736,
+        "height": 1056
+      },
+      "ratio": 1.2222222222222223,
+      "limitReason": "viewport safe cap (Task90dvh/Issue88dvh)"
+    },
+    {
+      "case": "issue-existing-short",
+      "viewport": {
+        "width": 1440,
+        "height": 1200
+      },
+      "before": {
+        "x": 352,
+        "y": 168,
+        "width": 736,
+        "height": 864
+      },
+      "after": {
+        "x": 352,
+        "y": 72,
+        "width": 736,
+        "height": 1056
+      },
+      "ratio": 1.2222222222222223,
+      "limitReason": "viewport safe cap (Task90dvh/Issue88dvh)"
+    },
+    {
+      "case": "issue-existing-long",
+      "viewport": {
+        "width": 1440,
+        "height": 1200
+      },
+      "before": {
+        "x": 352,
+        "y": 168,
+        "width": 736,
+        "height": 864
+      },
+      "after": {
+        "x": 352,
+        "y": 72,
+        "width": 736,
+        "height": 1056
+      },
+      "ratio": 1.2222222222222223,
+      "limitReason": "viewport safe cap (Task90dvh/Issue88dvh)"
+    },
+    {
+      "case": "task-short",
+      "viewport": {
+        "width": 1440,
+        "height": 1600
+      },
+      "before": {
+        "x": 160,
+        "y": 352,
+        "width": 1120,
+        "height": 896
+      },
+      "after": {
+        "x": 160,
+        "y": 128,
+        "width": 1120,
+        "height": 1344
+      },
+      "ratio": 1.5,
+      "limitReason": "1.5 target reached"
+    },
+    {
+      "case": "task-long",
+      "viewport": {
+        "width": 1440,
+        "height": 1600
+      },
+      "before": {
+        "x": 160,
+        "y": 352,
+        "width": 1120,
+        "height": 896
+      },
+      "after": {
+        "x": 160,
+        "y": 128,
+        "width": 1120,
+        "height": 1344
+      },
+      "ratio": 1.5,
+      "limitReason": "1.5 target reached"
+    },
+    {
+      "case": "summary-short",
+      "viewport": {
+        "width": 1440,
+        "height": 1600
+      },
+      "before": {
+        "x": 160,
+        "y": 352,
+        "width": 1120,
+        "height": 896
+      },
+      "after": {
+        "x": 160,
+        "y": 128,
+        "width": 1120,
+        "height": 1344
+      },
+      "ratio": 1.5,
+      "limitReason": "1.5 target reached"
+    },
+    {
+      "case": "summary-long",
+      "viewport": {
+        "width": 1440,
+        "height": 1600
+      },
+      "before": {
+        "x": 160,
+        "y": 352,
+        "width": 1120,
+        "height": 896
+      },
+      "after": {
+        "x": 160,
+        "y": 128,
+        "width": 1120,
+        "height": 1344
+      },
+      "ratio": 1.5,
+      "limitReason": "1.5 target reached"
+    },
+    {
+      "case": "milestone-short",
+      "viewport": {
+        "width": 1440,
+        "height": 1600
+      },
+      "before": {
+        "x": 160,
+        "y": 352,
+        "width": 1120,
+        "height": 896
+      },
+      "after": {
+        "x": 160,
+        "y": 128,
+        "width": 1120,
+        "height": 1344
+      },
+      "ratio": 1.5,
+      "limitReason": "1.5 target reached"
+    },
+    {
+      "case": "milestone-long",
+      "viewport": {
+        "width": 1440,
+        "height": 1600
+      },
+      "before": {
+        "x": 160,
+        "y": 352,
+        "width": 1120,
+        "height": 896
+      },
+      "after": {
+        "x": 160,
+        "y": 128,
+        "width": 1120,
+        "height": 1344
+      },
+      "ratio": 1.5,
+      "limitReason": "1.5 target reached"
+    },
+    {
+      "case": "issue-new-short",
+      "viewport": {
+        "width": 1440,
+        "height": 1600
+      },
+      "before": {
+        "x": 352,
+        "y": 368,
+        "width": 736,
+        "height": 864
+      },
+      "after": {
+        "x": 352,
+        "y": 152,
+        "width": 736,
+        "height": 1296
+      },
+      "ratio": 1.5,
+      "limitReason": "1.5 target reached"
+    },
+    {
+      "case": "issue-new-long",
+      "viewport": {
+        "width": 1440,
+        "height": 1600
+      },
+      "before": {
+        "x": 352,
+        "y": 368,
+        "width": 736,
+        "height": 864
+      },
+      "after": {
+        "x": 352,
+        "y": 152,
+        "width": 736,
+        "height": 1296
+      },
+      "ratio": 1.5,
+      "limitReason": "1.5 target reached"
+    },
+    {
+      "case": "issue-existing-short",
+      "viewport": {
+        "width": 1440,
+        "height": 1600
+      },
+      "before": {
+        "x": 352,
+        "y": 368,
+        "width": 736,
+        "height": 864
+      },
+      "after": {
+        "x": 352,
+        "y": 152,
+        "width": 736,
+        "height": 1296
+      },
+      "ratio": 1.5,
+      "limitReason": "1.5 target reached"
+    },
+    {
+      "case": "issue-existing-long",
+      "viewport": {
+        "width": 1440,
+        "height": 1600
+      },
+      "before": {
+        "x": 352,
+        "y": 368,
+        "width": 736,
+        "height": 864
+      },
+      "after": {
+        "x": 352,
+        "y": 152,
+        "width": 736,
+        "height": 1296
+      },
+      "ratio": 1.5,
+      "limitReason": "1.5 target reached"
+    }
+  ]
+}

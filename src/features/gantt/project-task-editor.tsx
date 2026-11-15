@@ -454,7 +454,7 @@ export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(func
     </div>
 
     <form className={styles.form} noValidate onSubmit={(event) => void submit(event)}>
-      <div className={styles.body} inert={awaitingDecision || undefined}>
+      <div className={styles.body} data-editor-body="task" inert={awaitingDecision || undefined}>
         <section
           className={styles.tabPanel}
           id="task-editor-panel-task"
