@@ -144,3 +144,15 @@ DOCUMENTATION_SYNC추가: CI_CD의버전/정식수동승격절차는UPDATED(동�
 ## F022/F023 산출물 배치 REWORK
 
 0fe의Docker10step는PASS,Unit142/Chromium87case도실제PASS였으나fast는동시lint/snapshot운영준비오류로FAIL했고targeted전체는legacy#456/#461PNG/JSON출력의source오염으로BLOCKED다. 최초실패/audit/원본증거와추가원인을단일원장F022/F023에보존했다. 완료generated만SHA동일외부이관하고fast완료후targeted를실행한다. 두기존spec의출력위치만testInfo.outputPath로교정하며fixture/assertion/timeout/retry/skip/guard는유지한다. 새cleanHead의공통/영향/Docker/admit·독립QA후에만동일0.147.0후보의Push/게시/종료를진행한다. 이전0fe의성공을새Head로전용하지않는다.
+
+
+## F027 최종 회귀 REWORK
+
+고정d523의fast4013PASS/기존3optinSKIP·Docker10stepPASS와targetedUnit142PASS는독립검산됐다. targeted는87개중86PASS/기존#1305폭case1FAIL로전체FAIL이며source/env불변·snapshotguardPASS다. 4폭모든검사가완료된뒤5폭summaryclick중30초전체예산이끝났고geometry/클릭차단제품오류근거는없다. 원본과5폭나머지NOTTESTED를F027에보존한다. 독립DOM읽기batch만검토하며30초·5폭·모든실제동작/assertion유지후새Head전체gate를다시실행한다. 아직정식게시/Git태그/mainPush는미실행이고0.147.0은미발행후보다.
+
+AC01실제풍선은같은d523검증이미지의source불변보충probe108geometry및대표12PNG독립검산으로1440×1000범위에서보완했다. F025/F026도구실패원본·후속실제검산을원장에append했으며108pixel/narrowhover/AT/UAT로확대하지않는다. 제품src변경은없으며같은제품bytes의새source검증/게시를별도로진행한다.
+
+
+## F027 교정 인계
+
+기존#130case의동일상태geometry/overflow/margin관측만batch했다. 원래getByLabel4/getByRole2의암묵적접근성조건도명시적으로보존하며30초/5폭/실제동작·screenshot·assertion을유지한다. 독립qa891최종정적PASS,최종외부단일case19.2초/1PASS이며원본단독21.6초와중간판19.9/20.1/29.8초도각source별원장에보존했다. 단발시간차이는성능보장이아니고원본공식FAIL을숨기지않는다. 새source에서공통/전체영향/Docker/admit를다시실행하며제품src/의존성/version후보는불변이다.

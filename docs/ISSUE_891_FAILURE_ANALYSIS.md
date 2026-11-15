@@ -198,3 +198,39 @@ Root/snapshot소스·원본trace·보고서수정없이종료했고실제FAIL은
 ### F891-024 후속 · draft 경로 교정 검산
 
 실재경로교정뒤같은validator명령은exit0/PASS(98failure/190event,기존prefix보존)였다. 문서WIP의SCOPED정적결과이며실제전체mode검증은새cleanHead에서실행한다.
+
+
+## F891-025 · 실제 hover 보충 probe의 fixed portal 오분류
+
+같은d523 Docker03이미지cbe48ada의추가관측첫run03:29:23~03:29:34Z는exit1이었다. Task/Rich/KO Undo의실제풍선은visible·viewport내(143~263.625/607~633px)였으나모든overflow조상을일괄clip으로센probe가DIALOG를거부했다. 첫probeSHA는변경전미수집이며원본logSHAbc95af13d4aa71299240617d111f66db8fd446a951b4ea9fafba27a0fbd51849를보존한다. screenshot추가진단03:29:53~03:30:07Z도같은oracleexit1이며probeSHA836b843d1a1f5df86e55546b1802b9ee5f92008e233a5f3ffc9528870a96a995/PNG4cb5c0c2ebdc25a126666f1b92cb3085682232f417d347ee43ed21af18560ab7다. ux891이PNG를실제열어dialog밖전체문구가그려짐을확인해제품clipping이아닌TOOLING기하oracle오류로구분했다. 원본최초·진단을별도보존하며108개PASS가아니다.
+
+## F891-026 · 보충 probe의 locale 고정 dialog locator
+
+03:31:09~03:31:53Z수정oracle run은KO Rich16개관측후VI전환에서KO이름으로만든dialoglocator를재사용해30초timeout/exit1이었다. 제품언어변경실패가아닌외부probe선택자오류이며나머지조합은NOT TESTED다. LOCAL:891-hover-run-QCrE5ryS원본을보존하고stable dialogselector만교정했다. 제품·설정·정식gate는변경하지않았다.
+
+### F891-025/026 후속 · 실제 Radix 풍선 관측과 독립 검산
+
+03:32:10~03:32:53Z새고유run-fGooL6zt는exit0/108geometry관측이다. Task/Issue×KO/VI/EN×Rich16/Source2,1440×1000범위다. probeSHA28c8c4bd0674935995d522ee69c657fcbdeebfc3344eea4eeacd3bd986cb37bf/observationsSHAc4d05c03e6817a04472b9bb256a093c34bc399c555f4a4143993ffc40a6ae80e이며검증Docker이미지source d523/IDcbe48ada와연결한다. sr-onlyrole설명대신실제Radixballoonroot를측정하고fixed viewportcontainingblock성립을확인했다. qa891은원문/script/hash와108JSON을재계산해invalid0을확인했고ux891은대표12PNG를모두실제열어각언어문구·viewport잘림0을확인했다(qa891추가2장). RichUndo6장은Descriptionlabel일부를일시가리지만본문입력·Action가림은없다. 이는108pixel검토·narrowhover·keyboard/AT·OwnerUAT가아니며정식prepr gate를대체하지않는다. 본인격리container/익명volume만정리했고source변경0·검증image는유지했다.
+
+## F891-027 · 기존 5폭 편집기 회귀의 30초 누적 예산 소진
+
+고정d523의targeted03은03:26:01.804~04:11:57.074Z실행후exit1/FAIL이다. Unit142PASS·Chromium86PASS/1FAIL/0SKIP,source/envStabletrue·중단0이며snapshotguard는PASS(Next생성2파일외변경0/untracked0)다. 따라서F023생산자교정은실제guard에서확인됐으나전체targeted성공은아니다. #891전용11개는전부PASS다.
+
+실패는기존project-task-editor.spec의Issue#130 Phase3 다섯폭case31.3초다. trace311호출(108expect/88waitForSelector/34click/4screenshot)에서390/768/1024/1440폭의geometry·keyboard·footer·닫기/focus·같은Gantt검사가완료됐다. 1600폭을trace29.455614초에시작한뒤identifier-details.ts10의summary.click270ms중전체30초deadline이종료됐다. 최종DOM은열린Dialog/Revision20·활성summary이며클릭intercept·hidden·viewport이탈·geometry불일치오류는없다. 마지막영상은Dialog를열기전frame이므로제품닫힘으로해석하지않는다. 1600폭나머지검사는NOT TESTED다.
+
+TOOLING누적관측예산원인을독립qa891이원본trace/DOM/실제frame으로검산했다. 원본전체report/audit/runner/log/trace를LOCAL:891-targeted03로보존한다. 기존30초/5폭/실제summaryclick·tab/keyboard·모든assertion·focus/Gantt·쓰기0을유지한단일case진단과독립DOM읽기batch교정후새Head전체gate를실행한다. 강제click/timeout증가/retry/폭축소/test분할은하지않으며검증전Push/Publish/Close는BLOCKED다.
+
+
+### F891-027 후속 · 원본·교정판의 단일 case 계측
+
+모두외부d523 archive+독립복사deps에서동일 `npx playwright test --config tests/config/playwright.config.ts tests/e2e/project-task-editor.spec.ts --grep "Issue #130 Phase 3" --trace=on`을각1회실행했다. 공식30초FAIL은불변이며아래PASS는SCOPED단독부하관측이다. source별specSHA시작끝동일을확인했다.
+
+| revision | UTC 시작~종료 | exit / 결과 | spec SHA256 | 변경 |
+| --- | --- | --- | --- | --- |
+| baseline | 04:18:31~04:19:02 | 0 / 1PASS, 21.6초 | 803819edfc0baaec89a90cbdc67a2752cb7383cc344478ac2e815793b557abe7 | 원본d523 testcase |
+| after | 04:20:39~04:21:09 | 0 / 1PASS, 20.1초 | 849c5e10f7e265845c8b4213305a7338be6e5b18c53bd0090dd5430fad214ecc | 초기독립DOMbatch;최종본아님 |
+| after2 | 04:21:55~04:22:25 | 0 / 1PASS, 19.9초 | 9b59715b8542b55d7b117d765d8cba19b65446428b673626e76c20877f6addbc | zeroarea null보강;최종본아님 |
+| after3 | 04:22:49~04:23:29 | 0 / 1PASS, 29.8초 | 1b0812b3179ca6b6f0869d10499b5daf6b5a25b75ae2186137214523e6d205f1 | label4정확연결보강;부하변동관측 |
+| final | 04:25:15~04:25:44 | 0 / 1PASS, 19.2초 | 5a11745413d274f2003c6878975ff42aa91a73348edb70abcb81540daf02236f | region2 role노출/단일성보강;최종동등정적QA PASS |
+
+원본단독21.6초와최종19.2초를안정적인성능보장으로해석하지않는다(label판29.8초변동도보존). 동일trace정의의test.trace pw:api247→172, browser1-trace before377→332이다. 명시적접근성검증으로expect133→163(+30),waitForSelector107→37,click40→40,screenshot5→5다. 최종소스는5폭/30초/summary실제click·tab/key·visibility·focus·scroll·footer·Gantt·쓰기0와기존Nodegeometryassert를유지하며label4의정확연결/region2의노출·단일성을명시해동등성을복원했다. hidden/zeroarea를가짜rect로통과시키지않는다. 제품/src/config/fixture변경0이며독립qa891정적PASS후최종소스별도실행이다. 새cleanHead전체fast/targeted/Docker/admit·최종QA는필수이며아직미실행이다.

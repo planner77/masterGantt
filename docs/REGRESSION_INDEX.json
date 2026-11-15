@@ -11703,6 +11703,734 @@
           }
         }
       ]
+    },
+    {
+      "id": "F891-025",
+      "issue": 891,
+      "ledger": "docs/ISSUE_891_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        896,
+        897
+      ],
+      "domain": "markdown-editor",
+      "layer": "validation",
+      "keywords": [
+        "actual-balloon",
+        "probe-oracle"
+      ],
+      "cause": "fixed viewport balloon을모든overflow조상의기하clip으로오인한보충probe oracle",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/e2e/project-task-editor-persistence.spec.ts",
+          "case": "Issue #891 toolbar · 별도 actual Radix balloon 보충관측",
+          "historical": false,
+          "coverageArea": "같은source/image의실제popuproot·대표시각범위"
+        }
+      ],
+      "residualRisk": "1440x1000의108geometry및대표12PNG범위;108pixel/narrowhover/AT/UAT미실행",
+      "events": [
+        {
+          "id": "observed",
+          "at": "2026-11-15T03:29:34Z",
+          "timeNote": "실제외부운영원본시각;미수집항목은sourceNote참조",
+          "stage": "VISUAL",
+          "status": "FAIL",
+          "sourceSha": "d5234cb530940e8e683396d2912c55428193641c",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED 보충probe;검증된Docker03동일이미지·source기반;정식gate아님",
+          "environment": "Linux/WSL2 x64; fixed Playwright1.63.0 Chromium; isolated synthetic Docker runtime, source unchanged",
+          "environmentVersion": "masterGantt0.147.0 d523 Docker03",
+          "command": [
+            "bash",
+            "/tmp/issue891-hover-probe/run.sh",
+            "sha256:cbe48ada32c77d6db60e442f1033eb6c8299054cdda421fd9434ada4c7afd542"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "실제풍선전체문구·기하/viewport/containing block·해당관측범위정확성",
+          "actual": "03:29:23Z시작/exit1;TaskRichKOUndo actualrect143..263.625/607..633은visible·viewport내;naiveDIALOGoverflowX경고;나머지107NOTTESTED;첫probeSHA미수집",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "TOOLING",
+          "recovery": "실제CSS fixed containing block과locale독립locator교정;제품/gate변경0",
+          "residualRisk": "1440x1000의108geometry및대표12PNG범위;108pixel/narrowhover/AT/UAT미실행",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": "sha256:cbe48ada32c77d6db60e442f1033eb6c8299054cdda421fd9434ada4c7afd542",
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-hover-probe"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "screenshot-diagnostic",
+          "at": "2026-11-15T03:30:07Z",
+          "timeNote": "실제외부운영원본시각;미수집항목은sourceNote참조",
+          "stage": "VISUAL",
+          "status": "FAIL",
+          "sourceSha": "d5234cb530940e8e683396d2912c55428193641c",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED 보충probe;검증된Docker03동일이미지·source기반;정식gate아님",
+          "environment": "Linux/WSL2 x64; fixed Playwright1.63.0 Chromium; isolated synthetic Docker runtime, source unchanged",
+          "environmentVersion": "masterGantt0.147.0 d523 Docker03",
+          "command": [
+            "bash",
+            "/tmp/issue891-hover-probe/run.sh",
+            "sha256:cbe48ada32c77d6db60e442f1033eb6c8299054cdda421fd9434ada4c7afd542"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "실제풍선전체문구·기하/viewport/containing block·해당관측범위정확성",
+          "actual": "03:29:53Z시작/exit1동일oracle;PNG추가probeSHA836b843d1a1f5df86e55546b1802b9ee5f92008e233a5f3ffc9528870a96a995;ux891실제풍선전체문구가dialog밖에도그려짐확인",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "TOOLING",
+          "recovery": "실제CSS fixed containing block과locale독립locator교정;제품/gate변경0",
+          "residualRisk": "1440x1000의108geometry및대표12PNG범위;108pixel/narrowhover/AT/UAT미실행",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": "sha256:cbe48ada32c77d6db60e442f1033eb6c8299054cdda421fd9434ada4c7afd542",
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-hover-probe"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "corrected-probe-observed",
+          "at": "2026-11-15T03:32:53Z",
+          "timeNote": "실제외부운영원본시각;미수집항목은sourceNote참조",
+          "stage": "VISUAL",
+          "status": "PASS",
+          "sourceSha": "d5234cb530940e8e683396d2912c55428193641c",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED 보충probe;검증된Docker03동일이미지·source기반;정식gate아님",
+          "environment": "Linux/WSL2 x64; fixed Playwright1.63.0 Chromium; isolated synthetic Docker runtime, source unchanged",
+          "environmentVersion": "masterGantt0.147.0 d523 Docker03",
+          "command": [
+            "bash",
+            "/tmp/issue891-hover-probe/run.sh",
+            "sha256:cbe48ada32c77d6db60e442f1033eb6c8299054cdda421fd9434ada4c7afd542"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "실제풍선전체문구·기하/viewport/containing block·해당관측범위정확성",
+          "actual": "03:32:10Z시작/exit0;Task/Issue x3locale xRich16+Source2=108실제balloon geometryinvalid0;probeSHA28c8c4bd0674935995d522ee69c657fcbdeebfc3344eea4eeacd3bd986cb37bf;JSONSHAc4d05c03e6817a04472b9bb256a093c34bc399c555f4a4143993ffc40a6ae80e;ux891대표12PNG실제검토·qa891JSON108재계산+2PNG실제검토",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "TOOLING",
+          "recovery": "실제CSS fixed containing block과locale독립locator교정;제품/gate변경0",
+          "residualRisk": "1440x1000의108geometry및대표12PNG범위;108pixel/narrowhover/AT/UAT미실행",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": "sha256:cbe48ada32c77d6db60e442f1033eb6c8299054cdda421fd9434ada4c7afd542",
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-hover-probe"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "d5234cb530940e8e683396d2912c55428193641c",
+            "environment": "Linux/WSL2 x64; fixed Playwright1.63.0 Chromium; isolated synthetic Docker runtime, source unchanged",
+            "imageDigest": "sha256:cbe48ada32c77d6db60e442f1033eb6c8299054cdda421fd9434ada4c7afd542",
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F891-026",
+      "issue": 891,
+      "ledger": "docs/ISSUE_891_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        896,
+        897
+      ],
+      "domain": "markdown-editor",
+      "layer": "validation",
+      "keywords": [
+        "actual-balloon",
+        "probe-oracle"
+      ],
+      "cause": "외부보충probe가locale전환뒤KO이름dialoglocator재사용",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/e2e/project-task-editor-persistence.spec.ts",
+          "case": "Issue #891 toolbar · 별도 actual Radix balloon 보충관측",
+          "historical": false,
+          "coverageArea": "같은source/image의실제popuproot·대표시각범위"
+        }
+      ],
+      "residualRisk": "1440x1000의108geometry및대표12PNG범위;108pixel/narrowhover/AT/UAT미실행",
+      "events": [
+        {
+          "id": "observed",
+          "at": "2026-11-15T03:31:53Z",
+          "timeNote": "실제외부운영원본시각;미수집항목은sourceNote참조",
+          "stage": "PLAYWRIGHT",
+          "status": "FAIL",
+          "sourceSha": "d5234cb530940e8e683396d2912c55428193641c",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED 보충probe;검증된Docker03동일이미지·source기반;정식gate아님",
+          "environment": "Linux/WSL2 x64; fixed Playwright1.63.0 Chromium; isolated synthetic Docker runtime, source unchanged",
+          "environmentVersion": "masterGantt0.147.0 d523 Docker03",
+          "command": [
+            "bash",
+            "/tmp/issue891-hover-probe/run.sh",
+            "sha256:cbe48ada32c77d6db60e442f1033eb6c8299054cdda421fd9434ada4c7afd542"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "실제풍선전체문구·기하/viewport/containing block·해당관측범위정확성",
+          "actual": "03:31:09Z시작/exit1;KO Rich16관측후VI전환에KOaccessible-name고정locator30초timeout;남은조합NOTTESTED",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "TOOLING",
+          "recovery": "실제CSS fixed containing block과locale독립locator교정;제품/gate변경0",
+          "residualRisk": "1440x1000의108geometry및대표12PNG범위;108pixel/narrowhover/AT/UAT미실행",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": "sha256:cbe48ada32c77d6db60e442f1033eb6c8299054cdda421fd9434ada4c7afd542",
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-hover-probe"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "corrected-probe-observed",
+          "at": "2026-11-15T03:32:53Z",
+          "timeNote": "실제외부운영원본시각;미수집항목은sourceNote참조",
+          "stage": "VISUAL",
+          "status": "PASS",
+          "sourceSha": "d5234cb530940e8e683396d2912c55428193641c",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED 보충probe;검증된Docker03동일이미지·source기반;정식gate아님",
+          "environment": "Linux/WSL2 x64; fixed Playwright1.63.0 Chromium; isolated synthetic Docker runtime, source unchanged",
+          "environmentVersion": "masterGantt0.147.0 d523 Docker03",
+          "command": [
+            "bash",
+            "/tmp/issue891-hover-probe/run.sh",
+            "sha256:cbe48ada32c77d6db60e442f1033eb6c8299054cdda421fd9434ada4c7afd542"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "실제풍선전체문구·기하/viewport/containing block·해당관측범위정확성",
+          "actual": "03:32:10Z시작/exit0;Task/Issue x3locale xRich16+Source2=108실제balloon geometryinvalid0;probeSHA28c8c4bd0674935995d522ee69c657fcbdeebfc3344eea4eeacd3bd986cb37bf;JSONSHAc4d05c03e6817a04472b9bb256a093c34bc399c555f4a4143993ffc40a6ae80e;ux891대표12PNG실제검토·qa891JSON108재계산+2PNG실제검토",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "TOOLING",
+          "recovery": "실제CSS fixed containing block과locale독립locator교정;제품/gate변경0",
+          "residualRisk": "1440x1000의108geometry및대표12PNG범위;108pixel/narrowhover/AT/UAT미실행",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": "sha256:cbe48ada32c77d6db60e442f1033eb6c8299054cdda421fd9434ada4c7afd542",
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-hover-probe"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "d5234cb530940e8e683396d2912c55428193641c",
+            "environment": "Linux/WSL2 x64; fixed Playwright1.63.0 Chromium; isolated synthetic Docker runtime, source unchanged",
+            "imageDigest": "sha256:cbe48ada32c77d6db60e442f1033eb6c8299054cdda421fd9434ada4c7afd542",
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F891-027",
+      "issue": 891,
+      "ledger": "docs/ISSUE_891_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        130
+      ],
+      "domain": "task-editor",
+      "layer": "validation",
+      "keywords": [
+        "protocol-budget",
+        "five-widths"
+      ],
+      "cause": "기존5폭기능회귀의순차DOM관측비용이30초단일예산소진",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/e2e/project-task-editor.spec.ts",
+          "case": "Issue #130 Phase 3 편집기 헤더·탭·본문 스크롤·푸터는 다섯 폭에서 유지된다",
+          "historical": false,
+          "coverageArea": "동일5폭의실제geometry/keyboard/summary/footer/초안·Gantt보존"
+        }
+      ],
+      "residualRisk": "현재targetedFAIL;새source전체검증·독립QA전Push/Publish/CloseBLOCKED",
+      "events": [
+        {
+          "id": "observed",
+          "at": "2026-11-15T04:11:57.074Z",
+          "timeNote": "mode시작2026-11-15T03:26:01.804Z",
+          "stage": "PLAYWRIGHT",
+          "status": "FAIL",
+          "sourceSha": "d5234cb530940e8e683396d2912c55428193641c",
+          "fixSourceSha": null,
+          "sourceFingerprint": "aea965c14585e1aba7a326cafbec8230e94e3ea40826fdc3c97d8fca177c219f",
+          "sourceNote": "clean frozen d523;source/envStabletrue;interruptedfalse;snapshotguardPASS/허용Next2외변경0",
+          "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; Playwright1.63.0 Chromium; controlled exact-HEAD browser snapshot",
+          "environmentVersion": "masterGantt0.147.0 frozen candidate",
+          "command": [
+            "node",
+            "scripts/verify-prepr.mjs",
+            "--mode=targeted",
+            "--base=0bf0e4e54cc445058b16c3764f79c27b81f5dd97",
+            "--issue=891",
+            "--report-dir=.prepr-reports/891-targeted03"
+          ],
+          "exit": 1,
+          "exitNote": "실제outerCLI/Chromiumexit1;Unit142PASS·Chromium86PASS/1FAIL/0SKIP",
+          "expected": "동일30초/5폭/모든geometry·keyboard·footer·ID·focus·Gantt·writes0계약",
+          "actual": "기존#1305폭case31.3초timeout;311RPC/108expect/88waitForSelector/34click/4screenshot;4폭완료;1600폭진입29.455614초뒤summary.click270ms중deadline;geometry불일치관측0,5폭나머지NOTTESTED",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "TOOLING",
+          "recovery": "원본단일case진단후독립DOM읽기만atomicbatch;timeout/retry/폭/동작/assert유지;새Head전체gate필수",
+          "residualRisk": "현재targetedFAIL;새source전체검증·독립QA전Push/Publish/CloseBLOCKED",
+          "evidenceScope": "EXACT",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-targeted03"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "scoped-baseline",
+          "at": "2026-11-15T04:19:02Z",
+          "timeNote": "실제시작2026-11-15T04:18:31Z",
+          "stage": "PLAYWRIGHT",
+          "status": "PASS",
+          "sourceSha": "d5234cb530940e8e683396d2912c55428193641c",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED 외부d523 archive+독립복사deps;specSHA803819edfc0baaec89a90cbdc67a2752cb7383cc344478ac2e815793b557abe7시작끝동일;diffSHAnone;전체공식source지문아님",
+          "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; fixed Playwright1.63.0 Chromium; external d523 archive and copied dependencies",
+          "environmentVersion": "masterGantt0.147.0 external single-case diagnostic",
+          "command": [
+            "npx",
+            "playwright",
+            "test",
+            "--config",
+            "tests/config/playwright.config.ts",
+            "tests/e2e/project-task-editor.spec.ts",
+            "--grep",
+            "Issue #130 Phase 3",
+            "--trace=on"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "동일30초/5폭/모든geometry·keyboard·footer·ID·focus·Gantt·writes0계약",
+          "actual": "exit0/1PASS;testcase21.6sec;원본d523 testcase",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "TOOLING",
+          "recovery": "각revision별단일실제관측;최초공식30초FAIL보존;최종새Head전체gate별도",
+          "residualRisk": "각1회성능은안정적성능보장아님;공식targetedFAIL은새Head완결검증전미해소",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-f027-baseline"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "d5234cb530940e8e683396d2912c55428193641c",
+            "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; fixed Playwright1.63.0 Chromium; external d523 archive and copied dependencies",
+            "imageDigest": null,
+            "backupId": null
+          }
+        },
+        {
+          "id": "scoped-after",
+          "at": "2026-11-15T04:21:09Z",
+          "timeNote": "실제시작2026-11-15T04:20:39Z",
+          "stage": "PLAYWRIGHT",
+          "status": "PASS",
+          "sourceSha": "d5234cb530940e8e683396d2912c55428193641c",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED 외부d523 archive+독립복사deps;specSHA849c5e10f7e265845c8b4213305a7338be6e5b18c53bd0090dd5430fad214ecc시작끝동일;diffSHA144a970086d7d3a6c7acb34b509b9de877314b864b3b1d9dbfbefc2820953711;전체공식source지문아님",
+          "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; fixed Playwright1.63.0 Chromium; external d523 archive and copied dependencies",
+          "environmentVersion": "masterGantt0.147.0 external single-case diagnostic",
+          "command": [
+            "npx",
+            "playwright",
+            "test",
+            "--config",
+            "tests/config/playwright.config.ts",
+            "tests/e2e/project-task-editor.spec.ts",
+            "--grep",
+            "Issue #130 Phase 3",
+            "--trace=on"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "동일30초/5폭/모든geometry·keyboard·footer·ID·focus·Gantt·writes0계약",
+          "actual": "exit0/1PASS;testcase20.1sec;초기독립DOMbatch;최종본아님",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "TOOLING",
+          "recovery": "각revision별단일실제관측;최초공식30초FAIL보존;최종새Head전체gate별도",
+          "residualRisk": "각1회성능은안정적성능보장아님;공식targetedFAIL은새Head완결검증전미해소",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-f027-after"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "d5234cb530940e8e683396d2912c55428193641c",
+            "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; fixed Playwright1.63.0 Chromium; external d523 archive and copied dependencies",
+            "imageDigest": null,
+            "backupId": null
+          }
+        },
+        {
+          "id": "scoped-after2",
+          "at": "2026-11-15T04:22:25Z",
+          "timeNote": "실제시작2026-11-15T04:21:55Z",
+          "stage": "PLAYWRIGHT",
+          "status": "PASS",
+          "sourceSha": "d5234cb530940e8e683396d2912c55428193641c",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED 외부d523 archive+독립복사deps;specSHA9b59715b8542b55d7b117d765d8cba19b65446428b673626e76c20877f6addbc시작끝동일;diffSHAfe944399c51f2896bb44d0270292ff532f39070f06fb3379dd0b83088e50c014;전체공식source지문아님",
+          "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; fixed Playwright1.63.0 Chromium; external d523 archive and copied dependencies",
+          "environmentVersion": "masterGantt0.147.0 external single-case diagnostic",
+          "command": [
+            "npx",
+            "playwright",
+            "test",
+            "--config",
+            "tests/config/playwright.config.ts",
+            "tests/e2e/project-task-editor.spec.ts",
+            "--grep",
+            "Issue #130 Phase 3",
+            "--trace=on"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "동일30초/5폭/모든geometry·keyboard·footer·ID·focus·Gantt·writes0계약",
+          "actual": "exit0/1PASS;testcase19.9sec;zeroarea null보강;최종본아님",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "TOOLING",
+          "recovery": "각revision별단일실제관측;최초공식30초FAIL보존;최종새Head전체gate별도",
+          "residualRisk": "각1회성능은안정적성능보장아님;공식targetedFAIL은새Head완결검증전미해소",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-f027-after2"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "d5234cb530940e8e683396d2912c55428193641c",
+            "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; fixed Playwright1.63.0 Chromium; external d523 archive and copied dependencies",
+            "imageDigest": null,
+            "backupId": null
+          }
+        },
+        {
+          "id": "scoped-after3",
+          "at": "2026-11-15T04:23:29Z",
+          "timeNote": "실제시작2026-11-15T04:22:49Z",
+          "stage": "PLAYWRIGHT",
+          "status": "PASS",
+          "sourceSha": "d5234cb530940e8e683396d2912c55428193641c",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED 외부d523 archive+독립복사deps;specSHA1b0812b3179ca6b6f0869d10499b5daf6b5a25b75ae2186137214523e6d205f1시작끝동일;diffSHAe008983e6cd2965469788ec7a0ea838e91b6b79309feef0b57ae694e4b8a060a;전체공식source지문아님",
+          "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; fixed Playwright1.63.0 Chromium; external d523 archive and copied dependencies",
+          "environmentVersion": "masterGantt0.147.0 external single-case diagnostic",
+          "command": [
+            "npx",
+            "playwright",
+            "test",
+            "--config",
+            "tests/config/playwright.config.ts",
+            "tests/e2e/project-task-editor.spec.ts",
+            "--grep",
+            "Issue #130 Phase 3",
+            "--trace=on"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "동일30초/5폭/모든geometry·keyboard·footer·ID·focus·Gantt·writes0계약",
+          "actual": "exit0/1PASS;testcase29.8sec;label4정확연결보강;부하변동관측",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "TOOLING",
+          "recovery": "각revision별단일실제관측;최초공식30초FAIL보존;최종새Head전체gate별도",
+          "residualRisk": "각1회성능은안정적성능보장아님;공식targetedFAIL은새Head완결검증전미해소",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-f027-after3"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "d5234cb530940e8e683396d2912c55428193641c",
+            "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; fixed Playwright1.63.0 Chromium; external d523 archive and copied dependencies",
+            "imageDigest": null,
+            "backupId": null
+          }
+        },
+        {
+          "id": "scoped-final",
+          "at": "2026-11-15T04:25:44Z",
+          "timeNote": "실제시작2026-11-15T04:25:15Z",
+          "stage": "PLAYWRIGHT",
+          "status": "PASS",
+          "sourceSha": "d5234cb530940e8e683396d2912c55428193641c",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED 외부d523 archive+독립복사deps;specSHA5a11745413d274f2003c6878975ff42aa91a73348edb70abcb81540daf02236f시작끝동일;diffSHAc4116600b42445823f2dd8ffc60979f9f25497e2ae39390f0af80e1bbe5670ce;전체공식source지문아님",
+          "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; fixed Playwright1.63.0 Chromium; external d523 archive and copied dependencies",
+          "environmentVersion": "masterGantt0.147.0 external single-case diagnostic",
+          "command": [
+            "npx",
+            "playwright",
+            "test",
+            "--config",
+            "tests/config/playwright.config.ts",
+            "tests/e2e/project-task-editor.spec.ts",
+            "--grep",
+            "Issue #130 Phase 3",
+            "--trace=on"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "동일30초/5폭/모든geometry·keyboard·footer·ID·focus·Gantt·writes0계약",
+          "actual": "exit0/1PASS;testcase19.2sec;region2 role노출/단일성보강;최종동등정적QA PASS",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "TOOLING",
+          "recovery": "각revision별단일실제관측;최초공식30초FAIL보존;최종새Head전체gate별도",
+          "residualRisk": "각1회성능은안정적성능보장아님;공식targetedFAIL은새Head완결검증전미해소",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-f027-final"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "d5234cb530940e8e683396d2912c55428193641c",
+            "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; fixed Playwright1.63.0 Chromium; external d523 archive and copied dependencies",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F918-002",
+      "issue": 918,
+      "ledger": "docs/ISSUE_918_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        891
+      ],
+      "domain": "local-worktree",
+      "layer": "git",
+      "keywords": [
+        "ancestry",
+        "preserve-user-edits"
+      ],
+      "cause": "원래localmain의원격main과diverged이력",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/scripts/agent-model-selection.test.ts",
+          "case": "AGENTS문서라우팅소비자;별도로원래worktree의실제Git/bytes검산",
+          "historical": false,
+          "coverageArea": "원래사용자파일보존과새검증main지침반영"
+        }
+      ],
+      "residualRisk": "기존divergedlocalmainref는보존·미병합;운영작업0",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "2026-11-15 03:21:52Z정렬이전;실패개별exact시각미수집",
+          "stage": "LOCAL_PREP",
+          "status": "BLOCKED",
+          "sourceSha": "4dfb5310aa08a61b6a6b2364e008db2e00d656bd",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "원래사용자worktree;source지문미수집;실제privatebackup·compose/untrackedbytes대조",
+          "environment": "Original user worktree local Git branch check; runtime untouched; tool versions not collected",
+          "environmentVersion": "old original checkout before #918 integration",
+          "command": [
+            "git",
+            "merge-base",
+            "--is-ancestor",
+            "main",
+            "origin/main"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "기존localmain/history/사용자변경보존",
+          "actual": "원래localmain2fcb079은origin/main0bf의ancestor아님;git merge-base --is-ancestor exit1,파일수정전중단",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "TOOLING",
+          "recovery": "기존main/593ref보존,검증된origin/main에서새local/issues-918-891branch생성",
+          "residualRisk": "기존divergedlocalmainref는보존·미병합;운영작업0",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-root-alignment"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_918_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "safe-new-branch-alignment",
+          "at": "2026-11-15T03:21:52.772807+00:00",
+          "timeNote": "실제private alignmentreceipt시각",
+          "stage": "LOCAL_PREP",
+          "status": "PASS",
+          "sourceSha": "0bf0e4e54cc445058b16c3764f79c27b81f5dd97",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "원래사용자worktree;source지문미수집;실제privatebackup·compose/untrackedbytes대조",
+          "environment": "Original user worktree local Git branch check; runtime untouched; tool versions not collected",
+          "environmentVersion": "old original checkout before #918 integration",
+          "command": [
+            "git",
+            "switch",
+            "-c",
+            "local/issues-918-891",
+            "origin/main"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "기존localmain/history/사용자변경보존",
+          "actual": "AGENTS7288bytes;ComposeSHA6e97a1bdde44882023da1a6db5cbc6dd8f50ec00a8494b18d91d208ba4277e52동일;untracked27파일SHA동일;oldmain/593refs보존;운영작업0",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "TOOLING",
+          "recovery": "기존main/593ref보존,검증된origin/main에서새local/issues-918-891branch생성",
+          "residualRisk": "기존divergedlocalmainref는보존·미병합;운영작업0",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-root-alignment"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_918_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "0bf0e4e54cc445058b16c3764f79c27b81f5dd97",
+            "environment": "Original user worktree local Git branch check; runtime untouched; tool versions not collected",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
     }
   ]
 }

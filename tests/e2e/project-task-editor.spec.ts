@@ -905,11 +905,19 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
       await expect(dialog).toContainText("일반 작업");
       await expectRawIdentifier(dialog, "외부 ID", "EDITOR-4");
       await expect(dialog).toContainText("Revision 20");
-      const dialogBox = await dialog.boundingBox();
-      const headerBox = await header.boundingBox();
-      const tabsBox = await tabs.boundingBox();
-      const bodyBox = await body.boundingBox();
-      const footerBox = await footer.boundingBox();
+      const layout = await dialog.evaluate(element => {
+        const box = (node: Element | null) => {
+          if (!node || !node.getClientRects().length) return null;
+          const { x, y, width, height } = node.getBoundingClientRect();
+          return width > 0 && height > 0 ? { x, y, width, height } : null;
+        };
+        return { dialogBox: box(element), headerBox: box(element.querySelector("header")),
+          tabsBox: box(element.querySelector('[role="tablist"][aria-label="작업 편집 정보"]')),
+          bodyBox: box(element.querySelector("form > div")), footerBox: box(element.querySelector("form > footer")),
+          dialogOverflow: element.scrollWidth - element.clientWidth,
+          documentOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth };
+      });
+      const { dialogBox, headerBox, tabsBox, bodyBox, footerBox } = layout;
       expect(dialogBox).not.toBeNull();
       expect(headerBox).not.toBeNull();
       expect(tabsBox).not.toBeNull();
@@ -921,8 +929,8 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
       expect(headerBox!.y + headerBox!.height).toBeLessThanOrEqual(tabsBox!.y);
       expect(tabsBox!.y + tabsBox!.height).toBeLessThanOrEqual(bodyBox!.y);
       expect(bodyBox!.y + bodyBox!.height).toBeLessThanOrEqual(footerBox!.y);
-      expect(await dialog.evaluate((element) => element.scrollWidth - element.clientWidth)).toBeLessThanOrEqual(1);
-      expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+      expect(layout.dialogOverflow).toBeLessThanOrEqual(1);
+      expect(layout.documentOverflow).toBeLessThanOrEqual(1);
 
       const taskTab = tabs.getByRole("tab", { name: "작업 정보", exact: true });
       const resourceTab = tabs.getByRole("tab", { name: /리소스/ });
@@ -935,18 +943,41 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
       await page.keyboard.press("ArrowLeft");
       await expect(relationTab).toBeFocused();
       await expect(dialog.getByRole("tabpanel", { name: /관계/ })).toBeVisible();
-      const predecessor = await dialog.getByRole("region", { name: "선행 작업" }).boundingBox();
-      const successor = await dialog.getByRole("region", { name: "후행 작업" }).boundingBox();
+      await Promise.all([
+        expect(dialog.getByRole("region", { name: "선행 작업" })).toHaveCount(1),
+        expect(dialog.getByRole("region", { name: "후행 작업" })).toHaveCount(1),
+      ]);
+      const { predecessor, successor } = await dialog.evaluate(element => {
+        const box = (selector: string) => {
+          const node = element.querySelector(selector);
+          if (!node || !node.getClientRects().length) return null;
+          const { x, y, width, height } = node.getBoundingClientRect();
+          return width > 0 && height > 0 ? { x, y, width, height } : null;
+        };
+        return { predecessor: box('section[aria-label="선행 작업"]'), successor: box('section[aria-label="후행 작업"]') };
+      });
       expect(predecessor).not.toBeNull();
       expect(successor).not.toBeNull();
       if (viewport.width >= 1024) expect(successor!.x).toBeGreaterThan(predecessor!.x);
       else expect(successor!.y).toBeGreaterThan(predecessor!.y);
       await page.keyboard.press("Home");
       await expect(taskTab).toBeFocused();
-      const nameBox = await dialog.getByLabel("작업명", { exact: true }).boundingBox();
-      const progressBox = await dialog.getByLabel("진행률 (%)", { exact: true }).boundingBox();
-      const startBox = await dialog.getByLabel("요청 시작일", { exact: true }).boundingBox();
-      const durationBox = await dialog.getByLabel("기간 (근무일)", { exact: true }).boundingBox();
+      await Promise.all([
+        expect(dialog.getByLabel("작업명", { exact: true })).toHaveAttribute("name", "task-name"),
+        expect(dialog.getByLabel("진행률 (%)", { exact: true })).toHaveAttribute("id", "task-progress"),
+        expect(dialog.getByLabel("요청 시작일", { exact: true })).toHaveAttribute("id", "task-start"),
+        expect(dialog.getByLabel("기간 (근무일)", { exact: true })).toHaveAttribute("id", "task-duration"),
+      ]);
+      const { nameBox, progressBox, startBox, durationBox } = await dialog.evaluate(element => {
+        const box = (selector: string) => {
+          const node = element.querySelector(selector);
+          if (!node || !node.getClientRects().length) return null;
+          const { x, y, width, height } = node.getBoundingClientRect();
+          return width > 0 && height > 0 ? { x, y, width, height } : null;
+        };
+        return { nameBox: box('[name="task-name"]'), progressBox: box("#task-progress"),
+          startBox: box("#task-start"), durationBox: box("#task-duration") };
+      });
       expect(nameBox).not.toBeNull();
       expect(progressBox).not.toBeNull();
       expect(startBox).not.toBeNull();
@@ -966,11 +997,22 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
       await expect(footerReload).toBeVisible();
       await expect(footerCancel).toBeVisible();
       await expect(footerSave).toBeVisible();
-      const [reloadBox, cancelBox, saveBox] = await Promise.all([
-        footerReload.boundingBox(),
-        footerCancel.boundingBox(),
-        footerSave.boundingBox(),
-      ]);
+      const { reloadBox, cancelBox, saveBox, margins } = await footer.evaluate(element => {
+        const buttons = [...element.querySelectorAll("button")];
+        const byName = (name: string) => buttons.find(button => {
+          const clone = button.cloneNode(true) as HTMLElement;
+          clone.querySelectorAll('[aria-hidden="true"]').forEach(node => node.remove());
+          return clone.textContent?.trim() === name;
+        });
+        const nodes = [byName("최신 정보 다시 불러오기"), byName("취소"), byName("저장")];
+        const box = (node: Element | undefined) => {
+          if (!node || !node.getClientRects().length) return null;
+          const { x, y, width, height } = node.getBoundingClientRect();
+          return width > 0 && height > 0 ? { x, y, width, height } : null;
+        };
+        return { reloadBox: box(nodes[0]), cancelBox: box(nodes[1]), saveBox: box(nodes[2]),
+          margins: nodes.map(node => node ? getComputedStyle(node).marginTop : null) };
+      });
       expect(reloadBox).not.toBeNull();
       expect(cancelBox).not.toBeNull();
       expect(saveBox).not.toBeNull();
@@ -983,11 +1025,7 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
         expect(cancelBox!.y).toBeGreaterThan(reloadBox!.y);
         expect(Math.abs(cancelBox!.y - saveBox!.y)).toBeLessThanOrEqual(1);
       }
-      expect(await Promise.all([
-        footerReload.evaluate((element) => getComputedStyle(element).marginTop),
-        footerCancel.evaluate((element) => getComputedStyle(element).marginTop),
-        footerSave.evaluate((element) => getComputedStyle(element).marginTop),
-      ])).toEqual(["0px", "0px", "0px"]);
+      expect(margins).toEqual(["0px", "0px", "0px"]);
       await page.screenshot({ path: testInfo.outputPath(`issue-130-phase3-current-${viewport.width}.png`) });
 
       if (viewport.width <= 768) {

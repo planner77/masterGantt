@@ -177,3 +177,8 @@ F898-009~012를 [Primary 원장](ISSUE_898_FAILURE_ANALYSIS.md)에 추가했다.
 
 
 [F891-024](ISSUE_891_FAILURE_ANALYSIS.md)은신규draft의test경로오타로발생한원장validator실패와실재경로교정을보존한다. 기존append-only원본과검사규칙은유지한다.
+
+
+## #891 보충 hover oracle과 5폭 protocol 예산
+
+[F891-025/026/027](ISSUE_891_FAILURE_ANALYSIS.md)은보충probe의fixedportal/locale선택자원본실패와108geometry·대표12PNG의한정검산,정식targeted03의기존5폭case30초소진을각각보존한다. 86PASS/1FAIL과snapshotguardPASS를구분하며30초/5폭/기능assertion유지한관측batch후새Head전체gate필수다. [F918-002](ISSUE_918_FAILURE_ANALYSIS.md)은원래localmain사전차단과기존ref·사용자Compose/untrackedbytes를보존한새branch정렬이다.
