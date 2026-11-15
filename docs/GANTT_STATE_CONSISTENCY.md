@@ -1,3 +1,7 @@
+## Issue #920 — 실제 touch/wheel 입력의 표시 프로파일
+
+장치 capability는 초기 힌트이고 실제 본문 touch/wheel이 현재 프로파일을 결정한다. touch 진입은 미완료 wheel RAF를 취소하고44px를 복원한다. 같은 capability의 primary 변경은 명시적인 마우스 프로파일을 다시 잠그지 않는다. 기존 Coordinator·stamp/source·잠금 검증·행 기준점·single state·same-instance와 canonical 쓰기0를 보존하며 새 scroll writer를 추가하지 않는다. [검증/미검증](exec-plans/active/ISSUE_920.md).
+
 ## Issues #898 / #899 — 조회 scroller와 canonical 선택 경계
 
 Resource/설비의 단일 Grid 선택은 canonical ID와 clicked viewRowKey를 구별한다. 동일 Task의 중복 표시 선택은 동기화하지만 시작점 정렬은 클릭한 표시 경로의 row.start·현재 axis/pixelsPerDay·sticky split·실제 scroll capacity로 계산한다. 현재 조회 scroller에만 제한된 일회성 intent를 전달하며 숨긴 WBS Coordinator/Core를 스크롤하지 않는다. 새 wheel/key/pointer/View/source receipt는 오래된 bookmark/RAF/reveal을 취소한다. 날짜 없음·미측정·용량 부족을 성공 정렬로 보고하지 않는다. 원본 snapshot/revision/쓰기0와 동일 WBS instance/selection/open/date anchor는 [실제 브라우저 검증](exec-plans/active/ISSUE_898.md)으로 확인한다.

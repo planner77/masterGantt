@@ -2188,6 +2188,7 @@ export function ProjectGantt({
     const primary = window.matchMedia("(pointer: coarse)");
     const any = window.matchMedia("(any-pointer: coarse)");
     const accumulator = createDensityWheel();
+    let coarseCapability: boolean | undefined;
     let scheduled = 0, direction = 0, lastWheel = -Infinity, pointerY: number | null = null;
     const change = (level: number, coarse: boolean, y: number | null) => {
       const previous = densityReference.current;
@@ -2219,12 +2220,26 @@ export function ProjectGantt({
       setDensity({ level, coarse });
     };
     const syncPointer = () => {
-      // A touch-capable hybrid cannot shrink its targets below 44px.
+      // Capability is an initial hint, not the active input. A primary-pointer
+      // change must not undo mouse density while secondary touch is unchanged.
       const coarse = primary.matches || any.matches;
+      if (coarse === coarseCapability) return;
+      coarseCapability = coarse;
       if (coarse === densityReference.current.coarse) return;
       viewportCoordinatorReference.current?.userInput();
       accumulator.reset();
       change(0, coarse, null);
+    };
+    const touch = (event: PointerEvent) => {
+      if (!event.isTrusted || event.pointerType !== "touch" || !event.isPrimary ||
+          !(event.target instanceof Element) || !isDensityWheelTarget(event.target, inputRoot, { x: event.clientX, y: event.clientY }) ||
+          densityBlockedReference.current) return;
+      cancelAnimationFrame(scheduled);
+      scheduled = 0;
+      accumulator.reset();
+      lastWheel = -Infinity;
+      viewportCoordinatorReference.current?.userInput();
+      change(0, true, event.clientY);
     };
     const wheel = (event: WheelEvent) => {
       if (!event.ctrlKey || event.altKey || event.metaKey || !event.cancelable || !(event.target instanceof Element) || !isDensityWheelTarget(event.target, inputRoot, densityWheelPointer(event))) return;
@@ -2251,18 +2266,23 @@ export function ProjectGantt({
         if (densityBlockedReference.current || requestedView !== scheduleViewReference.current ||
             (requestedSource && !viewportCoordinatorReference.current?.validSource(requestedSource))) { accumulator.reset(); return; }
         const current = densityReference.current;
-        const level = nextDensityLevel(current.level, direction, current.coarse);
-        if (level !== current.level) viewportCoordinatorReference.current?.userInput();
-        change(level, current.coarse, pointerY);
+        // Enter the mouse profile at 34px from the 44px touch default.
+        // Upward input at the initial maximum must never shrink a row.
+        const coarse = current.coarse && (!event.isTrusted || direction < 0);
+        const level = current.coarse ? 0 : nextDensityLevel(current.level, direction, coarse);
+        if (level !== current.level || coarse !== current.coarse) viewportCoordinatorReference.current?.userInput();
+        change(level, coarse, pointerY);
       });
     };
     syncPointer();
     primary.addEventListener("change", syncPointer);
     any.addEventListener("change", syncPointer);
     inputRoot.addEventListener("wheel", wheel, { capture: true, passive: false });
+    inputRoot.addEventListener("pointerdown", touch);
     return () => {
       cancelAnimationFrame(scheduled);
       inputRoot.removeEventListener("wheel", wheel, true);
+      inputRoot.removeEventListener("pointerdown", touch);
       primary.removeEventListener("change", syncPointer);
       any.removeEventListener("change", syncPointer);
     };

@@ -1190,6 +1190,87 @@ test("#898 real pointer Ctrl+wheel across three Views including empty body", asy
 });
 
 
+test("#920 touch-capable PC keeps mouse Ctrl wheel density and restores touch targets", async ({ page, isolatedApplication, observeIsolatedApi }, info) => {
+  test.setTimeout(180_000);
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send("Emulation.setTouchEmulationEnabled", { enabled: true, maxTouchPoints: 10 });
+  try {
+    const f = await seedScheduleViews(page, isolatedApplication, observeIsolatedApi);
+    await openWorkspaceView(page, "schedule");
+    const baseline = await f.snapshot();
+    const writes = observeProjectWrites(page, f.publicId);
+    const frame = page.locator(".project-gantt-frame");
+    await expect(frame).toHaveAttribute("data-gantt-cell-height", "44");
+    const apiInstance = await frame.getAttribute("data-project-gantt-api-instance");
+    const zoom = () => page.evaluate(() => ({ dpr: devicePixelRatio, width: innerWidth, scale: visualViewport?.scale ?? 1 }));
+    const initialZoom = await zoom();
+    expect(await page.evaluate(() => matchMedia("(any-pointer: coarse)").matches)).toBe(true);
+    await page.evaluate(() => {
+      Reflect.set(window, "__issue920Wheel", []);
+      window.addEventListener("wheel", event => {
+        if (event.isTrusted) setTimeout(() => Reflect.get(window, "__issue920Wheel").push({
+          ctrl: event.ctrlKey, cancelable: event.cancelable, prevented: event.defaultPrevented,
+        }), 0);
+      }, { capture: true, passive: true });
+    });
+    const measurements: unknown[] = [];
+    for (const mode of ["wbs", "resource", "equipment"] as const) {
+      await selector(page).selectOption(mode);
+      const surface = mode === "wbs" ? frame.locator(".wx-gantt") : view(page, mode).locator("[data-schedule-view-scroll]");
+      await expect(surface).toBeVisible();
+      if (mode !== "wbs") await expect(surface).toHaveAttribute("data-ready", "true");
+      const row = frame.locator(mode === "wbs" ? ".wx-table .wx-row[data-id]" : `[data-schedule-view="${mode}"] [data-view-row-key]`).first();
+      const point = async (chart: boolean) => surface.evaluate((element, chart) => {
+        const grid = element.querySelector<HTMLElement>(".wx-table-container, .project-schedule-view-header .project-schedule-view-grid")!;
+        const body = element.getBoundingClientRect(), split = grid.getBoundingClientRect();
+        const headers = [...element.querySelectorAll<HTMLElement>(".wx-header, .wx-scale, .project-schedule-view-header")]
+          .map(e => e.getBoundingClientRect()).filter(r => r.width > 0 && r.height > 0);
+        return { x: chart ? split.right + 40 : split.left + 80, y: Math.max(body.top, ...headers.map(r => r.bottom)) + 18 };
+      }, chart);
+      for (const chart of [false, true]) {
+        const touch = await point(false);
+        await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ ...touch, id: 1 }] });
+        await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+        await expect(frame).toHaveAttribute("data-gantt-cell-height", "44");
+        await expect.poll(() => row.evaluate(e => e.getBoundingClientRect().height)).toBe(44);
+        for (const [height, delta] of [[44, -120], [34, 120], [32, 120], [30, 120], [28, 120], [30, -120], [32, -120], [34, -120]] as const) {
+          const p = await point(chart);
+          const before = await page.evaluate(() => Reflect.get(window, "__issue920Wheel").length as number);
+          await page.mouse.move(p.x, p.y);
+          await page.keyboard.down("Control");
+          try { await page.mouse.wheel(0, delta); }
+          finally { await page.keyboard.up("Control"); }
+          await expect(frame).toHaveAttribute("data-gantt-cell-height", String(height));
+          await expect.poll(() => row.evaluate(e => e.getBoundingClientRect().height)).toBe(height);
+          const controls = await row.evaluate(element => {
+            const bounds = element.getBoundingClientRect();
+            return [...element.querySelectorAll<HTMLElement>(".project-copy-selection-hitarea, .project-schedule-view-name > button")].map(control => {
+              const b = control.getBoundingClientRect();
+              return { top: b.top - bounds.top, bottom: b.bottom - bounds.bottom, height: b.height };
+            });
+          });
+          for (const control of controls) {
+            expect(control.top, "controls stay inside their row after mouse/touch profile changes").toBeGreaterThanOrEqual(-1);
+            expect(control.bottom).toBeLessThanOrEqual(1);
+            if (height === 44) expect(control.height).toBeGreaterThanOrEqual(44);
+          }
+          await expect.poll(() => page.evaluate(() => Reflect.get(window, "__issue920Wheel").length as number)).toBeGreaterThan(before);
+          expect(await page.evaluate(() => Reflect.get(window, "__issue920Wheel").at(-1))).toEqual({ ctrl: true, cancelable: true, prevented: true });
+          expect(await zoom()).toEqual(initialZoom);
+          measurements.push({ mode, chart, height });
+        }
+      }
+    }
+    expect(await frame.getAttribute("data-project-gantt-api-instance")).toBe(apiInstance);
+    expect(writes).toEqual([]);
+    expect((await f.snapshot()).data).toEqual(baseline.data);
+    await info.attach("hybrid-density-measurements.json", { body: JSON.stringify(measurements), contentType: "application/json" });
+  } finally {
+    await cdp.send("Emulation.setTouchEmulationEnabled", { enabled: false });
+    await cdp.detach();
+  }
+});
+
 test("#899 plain Grid cell double-click restores its row with visible and hidden Task names", async ({ page, isolatedApplication, observeIsolatedApi }, info) => {
   test.setTimeout(180_000);
   const f = await seedScheduleViews(page, isolatedApplication, observeIsolatedApi);

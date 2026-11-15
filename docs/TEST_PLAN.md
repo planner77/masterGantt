@@ -75,3 +75,8 @@ Windows Excel/VBA/DRM, 실제 reverse proxy/TLS, off-host backup/restore·운영
 ## Issue #917 — nullable 설비 AC 회귀
 
 [Work Packet](exec-plans/active/ISSUE_917.md)의 AC1~8을 기존 logistics/service/handlers/repository/Target·resource/WBS·Copy/Template/Excel 및 기존 editor Chromium seam으로 확장한다. fresh/38→39 upgrade·FK/index/trigger/자식 PK 보존·실패 전체 rollback·restart/격리 backup restore, 공정0 CRUD·생략/null/빈값·비활성/foreign·401/403/409/412 및 strong revision, legacy Target 충돌·WorkArea 독립·등록/root/수량 누락0을 검증한다. UI5폭·3언어·keyboard/focus·dirty/stale/readonly와 nullable transport, 공통 full Unit/Integration/build·Docker/API/SQLite·같은 최종 source admission을 구분 기록한다. 원본 테스트/timeout/retry/skip은 약화하지 않는다. 원격 CI는 현행 정책 N/A이며 실제 실행 결과는 [원장](ISSUE_917_FAILURE_ANALYSIS.md)에 추가한다.
+
+
+### Issue #920 — touch-capable mouse와 실제 touch 전환
+
+기존 `schedule-views.spec.ts`의 #898 실제 fine wheel을 유지하고 #920을 추가한다. Chromium CDP touch capability를 켠 상태에서 실제 touch와 mouse Ctrl+wheel을 사용해 세 View/Grid·Chart의44상한/34/32/30/28/역방향·row/button bounds≤1px·44px touch 목표·browser zoom 불변·same-instance/canonical 쓰기0를 검사한다. 기존 `project-summary-bar-visual.spec.ts` #822의 초기44px hit area·5폭·제외/빈 본문과 인접 행 비침범도 유지한다. Unit density/coordinator 및 영향 소비자·fast/Docker/admit는 같은 최종 source에서 실행한다. Linux Chromium emulation을 Windows 실장치·pinch/pen/AT·Owner UAT PASS로 확대하지 않는다. [Work Packet](exec-plans/active/ISSUE_920.md).

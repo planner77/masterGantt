@@ -192,3 +192,8 @@ F898-009~012를 [Primary 원장](ISSUE_898_FAILURE_ANALYSIS.md)에 추가했다.
 ## #891 최종 exact source와 정식 게시·운영 보조 오류
 
 [F891-029/030/031](ISSUE_891_FAILURE_ANALYSIS.md)에보조조회옵션오타/graphcount자료형오독과정정,원본20분Pull정지BLOCKED및동시성만1로낮춘새빈layout의전수graph/runtime검증을append했다. sourcef45f7c0a25960a34970005cae93bd7b55ace2831의fast4013·영향Unit142/Chromium87·Docker10·admit와독립QA/PASS는원본실패를지우지않는다. 0.147.0/Gitannotatedtag와동일indexsha256:5ac1904dac65ef88c64952b67866a84d078a39dc74bea007f254c7a5a1fa10f8의정식aliases·선정oldrefs/전체이름보존을실제확인했다. 전체과거descriptor/외부CAS/수동UAT/운영배포는그범위가아니다. F028정확listenerUNKNOWN과F029원문stderr/시각미수집을유지한다. 문서전용후속source는별도gate/QA/main반영뒤IssueFINAL에서종료한다.
+
+
+## #919 운영 배포와 #920 하이브리드 입력 UAT
+
+[#919 원장](ISSUE_919_FAILURE_ANALYSIS.md)은 host 권한거부·격리 fixture 한도·helper 경로·임시 sidecar 정리의 최초 실패와 실제0.147.0 배포/새 백업·호환 migration/데이터 보존을 연결한다. 운영 PASS는 사용자 UAT PASS가 아니다. [#920 원장](ISSUE_920_FAILURE_ANALYSIS.md)은 Windows touch-capable mouse 보고, 같은 이미지의 coarse44 고정 red와 fine32 대조, bootstrap/CDP lifetime·fine content-box 기대 오류를 보존한다. 첫 raw trace가 후속 실행에 덮인 한계도 명시한다. 기존 원본 prefix는 보존하고 같은 최종 source의 새 gate를 요구한다.

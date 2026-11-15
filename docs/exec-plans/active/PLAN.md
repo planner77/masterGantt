@@ -1,3 +1,7 @@
+## 현재: #920 하이브리드 PC Ctrl+휠 재작업
+
+[Work Packet](ISSUE_920.md)에 따라 main fc8 baseline에서 실제 touch/mouse 입력별 density를 수정·검증한다. #919에서 정식0.147.0의 운영 배포·사전 백업/38→39 migration·기존 데이터 보존·healthy는 실제 PASS했다. 사용자 UAT는 다른 항목 문제 없음/일정 Grid·Chart Ctrl+휠 실패였고 Windows11 Chrome touch-capable mouse 환경을 #920으로 인계했다. 아래의 과거 미배포/이전 진행 기록과 현재 상태를 구분한다. 신규0.147.1의 최종 gate·정식 게시·운영 교체·Owner 재UAT는 실행/승인 전 완료로 표시하지 않는다.
+
 ## 구현·검증·정식 게시 완료: #918 → #891
 
 [Work Packet](ISSUE_891.md)의제품source `f45f7c0a25960a34970005cae93bd7b55ace2831`는base0bf0e4e54cc445058b16c3764f79c27b81f5dd97에서로컬공통/영향/컨테이너·admission·독립QA를통과했다. #918의7288-byte AGENTS라우팅을포함하며#891공통MDXEditor전체툴팁·실제단축키·Rich/Source세로resize·Dialog기본높이1.5배(기존viewport상한우선)를구현했다. formalv0.147.0/GHCR0.147.0·0.147·0·latest는동일검증index `sha256:5ac1904dac65ef88c64952b67866a84d078a39dc74bea007f254c7a5a1fa10f8`로게시됐고별도게시QA PASS다. 운영배포는미실시다. [실패원장](../../ISSUE_891_FAILURE_ANALYSIS.md)은최초오류/UNKNOWN과실제회복을보존한다. 후속증거문서의별도검증·main반영뒤두Issue의FINAL/수동종료를확정하며,그현재상태는GitHubIssue가원본이다. 다른진행건은이요청으로일괄종료하지않는다.

@@ -24,7 +24,7 @@
 .project-schedule-view-name > button { display: flex; align-items: center; gap: .375rem; height: 100%; min-height: 100%; min-width: 0; flex: 1 1 auto; border: 0; background: transparent; color: var(--foreground); padding: 0; text-align: start; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font: inherit; cursor: pointer; }
 .project-schedule-view-name > .project-schedule-view-info { flex: 0 0 36px; width: 36px; justify-content: center; color: var(--muted-foreground); font-size: 1rem; }
 .project-schedule-view-name > .project-schedule-view-info:hover { color: var(--foreground); }
-@media (pointer: coarse), (any-pointer: coarse) { .project-schedule-view-name > .project-schedule-view-info { flex-basis: 44px; width: 44px; } }
+.project-gantt-frame[data-gantt-cell-height="44"] .project-schedule-view-name > .project-schedule-view-info { flex-basis: 44px; width: 44px; }
 .project-schedule-view-name small { flex: 0 0 auto; font-weight: 400; color: var(--muted-foreground); }
 .project-schedule-view-group .project-schedule-view-grid { font-weight: var(--wx-font-weight-md, 500); }
 .project-schedule-view-row[aria-selected="true"] .project-schedule-view-grid, .project-schedule-view-row[aria-selected="true"] .project-schedule-view-chart { background-color: var(--wx-gantt-select-color, var(--accent)); }
@@ -37,7 +37,7 @@
 .project-schedule-view-summary-bar { position: absolute; top: 20%; height: 60%; box-sizing: border-box; border: var(--wx-gantt-summary-border); border-radius: var(--wx-gantt-bar-border-radius, 3px); background: var(--wx-gantt-summary-color, var(--muted-foreground)); pointer-events: none; }
 .project-schedule-view-no-date { position: sticky; left: 0; color: var(--muted-foreground); font-size: .75rem; display: inline-flex; align-items: center; height: 100%; padding-inline: .5rem; }
 .project-schedule-view-empty { position: sticky; left: 0; width: fit-content; margin: .75rem; color: var(--muted-foreground); }
-@media (pointer: coarse), (any-pointer: coarse) { .project-schedule-view-name > button { min-height: 44px; } }
+.project-gantt-frame[data-gantt-cell-height="44"] .project-schedule-view-name > button { min-height: 44px; }
 .project-schedule-view-holidays { position: absolute; pointer-events: none; }
 .project-schedule-view-holidays > span { position: absolute; top: 0; height: 100%; background: var(--wx-gantt-holiday-background, var(--muted)); }
 .project-schedule-view-scale-tooltip { position: fixed; z-index: 10000; max-width: min(320px, calc(100vw - 16px)); padding: .5rem .75rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--popover, var(--card)); color: var(--popover-foreground, var(--foreground)); font-size: .8125rem; line-height: 1.4; box-shadow: var(--shadow-md); pointer-events: none; overflow-wrap: anywhere; }

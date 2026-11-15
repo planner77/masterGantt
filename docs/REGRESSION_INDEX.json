@@ -60,6 +60,16 @@
       "issue": 891,
       "primaryIssue": 891,
       "ledger": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+    },
+    {
+      "issue": 919,
+      "primaryIssue": 919,
+      "ledger": "docs/ISSUE_919_FAILURE_ANALYSIS.md"
+    },
+    {
+      "issue": 920,
+      "primaryIssue": 920,
+      "ledger": "docs/ISSUE_920_FAILURE_ANALYSIS.md"
     }
   ],
   "failures": [
@@ -13714,6 +13724,1020 @@
           "verification": {
             "sourceSha": "f45f7c0a25960a34970005cae93bd7b55ace2831",
             "environment": "Linux/WSL2 x64; Python3.12 local supplemental diagnostic; pinned ORAS1.3.6; full execution environment fingerprint not collected",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F919-001",
+      "issue": 919,
+      "ledger": "docs/ISSUE_919_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        891,
+        920
+      ],
+      "domain": "deployment",
+      "layer": "operation",
+      "keywords": [
+        "backup",
+        "deploy",
+        "sqlite",
+        "uat"
+      ],
+      "cause": "host Docker data path read-only permission denied",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/scripts/sqlite-backup.test.ts",
+          "case": "backup/restore source and integrity contract; actual operation is separately recorded",
+          "historical": false,
+          "coverageArea": "contract-only; actual operating runs are named private receipts"
+        }
+      ],
+      "residualRisk": "Local encrypted backup is not off-host DR; Owner UAT has a Ctrl-wheel defect tracked by #920",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "2026-11-15; exact individual command timestamp not collected; named private logs retain available times",
+          "stage": "LOCAL_PREP",
+          "status": "FAIL",
+          "sourceSha": "f45f7c0a25960a34970005cae93bd7b55ace2831",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED diagnostic/operator execution; sourceSha names baseline/target image; private helper or dirty test diff not a clean commit; full source/environment before-after fingerprints not collected; not final gate evidence",
+          "environment": "Linux/WSL2 x64; Node22.14.0/npm11.10.0; installed Chromium1243; Docker runtime Node26.8.2 linux/amd64 where applicable; full supplemental environment fingerprint not collected",
+          "environmentVersion": "masterGantt operating before0.145.1 and candidate/after0.147.0; specific helper/artifact identified in original receipts",
+          "command": [
+            "python3",
+            "LOCAL:919-original-1"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "Deployment prerequisite or final cleanup check succeeds",
+          "actual": "PermissionError before deployment; no operating ownership changes",
+          "input": "Synthetic isolated fixture; actual operating database only in explicitly identified #919 backup/deployment steps; no public raw data",
+          "classification": "TOOLING",
+          "recovery": "Retain original failure; use explicitly scoped corrective run; final clean source gate and Owner UAT remain separate",
+          "residualRisk": "Windows actual device/Owner repeat UAT, pinch/pen/AT and off-host remain NOT TESTED; previous failures are not rewritten",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": "sha256:5ac1904dac65ef88c64952b67866a84d078a39dc74bea007f254c7a5a1fa10f8",
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:919-observed"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_919_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "corrective-operation",
+          "at": null,
+          "timeNote": "2026-11-15; exact individual command timestamp not collected; named private logs retain available times",
+          "stage": "OPERATION",
+          "status": "PASS",
+          "sourceSha": "f45f7c0a25960a34970005cae93bd7b55ace2831",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED diagnostic/operator execution; sourceSha names baseline/target image; private helper or dirty test diff not a clean commit; full source/environment before-after fingerprints not collected; not final gate evidence",
+          "environment": "Linux/WSL2 x64; Node22.14.0/npm11.10.0; installed Chromium1243; Docker runtime Node26.8.2 linux/amd64 where applicable; full supplemental environment fingerprint not collected",
+          "environmentVersion": "masterGantt operating before0.145.1 and candidate/after0.147.0; specific helper/artifact identified in original receipts",
+          "command": [
+            "python3",
+            "LOCAL:919-corrective-1"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "Docker-mediated Online Backup plus final clean-stop AES backup verified",
+          "actual": "Docker-mediated Online Backup plus final clean-stop AES backup verified",
+          "input": "Synthetic isolated fixture; actual operating database only in explicitly identified #919 backup/deployment steps; no public raw data",
+          "classification": "TOOLING",
+          "recovery": "Retain original failure; use explicitly scoped corrective run; final clean source gate and Owner UAT remain separate",
+          "residualRisk": "Windows actual device/Owner repeat UAT, pinch/pen/AT and off-host remain NOT TESTED; previous failures are not rewritten",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": "sha256:5ac1904dac65ef88c64952b67866a84d078a39dc74bea007f254c7a5a1fa10f8",
+          "backupId": "mg-quiesced-01470-20261115T085127Z-849f5578",
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:919-corrective-operation"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_919_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "f45f7c0a25960a34970005cae93bd7b55ace2831",
+            "environment": "Linux/WSL2 x64; Node22.14.0/npm11.10.0; installed Chromium1243; Docker runtime Node26.8.2 linux/amd64 where applicable; full supplemental environment fingerprint not collected",
+            "imageDigest": "sha256:5ac1904dac65ef88c64952b67866a84d078a39dc74bea007f254c7a5a1fa10f8",
+            "backupId": "mg-quiesced-01470-20261115T085127Z-849f5578"
+          }
+        }
+      ]
+    },
+    {
+      "id": "F919-002",
+      "issue": 919,
+      "ledger": "docs/ISSUE_919_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        891,
+        920
+      ],
+      "domain": "deployment",
+      "layer": "operation",
+      "keywords": [
+        "backup",
+        "deploy",
+        "sqlite",
+        "uat"
+      ],
+      "cause": "new isolated synthetic password exceeded existing 12-character limit",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/scripts/sqlite-backup.test.ts",
+          "case": "backup/restore source and integrity contract; actual operation is separately recorded",
+          "historical": false,
+          "coverageArea": "contract-only; actual operating runs are named private receipts"
+        }
+      ],
+      "residualRisk": "Local encrypted backup is not off-host DR; Owner UAT has a Ctrl-wheel defect tracked by #920",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "2026-11-15; exact individual command timestamp not collected; named private logs retain available times",
+          "stage": "LOCAL_PREP",
+          "status": "FAIL",
+          "sourceSha": "f45f7c0a25960a34970005cae93bd7b55ace2831",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED diagnostic/operator execution; sourceSha names baseline/target image; private helper or dirty test diff not a clean commit; full source/environment before-after fingerprints not collected; not final gate evidence",
+          "environment": "Linux/WSL2 x64; Node22.14.0/npm11.10.0; installed Chromium1243; Docker runtime Node26.8.2 linux/amd64 where applicable; full supplemental environment fingerprint not collected",
+          "environmentVersion": "masterGantt operating before0.145.1 and candidate/after0.147.0; specific helper/artifact identified in original receipts",
+          "command": [
+            "python3",
+            "LOCAL:919-original-2"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "Deployment prerequisite or final cleanup check succeeds",
+          "actual": "HTTP400 expected201 after isolated migration; production writes0",
+          "input": "Synthetic isolated fixture; actual operating database only in explicitly identified #919 backup/deployment steps; no public raw data",
+          "classification": "TOOLING",
+          "recovery": "Retain original failure; use explicitly scoped corrective run; final clean source gate and Owner UAT remain separate",
+          "residualRisk": "Windows actual device/Owner repeat UAT, pinch/pen/AT and off-host remain NOT TESTED; previous failures are not rewritten",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": "sha256:5ac1904dac65ef88c64952b67866a84d078a39dc74bea007f254c7a5a1fa10f8",
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:919-observed"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_919_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "corrective-operation",
+          "at": null,
+          "timeNote": "2026-11-15; exact individual command timestamp not collected; named private logs retain available times",
+          "stage": "OPERATION",
+          "status": "PASS",
+          "sourceSha": "f45f7c0a25960a34970005cae93bd7b55ace2831",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED diagnostic/operator execution; sourceSha names baseline/target image; private helper or dirty test diff not a clean commit; full source/environment before-after fingerprints not collected; not final gate evidence",
+          "environment": "Linux/WSL2 x64; Node22.14.0/npm11.10.0; installed Chromium1243; Docker runtime Node26.8.2 linux/amd64 where applicable; full supplemental environment fingerprint not collected",
+          "environmentVersion": "masterGantt operating before0.145.1 and candidate/after0.147.0; specific helper/artifact identified in original receipts",
+          "command": [
+            "python3",
+            "LOCAL:919-corrective-2"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "Fresh isolated restore SQL38-to39, rows preserved, API/auth/Origin/revision/export/restart PASS",
+          "actual": "Fresh isolated restore SQL38-to39, rows preserved, API/auth/Origin/revision/export/restart PASS",
+          "input": "Synthetic isolated fixture; actual operating database only in explicitly identified #919 backup/deployment steps; no public raw data",
+          "classification": "TOOLING",
+          "recovery": "Retain original failure; use explicitly scoped corrective run; final clean source gate and Owner UAT remain separate",
+          "residualRisk": "Windows actual device/Owner repeat UAT, pinch/pen/AT and off-host remain NOT TESTED; previous failures are not rewritten",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": "sha256:5ac1904dac65ef88c64952b67866a84d078a39dc74bea007f254c7a5a1fa10f8",
+          "backupId": "mg-predeploy-01470-20261115T084408Z-1aa9702f",
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:919-corrective-operation"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_919_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "f45f7c0a25960a34970005cae93bd7b55ace2831",
+            "environment": "Linux/WSL2 x64; Node22.14.0/npm11.10.0; installed Chromium1243; Docker runtime Node26.8.2 linux/amd64 where applicable; full supplemental environment fingerprint not collected",
+            "imageDigest": "sha256:5ac1904dac65ef88c64952b67866a84d078a39dc74bea007f254c7a5a1fa10f8",
+            "backupId": "mg-predeploy-01470-20261115T084408Z-1aa9702f"
+          }
+        }
+      ]
+    },
+    {
+      "id": "F919-003",
+      "issue": 919,
+      "ledger": "docs/ISSUE_919_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        891,
+        920
+      ],
+      "domain": "deployment",
+      "layer": "operation",
+      "keywords": [
+        "backup",
+        "deploy",
+        "sqlite",
+        "uat"
+      ],
+      "cause": "snapshot helper used default DB path rather than mounted snapshot path",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/scripts/sqlite-backup.test.ts",
+          "case": "backup/restore source and integrity contract; actual operation is separately recorded",
+          "historical": false,
+          "coverageArea": "contract-only; actual operating runs are named private receipts"
+        }
+      ],
+      "residualRisk": "Local encrypted backup is not off-host DR; Owner UAT has a Ctrl-wheel defect tracked by #920",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "2026-11-15; exact individual command timestamp not collected; named private logs retain available times",
+          "stage": "LOCAL_PREP",
+          "status": "FAIL",
+          "sourceSha": "f45f7c0a25960a34970005cae93bd7b55ace2831",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED diagnostic/operator execution; sourceSha names baseline/target image; private helper or dirty test diff not a clean commit; full source/environment before-after fingerprints not collected; not final gate evidence",
+          "environment": "Linux/WSL2 x64; Node22.14.0/npm11.10.0; installed Chromium1243; Docker runtime Node26.8.2 linux/amd64 where applicable; full supplemental environment fingerprint not collected",
+          "environmentVersion": "masterGantt operating before0.145.1 and candidate/after0.147.0; specific helper/artifact identified in original receipts",
+          "command": [
+            "python3",
+            "LOCAL:919-original-3"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "Deployment prerequisite or final cleanup check succeeds",
+          "actual": "SQLITE_CANTOPEN exit1 before candidate start; original image resumed healthy",
+          "input": "Synthetic isolated fixture; actual operating database only in explicitly identified #919 backup/deployment steps; no public raw data",
+          "classification": "TOOLING",
+          "recovery": "Retain original failure; use explicitly scoped corrective run; final clean source gate and Owner UAT remain separate",
+          "residualRisk": "Windows actual device/Owner repeat UAT, pinch/pen/AT and off-host remain NOT TESTED; previous failures are not rewritten",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": "sha256:5ac1904dac65ef88c64952b67866a84d078a39dc74bea007f254c7a5a1fa10f8",
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:919-observed"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_919_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "corrective-operation",
+          "at": null,
+          "timeNote": "2026-11-15; exact individual command timestamp not collected; named private logs retain available times",
+          "stage": "OPERATION",
+          "status": "PASS",
+          "sourceSha": "f45f7c0a25960a34970005cae93bd7b55ace2831",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED diagnostic/operator execution; sourceSha names baseline/target image; private helper or dirty test diff not a clean commit; full source/environment before-after fingerprints not collected; not final gate evidence",
+          "environment": "Linux/WSL2 x64; Node22.14.0/npm11.10.0; installed Chromium1243; Docker runtime Node26.8.2 linux/amd64 where applicable; full supplemental environment fingerprint not collected",
+          "environmentVersion": "masterGantt operating before0.145.1 and candidate/after0.147.0; specific helper/artifact identified in original receipts",
+          "command": [
+            "python3",
+            "LOCAL:919-corrective-3"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "Explicit helper snapshot path verified; fresh final backup and candidate deployment PASS",
+          "actual": "Explicit helper snapshot path verified; fresh final backup and candidate deployment PASS",
+          "input": "Synthetic isolated fixture; actual operating database only in explicitly identified #919 backup/deployment steps; no public raw data",
+          "classification": "TOOLING",
+          "recovery": "Retain original failure; use explicitly scoped corrective run; final clean source gate and Owner UAT remain separate",
+          "residualRisk": "Windows actual device/Owner repeat UAT, pinch/pen/AT and off-host remain NOT TESTED; previous failures are not rewritten",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": "sha256:5ac1904dac65ef88c64952b67866a84d078a39dc74bea007f254c7a5a1fa10f8",
+          "backupId": "mg-quiesced-01470-20261115T085127Z-849f5578",
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:919-corrective-operation"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_919_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "f45f7c0a25960a34970005cae93bd7b55ace2831",
+            "environment": "Linux/WSL2 x64; Node22.14.0/npm11.10.0; installed Chromium1243; Docker runtime Node26.8.2 linux/amd64 where applicable; full supplemental environment fingerprint not collected",
+            "imageDigest": "sha256:5ac1904dac65ef88c64952b67866a84d078a39dc74bea007f254c7a5a1fa10f8",
+            "backupId": "mg-quiesced-01470-20261115T085127Z-849f5578"
+          }
+        }
+      ]
+    },
+    {
+      "id": "F919-004",
+      "issue": 919,
+      "ledger": "docs/ISSUE_919_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        891,
+        920
+      ],
+      "domain": "deployment",
+      "layer": "operation",
+      "keywords": [
+        "backup",
+        "deploy",
+        "sqlite",
+        "uat"
+      ],
+      "cause": "temporary copied snapshot WAL/SHM remained after main-file cleanup",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/scripts/sqlite-backup.test.ts",
+          "case": "backup/restore source and integrity contract; actual operation is separately recorded",
+          "historical": false,
+          "coverageArea": "contract-only; actual operating runs are named private receipts"
+        }
+      ],
+      "residualRisk": "Local encrypted backup is not off-host DR; Owner UAT has a Ctrl-wheel defect tracked by #920",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "2026-11-15; exact individual command timestamp not collected; named private logs retain available times",
+          "stage": "LOCAL_PREP",
+          "status": "FAIL",
+          "sourceSha": "f45f7c0a25960a34970005cae93bd7b55ace2831",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED diagnostic/operator execution; sourceSha names baseline/target image; private helper or dirty test diff not a clean commit; full source/environment before-after fingerprints not collected; not final gate evidence",
+          "environment": "Linux/WSL2 x64; Node22.14.0/npm11.10.0; installed Chromium1243; Docker runtime Node26.8.2 linux/amd64 where applicable; full supplemental environment fingerprint not collected",
+          "environmentVersion": "masterGantt operating before0.145.1 and candidate/after0.147.0; specific helper/artifact identified in original receipts",
+          "command": [
+            "python3",
+            "LOCAL:919-original-4"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "Deployment prerequisite or final cleanup check succeeds",
+          "actual": "Final cleanup audit FAIL: 6 task-owned temporary sidecars remained",
+          "input": "Synthetic isolated fixture; actual operating database only in explicitly identified #919 backup/deployment steps; no public raw data",
+          "classification": "TOOLING",
+          "recovery": "Retain original failure; use explicitly scoped corrective run; final clean source gate and Owner UAT remain separate",
+          "residualRisk": "Windows actual device/Owner repeat UAT, pinch/pen/AT and off-host remain NOT TESTED; previous failures are not rewritten",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": "sha256:5ac1904dac65ef88c64952b67866a84d078a39dc74bea007f254c7a5a1fa10f8",
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:919-observed"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_919_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "corrective-operation",
+          "at": null,
+          "timeNote": "2026-11-15; exact individual command timestamp not collected; named private logs retain available times",
+          "stage": "OPERATION",
+          "status": "PASS",
+          "sourceSha": "f45f7c0a25960a34970005cae93bd7b55ace2831",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED diagnostic/operator execution; sourceSha names baseline/target image; private helper or dirty test diff not a clean commit; full source/environment before-after fingerprints not collected; not final gate evidence",
+          "environment": "Linux/WSL2 x64; Node22.14.0/npm11.10.0; installed Chromium1243; Docker runtime Node26.8.2 linux/amd64 where applicable; full supplemental environment fingerprint not collected",
+          "environmentVersion": "masterGantt operating before0.145.1 and candidate/after0.147.0; specific helper/artifact identified in original receipts",
+          "command": [
+            "python3",
+            "LOCAL:919-corrective-4"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "Removed exact six owned sidecars; plaintext0/resources0/user-file/backup-key-mode/healthy audit PASS",
+          "actual": "Removed exact six owned sidecars; plaintext0/resources0/user-file/backup-key-mode/healthy audit PASS",
+          "input": "Synthetic isolated fixture; actual operating database only in explicitly identified #919 backup/deployment steps; no public raw data",
+          "classification": "TOOLING",
+          "recovery": "Retain original failure; use explicitly scoped corrective run; final clean source gate and Owner UAT remain separate",
+          "residualRisk": "Windows actual device/Owner repeat UAT, pinch/pen/AT and off-host remain NOT TESTED; previous failures are not rewritten",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": "sha256:5ac1904dac65ef88c64952b67866a84d078a39dc74bea007f254c7a5a1fa10f8",
+          "backupId": "mg-quiesced-01470-20261115T085127Z-849f5578",
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:919-corrective-operation"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_919_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "f45f7c0a25960a34970005cae93bd7b55ace2831",
+            "environment": "Linux/WSL2 x64; Node22.14.0/npm11.10.0; installed Chromium1243; Docker runtime Node26.8.2 linux/amd64 where applicable; full supplemental environment fingerprint not collected",
+            "imageDigest": "sha256:5ac1904dac65ef88c64952b67866a84d078a39dc74bea007f254c7a5a1fa10f8",
+            "backupId": "mg-quiesced-01470-20261115T085127Z-849f5578"
+          }
+        }
+      ]
+    },
+    {
+      "id": "F920-001",
+      "issue": 920,
+      "ledger": "docs/ISSUE_920_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        919,
+        898,
+        822
+      ],
+      "domain": "gantt-input",
+      "layer": "browser",
+      "keywords": [
+        "ctrl-wheel",
+        "hybrid",
+        "coarse",
+        "touch",
+        "density"
+      ],
+      "cause": "Touch-capability used as active input clamps trusted mouse Ctrl-wheel to44px",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/e2e/schedule-views.spec.ts",
+          "case": "#920 touch-capable PC keeps mouse Ctrl wheel density and restores touch targets",
+          "historical": false,
+          "coverageArea": "actual Chromium capability + mouse/touch, geometry, source/instance/zoom/write checks"
+        },
+        {
+          "path": "tests/e2e/project-summary-bar-visual.spec.ts",
+          "case": "Issue #822 scopes cancellation and switches hybrid input without resetting the instance",
+          "historical": false,
+          "coverageArea": "existing geometry, exclusion, native empty body and initial44 targets"
+        }
+      ],
+      "residualRisk": "Windows actual device/Owner repeat UAT, pinch/pen/AT remain NOT TESTED; first raw red trace not recovered",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "2026-11-15; exact individual command timestamp not collected; named private logs retain available times",
+          "stage": "PLAYWRIGHT",
+          "status": "FAIL",
+          "sourceSha": "f45f7c0a25960a34970005cae93bd7b55ace2831",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED diagnostic/operator execution; sourceSha names baseline/target image; private helper or dirty test diff not a clean commit; full source/environment before-after fingerprints not collected; not final gate evidence",
+          "environment": "Linux/WSL2 x64; Node22.14.0/npm11.10.0; installed Chromium1243; Docker runtime Node26.8.2 linux/amd64 where applicable; full supplemental environment fingerprint not collected",
+          "environmentVersion": "masterGantt0.147.0; pre-920 patch candidate diagnostics",
+          "command": [
+            "LOCAL:920-diagnostic-1"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "Actual input and measured geometry follow intended contract",
+          "actual": "Actual trusted Ctrl-wheel: coarse44-to44 vs fine34-to32; new regression exit1/expected32 actual44",
+          "input": "Synthetic isolated fixture; actual operating database only in explicitly identified #919 backup/deployment steps; no public raw data",
+          "classification": "PRODUCT",
+          "recovery": "Retain original failure; use explicitly scoped corrective run; final clean source gate and Owner UAT remain separate",
+          "residualRisk": "Windows actual device/Owner repeat UAT, pinch/pen/AT and off-host remain NOT TESTED; previous failures are not rewritten",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": "sha256:5ac1904dac65ef88c64952b67866a84d078a39dc74bea007f254c7a5a1fa10f8",
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:920-observed"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_920_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "regression-red",
+          "at": null,
+          "timeNote": "2026-11-15; exact individual command timestamp not collected; named private logs retain available times",
+          "stage": "PLAYWRIGHT",
+          "status": "FAIL",
+          "sourceSha": "fc8b0858f467bec0cd0a13a0fd14f1edd752c8a7",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED diagnostic/operator execution; sourceSha names baseline/target image; private helper or dirty test diff not a clean commit; full source/environment before-after fingerprints not collected; not final gate evidence",
+          "environment": "Linux/WSL2 x64; Node22.14.0/npm11.10.0; installed Chromium1243; Docker runtime Node26.8.2 linux/amd64 where applicable; full supplemental environment fingerprint not collected",
+          "environmentVersion": "masterGantt0.147.0; pre-920 patch candidate diagnostics",
+          "command": [
+            "npm",
+            "run",
+            "test:e2e",
+            "--",
+            "tests/e2e/schedule-views.spec.ts",
+            "--grep",
+            "#920",
+            "--reporter=list"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "Mouse changes density on touch-capable PC",
+          "actual": "1FAIL/expected32 actual44; original raw log retained, first trace overwritten by next raw run",
+          "input": "Synthetic isolated fixture; actual operating database only in explicitly identified #919 backup/deployment steps; no public raw data",
+          "classification": "PRODUCT",
+          "recovery": "Retain original failure; use explicitly scoped corrective run; final clean source gate and Owner UAT remain separate",
+          "residualRisk": "Windows actual device/Owner repeat UAT, pinch/pen/AT and off-host remain NOT TESTED; previous failures are not rewritten",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:920-regression-red"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_920_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "focused03-green",
+          "at": null,
+          "timeNote": "2026-11-15; exact individual command timestamp not collected; named private logs retain available times",
+          "stage": "PLAYWRIGHT",
+          "status": "PASS",
+          "sourceSha": "fc8b0858f467bec0cd0a13a0fd14f1edd752c8a7",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED diagnostic/operator execution; sourceSha names baseline/target image; private helper or dirty test diff not a clean commit; full source/environment before-after fingerprints not collected; not final gate evidence",
+          "environment": "Linux/WSL2 x64; Node22.14.0/npm11.10.0; installed Chromium1243; Docker runtime Node26.8.2 linux/amd64 where applicable; full supplemental environment fingerprint not collected",
+          "environmentVersion": "masterGantt0.147.0; pre-920 patch candidate diagnostics",
+          "command": [
+            "npm",
+            "run",
+            "test:e2e",
+            "--",
+            "tests/e2e/schedule-views.spec.ts",
+            "tests/e2e/project-summary-bar-visual.spec.ts",
+            "--grep",
+            "#920|Issue #822 scopes",
+            "--reporter=list"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "Same scoped regression cases pass; final clean gates separate",
+          "actual": "2PASS/0FAIL; 5.7s and37.5s; 48 three-View Grid/Chart observations, touch44, zoom/row bounds/instance/canonical checks",
+          "input": "Synthetic isolated fixture; actual operating database only in explicitly identified #919 backup/deployment steps; no public raw data",
+          "classification": "PRODUCT",
+          "recovery": "Retain original failure; use explicitly scoped corrective run; final clean source gate and Owner UAT remain separate",
+          "residualRisk": "Windows actual device/Owner repeat UAT, pinch/pen/AT and off-host remain NOT TESTED; previous failures are not rewritten",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:920-focused03-green"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_920_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "fc8b0858f467bec0cd0a13a0fd14f1edd752c8a7",
+            "environment": "Linux/WSL2 x64; Node22.14.0/npm11.10.0; installed Chromium1243; Docker runtime Node26.8.2 linux/amd64 where applicable; full supplemental environment fingerprint not collected",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F920-002",
+      "issue": 920,
+      "ledger": "docs/ISSUE_920_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        919,
+        898,
+        822
+      ],
+      "domain": "gantt-input",
+      "layer": "browser",
+      "keywords": [
+        "ctrl-wheel",
+        "hybrid",
+        "coarse",
+        "touch",
+        "density"
+      ],
+      "cause": "Diagnostic wrapper executable/browser-version bootstrap mismatch",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/e2e/schedule-views.spec.ts",
+          "case": "#920 touch-capable PC keeps mouse Ctrl wheel density and restores touch targets",
+          "historical": false,
+          "coverageArea": "actual Chromium capability + mouse/touch, geometry, source/instance/zoom/write checks"
+        },
+        {
+          "path": "tests/e2e/project-summary-bar-visual.spec.ts",
+          "case": "Issue #822 scopes cancellation and switches hybrid input without resetting the instance",
+          "historical": false,
+          "coverageArea": "existing geometry, exclusion, native empty body and initial44 targets"
+        }
+      ],
+      "residualRisk": "Windows actual device/Owner repeat UAT, pinch/pen/AT remain NOT TESTED; first raw red trace not recovered",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "2026-11-15; exact individual command timestamp not collected; named private logs retain available times",
+          "stage": "LOCAL_PREP",
+          "status": "FAIL",
+          "sourceSha": "fc8b0858f467bec0cd0a13a0fd14f1edd752c8a7",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED diagnostic/operator execution; sourceSha names baseline/target image; private helper or dirty test diff not a clean commit; full source/environment before-after fingerprints not collected; not final gate evidence",
+          "environment": "Linux/WSL2 x64; Node22.14.0/npm11.10.0; installed Chromium1243; Docker runtime Node26.8.2 linux/amd64 where applicable; full supplemental environment fingerprint not collected",
+          "environmentVersion": "masterGantt0.147.0; pre-920 patch candidate diagnostics",
+          "command": [
+            "LOCAL:920-diagnostic-2"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "Actual input and measured geometry follow intended contract",
+          "actual": "Direct wrapper exit126, then unavailable browser1254 exit1; existing1243 selected explicitly",
+          "input": "Synthetic isolated fixture; actual operating database only in explicitly identified #919 backup/deployment steps; no public raw data",
+          "classification": "TOOLING",
+          "recovery": "Retain original failure; use explicitly scoped corrective run; final clean source gate and Owner UAT remain separate",
+          "residualRisk": "Windows actual device/Owner repeat UAT, pinch/pen/AT and off-host remain NOT TESTED; previous failures are not rewritten",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:920-observed"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_920_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "setup-corrected",
+          "at": null,
+          "timeNote": "2026-11-15; exact individual command timestamp not collected; named private logs retain available times",
+          "stage": "LOCAL_PREP",
+          "status": "PASS",
+          "sourceSha": "fc8b0858f467bec0cd0a13a0fd14f1edd752c8a7",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED diagnostic/operator execution; sourceSha names baseline/target image; private helper or dirty test diff not a clean commit; full source/environment before-after fingerprints not collected; not final gate evidence",
+          "environment": "Linux/WSL2 x64; Node22.14.0/npm11.10.0; installed Chromium1243; Docker runtime Node26.8.2 linux/amd64 where applicable; full supplemental environment fingerprint not collected",
+          "environmentVersion": "masterGantt0.147.0; pre-920 patch candidate diagnostics",
+          "command": [
+            "LOCAL:920-corrected-diagnostic-2"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "Diagnostic reaches actual product input",
+          "actual": "Existing Chromium1243 and live CDP session successfully drive/observe actual pointer input",
+          "input": "Synthetic isolated fixture; actual operating database only in explicitly identified #919 backup/deployment steps; no public raw data",
+          "classification": "TOOLING",
+          "recovery": "Retain original failure; use explicitly scoped corrective run; final clean source gate and Owner UAT remain separate",
+          "residualRisk": "Windows actual device/Owner repeat UAT, pinch/pen/AT and off-host remain NOT TESTED; previous failures are not rewritten",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:920-setup-corrected"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_920_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "fc8b0858f467bec0cd0a13a0fd14f1edd752c8a7",
+            "environment": "Linux/WSL2 x64; Node22.14.0/npm11.10.0; installed Chromium1243; Docker runtime Node26.8.2 linux/amd64 where applicable; full supplemental environment fingerprint not collected",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F920-003",
+      "issue": 920,
+      "ledger": "docs/ISSUE_920_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        919,
+        898,
+        822
+      ],
+      "domain": "gantt-input",
+      "layer": "browser",
+      "keywords": [
+        "ctrl-wheel",
+        "hybrid",
+        "coarse",
+        "touch",
+        "density"
+      ],
+      "cause": "Touch emulation CDP session detached before observation",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/e2e/schedule-views.spec.ts",
+          "case": "#920 touch-capable PC keeps mouse Ctrl wheel density and restores touch targets",
+          "historical": false,
+          "coverageArea": "actual Chromium capability + mouse/touch, geometry, source/instance/zoom/write checks"
+        },
+        {
+          "path": "tests/e2e/project-summary-bar-visual.spec.ts",
+          "case": "Issue #822 scopes cancellation and switches hybrid input without resetting the instance",
+          "historical": false,
+          "coverageArea": "existing geometry, exclusion, native empty body and initial44 targets"
+        }
+      ],
+      "residualRisk": "Windows actual device/Owner repeat UAT, pinch/pen/AT remain NOT TESTED; first raw red trace not recovered",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "2026-11-15; exact individual command timestamp not collected; named private logs retain available times",
+          "stage": "PLAYWRIGHT",
+          "status": "FAIL",
+          "sourceSha": "f45f7c0a25960a34970005cae93bd7b55ace2831",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED diagnostic/operator execution; sourceSha names baseline/target image; private helper or dirty test diff not a clean commit; full source/environment before-after fingerprints not collected; not final gate evidence",
+          "environment": "Linux/WSL2 x64; Node22.14.0/npm11.10.0; installed Chromium1243; Docker runtime Node26.8.2 linux/amd64 where applicable; full supplemental environment fingerprint not collected",
+          "environmentVersion": "masterGantt0.147.0; pre-920 patch candidate diagnostics",
+          "command": [
+            "LOCAL:920-diagnostic-3"
+          ],
+          "exit": 0,
+          "exitNote": "CLI protocol Error can retain shell exit0; verdict follows the actual assertion/observation",
+          "expected": "Actual input and measured geometry follow intended contract",
+          "actual": "CLI30s wait timeout after CDP detach resets touch capability",
+          "input": "Synthetic isolated fixture; actual operating database only in explicitly identified #919 backup/deployment steps; no public raw data",
+          "classification": "TOOLING",
+          "recovery": "Retain original failure; use explicitly scoped corrective run; final clean source gate and Owner UAT remain separate",
+          "residualRisk": "Windows actual device/Owner repeat UAT, pinch/pen/AT and off-host remain NOT TESTED; previous failures are not rewritten",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": "sha256:5ac1904dac65ef88c64952b67866a84d078a39dc74bea007f254c7a5a1fa10f8",
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:920-observed"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_920_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "setup-corrected",
+          "at": null,
+          "timeNote": "2026-11-15; exact individual command timestamp not collected; named private logs retain available times",
+          "stage": "LOCAL_PREP",
+          "status": "PASS",
+          "sourceSha": "fc8b0858f467bec0cd0a13a0fd14f1edd752c8a7",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED diagnostic/operator execution; sourceSha names baseline/target image; private helper or dirty test diff not a clean commit; full source/environment before-after fingerprints not collected; not final gate evidence",
+          "environment": "Linux/WSL2 x64; Node22.14.0/npm11.10.0; installed Chromium1243; Docker runtime Node26.8.2 linux/amd64 where applicable; full supplemental environment fingerprint not collected",
+          "environmentVersion": "masterGantt0.147.0; pre-920 patch candidate diagnostics",
+          "command": [
+            "LOCAL:920-corrected-diagnostic-3"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "Diagnostic reaches actual product input",
+          "actual": "Existing Chromium1243 and live CDP session successfully drive/observe actual pointer input",
+          "input": "Synthetic isolated fixture; actual operating database only in explicitly identified #919 backup/deployment steps; no public raw data",
+          "classification": "TOOLING",
+          "recovery": "Retain original failure; use explicitly scoped corrective run; final clean source gate and Owner UAT remain separate",
+          "residualRisk": "Windows actual device/Owner repeat UAT, pinch/pen/AT and off-host remain NOT TESTED; previous failures are not rewritten",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:920-setup-corrected"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_920_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "fc8b0858f467bec0cd0a13a0fd14f1edd752c8a7",
+            "environment": "Linux/WSL2 x64; Node22.14.0/npm11.10.0; installed Chromium1243; Docker runtime Node26.8.2 linux/amd64 where applicable; full supplemental environment fingerprint not collected",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F920-004",
+      "issue": 920,
+      "ledger": "docs/ISSUE_920_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        919,
+        898,
+        822
+      ],
+      "domain": "gantt-input",
+      "layer": "browser",
+      "keywords": [
+        "ctrl-wheel",
+        "hybrid",
+        "coarse",
+        "touch",
+        "density"
+      ],
+      "cause": "Fine checkbox expectation counted row border as content",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/e2e/schedule-views.spec.ts",
+          "case": "#920 touch-capable PC keeps mouse Ctrl wheel density and restores touch targets",
+          "historical": false,
+          "coverageArea": "actual Chromium capability + mouse/touch, geometry, source/instance/zoom/write checks"
+        },
+        {
+          "path": "tests/e2e/project-summary-bar-visual.spec.ts",
+          "case": "Issue #822 scopes cancellation and switches hybrid input without resetting the instance",
+          "historical": false,
+          "coverageArea": "existing geometry, exclusion, native empty body and initial44 targets"
+        }
+      ],
+      "residualRisk": "Windows actual device/Owner repeat UAT, pinch/pen/AT remain NOT TESTED; first raw red trace not recovered",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "2026-11-15; exact individual command timestamp not collected; named private logs retain available times",
+          "stage": "PLAYWRIGHT",
+          "status": "FAIL",
+          "sourceSha": "fc8b0858f467bec0cd0a13a0fd14f1edd752c8a7",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED diagnostic/operator execution; sourceSha names baseline/target image; private helper or dirty test diff not a clean commit; full source/environment before-after fingerprints not collected; not final gate evidence",
+          "environment": "Linux/WSL2 x64; Node22.14.0/npm11.10.0; installed Chromium1243; Docker runtime Node26.8.2 linux/amd64 where applicable; full supplemental environment fingerprint not collected",
+          "environmentVersion": "masterGantt0.147.0; pre-920 patch candidate diagnostics",
+          "command": [
+            "LOCAL:920-diagnostic-4"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "Actual input and measured geometry follow intended contract",
+          "actual": "focused02 1PASS/1FAIL: expected target>=32px actual31px inside32px row",
+          "input": "Synthetic isolated fixture; actual operating database only in explicitly identified #919 backup/deployment steps; no public raw data",
+          "classification": "TOOLING",
+          "recovery": "Retain original failure; use explicitly scoped corrective run; final clean source gate and Owner UAT remain separate",
+          "residualRisk": "Windows actual device/Owner repeat UAT, pinch/pen/AT and off-host remain NOT TESTED; previous failures are not rewritten",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:920-observed"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_920_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "focused03-green",
+          "at": null,
+          "timeNote": "2026-11-15; exact individual command timestamp not collected; named private logs retain available times",
+          "stage": "PLAYWRIGHT",
+          "status": "PASS",
+          "sourceSha": "fc8b0858f467bec0cd0a13a0fd14f1edd752c8a7",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED diagnostic/operator execution; sourceSha names baseline/target image; private helper or dirty test diff not a clean commit; full source/environment before-after fingerprints not collected; not final gate evidence",
+          "environment": "Linux/WSL2 x64; Node22.14.0/npm11.10.0; installed Chromium1243; Docker runtime Node26.8.2 linux/amd64 where applicable; full supplemental environment fingerprint not collected",
+          "environmentVersion": "masterGantt0.147.0; pre-920 patch candidate diagnostics",
+          "command": [
+            "npm",
+            "run",
+            "test:e2e",
+            "--",
+            "tests/e2e/schedule-views.spec.ts",
+            "tests/e2e/project-summary-bar-visual.spec.ts",
+            "--grep",
+            "#920|Issue #822 scopes",
+            "--reporter=list"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "Same scoped regression cases pass; final clean gates separate",
+          "actual": "2PASS/0FAIL; 5.7s and37.5s; 48 three-View Grid/Chart observations, touch44, zoom/row bounds/instance/canonical checks",
+          "input": "Synthetic isolated fixture; actual operating database only in explicitly identified #919 backup/deployment steps; no public raw data",
+          "classification": "TOOLING",
+          "recovery": "Retain original failure; use explicitly scoped corrective run; final clean source gate and Owner UAT remain separate",
+          "residualRisk": "Windows actual device/Owner repeat UAT, pinch/pen/AT and off-host remain NOT TESTED; previous failures are not rewritten",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:920-focused03-green"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_920_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "fc8b0858f467bec0cd0a13a0fd14f1edd752c8a7",
+            "environment": "Linux/WSL2 x64; Node22.14.0/npm11.10.0; installed Chromium1243; Docker runtime Node26.8.2 linux/amd64 where applicable; full supplemental environment fingerprint not collected",
             "imageDigest": null,
             "backupId": null
           }

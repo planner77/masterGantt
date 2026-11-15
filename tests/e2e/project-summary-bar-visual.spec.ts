@@ -572,7 +572,7 @@ test("Issue #822 keeps a virtual middle-row anchor through bursts and state tran
   await testInfo.attach('issue-822-anchor-dom', { body: JSON.stringify({ anchor, receipts }), contentType: 'application/json' });
 });
 
-test("Issue #822 scopes cancellation and clamps hybrid/coarse changes without resetting the instance", async ({ page }) => {
+test("Issue #822 scopes cancellation and switches hybrid input without resetting the instance", async ({ page }) => {
   await page.addInitScript(() => {
     const original = window.matchMedia.bind(window);
     const lists: MediaQueryList[] = [];
@@ -633,8 +633,14 @@ test("Issue #822 scopes cancellation and clamps hybrid/coarse changes without re
   await page.evaluate(() => (window as unknown as { setDensityTouch(value: boolean): void }).setDensityTouch(true));
   expect(await page.evaluate(() => matchMedia('(pointer: coarse)').matches)).toBe(true);
   await densityWheel(page, row, 1200);
-  await expect(root).toHaveAttribute('data-gantt-cell-height', '44');
-  expect((await row.locator('.project-copy-selection-hitarea').boundingBox())!.height).toBeGreaterThanOrEqual(44);
+  // #920: actual mouse input selects the fine profile even on touch hardware.
+  // The separate touch-capable three-View test restores 44px with real touch.
+  await expect(root).toHaveAttribute('data-gantt-cell-height', '34');
+  const fineTarget = await row.locator('.project-copy-selection-hitarea').boundingBox();
+  const fineRow = await row.boundingBox();
+  expect(fineTarget!.height).toBeGreaterThanOrEqual(fineRow!.height - 1);
+  expect(fineTarget!.y).toBeGreaterThanOrEqual(fineRow!.y);
+  expect(fineTarget!.y + fineTarget!.height).toBeLessThanOrEqual(fineRow!.y + fineRow!.height);
   await page.evaluate(() => (window as unknown as { setDensityTouch(value: boolean): void }).setDensityTouch(false));
   await expect(root).toHaveAttribute('data-gantt-cell-height', '34');
   // #898 extends this existing real-pointer test to the native empty Grid

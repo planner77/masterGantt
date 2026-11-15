@@ -1,3 +1,7 @@
+## Issue #920 — 터치 지원 PC의 실제 입력별 행 밀도
+
+터치 지원 여부만으로 마우스 Ctrl+휠을 잠그지 않는다. 초기 touch-capable 환경과 실제 본문 터치 조작은44px를 사용한다. 실제 Ctrl+휠 아래는44→34→32→30→28px로 전환하며, 초기44px에서 휠 위는44px를 유지한다. fine 프로파일 확대 상한은34px다. 세 View의 행 안 제어는 실제 프로파일을 따라 이웃 행을 침범하지 않는다. 기존 단일 Coordinator·body hit-test·브라우저 확대 제외 영역·잠금과 canonical 쓰기0를 유지한다. [실행·검증](exec-plans/active/ISSUE_920.md).
+
 ## Issue #891 — Markdown 툴팁·resize·Dialog 높이 검증
 
 기존 MDXEditor의 translation/tooltip API를 우선하고 설치4.3.3의 실제 keymap과 기능명을 교차 확인한다. 버튼·토글·선택 trigger·모드 전환·disabled 동작까지 hover/focus 접근과 현재 언어를 검사한다. native title 중복·overflow clipping·native dialog 뒤 portal을 허용하지 않는다. locale 왕복은 동일 editor/undo/source 초안·선택을 유지하고 저장 전 network write를 만들지 않는다.

@@ -1,6 +1,10 @@
+## Issue #920 — 터치 지원 PC의 실제 입력별 행 밀도
+
+터치 지원 여부만으로 마우스 Ctrl+휠을 잠그지 않는다. 초기 touch-capable 환경과 실제 본문 터치 조작은44px를 사용한다. 실제 Ctrl+휠 아래는44→34→32→30→28px로 전환하며, 초기44px에서 휠 위는44px를 유지한다. fine 프로파일 확대 상한은34px다. 세 View의 행 안 제어는 실제 프로파일을 따라 이웃 행을 침범하지 않는다. 기존 단일 Coordinator·body hit-test·브라우저 확대 제외 영역·잠금과 canonical 쓰기0를 유지한다. [실행·검증](exec-plans/active/ISSUE_920.md).
+
 ## Issues #898 / #899 — 실제 본문 휠·조회 Task 탐색
 
-일정 frame의 단일 non-passive capture listener가 현재 보이는 WBS/Resource/설비 본문 좌표와 소유 DOM을 확인한다. 유효 cancelable Ctrl+휠은 밀도 mutation/recovery/coarse 보류 중에도 브라우저 확대를 유발하지 않게 취소한다. 비취소 이벤트는 차단 성공으로 간주하지 않는다. 일반 wheel과 header/toolbar/input/menu/dialog/외부는 기존 동작을 유지한다.
+일정 frame의 단일 non-passive capture listener가 현재 보이는 WBS/Resource/설비 본문 좌표와 소유 DOM을 확인한다. 유효 cancelable Ctrl+휠은 밀도 mutation/recovery 보류 중에도 브라우저 확대를 유발하지 않게 취소한다. 비취소 이벤트는 차단 성공으로 간주하지 않는다. 일반 wheel과 header/toolbar/input/menu/dialog/외부는 기존 동작을 유지한다.
 
 Resource/설비 Grid 단일 클릭·선택 버튼 Enter/Space는 canonical Task 선택과 클릭한 viewRowKey의 현재 Chart 시작점 정렬만 수행한다. 정보 버튼(키보드/터치), 더블클릭, 기존 Chart Bar는 같은 canonical Task Editor를 연다. Group은 expand/collapse만 한다. 원본 Task/Link/Revision·readonly 권한과 숨긴 WBS Core/viewport는 보존한다. 용량 부족·날짜 없음·미측정은 typed 결과이며 Editor 자동 진입이나 축 확장으로 우회하지 않는다. 상세 [실행 계획](exec-plans/active/ISSUE_898.md).
 
@@ -63,7 +67,7 @@ Task Editor 작업 정보 탭 하단의 `Issue 등록` 명령은 readonly에서�
 
 ## Issue #822 — Ctrl+휠 세로 밀도 조절
 
-일정의 Grid 또는 Chart **본문**에 포인터를 놓고 `Ctrl+휠 아래`로 행·본문 글꼴·Task bar를 함께 축소하고, `Ctrl+휠 위`로 기본 크기까지 확대한다. fine pointer의 행은34/32/30/28px, Grid 본문 글꼴은14/13.3/12.6/12.04px이며 기존 명시12px 보조 제어는 최소 크기를 유지한다. 최초 진입은34px, 터치 가능한 coarse·혼합 포인터는44px 단일 프로파일로 조작 목표를 보존한다. 최종 단계별 실측과 검증 범위는 [#822 Work Packet](exec-plans/active/ISSUE_822.md)에 기록한다.
+일정의 Grid 또는 Chart **본문**에 포인터를 놓고 `Ctrl+휠 아래`로 행·본문 글꼴·Task bar를 함께 축소하고, `Ctrl+휠 위`로 기본 크기까지 확대한다. fine pointer의 행은34/32/30/28px, Grid 본문 글꼴은14/13.3/12.6/12.04px이며 기존 명시12px 보조 제어는 최소 크기를 유지한다. 최초 fine 진입은34px, 터치 지원 환경은44px로 시작한다. #920부터 실제 마우스 Ctrl+휠 아래는44→34→32→30→28px로 전환하고 초기44에서 휠 위는44를 유지한다. 실제 본문 터치 조작은44px로 복원한다. 최종 단계별 실측과 검증 범위는 [#822 Work Packet](exec-plans/active/ISSUE_822.md)에 기록한다.
 
 동일1440×1000 fixture의 실제 DOM 계측은 다음과 같다. Summary는 native root 대비 약60%이며 동일 Task의 Grid/Chart 중심 차이는0.5px였다. 이 값은 아래 로컬 정제 증거의 환경 범위이며 모든 기기·운영 성능을 보장하지 않는다.
 
