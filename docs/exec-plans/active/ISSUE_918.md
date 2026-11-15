@@ -24,3 +24,8 @@
 ## DOCUMENTATION_SYNC
 
 UPDATED: AGENTS, AGENT_INSTRUCTION_AUDIT_20261114, GITHUB_OPERATIONS, ISSUE_LIFECYCLE, CI_CD 및 본 Work Packet. TEST_PLAN/LOCAL_PREPR/AGENT_CONFIGURATION/AGENT_PROMPTS/QA_REVIEW_POLICY는 기존 책임·명령을 변경하지 않아 N/A(해당 내용으로 라우팅만 정합화). 제품DESIGN/API/DB/보안/일정/Import/배포 계약은 N/A(제품 및 운영실행 변경0). 실제 시험/QA/Push·종료 결과는 Issue FINAL에 exact SHA와 연결하며 후보 준비만으로 PASS를 주장하지 않는다.
+
+
+## F918-001 재작업
+
+기존119개 영향case중118PASS/1FAIL 및 동일source fast UnitFAIL을 [원장](../../ISSUE_918_FAILURE_ANALYSIS.md)에 보존한다. 문서테스트소비자의 위치만책임문서로이관하며TOML모델/effort/read-only/Manager/6thread검증은보존한다. 테스트파일변경을포함한보수적admission상Docker/runtime도같은source로실행한다. 제품/빌드입력은불변이므로918단독게시와버전변경은N/A다. REGRESSION_INDEX및테스트소비자도UPDATED다.

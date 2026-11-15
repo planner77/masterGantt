@@ -50,6 +50,11 @@
       "issue": 917,
       "primaryIssue": 917,
       "ledger": "docs/ISSUE_917_FAILURE_ANALYSIS.md"
+    },
+    {
+      "issue": 918,
+      "primaryIssue": 918,
+      "ledger": "docs/ISSUE_918_FAILURE_ANALYSIS.md"
     }
   ],
   "failures": [
@@ -9011,6 +9016,70 @@
             "imageDigest": null,
             "backupId": null
           }
+        }
+      ]
+    },
+    {
+      "id": "F918-001",
+      "issue": 918,
+      "ledger": "docs/ISSUE_918_FAILURE_ANALYSIS.md",
+      "relatedIssues": [],
+      "domain": "tooling",
+      "layer": "agent-policy",
+      "keywords": [
+        "AGENTS",
+        "routing",
+        "model-selection"
+      ],
+      "cause": "모델 문서 테스트가 이전 AGENTS 모델표 위치를 고정",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/scripts/agent-model-selection.test.ts",
+          "case": "routes model documentation to the same Terra selection and deliberate Sol escalation",
+          "historical": false,
+          "coverageArea": "AGENTS포인터와책임문서의동등모델/승격계약;TOML8역할검증보존"
+        }
+      ],
+      "residualRisk": "실제runtime모델식별은설정검증과구분",
+      "events": [
+        {
+          "id": "observed",
+          "at": "2026-11-15T00:59:02.030Z",
+          "timeNote": null,
+          "stage": "UNIT",
+          "status": "FAIL",
+          "sourceSha": "bda204af5d87b175db3c4b5c6a14aa3b11f29014",
+          "fixSourceSha": null,
+          "sourceFingerprint": "844122f900d42c45d88dbd28c858f9985a6ac6ea62fccda376b30c00d9acb1fb",
+          "sourceNote": null,
+          "environment": "Linux; Node22.14.0; npm11.10.0",
+          "environmentVersion": "masterGantt0.146.0",
+          "command": [
+            "node",
+            "scripts/verify-prepr.mjs",
+            "--mode=targeted",
+            "--issue=918"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "라우팅된 책임 문서와 실제 모델 계약 검증",
+          "actual": "5files119cases:118PASS/1FAIL; old AGENTS literal",
+          "input": "tracked 공개 문서·Agent TOML; 운영자료0",
+          "classification": "TOOLING",
+          "recovery": "최초FAIL보존; 책임문서포인터와동등모델/승격계약검사로이관 후새source검증",
+          "residualRisk": "최종source gate/QA/admit는 별도실제결과 필요",
+          "evidenceScope": "EXACT",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_918_FAILURE_ANALYSIS.md"
+            }
+          ]
         }
       ]
     }

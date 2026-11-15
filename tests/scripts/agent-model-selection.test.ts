@@ -54,11 +54,13 @@ describe("Issue #831 — Terra role selection (configuration contract)", () => {
     expect(contents).toMatch(/^max_concurrent_threads_per_session\s*=\s*6\s*$/m);
   });
 
-  it("documents Terra selection and a deliberate Sol escalation", () => {
+  it("routes model documentation to the same Terra selection and deliberate Sol escalation", () => {
     const instructions = readFileSync(resolve(root, "AGENTS.md"), "utf8");
-    expect(instructions).toMatch(/ui_ux\s+→ GPT-6\.1 Terra \/ Medium/);
-    expect(instructions).toMatch(/frontend\s+→ GPT-6\.1 Terra \/ Medium/);
-    expect(instructions).toContain("GPT-6.1 Sol/High");
-    expect(instructions).toContain("조용히 대체하지 않는다");
+    const configuration = readFileSync(resolve(root, "docs/AGENT_CONFIGURATION.md"), "utf8");
+    expect(instructions).toContain("[AGENT_CONFIGURATION](docs/AGENT_CONFIGURATION.md)");
+    expect(configuration).toMatch(/\| ui_ux \| gpt-6\.1-terra \/ medium \|/);
+    expect(configuration).toMatch(/\| frontend \| gpt-6\.1-terra \/ medium \|/);
+    expect(configuration).toContain("Sol/high 작업별 승격");
+    expect(configuration).toContain("조용한 fallback을 하지 않는다");
   });
 });
