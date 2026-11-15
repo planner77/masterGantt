@@ -3,7 +3,7 @@
 .resizable::after { content: ""; position: sticky; display: block; width: 0.75rem; height: 0.75rem; bottom: 0; margin: -0.75rem 0 0 auto; background: repeating-linear-gradient(135deg, transparent 0 2px, var(--text-muted) 2px 3px, transparent 3px 5px); pointer-events: none; }
 .editorShell { min-width: 0; height: 100%; min-height: 0; display: flex; flex-direction: column; }
 .blockType { display: inline-flex; min-width: 0; }
-.resizable :global(.mdxeditor) { flex: 1; border: 0; }
+.resizable :global(.mdxeditor) { flex: 1; min-height: 0; border: 0; }
 .resizable :global(.mdxeditor-toolbar) { flex-shrink: 0; }
 .resizable :global(.mdxeditor-diff-source-wrapper) { display: flex; flex-direction: column; flex: 1; min-height: 0; }
 .resizable :global(.mdxeditor-rich-text-editor) { height: 100%; }

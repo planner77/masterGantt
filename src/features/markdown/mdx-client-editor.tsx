@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
+import { usePublisher } from "@mdxeditor/gurx";
 import { useI18n } from "@/lib/i18n/provider";
 import { translateMarkdownToolbar } from "./description-translations";
 import { EditorToolbarTooltips } from "./editor-toolbar-tooltips";
@@ -11,7 +12,7 @@ import {
   DiffSourceToggleWrapper, InsertCodeBlock, InsertThematicBreak,
   codeBlockPlugin, codeMirrorPlugin, diffSourcePlugin, headingsPlugin, useTranslation,
   linkDialogPlugin, linkPlugin, listsPlugin, markdownShortcutPlugin, quotePlugin,
-  tablePlugin, thematicBreakPlugin, toolbarPlugin,
+  tablePlugin, thematicBreakPlugin, toolbarPlugin, translation$,
 } from "@mdxeditor/editor";
 import "@mdxeditor/editor/style.css";
 
@@ -32,6 +33,16 @@ function DescriptionBlockTypeSelect() {
       "toolbar.blockTypeSelect.selectBlockTypeTooltip", "Select block type"));
   }, [t]);
   return <span ref={wrapper} className={styles.blockType}><BlockTypeSelect /></span>;
+}
+
+function DescriptionTranslationSync({ apple }: { apple: boolean }) {
+  const { locale } = useI18n();
+  const publish = usePublisher(translation$);
+  useLayoutEffect(() => {
+    // MDXEditor 4.3.3 applies translation on initialization but not on updates.
+    publish((key, fallback, vars) => translateMarkdownToolbar(locale, key, fallback, vars, apple));
+  }, [apple, locale, publish]);
+  return null;
 }
 
 /** Loaded only in a client-only dynamic import. 'markdown' is an initial value, never a controlled value. */
@@ -81,10 +92,10 @@ export function MdxClientEditor({ markdown, disabled, onChange, onError }: Props
       markdownShortcutPlugin(),
       diffSourcePlugin({ viewMode: "rich-text" }),
       toolbarPlugin({
-        toolbarContents: () => <DiffSourceToggleWrapper options={["rich-text", "source"]}>
+        toolbarContents: () => <><DescriptionTranslationSync apple={apple} /><DiffSourceToggleWrapper options={["rich-text", "source"]}>
           <DescriptionHistory /><BoldItalicUnderlineToggles /><CodeToggle /><DescriptionBlockTypeSelect />
           <DescriptionLists /><CreateLink /><DescriptionInsertTable /><InsertCodeBlock /><InsertThematicBreak />
-        </DiffSourceToggleWrapper>,
+        </DiffSourceToggleWrapper></>,
       }),
     ]}
   /></EditorToolbarTooltips> : null}</div>;

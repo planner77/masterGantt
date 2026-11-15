@@ -160,6 +160,21 @@ export async function resizeMarkdown891(page: Page, dialog: Locator, field: Loca
   expect((await dialog.boundingBox())!.width).toBeCloseTo(dialogWidth, 0);
   expect(editorGrown.height).toBeGreaterThan(editorBefore.height + 40);
   await resizer.scrollIntoViewIfNeeded();
+  const startMax = (await resizer.boundingBox())!;
+  await page.mouse.move(startMax.x + startMax.width - 3, startMax.y + startMax.height - 3);
+  await page.mouse.down();
+  await page.mouse.move(startMax.x + startMax.width + 100, startMax.y + startMax.height + 2000, { steps: 10 });
+  await page.mouse.up();
+  const maximum = (await resizer.boundingBox())!;
+  const limits = await resizer.evaluate(element => ({
+    max: parseFloat(getComputedStyle(element).maxHeight),
+    body: element.closest<HTMLElement>("[data-editor-body]")!.clientHeight,
+  }));
+  expect(maximum.height).toBeCloseTo(limits.max, 0);
+  expect(maximum.height).toBeLessThanOrEqual(Math.max(240, limits.body - 12) + 1);
+  expect(maximum.width).toBeCloseTo(before.width, 0);
+  expect((await dialog.boundingBox())!.width).toBeCloseTo(dialogWidth, 0);
+  await resizer.scrollIntoViewIfNeeded();
   const handle = (await resizer.boundingBox())!;
   await page.mouse.move(handle.x + handle.width - 3, handle.y + handle.height - 3);
   await page.mouse.down();
@@ -170,5 +185,29 @@ export async function resizeMarkdown891(page: Page, dialog: Locator, field: Loca
   expect(minimum.height).toBeGreaterThanOrEqual(240);
   expect(minimum.height).toBeLessThan(grown.height);
   await dialogGeometry891(page, dialog);
-  return { before, grown, minimum, editorBefore, editorGrown };
+  return { before, grown, maximum, minimum, editorBefore, editorGrown };
+}
+
+export async function checkLongMarkdownScroll891(page: Page, dialog: Locator, field: Locator, mode: "rich" | "source") {
+  const editable = field.locator(mode === "rich" ? '.mastergantt-markdown-contenteditable[contenteditable="true"]' : '.cm-content[contenteditable="true"]');
+  await editable.fill(longMarkdown891);
+  const resizer = field.locator('[data-markdown-resizer="true"]');
+  const scroll = await resizer.evaluate(element => {
+    const candidates = [element, ...element.querySelectorAll<HTMLElement>("*")];
+    const owner = candidates.find(candidate => {
+      const style = getComputedStyle(candidate);
+      return /auto|scroll/.test(style.overflowY) && candidate.scrollHeight > candidate.clientHeight + 1;
+    });
+    if (!owner) return null;
+    owner.scrollTop = owner.scrollHeight;
+    return { top: owner.scrollTop, height: owner.scrollHeight, client: owner.clientHeight, overflow: getComputedStyle(owner).overflowY };
+  });
+  expect(scroll).not.toBeNull();
+  expect(scroll!.height).toBeGreaterThan(scroll!.client);
+  expect(scroll!.top).toBeGreaterThan(0);
+  await expect(field.locator(".mdxeditor-toolbar")).toBeInViewport();
+  await dialogGeometry891(page, dialog);
+  await resizer.evaluate(element => {
+    [element, ...element.querySelectorAll<HTMLElement>("*")].forEach(candidate => { candidate.scrollTop = 0; });
+  });
 }

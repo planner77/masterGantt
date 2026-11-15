@@ -10432,6 +10432,666 @@
           ]
         }
       ]
+    },
+    {
+      "id": "F891-016",
+      "issue": 891,
+      "ledger": "docs/ISSUE_891_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        885,
+        869
+      ],
+      "domain": "markdown-editor",
+      "layer": "ui",
+      "keywords": [
+        "locale",
+        "toolbar",
+        "translation$",
+        "history"
+      ],
+      "cause": "MDXEditor update callback에서 내부 translation 상태 미갱신",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/e2e/project-task-editor-persistence.spec.ts",
+          "case": "Issue #891 task toolbar labels, actual shortcuts, locale history and vertical resize",
+          "historical": false,
+          "coverageArea": "locale왕복·동일editor/undo/source·실제hover/focus툴팁"
+        },
+        {
+          "path": "tests/e2e/project-task-editor-persistence.spec.ts",
+          "case": "Issue #891 issue toolbar labels, actual shortcuts, locale history and vertical resize",
+          "historical": false,
+          "coverageArea": "locale왕복·동일editor/undo/source·실제hover/focus툴팁"
+        }
+      ],
+      "residualRisk": "최종clean source/gate·원문/selection검증별도",
+      "events": [
+        {
+          "id": "observed",
+          "at": "2026-11-15T01:17:15Z",
+          "timeNote": "실행 시작2026-11-15T01:14:58Z;KST보고를UTC로환산",
+          "stage": "PLAYWRIGHT",
+          "status": "FAIL",
+          "sourceSha": "6471dd8b311719b83e7f6f84f3236bda8a020ddf",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "HEAD6471dd8b 위문서WIP병행;시작diff지문미수집",
+          "environment": "Linux; Node22.14.0; Playwright1.63.0 Chromium; isolated synthetic application",
+          "environmentVersion": "masterGantt0.147.0 WIP",
+          "command": [
+            "npx",
+            "playwright",
+            "test",
+            "--config",
+            "tests/config/playwright.config.ts",
+            "tests/e2e/project-task-editor-persistence.spec.ts",
+            "--grep",
+            "Issue #891 .* toolbar"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "KO→VI→EN→KO 모든toolbar현재언어및동일editor상태보존",
+          "actual": "Task/Issue2casesFAIL;주변UI와toolbar일부의locale불일치/helper116",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "PRODUCT",
+          "recovery": "설치4.3.3공개translation$상태동기화;remount·assertion완화없이재시험",
+          "residualRisk": "교정후실제2case/11case및최종source검증별도",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-toolbar-failure-101458"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "rich-sync-source-unmounted",
+          "at": "2026-11-15T01:20:51Z",
+          "timeNote": "실행시작2026-11-15T01:17:47Z",
+          "stage": "PLAYWRIGHT",
+          "status": "FAIL",
+          "sourceSha": "6471dd8b311719b83e7f6f84f3236bda8a020ddf",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED제품/테스트diffSHA71abc972f119c445542c7de0d855c128aa42ff682e9d04fcc02438f84aa3e316 시작종료동일;전체source지문아님",
+          "environment": "Linux; Node22.14.0; Playwright1.63.0 Chromium; isolated synthetic application",
+          "environmentVersion": "masterGantt0.147.0 WIP",
+          "command": [
+            "npx",
+            "playwright",
+            "test",
+            "--config",
+            "tests/config/playwright.config.ts",
+            "tests/e2e/project-task-editor-persistence.spec.ts",
+            "--grep",
+            "Issue #891 .* toolbar"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "KO→VI→EN→KO 모든toolbar현재언어및동일editor상태보존",
+          "actual": "Rich locale왕복통과;Source에서translationSync unmount되어462행2caseFAIL",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "PRODUCT",
+          "recovery": "실행종료뒤sync를DiffSourceToggleWrapper밖항상mount되는경계로이동;새재시험분리",
+          "residualRisk": "교정후실제2case/11case및최종source검증별도",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-toolbar-failure-101747"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "task-key-scoped-retest",
+          "at": "2026-11-15T01:31:38Z",
+          "timeNote": "실행시작01:30:06Z",
+          "stage": "PLAYWRIGHT",
+          "status": "PASS",
+          "sourceSha": "6471dd8b311719b83e7f6f84f3236bda8a020ddf",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED제품/테스트diffSHA56e40b19dad8bad2063c49d38898a3ee615a6b146d2512f487a5600b83cf01dc 시작끝동일;후속scroll끝검사강화와clean최종source는별도",
+          "environment": "Linux; Node22.14.0; Playwright1.63.0 Chromium; isolated synthetic application",
+          "environmentVersion": "masterGantt0.147.0 WIP",
+          "command": [
+            "npx",
+            "playwright",
+            "test",
+            "--config",
+            "tests/config/playwright.config.ts",
+            "tests/e2e/project-task-editor-persistence.spec.ts",
+            "--grep",
+            "Issue #891 task toolbar"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "Rich/Source locale왕복·같은editor/undo/source초안보존",
+          "actual": "Task단일1PASS;Rich/Source locale·물리keyundo/redo·editoridentity·resize/min/max/긴본문scroll관측",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "PRODUCT",
+          "recovery": "공개translation$를항상mount되는경계에서동기화후Task단일재시험;최종두surface동일source전체는별도",
+          "residualRisk": "교정후실제2case/11case및최종source검증별도",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-task-pass-103006"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "6471dd8b311719b83e7f6f84f3236bda8a020ddf",
+            "environment": "Linux; Node22.14.0; Playwright1.63.0 Chromium; isolated synthetic application",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F891-017",
+      "issue": 891,
+      "ledger": "docs/ISSUE_891_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        885,
+        869
+      ],
+      "domain": "markdown-editor",
+      "layer": "ui",
+      "keywords": [
+        "toolbar",
+        "source-redo",
+        "physical-key"
+      ],
+      "cause": "Playwright shifted소문자z가CodeMirror에서undo로해석",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/e2e/project-task-editor-persistence.spec.ts",
+          "case": "Issue #891 task toolbar labels, actual shortcuts, locale history and vertical resize",
+          "historical": false,
+          "coverageArea": "locale왕복·동일editor/undo/source·실제hover/focus툴팁"
+        },
+        {
+          "path": "tests/e2e/project-task-editor-persistence.spec.ts",
+          "case": "Issue #891 issue toolbar labels, actual shortcuts, locale history and vertical resize",
+          "historical": false,
+          "coverageArea": "locale왕복·동일editor/undo/source·실제hover/focus툴팁"
+        }
+      ],
+      "residualRisk": "최종clean source/gate·원문/selection검증별도",
+      "events": [
+        {
+          "id": "observed",
+          "at": "2026-11-15T01:24:50Z",
+          "timeNote": "시작UTC 2026-11-15T01:21:12Z",
+          "stage": "PLAYWRIGHT",
+          "status": "FAIL",
+          "sourceSha": "6471dd8b311719b83e7f6f84f3236bda8a020ddf",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED제품/테스트diffSHA63f30cf80e931ec2414a3feb91bf604996cfcb0c33d9282f3246843d88492a86 시작종료동일;전체source지문아님",
+          "environment": "Linux; Node22.14.0; Playwright1.63.0 Chromium; isolated synthetic application",
+          "environmentVersion": "masterGantt0.147.0 WIP",
+          "command": [
+            "npx",
+            "playwright",
+            "test",
+            "--config",
+            "tests/config/playwright.config.ts",
+            "tests/e2e/project-task-editor-persistence.spec.ts",
+            "--grep",
+            "Issue #891 .* toolbar"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "Source에서실제사용자물리키undo/redo로원문marker복원·동일editor/history보존",
+          "actual": "locale/draft/selection/identity통과후Source redo472행2FAIL",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "TOOLING",
+          "recovery": "원본보존;physical Control+Shift+KeyZ로교정·assertion/history계약유지",
+          "residualRisk": "교정후실제2case/11case및최종source검증별도",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-toolbar-failure-102112"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "single-task-physical-key-diagnosis",
+          "at": "2026-11-15T01:29:35Z",
+          "timeNote": "실행시작01:27:58Z",
+          "stage": "PLAYWRIGHT",
+          "status": "FAIL",
+          "sourceSha": "6471dd8b311719b83e7f6f84f3236bda8a020ddf",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED제품/테스트diffSHA0f512cfcf4fc7ad8c5c4e52d405fe462c72f76c2dbb6eef252a8c1c3b1185185 시작끝동일",
+          "environment": "Linux; Node22.14.0; Playwright1.63.0 Chromium; isolated synthetic application",
+          "environmentVersion": "masterGantt0.147.0 WIP",
+          "command": [
+            "npx",
+            "playwright",
+            "test",
+            "--config",
+            "tests/config/playwright.config.ts",
+            "tests/e2e/project-task-editor-persistence.spec.ts",
+            "--grep",
+            "Issue #891 task toolbar"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "Source에서실제사용자물리키undo/redo로원문marker복원·동일editor/history보존",
+          "actual": "max/긴본문검사통과;Source redo1caseFAIL/exit1",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "TOOLING",
+          "recovery": "원본보존;physical Control+Shift+KeyZ로교정·assertion/history계약유지",
+          "residualRisk": "교정후실제2case/11case및최종source검증별도",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-toolbar-failure-102758"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "task-key-scoped-retest",
+          "at": "2026-11-15T01:31:38Z",
+          "timeNote": "실행시작01:30:06Z",
+          "stage": "PLAYWRIGHT",
+          "status": "PASS",
+          "sourceSha": "6471dd8b311719b83e7f6f84f3236bda8a020ddf",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED제품/테스트diffSHA56e40b19dad8bad2063c49d38898a3ee615a6b146d2512f487a5600b83cf01dc 시작끝동일;후속scroll끝검사강화와clean최종source는별도",
+          "environment": "Linux; Node22.14.0; Playwright1.63.0 Chromium; isolated synthetic application",
+          "environmentVersion": "masterGantt0.147.0 WIP",
+          "command": [
+            "npx",
+            "playwright",
+            "test",
+            "--config",
+            "tests/config/playwright.config.ts",
+            "tests/e2e/project-task-editor-persistence.spec.ts",
+            "--grep",
+            "Issue #891 task toolbar"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "실제물리키Source undo/redo로marker복원·history/editoridentity보존",
+          "actual": "Task단일1PASS;Rich/Source locale·물리keyundo/redo·editoridentity·resize/min/max/긴본문scroll관측",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "TOOLING",
+          "recovery": "Playwright physical KeyZ교정후Task단일재시험;새hotkey/제품history변경0",
+          "residualRisk": "교정후실제2case/11case및최종source검증별도",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-task-pass-103006"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "6471dd8b311719b83e7f6f84f3236bda8a020ddf",
+            "environment": "Linux; Node22.14.0; Playwright1.63.0 Chromium; isolated synthetic application",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F891-018",
+      "issue": 891,
+      "ledger": "docs/ISSUE_891_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        885,
+        869
+      ],
+      "domain": "markdown-editor",
+      "layer": "ui",
+      "keywords": [
+        "resize",
+        "long-content",
+        "scroll-owner"
+      ],
+      "cause": "긴Rich본문의실제scroll owner와flex최소높이경계조사필요",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/e2e/project-task-editor-persistence.spec.ts",
+          "case": "Issue #891 task toolbar labels, actual shortcuts, locale history and vertical resize",
+          "historical": false,
+          "coverageArea": "locale왕복·동일editor/undo/source·실제hover/focus툴팁"
+        },
+        {
+          "path": "tests/e2e/project-task-editor-persistence.spec.ts",
+          "case": "Issue #891 issue toolbar labels, actual shortcuts, locale history and vertical resize",
+          "historical": false,
+          "coverageArea": "locale왕복·동일editor/undo/source·실제hover/focus툴팁"
+        }
+      ],
+      "residualRisk": "최종clean source/gate·원문/selection검증별도",
+      "events": [
+        {
+          "id": "observed",
+          "at": "2026-11-15T01:27:36Z",
+          "timeNote": "시작UTC 2026-11-15T01:26:23Z",
+          "stage": "PLAYWRIGHT",
+          "status": "FAIL",
+          "sourceSha": "6471dd8b311719b83e7f6f84f3236bda8a020ddf",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED제품/테스트diffSHA179e75cd2f7393ac3514f12c44734bb717572d9d7997adbb069955474bf217ea 시작종료동일;전체source지문아님",
+          "environment": "Linux; Node22.14.0; Playwright1.63.0 Chromium; isolated synthetic application",
+          "environmentVersion": "masterGantt0.147.0 WIP",
+          "command": [
+            "npx",
+            "playwright",
+            "test",
+            "--config",
+            "tests/config/playwright.config.ts",
+            "tests/e2e/project-task-editor-persistence.spec.ts",
+            "--grep",
+            "Issue #891 .* toolbar"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "resizer내실제overflow owner의본문끝scroll·toolbar/footer접근과최소/최대안전상한검증",
+          "actual": "Richroot1753/1753·1704/1704px로internal-scroll assertion2FAIL",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "UNKNOWN",
+          "recovery": "설치full-height구조/computedoverflow와wrapper내실제scroll조사;oracle/제품원인구별후재검증",
+          "residualRisk": "교정후실제2case/11case및최종source검증별도",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-toolbar-failure-102623"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "scroll-owner-oracle-correction",
+          "at": null,
+          "timeNote": "개별관측절대시각미수집;원본frameSwapWallTime1794706022018.641",
+          "stage": "VISUAL",
+          "status": "NOT TESTED",
+          "sourceSha": "6471dd8b311719b83e7f6f84f3236bda8a020ddf",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED제품/테스트diffSHA179e75cd2f7393ac3514f12c44734bb717572d9d7997adbb069955474bf217ea 시작종료동일;전체source지문아님",
+          "environment": "Linux; Node22.14.0; Playwright1.63.0 Chromium; isolated synthetic application",
+          "environmentVersion": "masterGantt0.147.0 WIP",
+          "command": [
+            "functions.exec",
+            "tools.exec_command: python3 zipfile/json/base64 read-only extraction",
+            "image(dataURL): visual inspection"
+          ],
+          "exit": null,
+          "exitNote": "자료추출python은exit0이나이미지시각관측은별도process exit없음;scroll실행test아님",
+          "expected": "resizer내실제overflow owner의본문끝scroll·toolbar/footer접근과최소/최대안전상한검증",
+          "actual": "1440x1000 원본trace마지막screencast에서wrapper내본문/handle/toolbar/footer보임;끝scroll실행미수행",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "TOOLING",
+          "recovery": "원본resource screencast/page@acedab5d5f9454b01c93fd1e794e000e-1794706022022.jpeg;실제wrapper내scroll끝상태접근검사를강화후새source실행",
+          "residualRisk": "교정후실제2case/11case및최종source검증별도",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-toolbar-failure-102623"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "task-key-scoped-retest",
+          "at": "2026-11-15T01:31:38Z",
+          "timeNote": "실행시작01:30:06Z",
+          "stage": "PLAYWRIGHT",
+          "status": "PASS",
+          "sourceSha": "6471dd8b311719b83e7f6f84f3236bda8a020ddf",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED제품/테스트diffSHA56e40b19dad8bad2063c49d38898a3ee615a6b146d2512f487a5600b83cf01dc 시작끝동일;후속scroll끝검사강화와clean최종source는별도",
+          "environment": "Linux; Node22.14.0; Playwright1.63.0 Chromium; isolated synthetic application",
+          "environmentVersion": "masterGantt0.147.0 WIP",
+          "command": [
+            "npx",
+            "playwright",
+            "test",
+            "--config",
+            "tests/config/playwright.config.ts",
+            "tests/e2e/project-task-editor-persistence.spec.ts",
+            "--grep",
+            "Issue #891 task toolbar"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "wrapper내실제overflowowner·min/max·폭불변·긴본문scroll관측",
+          "actual": "Task단일1PASS;Rich/Source locale·물리keyundo/redo·editoridentity·resize/min/max/긴본문scroll관측",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "TOOLING",
+          "recovery": "공식flex min-height0·실제overflowowner검사후Task단일재시험;끝scroll접근강화후최종전체는별도",
+          "residualRisk": "교정후실제2case/11case및최종source검증별도",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-task-pass-103006"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "6471dd8b311719b83e7f6f84f3236bda8a020ddf",
+            "environment": "Linux; Node22.14.0; Playwright1.63.0 Chromium; isolated synthetic application",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F891-019",
+      "issue": 891,
+      "ledger": "docs/ISSUE_891_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        885,
+        869
+      ],
+      "domain": "markdown-editor",
+      "layer": "ui",
+      "keywords": [
+        "native-zoom",
+        "read-only-POST",
+        "mutation-counter"
+      ],
+      "cause": "읽기전용resource-dashboard/views POST를쓰기관측자가mutation으로오분류",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/e2e/project-task-editor-persistence.spec.ts",
+          "case": "Issue #891 native Chromium 125 percent zoom preserves dialog actions and drafts",
+          "historical": false,
+          "coverageArea": "actualnativezoom/geometry/draft·정확조회구분·canonical전후보존·일반mutation0"
+        }
+      ],
+      "residualRisk": "WIP10PASS와native재시험1PASS의서로다른테스트source를합산하지않음;최종same-source gate필수",
+      "events": [
+        {
+          "id": "observed",
+          "at": "2026-11-15T01:40:34Z",
+          "timeNote": "실행시작01:32:02Z;관측readonlyPOST01:40:29.565Z",
+          "stage": "PLAYWRIGHT",
+          "status": "FAIL",
+          "sourceSha": "6471dd8b311719b83e7f6f84f3236bda8a020ddf",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED제품/테스트diffSHA213f39dbfbb82e6e954d5cb3f63dc0d17bf778d0150546babf567993dad6a8b8 시작끝동일",
+          "environment": "Linux; Node22.14.0; Playwright1.63.0 Chromium; isolated synthetic application",
+          "environmentVersion": "masterGantt0.147.0 WIP",
+          "command": [
+            "npx",
+            "playwright",
+            "test",
+            "--config",
+            "tests/config/playwright.config.ts",
+            "tests/e2e/project-task-editor-persistence.spec.ts",
+            "--grep",
+            "Issue #891"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "native125실제확대·원문불변·쓰기0(정확readonlyquery별도)",
+          "actual": "10PASS/1FAIL;유일POST는mutatesState:false readonlyresource-dashboard/views HTTP200",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "TOOLING",
+          "recovery": "기존정확isWbsViewReadQuery재사용·다른모든POST/PUT/PATCH/DELETE0·canonical동등성강화",
+          "residualRisk": "교정후실제2case/11case및최종source검증별도",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-eleven-103202"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "exact-read-query-native-retest",
+          "at": "2026-11-15T01:42:36Z",
+          "timeNote": "실행시작01:41:58Z",
+          "stage": "PLAYWRIGHT",
+          "status": "PASS",
+          "sourceSha": "6471dd8b311719b83e7f6f84f3236bda8a020ddf",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED제품/테스트diffSHA674bb6b090a27347c32f96b389a0ec93835d45c9af840730979794589ec5bd90 시작끝동일;clean최종source아님",
+          "environment": "Linux; Node22.14.0; Playwright1.63.0 Chromium; isolated synthetic application",
+          "environmentVersion": "masterGantt0.147.0 WIP",
+          "command": [
+            "npx",
+            "playwright",
+            "test",
+            "--config",
+            "tests/config/playwright.config.ts",
+            "tests/e2e/project-task-editor-persistence.spec.ts",
+            "--grep",
+            "Issue #891 native Chromium"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "native125실제확대·원문불변·쓰기0(정확readonlyquery별도)",
+          "actual": "native단일1PASS;zoom1.25/DPR/viewport/CSSzoom·Project/Issuecanonical전후동일",
+          "input": "합성 신규 Project·Issue·Task fixture; 실데이터 없음",
+          "classification": "TOOLING",
+          "recovery": "기존정확isWbsViewReadQuery재사용·다른모든POST/PUT/PATCH/DELETE0·canonical동등성강화",
+          "residualRisk": "교정후실제2case/11case및최종source검증별도",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-native-pass-104158"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "6471dd8b311719b83e7f6f84f3236bda8a020ddf",
+            "environment": "Linux; Node22.14.0; Playwright1.63.0 Chromium; isolated synthetic application",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
     }
   ]
 }

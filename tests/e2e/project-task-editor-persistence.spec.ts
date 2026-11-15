@@ -14,6 +14,7 @@ async function fillTaskMarkdown(dialog: Locator, text: string) {
 import type { ProjectSnapshotResponse, TaskMutationResponse } from "../../src/contracts/projects";
 import { chooseTaskInformation } from "./helpers/task-context-menu";
 import { readBrowserCanonicalSnapshot } from "./helpers/browser-canonical-snapshot";
+import { isWbsViewReadQuery } from "./helpers/read-only-requests";
 
 test.use(isolatedApplicationOptions);
 
@@ -324,7 +325,7 @@ test("linked requested dates, metadata, baseline and successor schedules persist
 import { captureSyntheticUiEvidence } from "./helpers/ui-evidence";
 import {
   seedMarkdownFixture891, openMarkdownTask891, openMarkdownIssue891, dialogGeometry891,
-  checkToolbarTooltips891, resizeMarkdown891, longMarkdown891,
+  checkToolbarTooltips891, resizeMarkdown891, checkLongMarkdownScroll891, longMarkdown891,
 } from "./helpers/markdown-editor-891";
 
 for (const surface of ["task", "issue"] as const) test(`Issue #891 ${surface} toolbar labels, actual shortcuts, locale history and vertical resize`, async ({ page }, info) => {
@@ -337,7 +338,7 @@ for (const surface of ["task", "issue"] as const) test(`Issue #891 ${surface} to
     : page.getByTestId("project-issue-workspace").getByRole("dialog");
   const field = dialog.locator(surface === "task" ? "#task-description" : "#project-issue-description");
   const writes: string[] = [];
-  page.on("request", request => { if (["POST", "PATCH", "DELETE"].includes(request.method())) writes.push(request.method() + " " + new URL(request.url()).pathname); });
+  page.on("request", request => { if (["POST", "PUT", "PATCH", "DELETE"].includes(request.method()) && !isWbsViewReadQuery(request)) writes.push(request.method() + " " + new URL(request.url()).pathname); });
   const rich = field.locator('.mastergantt-markdown-contenteditable[contenteditable="true"]');
   const richIdentity = await rich.elementHandle();
   const untouched = await rich.innerText();
@@ -436,6 +437,7 @@ for (const surface of ["task", "issue"] as const) test(`Issue #891 ${surface} to
   await expect(rich).not.toContainText("undo marker");
   await rich.press("Control+Shift+z");
   await expect(rich).toContainText("undo marker");
+  await checkLongMarkdownScroll891(page, dialog, field, "rich");
   await field.getByRole("radio", { name: /원문 모드/ }).click();
   const source = field.locator('.cm-content[contenteditable="true"]');
   await source.fill("# Source draft\n\nLong source text");
@@ -468,8 +470,10 @@ for (const surface of ["task", "issue"] as const) test(`Issue #891 ${surface} to
   await source.focus();
   await source.press("ControlOrMeta+z");
   await expect(source).not.toContainText("source marker");
-  await source.press("Control+Shift+z");
+  expect(await source.evaluate((element, original) => element === original, sourceIdentity)).toBe(true);
+  await source.press("Control+Shift+KeyZ");
   await expect(source).toContainText("source marker");
+  await checkLongMarkdownScroll891(page, dialog, field, "source");
   expect(writes).toEqual([]);
   await captureSyntheticUiEvidence(page, info, {
     issue: 891, acceptanceCriteria: ["AC01", "AC02", "AC03", "AC05"], state: `${surface}-source-ko-resized`,
@@ -550,6 +554,12 @@ import { join } from "node:path";
 test("Issue #891 native Chromium 125 percent zoom preserves dialog actions and drafts", async ({ page }, info) => {
   test.setTimeout(90_000);
   const fixture = await seedMarkdownFixture891(page);
+  const canonicalBefore = await page.request.get(fixture.api);
+  const issuesBefore = await page.request.get(fixture.api + "/issues");
+  expect(canonicalBefore.status()).toBe(200);
+  expect(issuesBefore.status()).toBe(200);
+  const snapshotBefore = await canonicalBefore.json();
+  const issueDataBefore = await issuesBefore.json();
   const temporary = await mkdtemp(join(tmpdir(), "mastergantt-mdx891-zoom-"));
   const extension = join(temporary, "extension");
   await mkdir(extension);
@@ -589,7 +599,7 @@ test("Issue #891 native Chromium 125 percent zoom preserves dialog actions and d
       expect(actual.height).toBeCloseTo(before.height / 1.25, 0);
       expect(actual.htmlZoom).toBe("1"); expect(actual.bodyZoom).toBe("1"); expect(actual.visualScale).toBe(1);
       let writes = 0;
-      check.on("request", request => { if (["POST", "PATCH", "DELETE"].includes(request.method())) writes++; });
+      check.on("request", request => { if (["POST", "PUT", "PATCH", "DELETE"].includes(request.method()) && !isWbsViewReadQuery(request)) writes++; });
       for (const task of fixture.tasks.filter(task => !task.long)) {
         const dialog = await openMarkdownTask891(check, task);
         await dialogGeometry891(check, dialog);
@@ -602,6 +612,12 @@ test("Issue #891 native Chromium 125 percent zoom preserves dialog actions and d
       await expect(issue.locator("#project-issue-title")).toHaveValue("Native zoom draft preserved");
       await expect(issue.getByRole("button", { name: "수정 저장", exact: true })).toBeVisible();
       expect(writes).toBe(0);
+      const canonicalAfter = await page.request.get(fixture.api);
+      const issuesAfter = await page.request.get(fixture.api + "/issues");
+      expect(canonicalAfter.status()).toBe(200);
+      expect(issuesAfter.status()).toBe(200);
+      expect(await canonicalAfter.json()).toEqual(snapshotBefore);
+      expect(await issuesAfter.json()).toEqual(issueDataBefore);
       await info.attach("native-browser-zoom-125", { body: Buffer.from(JSON.stringify({ before, zoom, actual, writes })), contentType: "application/json" });
       await check.screenshot({ path: info.outputPath("native-browser-zoom-125.png") });
     } finally { await context.close(); }

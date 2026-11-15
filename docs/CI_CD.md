@@ -79,6 +79,13 @@ GHCR 권한 부족·오프라인·tag collision·source/digest drift·Smoke FAIL
 
 `package.json.version`이 application version의 원본이며 lockfile과 일치시킨다. 제품 변화가 없는 문서/로컬 도구 정리에서 유지하는 경우 이유를 기록한다. SemVer tag를 새로 발행할 때는 Owner의 exact version·SHA 승인을 별도 기록한다. 사용 중인 immutable tag는 재사용하지 않는다.
 
+하위 호환 기능 추가는 MINOR, 기존 계약 내 버그·보안 수정은 PATCH, 호환되지 않는 API/교환 형식·운영 계약 변경은 MAJOR를 적용한다. `0.x`에서도 사용자 기능 확장은 MINOR다. package/lock의 root 버전을 일치시키고 이미 발행한 유효 SemVer보다 큰 새 버전을 사용한다. 제품 영향이 없는 지침 정리에는 application version을 유지할 수 있다.
+
+Owner가 버전 규칙에 따른 정식 게시와 종료를 명시 위임하면 Manager가 최종 exact source·결정 버전·태그 범위를 Issue에 고정한다. 기존 고유 SHA publisher로 검증한 OCI의 정식 exact SemVer와 annotated `v<version>` 태그를 발행하고, 승인된 minor/major/latest alias만 같은 digest로 승격한다. 이는 신규 Actions나 운영 배포를 허용하지 않는다. 새 version 이미지를 이전 version OCI에 임의 retag하지 않는다.
+
+수동 승격은 기존 ORAS·OCI graph·registry runtime 검사와 로컬 admission을 재사용한다. 실행 각 phase에서 같은 source의 새 admission과 전체 보고서 inventory를 검산해 후행 FAIL을 숨기지 않는다. 별도 preflight 검토 후 write 직전에 인증된 태그 inventory·대상 exact ref 부재·기존 descriptor·원격 main·source/환경을 다시 확인하고 충돌/불확실성은 BLOCKED한다. 각 원격 쓰기는 시도 전 UNKNOWN, 성공 응답 뒤 CREATED, 실제 readback 뒤 VERIFIED로 보존하며 실패한 시도의 태그를 삭제·덮어쓰지 않는다. 기존 immutable/Git refs·승인 범위 밖 alias와 전체 tag names 보존을 검산하고, 모든 descriptor를 검사하지 않았다면 그 범위를 확대하지 않는다. 로컬 operation lock은 다른 clone/외부 writer와의 서버 CAS를 보장하지 않는다.
+
+
 운영 배포는 [DEPLOYMENT](DEPLOYMENT.md)의 image-only Compose·기존 project/volume·canonical URL·session·health 계약을 유지한다. 게시 성공과 DEPLOYED_VERIFIED는 다르다. 데이터 위험 배포에는 #912의 일관 백업·새 volume 복원·호환 image 검증이 선행한다. 구 이미지 교체만으로 forward-only DB migration은 취소되지 않는다.
 
 Owner가 통합 승인한 #906 정책·#907 원장/validator·#908 local source gate는 같은 source의 검증·실패 원장에 연결하되 AC별 완료 증거를 구분한다. #909 게시, #911 관리자 전환, #912 복원도 각각 실제 완료 증거가 필요하다. 미완료 선행 이슈를 새 문서나 과거 이미지 성공으로 PASS 처리하지 않는다.

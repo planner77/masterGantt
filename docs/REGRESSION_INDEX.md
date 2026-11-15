@@ -149,3 +149,18 @@ F898-009~012를 [Primary 원장](ISSUE_898_FAILURE_ANALYSIS.md)에 추가했다.
 ## Issue #891 공통 Markdown baseline 준비 원본
 
 [F891-001/F891-002](ISSUE_891_FAILURE_ANALYSIS.md)는 실제 baseline harness의 catalog ready 누락과 locale 미고정으로 발생한 최초 exit1을 보존한다. 제품 UI의 FAIL이나 최종 source 검증과 구분하며 기존 isolated fixture/submit helper와 ko-KR 고정을 재사용한다. 이후 actual geometry·hover/focus/keymap·resize·locale/undo/source 회귀는 [Work Packet](exec-plans/active/ISSUE_891.md)의 같은 source 실행에 연결한다. 기존 모든 인덱스/event/원장 prefix는 유지한다.
+
+
+## #891 locale 변경과 내부 번역 상태
+
+[F891-016](ISSUE_891_FAILURE_ANALYSIS.md)은 Task/Issue toolbar2건의 실제 locale 불일치다. 공개 translation 상태를 동일 editor에서 갱신하고 undo/selection/source 보존을 함께 재검증하며, 최초2FAIL과 후속 결과를 구분한다.
+
+
+## #891 Source 물리키와 긴 본문 경계
+
+[F891-017/018](ISSUE_891_FAILURE_ANALYSIS.md)은 Source redo의 shifted소문자 입력 불일치와 긴본문 내부scroll 경계의 최초2FAIL씩을 보존한다. 실제설치키맵·scroll소유권을 대조해 도구/제품 원인을 구분하고 assertion을 유지한 새 관측·교정 event로 연결한다.
+
+
+## #891 native125와정확한읽기query
+
+[F891-019](ISSUE_891_FAILURE_ANALYSIS.md)은실제native125검사중readonlyWBS조회POST를mutation으로센TOOLING실패다. 기존정확분류helper와Project/Issuecanonical동등성을재사용하고모든일반POST/PUT/PATCH/DELETE0을유지한다. 원본10PASS/1FAIL과native단일재시험1PASS를구분하며최종same-source gate는별도다. F016~018의Task단일1PASS도제한범위교정관측으로연결했다.
