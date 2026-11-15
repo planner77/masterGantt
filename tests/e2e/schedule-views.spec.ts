@@ -12,6 +12,19 @@ import type { ResourceCatalogResponse } from "../../src/contracts/resources";
 test.use({ ...isolatedApplicationOptions, isolatedProjectMasterAdminPassword: targetMasterPassword,
   isolatedResourceAdminPassword: scheduleViewResourcePassword, viewport: { width: 1440, height: 1000 } });
 
+test.beforeEach(async ({ page, isolatedApplication }, info) => {
+  // #920 / #751: compile this read-only dev route before strict UI readiness
+  // assertions. A missing Project cannot warm/copy real source data.
+  const warmupStart = performance.now();
+  const warmup = await page.request.get(`${isolatedApplication}/api/projects/00000000-0000-4000-8000-000000000001/schedule-view-source`);
+  expect(warmup.status()).toBe(404);
+  expect(warmup.headers()["set-cookie"]).toBeUndefined();
+  await info.attach("schedule-source-compile-warmup.json", {
+    body: JSON.stringify({ method: "GET", missingProject: true, status: warmup.status(), elapsedMs: performance.now() - warmupStart }),
+    contentType: "application/json",
+  });
+});
+
 const selector = (page: Page) => page.getByLabel("View", { exact: true });
 const view = (page: Page, name: "resource" | "equipment") => page.locator(`[data-schedule-view="${name}"]`);
 const taskRows = (root: Locator, taskId: string) => root.locator(`[data-view-row-key][data-canonical-task-id="${taskId}"]`);
@@ -508,16 +521,6 @@ test("#880 P2 WBS 복수 선택·Copy·Shift anchor는 Task 조작 없는 View �
 
 test("#880 P2 비WBS nonzero viewport는 재조회·Editor 취소와 저장·workspace 복귀 및 새 사용자 wheel을 보존한다", async ({ page, isolatedApplication, observeIsolatedApi }, info) => {
   test.setTimeout(180_000);
-  // #920 / #751: compile this read-only dev route before the strict UI
-  // readiness budget. A missing Project cannot warm/copy real source data.
-  const warmupStart = performance.now();
-  const warmup = await page.request.get(`${isolatedApplication}/api/projects/00000000-0000-4000-8000-000000000001/schedule-view-source`);
-  expect(warmup.status()).toBe(404);
-  expect(warmup.headers()["set-cookie"]).toBeUndefined();
-  await info.attach("schedule-source-compile-warmup.json", {
-    body: JSON.stringify({ method: "GET", missingProject: true, status: warmup.status(), elapsedMs: performance.now() - warmupStart }),
-    contentType: "application/json",
-  });
   const f = await seedScheduleViews(page, isolatedApplication, observeIsolatedApi);
   const populated = await addScheduleViewPopulation(page, isolatedApplication, f.api, 85);
   const scope = populated.data.tasks.find(task => task.externalId === "VIEW880-ROOT")!;

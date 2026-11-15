@@ -36,3 +36,6 @@ UPDATED: DESIGN, PROJECT_UX, UI_UX_GUIDELINES, GANTT_STATE_CONSISTENCY, TEST_PLA
 799의 fast9단계/4013PASS·기존3SKIP, Docker10단계와 영향 Unit164는PASS였으나 전체 Chromium은132PASS/1FAIL로 전체FAIL이었다. 첫 Source 준비가5초 안에 끝나지 않은 기존 #880 사례이며 신규 #920/#898/#822는PASS다. 실제 원본/UNKNOWN과 단독 cold/warm 비교·준비 보완을 [F920-005](../../ISSUE_920_FAILURE_ANALYSIS.md)에 보존한다. 사전 missing-Project GET404로 route 준비를 분리한 원래 전체 사례는40.9초PASS지만 새 최종 gate를 대체하지 않는다. 제품 src TypeScript/CSS는799 그대로다.
 
 보완 Source는799의 후속 commit으로 동결하고 새 `issue-920-verified02` checkout에서 frozen npm ci 뒤 전체 같은 source gate를 다시 실행한다. baseline은fc8, include2개와13Chromium/11Unit파일·기존 기준·skip/retry/timeout은 유지한다. 처음 source799의 report/image/preview는 원본 증거로 남기며 새 source PASS/Owner UAT로 자동 전용하지 않는다. 새 정식 게시/운영 승인도 아직 없다.
+
+
+최종 준비 배치: 테스트 공통 `beforeEach`에서 같은 missing-Project GET404/no Set-Cookie를 확인한다. 이 spec의 각 격리 서버에만 적용하며 shared fixture/config와 원래 테스트 timeout/assertion/retry는 변경0이다. 전체 #880과 신규 #920의 집중46.2초/49.1초·2PASS를 확인했고 다음 source의 공식 gate를 새로 실행한다. 제품 src/의존성/버전은799의 후보와 같다.

@@ -14919,6 +14919,58 @@
             "imageDigest": null,
             "backupId": null
           }
+        },
+        {
+          "id": "common-preparation-focused02",
+          "at": null,
+          "timeNote": "2026-11-15; exact individual command timestamp not collected; named private logs retain available times",
+          "stage": "PLAYWRIGHT",
+          "status": "PASS",
+          "sourceSha": "1ed3160839d6419506bcb612fca47c0d10062e3b",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED diagnostic/operator execution; sourceSha names baseline/target image; private helper or dirty test diff not a clean commit; full source/environment before-after fingerprints not collected; not final gate evidence",
+          "environment": "Linux/WSL2 x64; Node22.14.0/npm11.10.0; installed Chromium1243; Docker runtime Node26.8.2 linux/amd64 where applicable; full supplemental environment fingerprint not collected",
+          "environmentVersion": "masterGantt0.147.1",
+          "command": [
+            "npm",
+            "run",
+            "test:e2e",
+            "--",
+            "tests/e2e/schedule-views.spec.ts",
+            "--grep",
+            "#880 P2 비WBS nonzero|#920 touch-capable",
+            "--reporter=list"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "Common spec-only missing-Project prep preserves both original viewport and new actual-input checks",
+          "actual": "2PASS/0FAIL: original nonzero viewport46.2s and new hybrid49.1s, total2.8min; common GET404 prep only; all original contracts remain; fresh clean gates not yet run",
+          "input": "Synthetic isolated fixture; actual operating database only in explicitly identified #919 backup/deployment steps; no public raw data",
+          "classification": "TOOLING",
+          "recovery": "Retain original failure; use explicitly scoped corrective run; final clean source gate and Owner UAT remain separate",
+          "residualRisk": "Windows actual device/Owner repeat UAT, pinch/pen/AT and off-host remain NOT TESTED; previous failures are not rewritten",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:920-focused03-green"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_920_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "1ed3160839d6419506bcb612fca47c0d10062e3b",
+            "environment": "Linux/WSL2 x64; Node22.14.0/npm11.10.0; installed Chromium1243; Docker runtime Node26.8.2 linux/amd64 where applicable; full supplemental environment fingerprint not collected",
+            "imageDigest": null,
+            "backupId": null
+          }
         }
       ]
     }

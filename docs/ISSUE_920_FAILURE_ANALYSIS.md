@@ -32,3 +32,6 @@ WIP focused02는2case 중1PASS/1FAIL, exit1이었다. 새 마우스32px 상태�
 보완 후 원래 전체 사례는40.9초PASS(전체약1.3분)다. 최초 ready5초·전체180초·91행·nonzero capacity/좌표·재조회·Editor 취소/저장·workspace 복귀·늦은 source/새 wheel 우선권·canonical assertion·timeout/retry/skip을 유지했다. 제품 TypeScript/CSS는799와 동일하고 변경은 테스트 준비와 문서/원장이다. 이 WIP 집중PASS는 새 clean source의 전체 공통/영향/Docker/admit를 대체하지 않는다. 원본 내부 지연 UNKNOWN은 보존하고 실제 새 source 결과는 Issue STATUS/FINAL에 연결한다.
 
 초기 F920-001 observed event는 교차 관측과 regression exit1을 함께 요약한다. CLI protocol Error의 shell exit0과 별도 regression-red의 exit1을 구분하며 최초 CLI를 exit1로 오인하지 않는다. bootstrap F920-002도 직접 wrapper126/후속 browser 부재1을 구별한다. SCOPED 요약을 최종 exact gate 증거로 재사용하지 않는다.
+
+
+F920-005 후속 정리: 같은 API를 사용하는 `schedule-views.spec.ts`의 공통 beforeEach로 동일 GET404 준비를 모았다. 전역 fixture/helper·production API·제품 TS/CSS는 바꾸지 않았다. 기존 #880 전체 사례46.2초와 신규 #920 touch-capable mouse49.1초가 모두PASS(전체2.8분)다. 앞선 특정 사례 내부 준비40.9초PASS를 지우지 않으며, 현재 공통 준비를 사용한 새 source의 전체gate는 별도로 실행한다.
