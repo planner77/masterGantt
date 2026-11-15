@@ -1,6 +1,6 @@
-## 진행 중: Issue #891 공통 Markdown 편집 UI
+## 구현·검증·정식 게시 완료: #918 → #891
 
-[Work Packet](ISSUE_891.md)의 baseline9a98265e에서 기존 MDXEditor/DescriptionField와 Issue/Task 폼을 확장한다. 전체 툴팁·실제 단축키·Rich/Source 세로 resize와 Dialog 전체 기본 높이1.5배(기존 viewport 상한 우선)를 구현하고 실제 before/after·5폭/keyboard/locale·HTTP/SQLite·공통 로컬gate·독립 QA를 검증한다. Owner는 최신 main의 로컬/direct Push·고유SHA 정식 GHCR·수동 종료를 명시 승인했으며 운영 배포는 미요청이다. 실제 결과와 실패는 [단일 원장](../../ISSUE_891_FAILURE_ANALYSIS.md)과 Issue 상태를 따른다. 미완료 gate를 PASS로 표시하지 않는다.
+[Work Packet](ISSUE_891.md)의제품source `f45f7c0a25960a34970005cae93bd7b55ace2831`는base0bf0e4e54cc445058b16c3764f79c27b81f5dd97에서로컬공통/영향/컨테이너·admission·독립QA를통과했다. #918의7288-byte AGENTS라우팅을포함하며#891공통MDXEditor전체툴팁·실제단축키·Rich/Source세로resize·Dialog기본높이1.5배(기존viewport상한우선)를구현했다. formalv0.147.0/GHCR0.147.0·0.147·0·latest는동일검증index `sha256:5ac1904dac65ef88c64952b67866a84d078a39dc74bea007f254c7a5a1fa10f8`로게시됐고별도게시QA PASS다. 운영배포는미실시다. [실패원장](../../ISSUE_891_FAILURE_ANALYSIS.md)은최초오류/UNKNOWN과실제회복을보존한다. 후속증거문서의별도검증·main반영뒤두Issue의FINAL/수동종료를확정하며,그현재상태는GitHubIssue가원본이다. 다른진행건은이요청으로일괄종료하지않는다.
 
 # 현재 실행 계획
 

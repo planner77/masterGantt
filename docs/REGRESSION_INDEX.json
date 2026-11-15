@@ -9085,6 +9085,62 @@
               "reference": "docs/ISSUE_918_FAILURE_ANALYSIS.md"
             }
           ]
+        },
+        {
+          "id": "verified-918-final-source",
+          "at": "2026-11-15T01:04:12.783Z",
+          "timeNote": "실제 영수증 시각",
+          "stage": "UNIT",
+          "status": "PASS",
+          "sourceSha": "0bf0e4e54cc445058b16c3764f79c27b81f5dd97",
+          "fixSourceSha": "0bf0e4e54cc445058b16c3764f79c27b81f5dd97",
+          "sourceFingerprint": "c465a331695f1055ee9e303a23d2b815b34e025f45d19c55aceb6e0486950e4b",
+          "sourceNote": "검증된 clean exact source/base/fixture와 실제 실행 영수증 결속",
+          "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; actual #918 run environment e1e0f2104a646a895171b9f35ba91a1fe596b375d8fe58a547de38f6f401fbe8",
+          "environmentVersion": "masterGantt0.146.0 (#918 verified source0bf)",
+          "command": [
+            "npm",
+            "test",
+            "--",
+            "--maxWorkers=2",
+            "tests/scripts/agent-model-selection.test.ts",
+            "tests/scripts/agent-qa-contract.test.ts",
+            "tests/scripts/deployment-layout.test.ts",
+            "tests/scripts/local-publish.test.ts",
+            "tests/scripts/prepr-verifier.test.ts",
+            "--reporter=default",
+            "--reporter=json",
+            "--outputFile=/home/planner/Dev/masterGantt-worktrees/issue-918/.prepr-reports/918-targeted02/vitest-results.json"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "모델TOML8역할과책임문서의동등선정·승격·read-only/6thread계약",
+          "actual": "고정0bf targeted119PASS;fast4009PASS/기존3optinSKIP·Docker10·admitPASS와qa918독립PASS;AGENTS7288bytes/Next생성block보존",
+          "input": "공개 저장소의 실제 artifact/metadata; runtime은 격리 합성 fixture, 운영 DB 미접근",
+          "classification": "TOOLING",
+          "recovery": "기존literal위치검사만동등책임문서로연결;실제현재판정은해당source보고서에한정",
+          "residualRisk": "원래userworktree별도Git/bytes검산과코드main통합/현재Issue상태는FINAL구분",
+          "evidenceScope": "EXACT",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:918-final-gates"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_918_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "0bf0e4e54cc445058b16c3764f79c27b81f5dd97",
+            "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; actual #918 run environment e1e0f2104a646a895171b9f35ba91a1fe596b375d8fe58a547de38f6f401fbe8",
+            "imageDigest": null,
+            "backupId": null
+          }
         }
       ]
     },
@@ -10610,6 +10666,56 @@
             "imageDigest": null,
             "backupId": null
           }
+        },
+        {
+          "id": "exact-f45-final-gate",
+          "at": "2026-11-15T05:59:56.849Z",
+          "timeNote": "실제 영수증 시각",
+          "stage": "PLAYWRIGHT",
+          "status": "PASS",
+          "sourceSha": "f45f7c0a25960a34970005cae93bd7b55ace2831",
+          "fixSourceSha": "6b270c2ee78d2f56efe64daeec70eb5f02b0b432",
+          "sourceFingerprint": "d8fb543cc72640ea17114201694c60c74c67b6cd9e936302ade5056e9f055bd9",
+          "sourceNote": "검증된 clean exact source/base/fixture와 실제 실행 영수증 결속",
+          "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; controlled direct Node; environment fingerprint a29758a80dbeb93a85b75e0a3dec6fffe7f9c2b7968f2916fee0a1c5bc30c41e",
+          "environmentVersion": "masterGantt0.147.0",
+          "command": [
+            "node",
+            "scripts/verify-prepr.mjs",
+            "--mode=targeted",
+            "--base=0bf0e4e54cc445058b16c3764f79c27b81f5dd97",
+            "--issue=891",
+            "--report-dir=.prepr-reports/891-targeted05"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "기존 필수 검사·동작·assertion·timeout 유지한 현재 source 검증",
+          "actual": "targeted05 Unit142/11files·Chromium87/8files PASS, FAIL/SKIP/flaky/retry0; snapshot5276files·index/dependency지문일치·untracked0·허용Next2외변경0",
+          "input": "공개 저장소의 실제 artifact/metadata; runtime은 격리 합성 fixture, 운영 DB 미접근",
+          "classification": "TOOLING",
+          "recovery": "현재 source의 실제 실행 성공이며 최초 FAIL/미실행/원인 경계를 덮지 않음",
+          "residualRisk": "같은 source 로컬 gate와 검증된 artifact 범위; 원격CI/수동UAT/운영배포를 대체하지 않음",
+          "evidenceScope": "EXACT",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-targeted05"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "f45f7c0a25960a34970005cae93bd7b55ace2831",
+            "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; controlled direct Node; environment fingerprint a29758a80dbeb93a85b75e0a3dec6fffe7f9c2b7968f2916fee0a1c5bc30c41e",
+            "imageDigest": null,
+            "backupId": null
+          }
         }
       ]
     },
@@ -10789,6 +10895,56 @@
             "imageDigest": null,
             "backupId": null
           }
+        },
+        {
+          "id": "exact-f45-final-gate",
+          "at": "2026-11-15T05:59:56.849Z",
+          "timeNote": "실제 영수증 시각",
+          "stage": "PLAYWRIGHT",
+          "status": "PASS",
+          "sourceSha": "f45f7c0a25960a34970005cae93bd7b55ace2831",
+          "fixSourceSha": "6b270c2ee78d2f56efe64daeec70eb5f02b0b432",
+          "sourceFingerprint": "d8fb543cc72640ea17114201694c60c74c67b6cd9e936302ade5056e9f055bd9",
+          "sourceNote": "검증된 clean exact source/base/fixture와 실제 실행 영수증 결속",
+          "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; controlled direct Node; environment fingerprint a29758a80dbeb93a85b75e0a3dec6fffe7f9c2b7968f2916fee0a1c5bc30c41e",
+          "environmentVersion": "masterGantt0.147.0",
+          "command": [
+            "node",
+            "scripts/verify-prepr.mjs",
+            "--mode=targeted",
+            "--base=0bf0e4e54cc445058b16c3764f79c27b81f5dd97",
+            "--issue=891",
+            "--report-dir=.prepr-reports/891-targeted05"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "기존 필수 검사·동작·assertion·timeout 유지한 현재 source 검증",
+          "actual": "targeted05 Unit142/11files·Chromium87/8files PASS, FAIL/SKIP/flaky/retry0; snapshot5276files·index/dependency지문일치·untracked0·허용Next2외변경0",
+          "input": "공개 저장소의 실제 artifact/metadata; runtime은 격리 합성 fixture, 운영 DB 미접근",
+          "classification": "TOOLING",
+          "recovery": "현재 source의 실제 실행 성공이며 최초 FAIL/미실행/원인 경계를 덮지 않음",
+          "residualRisk": "같은 source 로컬 gate와 검증된 artifact 범위; 원격CI/수동UAT/운영배포를 대체하지 않음",
+          "evidenceScope": "EXACT",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-targeted05"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "f45f7c0a25960a34970005cae93bd7b55ace2831",
+            "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; controlled direct Node; environment fingerprint a29758a80dbeb93a85b75e0a3dec6fffe7f9c2b7968f2916fee0a1c5bc30c41e",
+            "imageDigest": null,
+            "backupId": null
+          }
         }
       ]
     },
@@ -10963,6 +11119,56 @@
             "imageDigest": null,
             "backupId": null
           }
+        },
+        {
+          "id": "exact-f45-final-gate",
+          "at": "2026-11-15T05:59:56.849Z",
+          "timeNote": "실제 영수증 시각",
+          "stage": "PLAYWRIGHT",
+          "status": "PASS",
+          "sourceSha": "f45f7c0a25960a34970005cae93bd7b55ace2831",
+          "fixSourceSha": "6b270c2ee78d2f56efe64daeec70eb5f02b0b432",
+          "sourceFingerprint": "d8fb543cc72640ea17114201694c60c74c67b6cd9e936302ade5056e9f055bd9",
+          "sourceNote": "검증된 clean exact source/base/fixture와 실제 실행 영수증 결속",
+          "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; controlled direct Node; environment fingerprint a29758a80dbeb93a85b75e0a3dec6fffe7f9c2b7968f2916fee0a1c5bc30c41e",
+          "environmentVersion": "masterGantt0.147.0",
+          "command": [
+            "node",
+            "scripts/verify-prepr.mjs",
+            "--mode=targeted",
+            "--base=0bf0e4e54cc445058b16c3764f79c27b81f5dd97",
+            "--issue=891",
+            "--report-dir=.prepr-reports/891-targeted05"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "기존 필수 검사·동작·assertion·timeout 유지한 현재 source 검증",
+          "actual": "targeted05 Unit142/11files·Chromium87/8files PASS, FAIL/SKIP/flaky/retry0; snapshot5276files·index/dependency지문일치·untracked0·허용Next2외변경0",
+          "input": "공개 저장소의 실제 artifact/metadata; runtime은 격리 합성 fixture, 운영 DB 미접근",
+          "classification": "TOOLING",
+          "recovery": "현재 source의 실제 실행 성공이며 최초 FAIL/미실행/원인 경계를 덮지 않음",
+          "residualRisk": "같은 source 로컬 gate와 검증된 artifact 범위; 원격CI/수동UAT/운영배포를 대체하지 않음",
+          "evidenceScope": "EXACT",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-targeted05"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "f45f7c0a25960a34970005cae93bd7b55ace2831",
+            "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; controlled direct Node; environment fingerprint a29758a80dbeb93a85b75e0a3dec6fffe7f9c2b7968f2916fee0a1c5bc30c41e",
+            "imageDigest": null,
+            "backupId": null
+          }
         }
       ]
     },
@@ -11087,6 +11293,56 @@
           "verification": {
             "sourceSha": "6471dd8b311719b83e7f6f84f3236bda8a020ddf",
             "environment": "Linux; Node22.14.0; Playwright1.63.0 Chromium; isolated synthetic application",
+            "imageDigest": null,
+            "backupId": null
+          }
+        },
+        {
+          "id": "exact-f45-final-gate",
+          "at": "2026-11-15T05:59:56.849Z",
+          "timeNote": "실제 영수증 시각",
+          "stage": "PLAYWRIGHT",
+          "status": "PASS",
+          "sourceSha": "f45f7c0a25960a34970005cae93bd7b55ace2831",
+          "fixSourceSha": "6b270c2ee78d2f56efe64daeec70eb5f02b0b432",
+          "sourceFingerprint": "d8fb543cc72640ea17114201694c60c74c67b6cd9e936302ade5056e9f055bd9",
+          "sourceNote": "검증된 clean exact source/base/fixture와 실제 실행 영수증 결속",
+          "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; controlled direct Node; environment fingerprint a29758a80dbeb93a85b75e0a3dec6fffe7f9c2b7968f2916fee0a1c5bc30c41e",
+          "environmentVersion": "masterGantt0.147.0",
+          "command": [
+            "node",
+            "scripts/verify-prepr.mjs",
+            "--mode=targeted",
+            "--base=0bf0e4e54cc445058b16c3764f79c27b81f5dd97",
+            "--issue=891",
+            "--report-dir=.prepr-reports/891-targeted05"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "기존 필수 검사·동작·assertion·timeout 유지한 현재 source 검증",
+          "actual": "targeted05 Unit142/11files·Chromium87/8files PASS, FAIL/SKIP/flaky/retry0; snapshot5276files·index/dependency지문일치·untracked0·허용Next2외변경0",
+          "input": "공개 저장소의 실제 artifact/metadata; runtime은 격리 합성 fixture, 운영 DB 미접근",
+          "classification": "TOOLING",
+          "recovery": "현재 source의 실제 실행 성공이며 최초 FAIL/미실행/원인 경계를 덮지 않음",
+          "residualRisk": "같은 source 로컬 gate와 검증된 artifact 범위; 원격CI/수동UAT/운영배포를 대체하지 않음",
+          "evidenceScope": "EXACT",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-targeted05"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "f45f7c0a25960a34970005cae93bd7b55ace2831",
+            "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; controlled direct Node; environment fingerprint a29758a80dbeb93a85b75e0a3dec6fffe7f9c2b7968f2916fee0a1c5bc30c41e",
             "imageDigest": null,
             "backupId": null
           }
@@ -11215,6 +11471,56 @@
             "imageDigest": null,
             "backupId": null
           }
+        },
+        {
+          "id": "exact-f45-final-gate",
+          "at": "2026-11-15T05:59:56.849Z",
+          "timeNote": "실제 영수증 시각",
+          "stage": "PLAYWRIGHT",
+          "status": "PASS",
+          "sourceSha": "f45f7c0a25960a34970005cae93bd7b55ace2831",
+          "fixSourceSha": "0feae375c2d793db8e71d8639c8b57efba24202e",
+          "sourceFingerprint": "d8fb543cc72640ea17114201694c60c74c67b6cd9e936302ade5056e9f055bd9",
+          "sourceNote": "검증된 clean exact source/base/fixture와 실제 실행 영수증 결속",
+          "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; controlled direct Node; environment fingerprint a29758a80dbeb93a85b75e0a3dec6fffe7f9c2b7968f2916fee0a1c5bc30c41e",
+          "environmentVersion": "masterGantt0.147.0",
+          "command": [
+            "node",
+            "scripts/verify-prepr.mjs",
+            "--mode=targeted",
+            "--base=0bf0e4e54cc445058b16c3764f79c27b81f5dd97",
+            "--issue=891",
+            "--report-dir=.prepr-reports/891-targeted05"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "기존 필수 검사·동작·assertion·timeout 유지한 현재 source 검증",
+          "actual": "targeted05 Unit142/11files·Chromium87/8files PASS, FAIL/SKIP/flaky/retry0; snapshot5276files·index/dependency지문일치·untracked0·허용Next2외변경0",
+          "input": "공개 저장소의 실제 artifact/metadata; runtime은 격리 합성 fixture, 운영 DB 미접근",
+          "classification": "TOOLING",
+          "recovery": "현재 source의 실제 실행 성공이며 최초 FAIL/미실행/원인 경계를 덮지 않음",
+          "residualRisk": "같은 source 로컬 gate와 검증된 artifact 범위; 원격CI/수동UAT/운영배포를 대체하지 않음",
+          "evidenceScope": "EXACT",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-targeted05"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "f45f7c0a25960a34970005cae93bd7b55ace2831",
+            "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; controlled direct Node; environment fingerprint a29758a80dbeb93a85b75e0a3dec6fffe7f9c2b7968f2916fee0a1c5bc30c41e",
+            "imageDigest": null,
+            "backupId": null
+          }
         }
       ]
     },
@@ -11340,6 +11646,56 @@
             "imageDigest": null,
             "backupId": null
           }
+        },
+        {
+          "id": "exact-f45-final-gate",
+          "at": "2026-11-15T05:59:56.849Z",
+          "timeNote": "실제 영수증 시각",
+          "stage": "PLAYWRIGHT",
+          "status": "PASS",
+          "sourceSha": "f45f7c0a25960a34970005cae93bd7b55ace2831",
+          "fixSourceSha": "0feae375c2d793db8e71d8639c8b57efba24202e",
+          "sourceFingerprint": "d8fb543cc72640ea17114201694c60c74c67b6cd9e936302ade5056e9f055bd9",
+          "sourceNote": "검증된 clean exact source/base/fixture와 실제 실행 영수증 결속",
+          "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; controlled direct Node; environment fingerprint a29758a80dbeb93a85b75e0a3dec6fffe7f9c2b7968f2916fee0a1c5bc30c41e",
+          "environmentVersion": "masterGantt0.147.0",
+          "command": [
+            "node",
+            "scripts/verify-prepr.mjs",
+            "--mode=targeted",
+            "--base=0bf0e4e54cc445058b16c3764f79c27b81f5dd97",
+            "--issue=891",
+            "--report-dir=.prepr-reports/891-targeted05"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "기존 필수 검사·동작·assertion·timeout 유지한 현재 source 검증",
+          "actual": "targeted05 Unit142/11files·Chromium87/8files PASS, FAIL/SKIP/flaky/retry0; snapshot5276files·index/dependency지문일치·untracked0·허용Next2외변경0",
+          "input": "공개 저장소의 실제 artifact/metadata; runtime은 격리 합성 fixture, 운영 DB 미접근",
+          "classification": "TOOLING",
+          "recovery": "현재 source의 실제 실행 성공이며 최초 FAIL/미실행/원인 경계를 덮지 않음",
+          "residualRisk": "같은 source 로컬 gate와 검증된 artifact 범위; 원격CI/수동UAT/운영배포를 대체하지 않음",
+          "evidenceScope": "EXACT",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-targeted05"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "f45f7c0a25960a34970005cae93bd7b55ace2831",
+            "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; controlled direct Node; environment fingerprint a29758a80dbeb93a85b75e0a3dec6fffe7f9c2b7968f2916fee0a1c5bc30c41e",
+            "imageDigest": null,
+            "backupId": null
+          }
         }
       ]
     },
@@ -11412,6 +11768,56 @@
               "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
             }
           ]
+        },
+        {
+          "id": "exact-f45-final-gate",
+          "at": "2026-11-15T05:30:46.921Z",
+          "timeNote": "실제 영수증 시각",
+          "stage": "UNIT",
+          "status": "PASS",
+          "sourceSha": "f45f7c0a25960a34970005cae93bd7b55ace2831",
+          "fixSourceSha": null,
+          "sourceFingerprint": "d8fb543cc72640ea17114201694c60c74c67b6cd9e936302ade5056e9f055bd9",
+          "sourceNote": "검증된 clean exact source/base/fixture와 실제 실행 영수증 결속",
+          "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; controlled direct Node; environment fingerprint a29758a80dbeb93a85b75e0a3dec6fffe7f9c2b7968f2916fee0a1c5bc30c41e",
+          "environmentVersion": "masterGantt0.147.0",
+          "command": [
+            "node",
+            "scripts/verify-prepr.mjs",
+            "--mode=fast",
+            "--base=0bf0e4e54cc445058b16c3764f79c27b81f5dd97",
+            "--issue=891",
+            "--report-dir=.prepr-reports/891-fast05"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "기존 필수 검사·동작·assertion·timeout 유지한 현재 source 검증",
+          "actual": "fast05 9단계/4013UnitPASS·기존opt-in3SKIP",
+          "input": "공개 저장소의 실제 artifact/metadata; runtime은 격리 합성 fixture, 운영 DB 미접근",
+          "classification": "TOOLING",
+          "recovery": "현재 source의 실제 실행 성공이며 최초 FAIL/미실행/원인 경계를 덮지 않음",
+          "residualRisk": "같은 source 로컬 gate와 검증된 artifact 범위; 원격CI/수동UAT/운영배포를 대체하지 않음",
+          "evidenceScope": "EXACT",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-fast05"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "f45f7c0a25960a34970005cae93bd7b55ace2831",
+            "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; controlled direct Node; environment fingerprint a29758a80dbeb93a85b75e0a3dec6fffe7f9c2b7968f2916fee0a1c5bc30c41e",
+            "imageDigest": null,
+            "backupId": null
+          }
         }
       ]
     },
@@ -11594,6 +12000,56 @@
             "imageDigest": null,
             "backupId": null
           }
+        },
+        {
+          "id": "exact-f45-final-gate",
+          "at": "2026-11-15T05:59:56.849Z",
+          "timeNote": "실제 영수증 시각",
+          "stage": "PLAYWRIGHT",
+          "status": "PASS",
+          "sourceSha": "f45f7c0a25960a34970005cae93bd7b55ace2831",
+          "fixSourceSha": "d5234cb530940e8e683396d2912c55428193641c",
+          "sourceFingerprint": "d8fb543cc72640ea17114201694c60c74c67b6cd9e936302ade5056e9f055bd9",
+          "sourceNote": "검증된 clean exact source/base/fixture와 실제 실행 영수증 결속",
+          "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; controlled direct Node; environment fingerprint a29758a80dbeb93a85b75e0a3dec6fffe7f9c2b7968f2916fee0a1c5bc30c41e",
+          "environmentVersion": "masterGantt0.147.0",
+          "command": [
+            "node",
+            "scripts/verify-prepr.mjs",
+            "--mode=targeted",
+            "--base=0bf0e4e54cc445058b16c3764f79c27b81f5dd97",
+            "--issue=891",
+            "--report-dir=.prepr-reports/891-targeted05"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "기존 필수 검사·동작·assertion·timeout 유지한 현재 source 검증",
+          "actual": "targeted05 Unit142/11files·Chromium87/8files PASS, FAIL/SKIP/flaky/retry0; snapshot5276files·index/dependency지문일치·untracked0·허용Next2외변경0",
+          "input": "공개 저장소의 실제 artifact/metadata; runtime은 격리 합성 fixture, 운영 DB 미접근",
+          "classification": "TOOLING",
+          "recovery": "현재 source의 실제 실행 성공이며 최초 FAIL/미실행/원인 경계를 덮지 않음",
+          "residualRisk": "같은 source 로컬 gate와 검증된 artifact 범위; 원격CI/수동UAT/운영배포를 대체하지 않음",
+          "evidenceScope": "EXACT",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-targeted05"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "f45f7c0a25960a34970005cae93bd7b55ace2831",
+            "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; controlled direct Node; environment fingerprint a29758a80dbeb93a85b75e0a3dec6fffe7f9c2b7968f2916fee0a1c5bc30c41e",
+            "imageDigest": null,
+            "backupId": null
+          }
         }
       ]
     },
@@ -11698,6 +12154,56 @@
           "verification": {
             "sourceSha": "0feae375c2d793db8e71d8639c8b57efba24202e",
             "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; original worktree documentation WIP",
+            "imageDigest": null,
+            "backupId": null
+          }
+        },
+        {
+          "id": "exact-f45-final-gate",
+          "at": "2026-11-15T05:30:46.921Z",
+          "timeNote": "실제 영수증 시각",
+          "stage": "UNIT",
+          "status": "PASS",
+          "sourceSha": "f45f7c0a25960a34970005cae93bd7b55ace2831",
+          "fixSourceSha": null,
+          "sourceFingerprint": "d8fb543cc72640ea17114201694c60c74c67b6cd9e936302ade5056e9f055bd9",
+          "sourceNote": "검증된 clean exact source/base/fixture와 실제 실행 영수증 결속",
+          "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; controlled direct Node; environment fingerprint a29758a80dbeb93a85b75e0a3dec6fffe7f9c2b7968f2916fee0a1c5bc30c41e",
+          "environmentVersion": "masterGantt0.147.0",
+          "command": [
+            "node",
+            "scripts/verify-prepr.mjs",
+            "--mode=fast",
+            "--base=0bf0e4e54cc445058b16c3764f79c27b81f5dd97",
+            "--issue=891",
+            "--report-dir=.prepr-reports/891-fast05"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "기존 필수 검사·동작·assertion·timeout 유지한 현재 source 검증",
+          "actual": "fast05 9단계/4013UnitPASS·기존opt-in3SKIP",
+          "input": "공개 저장소의 실제 artifact/metadata; runtime은 격리 합성 fixture, 운영 DB 미접근",
+          "classification": "TOOLING",
+          "recovery": "현재 source의 실제 실행 성공이며 최초 FAIL/미실행/원인 경계를 덮지 않음",
+          "residualRisk": "같은 source 로컬 gate와 검증된 artifact 범위; 원격CI/수동UAT/운영배포를 대체하지 않음",
+          "evidenceScope": "EXACT",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-fast05"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "f45f7c0a25960a34970005cae93bd7b55ace2831",
+            "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; controlled direct Node; environment fingerprint a29758a80dbeb93a85b75e0a3dec6fffe7f9c2b7968f2916fee0a1c5bc30c41e",
             "imageDigest": null,
             "backupId": null
           }
@@ -11858,6 +12364,53 @@
             "imageDigest": "sha256:cbe48ada32c77d6db60e442f1033eb6c8299054cdda421fd9434ada4c7afd542",
             "backupId": null
           }
+        },
+        {
+          "id": "current-f45-hover-observed",
+          "at": "2026-11-15T06:01:24Z",
+          "timeNote": "실제 영수증 시각",
+          "stage": "VISUAL",
+          "status": "PASS",
+          "sourceSha": "f45f7c0a25960a34970005cae93bd7b55ace2831",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED 보조 실행; 전체 source/환경 전후 지문은 이 명령에서 별도 수집하지 않음",
+          "environment": "Linux/WSL2 x64; fixed Playwright1.63.0 Chromium; isolated Docker05 image/source f45; supplemental actual-balloon probe",
+          "environmentVersion": "masterGantt0.147.0",
+          "command": [
+            "bash",
+            "/tmp/issue891-hover-probe/run.sh",
+            "sha256:13c1abdfb042a7459c0a276bd2cc1c3db2159170d99f3b9cdb82d795db6b231e"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "실제 balloon root/viewport/containing block·언어와 출처를 현재 image에 결속",
+          "actual": "06:00:47Z시작 exit0;108geometry invalid0; UX대표12PNG실제조회·qa891JSON108재계산+2PNG조회; source/image/probe/launcher/log결속",
+          "input": "공개 저장소의 실제 artifact/metadata; runtime은 격리 합성 fixture, 운영 DB 미접근",
+          "classification": "TOOLING",
+          "recovery": "동일 probe28c8을 새 source/image에서 실행; 최초 oracle/locator 오류 보존",
+          "residualRisk": "1440x1000 geometry108와대표12pixel검토; 모든108pixel/narrowhover/AT/OwnerUAT로확대하지않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": "sha256:13c1abdfb042a7459c0a276bd2cc1c3db2159170d99f3b9cdb82d795db6b231e",
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-hover-run-x7dKZiBC"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "f45f7c0a25960a34970005cae93bd7b55ace2831",
+            "environment": "Linux/WSL2 x64; fixed Playwright1.63.0 Chromium; isolated Docker05 image/source f45; supplemental actual-balloon probe",
+            "imageDigest": "sha256:13c1abdfb042a7459c0a276bd2cc1c3db2159170d99f3b9cdb82d795db6b231e",
+            "backupId": null
+          }
         }
       ]
     },
@@ -11972,6 +12525,53 @@
             "sourceSha": "d5234cb530940e8e683396d2912c55428193641c",
             "environment": "Linux/WSL2 x64; fixed Playwright1.63.0 Chromium; isolated synthetic Docker runtime, source unchanged",
             "imageDigest": "sha256:cbe48ada32c77d6db60e442f1033eb6c8299054cdda421fd9434ada4c7afd542",
+            "backupId": null
+          }
+        },
+        {
+          "id": "current-f45-hover-observed",
+          "at": "2026-11-15T06:01:24Z",
+          "timeNote": "실제 영수증 시각",
+          "stage": "VISUAL",
+          "status": "PASS",
+          "sourceSha": "f45f7c0a25960a34970005cae93bd7b55ace2831",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED 보조 실행; 전체 source/환경 전후 지문은 이 명령에서 별도 수집하지 않음",
+          "environment": "Linux/WSL2 x64; fixed Playwright1.63.0 Chromium; isolated Docker05 image/source f45; supplemental actual-balloon probe",
+          "environmentVersion": "masterGantt0.147.0",
+          "command": [
+            "bash",
+            "/tmp/issue891-hover-probe/run.sh",
+            "sha256:13c1abdfb042a7459c0a276bd2cc1c3db2159170d99f3b9cdb82d795db6b231e"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "실제 balloon root/viewport/containing block·언어와 출처를 현재 image에 결속",
+          "actual": "06:00:47Z시작 exit0;108geometry invalid0; UX대표12PNG실제조회·qa891JSON108재계산+2PNG조회; source/image/probe/launcher/log결속",
+          "input": "공개 저장소의 실제 artifact/metadata; runtime은 격리 합성 fixture, 운영 DB 미접근",
+          "classification": "TOOLING",
+          "recovery": "동일 probe28c8을 새 source/image에서 실행; 최초 oracle/locator 오류 보존",
+          "residualRisk": "1440x1000 geometry108와대표12pixel검토; 모든108pixel/narrowhover/AT/OwnerUAT로확대하지않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": "sha256:13c1abdfb042a7459c0a276bd2cc1c3db2159170d99f3b9cdb82d795db6b231e",
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-hover-run-x7dKZiBC"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "f45f7c0a25960a34970005cae93bd7b55ace2831",
+            "environment": "Linux/WSL2 x64; fixed Playwright1.63.0 Chromium; isolated Docker05 image/source f45; supplemental actual-balloon probe",
+            "imageDigest": "sha256:13c1abdfb042a7459c0a276bd2cc1c3db2159170d99f3b9cdb82d795db6b231e",
             "backupId": null
           }
         }
@@ -12310,6 +12910,56 @@
             "imageDigest": null,
             "backupId": null
           }
+        },
+        {
+          "id": "exact-f45-final-gate",
+          "at": "2026-11-15T05:59:56.849Z",
+          "timeNote": "실제 영수증 시각",
+          "stage": "PLAYWRIGHT",
+          "status": "PASS",
+          "sourceSha": "f45f7c0a25960a34970005cae93bd7b55ace2831",
+          "fixSourceSha": "94c5b241a169a30f527c59db83e021c81ad08045",
+          "sourceFingerprint": "d8fb543cc72640ea17114201694c60c74c67b6cd9e936302ade5056e9f055bd9",
+          "sourceNote": "검증된 clean exact source/base/fixture와 실제 실행 영수증 결속",
+          "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; controlled direct Node; environment fingerprint a29758a80dbeb93a85b75e0a3dec6fffe7f9c2b7968f2916fee0a1c5bc30c41e",
+          "environmentVersion": "masterGantt0.147.0",
+          "command": [
+            "node",
+            "scripts/verify-prepr.mjs",
+            "--mode=targeted",
+            "--base=0bf0e4e54cc445058b16c3764f79c27b81f5dd97",
+            "--issue=891",
+            "--report-dir=.prepr-reports/891-targeted05"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "기존 필수 검사·동작·assertion·timeout 유지한 현재 source 검증",
+          "actual": "targeted05 Unit142/11files·Chromium87/8files PASS, FAIL/SKIP/flaky/retry0; snapshot5276files·index/dependency지문일치·untracked0·허용Next2외변경0; 기존5폭case14.286초 PASS",
+          "input": "공개 저장소의 실제 artifact/metadata; runtime은 격리 합성 fixture, 운영 DB 미접근",
+          "classification": "TOOLING",
+          "recovery": "현재 source의 실제 실행 성공이며 최초 FAIL/미실행/원인 경계를 덮지 않음",
+          "residualRisk": "같은 source 로컬 gate와 검증된 artifact 범위; 원격CI/수동UAT/운영배포를 대체하지 않음",
+          "evidenceScope": "EXACT",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-targeted05"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "f45f7c0a25960a34970005cae93bd7b55ace2831",
+            "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; controlled direct Node; environment fingerprint a29758a80dbeb93a85b75e0a3dec6fffe7f9c2b7968f2916fee0a1c5bc30c41e",
+            "imageDigest": null,
+            "backupId": null
+          }
         }
       ]
     },
@@ -12606,6 +13256,464 @@
           "verification": {
             "sourceSha": "94c5b241a169a30f527c59db83e021c81ad08045",
             "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; fixed Playwright1.63.0 Chromium; external archive and copied dependencies",
+            "imageDigest": null,
+            "backupId": null
+          }
+        },
+        {
+          "id": "exact-f45-final-gate",
+          "at": "2026-11-15T05:59:56.849Z",
+          "timeNote": "실제 영수증 시각",
+          "stage": "PLAYWRIGHT",
+          "status": "PASS",
+          "sourceSha": "f45f7c0a25960a34970005cae93bd7b55ace2831",
+          "fixSourceSha": "f45f7c0a25960a34970005cae93bd7b55ace2831",
+          "sourceFingerprint": "d8fb543cc72640ea17114201694c60c74c67b6cd9e936302ade5056e9f055bd9",
+          "sourceNote": "검증된 clean exact source/base/fixture와 실제 실행 영수증 결속",
+          "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; controlled direct Node; environment fingerprint a29758a80dbeb93a85b75e0a3dec6fffe7f9c2b7968f2916fee0a1c5bc30c41e",
+          "environmentVersion": "masterGantt0.147.0",
+          "command": [
+            "node",
+            "scripts/verify-prepr.mjs",
+            "--mode=targeted",
+            "--base=0bf0e4e54cc445058b16c3764f79c27b81f5dd97",
+            "--issue=891",
+            "--report-dir=.prepr-reports/891-targeted05"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "기존 필수 검사·동작·assertion·timeout 유지한 현재 source 검증",
+          "actual": "targeted05 Unit142/11files·Chromium87/8files PASS, FAIL/SKIP/flaky/retry0; snapshot5276files·index/dependency지문일치·untracked0·허용Next2외변경0; 기존첫5폭menu경로14.919초 PASS; 과거닫힘listener UNKNOWN유지",
+          "input": "공개 저장소의 실제 artifact/metadata; runtime은 격리 합성 fixture, 운영 DB 미접근",
+          "classification": "TOOLING",
+          "recovery": "현재 source의 실제 실행 성공이며 최초 FAIL/미실행/원인 경계를 덮지 않음",
+          "residualRisk": "과거 정확한닫힘listener미수집; 현재선정/출처UNKNOWN0와구별·현재명시적준비조건/동일경로만검증",
+          "evidenceScope": "EXACT",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-targeted05"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "f45f7c0a25960a34970005cae93bd7b55ace2831",
+            "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; controlled direct Node; environment fingerprint a29758a80dbeb93a85b75e0a3dec6fffe7f9c2b7968f2916fee0a1c5bc30c41e",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F891-029",
+      "issue": 891,
+      "ledger": "docs/ISSUE_891_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        916
+      ],
+      "domain": "release-operations",
+      "layer": "tooling",
+      "keywords": [
+        "oras",
+        "inventory-option"
+      ],
+      "cause": "Manager보조조회에서지원되지않는 --output 옵션사용",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/scripts/local-publish.test.ts",
+          "case": "인증된 inventory·태그 부재 검증 소비자; 별도 실제 보조조회",
+          "historical": false,
+          "coverageArea": "동일artifact/버전권한·CLI실제옵션경계"
+        }
+      ],
+      "residualRisk": "최초stderr/개별시각미수집;현재올바른조회와발행결과를분리",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "2026-11-15; 개별 정확 시각 미수집",
+          "stage": "LOCAL_PREP",
+          "status": "FAIL",
+          "sourceSha": "f45f7c0a25960a34970005cae93bd7b55ace2831",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED 보조 실행; 전체 source/환경 전후 지문은 이 명령에서 별도 수집하지 않음",
+          "environment": "Linux/WSL2 x64; Python3.12 local supplemental diagnostic; pinned ORAS1.3.6; full execution environment fingerprint not collected",
+          "environmentVersion": "masterGantt0.147.0",
+          "command": [
+            "oras",
+            "repo",
+            "tags",
+            "--registry-config",
+            "<auth-file>",
+            "--output",
+            "json",
+            "ghcr.io/planner77/mastergantt"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "설치 ORAS가 지원하는 인증된 태그 JSON 조회",
+          "actual": "unsupported --output 옵션으로 wrapper/subprocess exit1; 첫 stderr와개별exact시각미보존",
+          "input": "공개 저장소의 실제 artifact/metadata; runtime은 격리 합성 fixture, 운영 DB 미접근",
+          "classification": "TOOLING",
+          "recovery": "기존실행기와oras --help의정확한 --format json으로교정",
+          "residualRisk": "최초 stderr 미수집을 완전 원문 보존으로 확대하지 않음",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-F029"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "corrected-read-observed",
+          "at": "2026-11-15T05:28:20.871265+00:00",
+          "timeNote": "실제 영수증 시각",
+          "stage": "OPERATION",
+          "status": "PASS",
+          "sourceSha": "f45f7c0a25960a34970005cae93bd7b55ace2831",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED 보조 실행; 전체 source/환경 전후 지문은 이 명령에서 별도 수집하지 않음",
+          "environment": "Linux/WSL2 x64; Python3.12 local supplemental diagnostic; pinned ORAS1.3.6; full execution environment fingerprint not collected",
+          "environmentVersion": "masterGantt0.147.0",
+          "command": [
+            "oras",
+            "repo",
+            "tags",
+            "--registry-config",
+            "<auth-file>",
+            "--format",
+            "json",
+            "ghcr.io/planner77/mastergantt"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "새0.147.0이발행된validSemVer보다큼·대상태그부재",
+          "actual": "인증read registry496/Git210, 최고0.145.2,0.147.0/0.147/v0.147.0당시부재;규칙상0.147.0유효",
+          "input": "공개 저장소의 실제 artifact/metadata; runtime은 격리 합성 fixture, 운영 DB 미접근",
+          "classification": "TOOLING",
+          "recovery": "read-only 실제조회교정;source/gates/registry쓰기0",
+          "residualRisk": "해당시각조회이며 이후 정식승격은별도영수증으로검증",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-F029"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "f45f7c0a25960a34970005cae93bd7b55ace2831",
+            "environment": "Linux/WSL2 x64; Python3.12 local supplemental diagnostic; pinned ORAS1.3.6; full execution environment fingerprint not collected",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F891-030",
+      "issue": 891,
+      "ledger": "docs/ISSUE_891_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        916
+      ],
+      "domain": "release-operations",
+      "layer": "registry",
+      "keywords": [
+        "fresh-graph",
+        "stalled-transfer",
+        "concurrency"
+      ],
+      "cause": "세대형병렬Pull정지뒤20분SIGTERM;정확네트워크/registry/tool근본원인UNKNOWN",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/scripts/local-publish.test.ts",
+          "case": "실제OCI graph/digest/runtime 게시 소비자와별도정식승격 controller",
+          "historical": false,
+          "coverageArea": "동일archive/source/digest·graphbytes·태그범위·실제실행증거"
+        }
+      ],
+      "residualRisk": "runtime/API/SQLite는동일digest preflightPASS·승격후는새exactPullPASS;추가post-promote runtime재실행주장X;선정9descriptor외전수검증/CAS/수동UAT/운영배포는별도",
+      "events": [
+        {
+          "id": "observed",
+          "at": "2026-11-15T06:42:22.157Z",
+          "timeNote": "실제 영수증 시각",
+          "stage": "GHCR_PULL",
+          "status": "BLOCKED",
+          "sourceSha": "f45f7c0a25960a34970005cae93bd7b55ace2831",
+          "fixSourceSha": null,
+          "sourceFingerprint": "d8fb543cc72640ea17114201694c60c74c67b6cd9e936302ade5056e9f055bd9",
+          "sourceNote": "정확f45/source지문과사전조건결속; 중단된step18의전체graph/runtime미완료이며종료후성공으로확대하지않음",
+          "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; controlled direct Node; environment fingerprint a29758a80dbeb93a85b75e0a3dec6fffe7f9c2b7968f2916fee0a1c5bc30c41e",
+          "environmentVersion": "masterGantt0.147.0",
+          "command": [
+            "/home/planner/Dev/masterGantt-worktrees/issue-906-908/.prepr-reports/operations-906-908/oras-1.3.6/oras",
+            "cp",
+            "--recursive",
+            "--from-registry-config",
+            "<auth-config>",
+            "--to-oci-layout",
+            "ghcr.io/planner77/mastergantt@sha256:5ac1904dac65ef88c64952b67866a84d078a39dc74bea007f254c7a5a1fa10f8",
+            "/home/planner/.local/state/mastergantt-release-891-20261115-f45f7c0a/registry-layout:verified"
+          ],
+          "exit": 1,
+          "exitNote": "실제wrapperexit1;childexitCode=null/SIGTERM;Manager단계BLOCKED",
+          "expected": "동일20분기준의새전체graphPull",
+          "actual": "wrapperFAIL_OR_BLOCKED/outerexit1;step18 exitnull/SIGTERM;8완료+3대형partial;06:26:27경동시갱신정지뒤15분55초변화없음;stdout1149bytes/stderr0/36AESstreams정합",
+          "input": "공개 저장소의 실제 artifact/metadata; runtime은 격리 합성 fixture, 운영 DB 미접근",
+          "classification": "UNKNOWN",
+          "recovery": "원본script71a5/config/실패receipt/partial/AES보존,근본원인UNKNOWN",
+          "residualRisk": "명시HTTP오류/정확정지근본원인은미확정",
+          "evidenceScope": "EXACT",
+          "synthetic": true,
+          "imageDigest": "sha256:5ac1904dac65ef88c64952b67866a84d078a39dc74bea007f254c7a5a1fa10f8",
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-release-preflight-original"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "serial-current-preflight",
+          "at": "2026-11-15T07:09:54.834Z",
+          "timeNote": "실제 영수증 시각",
+          "stage": "GHCR_PULL",
+          "status": "PASS",
+          "sourceSha": "f45f7c0a25960a34970005cae93bd7b55ace2831",
+          "fixSourceSha": null,
+          "sourceFingerprint": "d8fb543cc72640ea17114201694c60c74c67b6cd9e936302ade5056e9f055bd9",
+          "sourceNote": "검증된 clean exact source/base/fixture와 실제 실행 영수증 결속",
+          "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; controlled direct Node; environment fingerprint a29758a80dbeb93a85b75e0a3dec6fffe7f9c2b7968f2916fee0a1c5bc30c41e",
+          "environmentVersion": "masterGantt0.147.0",
+          "command": [
+            "node",
+            "/home/planner/.local/state/mastergantt-release-891-preparation-20261115/release-serial.mjs",
+            "preflight",
+            "/home/planner/.local/state/mastergantt-release-891-20261115-f45f7c0a-serial/config.json"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "새빈layout·전체recursivegraph/bytes/runtime/freshadmit/태그보호와동일20분기준유지",
+          "actual": "serial graphPull 2026-11-15T07:08:11.905Z~2026-11-15T07:09:43.776Z;32commands/64AESstreams;17blob전수bytes/hash·runtime/APIauth/SQLiterestart/integrityPASS;trunc0;현재admit/source/env/reportpinsPASS",
+          "input": "공개 저장소의 실제 artifact/metadata; runtime은 격리 합성 fixture, 운영 DB 미접근",
+          "classification": "UNKNOWN",
+          "recovery": "ORAS동시성만default3→1;원본대비1줄delta독립정적/실제QA PASS;partial/cache재사용0,timeout증가0",
+          "residualRisk": "현재새실행PASS;정지근본원인확정·모든네트워크무재발보장아님",
+          "evidenceScope": "EXACT",
+          "synthetic": true,
+          "imageDigest": "sha256:5ac1904dac65ef88c64952b67866a84d078a39dc74bea007f254c7a5a1fa10f8",
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-release-serial-preflight"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "f45f7c0a25960a34970005cae93bd7b55ace2831",
+            "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; controlled direct Node; environment fingerprint a29758a80dbeb93a85b75e0a3dec6fffe7f9c2b7968f2916fee0a1c5bc30c41e",
+            "imageDigest": "sha256:5ac1904dac65ef88c64952b67866a84d078a39dc74bea007f254c7a5a1fa10f8",
+            "backupId": null
+          }
+        },
+        {
+          "id": "formal-promotion-verified",
+          "at": "2026-11-15T07:17:52.127Z",
+          "timeNote": "실제 영수증 시각",
+          "stage": "GHCR_PUSH",
+          "status": "PASS",
+          "sourceSha": "f45f7c0a25960a34970005cae93bd7b55ace2831",
+          "fixSourceSha": null,
+          "sourceFingerprint": "d8fb543cc72640ea17114201694c60c74c67b6cd9e936302ade5056e9f055bd9",
+          "sourceNote": "검증된 clean exact source/base/fixture와 실제 실행 영수증 결속",
+          "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; controlled direct Node; environment fingerprint a29758a80dbeb93a85b75e0a3dec6fffe7f9c2b7968f2916fee0a1c5bc30c41e",
+          "environmentVersion": "masterGantt0.147.0",
+          "command": [
+            "node",
+            "/home/planner/.local/state/mastergantt-release-891-preparation-20261115/release-serial.mjs",
+            "promote",
+            "/home/planner/.local/state/mastergantt-release-891-20261115-f45f7c0a-serial/config.json"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "승인exactGit/SemVer/aliases가동일검증digest이고기존참조보존",
+          "actual": "annotatedv0.147.0 object3323aa85b10dcb75feff405130bbfe0cf106efbb→sourcef45;GHCR0.147.0/0.147/0/latest/SHA동일5ac190index/VERIFIED;누적96commands192AESstreams;기존498이름보존+신규2=500·Git420기존ref lines보존+새2;재빌드0",
+          "input": "공개 저장소의 실제 artifact/metadata; runtime은 격리 합성 fixture, 운영 DB 미접근",
+          "classification": "TOOLING",
+          "recovery": "실제preflight독립reviewer qa_release891 PASS/0findings sidecar후live조건/admit재검사·허용4태그승격·readback/새exactPullPASS;운영배포0",
+          "residualRisk": "runtime/API/SQLite는동일digest preflightPASS·승격후는새exactPullPASS;추가post-promote runtime재실행주장X;선정9descriptor외전수검증/CAS/수동UAT/운영배포는별도",
+          "evidenceScope": "EXACT",
+          "synthetic": true,
+          "imageDigest": "sha256:5ac1904dac65ef88c64952b67866a84d078a39dc74bea007f254c7a5a1fa10f8",
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-release-serial-final"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "f45f7c0a25960a34970005cae93bd7b55ace2831",
+            "environment": "Linux/WSL2 x64; Node22.14.0; npm11.10.0; controlled direct Node; environment fingerprint a29758a80dbeb93a85b75e0a3dec6fffe7f9c2b7968f2916fee0a1c5bc30c41e",
+            "imageDigest": "sha256:5ac1904dac65ef88c64952b67866a84d078a39dc74bea007f254c7a5a1fa10f8",
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F891-031",
+      "issue": 891,
+      "ledger": "docs/ISSUE_891_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        907
+      ],
+      "domain": "release-operations",
+      "layer": "tooling",
+      "keywords": [
+        "receipt",
+        "count-type"
+      ],
+      "cause": "Manager로컬보조진단에서graph.blobs정수를list로오독",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/scripts/local-publish.test.ts",
+          "case": "실제graph검증보고서소비자;보조진단자료형경계",
+          "historical": false,
+          "coverageArea": "실행결과/조회오류/원문미수집분리"
+        }
+      ],
+      "residualRisk": "제품/게시실패와보조조회오류구분;원본시각미수집명시",
+      "events": [
+        {
+          "id": "observed",
+          "at": null,
+          "timeNote": "2026-11-15; 개별 정확 시각 미수집",
+          "stage": "LOCAL_PREP",
+          "status": "FAIL",
+          "sourceSha": "f45f7c0a25960a34970005cae93bd7b55ace2831",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED 보조 실행; 전체 source/환경 전후 지문은 이 명령에서 별도 수집하지 않음",
+          "environment": "Linux/WSL2 x64; Python3.12 local supplemental diagnostic; pinned ORAS1.3.6; full execution environment fingerprint not collected",
+          "environmentVersion": "masterGantt0.147.0",
+          "command": [
+            "python3",
+            "LOCAL:891-preflight-receipt-diagnostic-inline"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "실제receipt graph.blobs자료형을그대로읽음",
+          "actual": "TypeError: int object is not subscriptable; graph.blobs count를list로잘못읽은보조진단exit1",
+          "input": "공개 저장소의 실제 artifact/metadata; runtime은 격리 합성 fixture, 운영 DB 미접근",
+          "classification": "TOOLING",
+          "recovery": "로컬count17과OCI tar member sizes를독립읽고설치CLIhelp확인;source/registry변경0",
+          "residualRisk": "실기기/AT/Owner UAT/운영 배포 별도; 명시된 실제 실행 범위만 검증",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-F031"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "corrected-local-read",
+          "at": null,
+          "timeNote": "2026-11-15; 개별 정확 시각 미수집",
+          "stage": "STATIC",
+          "status": "PASS",
+          "sourceSha": "f45f7c0a25960a34970005cae93bd7b55ace2831",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED 보조 실행; 전체 source/환경 전후 지문은 이 명령에서 별도 수집하지 않음",
+          "environment": "Linux/WSL2 x64; Python3.12 local supplemental diagnostic; pinned ORAS1.3.6; full execution environment fingerprint not collected",
+          "environmentVersion": "masterGantt0.147.0",
+          "command": [
+            "python3",
+            "LOCAL:891-preflight-diagnostic-corrected"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "count/descriptor·CLI옵션의실재값분리",
+          "actual": "graph.blobs=17;large blob sizes55229482/35133237/28232655;cp --concurrency default3와blob fetch --output/--registry-config installedhelp확인",
+          "input": "공개 저장소의 실제 artifact/metadata; runtime은 격리 합성 fixture, 운영 DB 미접근",
+          "classification": "TOOLING",
+          "recovery": "자료형조회만교정;currentartifact/source/gates불변",
+          "residualRisk": "실기기/AT/Owner UAT/운영 배포 별도; 명시된 실제 실행 범위만 검증",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:891-F031"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_891_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "f45f7c0a25960a34970005cae93bd7b55ace2831",
+            "environment": "Linux/WSL2 x64; Python3.12 local supplemental diagnostic; pinned ORAS1.3.6; full execution environment fingerprint not collected",
             "imageDigest": null,
             "backupId": null
           }

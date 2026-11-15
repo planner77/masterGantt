@@ -166,3 +166,19 @@ AC01실제풍선은같은d523검증이미지의source불변보충probe108geometr
 ## F028 최소 준비 교정 인계
 
 기존첫#4565폭case에만동일행scroll준비→기존현재3RAFreadiness→SUPERSEDED이면RANGE_EXTENSION명시검사→원래우클릭경로를추가했다. 공통helper/제품guard와기존메뉴/5폭/geometry/쓰기0/120초를유지했고독립qa891정적PASS다. 외부계측원본1PASS31.3초와최종별도소스1PASS32.0초를분리보존했다. 최초닫힘callbackUNKNOWN은유지하며현재source/geometry정착준비불변식보완을새Head전체PASS로확대하지않는다. 새cleanHead의모든필수gate를다시수행하며제품src·의존성·0.147후보는불변이다.
+
+
+## 구현·검증·정식 게시 완료 증거 (2026-11-15)
+
+- 제품source: `f45f7c0a25960a34970005cae93bd7b55ace2831` / 최종검증base: `0bf0e4e54cc445058b16c3764f79c27b81f5dd97`. version0.146.0→0.147.0은기능확장MINOR이며package/lock일치다.
+- 로컬: fast05 9단계/4013UnitPASS·기존opt-in3SKIP, targeted05 142Unit/87ChromiumPASS·fail/skip/flaky/retry0, Docker05 10단계, admit05 publishAllowed=true/reasons0. source/환경전후·교차일치와5276snapshot/index/dependency지문·허용Next2외변경0을독립qa891이확인했다.
+- source지문: `d8fb543cc72640ea17114201694c60c74c67b6cd9e936302ade5056e9f055bd9`. 환경: `a29758a80dbeb93a85b75e0a3dec6fffe7f9c2b7968f2916fee0a1c5bc30c41e`. 현재Source의#13014.286초/#456첫5폭14.919초PASS는정확한준비조건/같은사용자경로범위이며과거F028의정확listener를확정한것이아니다.
+- UI: 실제30height관측/대표40viewport조합/nativeChromium125% zoom1.25·DPR1.25·1152×720·CSSzoom1/visualscale1·writes0를검증했다. 새image13c1의실제hover108geometry와대표12PNG,최종실제8PNG를별도UX가조회했다. fullCartesian/108pixel/narrowhover/AT/실기기/Mac/Owner직접UAT는NOT TESTED다.
+- 검토: riskHIGH/qa_requiredtrue/AGENT_LOCAL. `/root/qa891`최종엔지니어링PASS,`/root/ux891`실제20PNG범위내차단지적0,Manager는사용자의2026-11-15게시·종료명시위임에따라ACCEPT했다. API/DB/auth/의존성변경0이며기존보호계약유지다.
+- main: 정상FF로제품source를반영하고Git/APIexactHead및Actionsrun0을확인했다. Actionsfalse·activeRuleset24043042 deletion/non_fast_forward·bypass[]·classic404·push권한을live검사했고설정을바꾸지않았다. PR/원격CI/Trusted/Finalizer는N/A다.
+- 고유SHA게시: publisher05 29단계PASS/VERIFIED·exactPull/API/auth/SQLiterestart/integrity와17blob/SBOM/SLSA보존. 재빌드0이다.
+- 정식Git: `v0.147.0`, annotatedobject `3323aa85b10dcb75feff405130bbfe0cf106efbb` → 제품source. GHCR: `0.147.0` / `0.147` / `0` / `latest` 및고유SHA가모두 `sha256:5ac1904dac65ef88c64952b67866a84d078a39dc74bea007f254c7a5a1fa10f8`다. runtime/config는 `sha256:13c1abdfb042a7459c0a276bd2cc1c3db2159170d99f3b9cdb82d795db6b231e`다.
+- 정식운영: 최초병렬preflightBLOCKED/원본partial/AES를보존하고단일옵션실험으로새빈layout을다시Pull했다. serial32+64=96단계/192AESstreams와freshadmit/21reportpins·freshgraph/runtime·최종Pull/refs보존을별도qa_release891이실제07:21:35Z PASS/미해결0으로검산했다. 기존498tag이름+신규2=500,선정old0.145refs/Git420기존lines보존이며미선정descriptor전수검증/CAS보장을주장하지않는다. F029~031을단일원장/index에append했다.
+- 운영배포: NOT DEPLOYED. 운영DB읽기/변경0. alias승격은실제host배포/backup·restore를뜻하지않는다. 보호된oldformalrefs와사용자Compose/27개untracked/옛localmain·593refs를보존한다.
+
+이후변경은증거문서만이며이미발행한0.147.0의Git/source/digest를바꾸거나재게시하지않는다. 문서Head는제품source와분리해공통검사·원장Unit·admit·독립QA와일반mainFF를진행하고최종두Issue상태/종료명령은GitHubFINAL로확정한다. 이문서만으로미완료문서gate·아직OPEN인Issue를완료로표시하지않는다. 현재#915/#916등다른Issue의종료는위임범위밖이다.

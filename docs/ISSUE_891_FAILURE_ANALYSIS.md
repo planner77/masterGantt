@@ -254,3 +254,36 @@ TOOLING누적관측예산원인을독립qa891이원본trace/DOM/실제frame으�
 최소교정은첫5폭case의setViewport직후동일UUID4행scrollIntoView로원래rightclick자동준비를명시하고,기존waitForGanttReadiness가day/revision20/동일API/scope null/query빈값/canonical5/visible4·현재receipt와Core/nativegeometry의초기+3RAF동일key를검사한뒤원래openRow를실행한다. 공통helper는변경하지않았다. allowCancelledPriorWork는임의현재실패를통과시키지않으며활성/실패/UNKNOWN은계속차단한다. helper가종류까지제한하지않는점을독립QA가지적해SUPERSEDED반환때RANGE_EXTENSION을해당case에서명시assert했다. 메뉴visible/count1/미리editor0/수정enabled·실제click/menu0/editor1·5폭·geometry·mutation0·120초와모든기존검사는유지했다.
 
 독립qa891최종9줄diff정적PASS후별도최종archive에서05:18:14~05:18:59Z exit0/1PASS32.0초였다. specSHA0b8e79bff24d466ae51135ec2c8ce7cf696c18a1ef78e2754f604c99e3291104시작끝동일,diffSHA8919e83c06f6cac77373af5445707a14afc1440dad0e548f2b810677adfe611b다. browsertrace viewport5/click40/screenshot25는계측원본과같다. 정확listener를단정하지않고확인된fixture정착준비불변식을보강한것이며제품closeguard/비즈니스코드수정은없다. 현재이PASS는SCOPED이고새cleanHead전체fast/targeted/Docker/admit·실제최종QA전Push/Publish/Close는BLOCKED다.
+
+
+## 현재 제품 source의 최종 로컬 검증과 게시 (2026-11-15)
+
+제품 source `f45f7c0a25960a34970005cae93bd7b55ace2831`, base0bf0e4e54cc445058b16c3764f79c27b81f5dd97는clean exact source다. fast05 9단계/4013UnitPASS·기존opt-in3SKIP, targeted05 Unit142/11files·Chromium87/8files PASS(FAIL/SKIP/flaky/retry0), Docker05 10단계, admit05 publishAllowed=true/reasons0를독립qa891이검산했다. source지문d8fb543cc72640ea17114201694c60c74c67b6cd9e936302ade5056e9f055bd9/환경a29758a80dbeb93a85b75e0a3dec6fffe7f9c2b7968f2916fee0a1c5bc30c41e,fixture567a8f11add07cd52d0de18ab5e6529466f97d8cd2f72642d24901c1c5da325b/lock09abd4b4f1408a26e0614509b14e2dc27608fd33675881823484b7f50151ae26가결속된다. snapshot5276파일/index/dependency지문전후동일,untracked0·허용Next2외변경0다. F016~024/027/028에는실제current-source event를append했다. 과거F028정확listener는UNKNOWN으로유지하며현재정착준비/동일경로검증을원인확정·모든상황무재발로확대하지않는다.
+
+현재이미지sha256:13c1abdfb042a7459c0a276bd2cc1c3db2159170d99f3b9cdb82d795db6b231e의새hover실행06:00:47~06:01:24Z는108geometry검산이며F025/026에source별event를append했다. UX가실제20PNG(targeted8+대표hover12)를열어표시된제어의가로잘림/제어간겹침차단지적0을보고했다. RichUndo6장은Descriptionlabel일부를일시가리며lowheight/native125의화면밖handle은그이미지로시각판정하지않았다. 108pixel전체·narrowhover·AT·OwnerUAT는별도다. dirtycapture는공식clean입력/최종audit의허용Next출력과연결하며cleanfullDiff동일이라고부르지않는다.
+
+## F891-029 · 보조 태그 조회의 ORAS 출력 옵션 오타
+
+Manager보조조회가`oras repo tags --registry-config <auth-file> --output json ...`로exit1이었다. 실제설치1.3.6의옵션은`--format json`이며기존정식실행기에는처음부터맞는옵션이있었다. 최초stderr와개별exact시각은미수집으로명시하고완전원문보존으로주장하지않는다. 기존실행기/CLIhelp확인뒤인증된교정read는exit0,당시registry496/Git210·최고SemVer0.145.2/new0.147.0·0.147·v0.147.0부재를확인했다. source/registry변경0이며실제태그발행은후속별도증거다. LOCAL:891-F029외부원본영수증을단일원장/index에이관했다.
+
+## F891-030 · fresh graph 병렬 Pull 정지와 단일변수 새 검증
+
+원래preflight step18은06:22:31.543~06:42:22.157Z,wrapperFAIL_OR_BLOCKED/outerexit1·childexitnull/SIGTERM으로BLOCKED다. 8blob완료,대형a8ac/e815/7f60 partial각22,714,118/19,802,274/15,231,069bytes가06:26:27.315~349Z에동시정지했고15분55초갱신이없었다. stdout1149bytes/stderr0·36AESstreams정합/trunc0이며명시HTTP오류/근본원인은UNKNOWN이다. 원본script71a5/config/실패receipt/partial/AES는그대로보존했다. 실제SHA publisher29단계/58AESstreams의PASS와이BLOCKED를구별했다.
+
+공식ORAS1.3.6/oras-go2.7소스와설치help의concurrency가동시copytask수만조절함을확인하고,새실행기SHAaf67c3e86cd7f4f1362a3aeb14fcbd31201ce5c191b1c71dc43a54d547140745의preflightcp에만`--concurrency 1`을추가했다. 새configSHA4c2db3ae5f5a365739fbae8c825b3f02356fe3d339fa42741752622aeddad85c는실행directory만다르다. 기존20분/recursive전체graph/bytes/runtime/freshadmit/reportpins/lock/sidecar/태그검사를유지했다. 새빈layout에서실제Pull했고이전partial/cache를재사용하지않았다. 이는정지근본원인확정이아닌통제변수1개실험이다.
+
+새graph Pull은2026-11-15T07:08:11.905Z~2026-11-15T07:09:43.776Z,preflight32단계/64AESstreams·17blob전수bytes/hash·exactruntime/API/auth/SQLiterestart/integrity·freshadmitPASS다. 별도qa_release891이07:13:37Z미해결0으로실제검산해preflightintegrity8e52e44292f3758be8f26ef5ce06e6328c8fec2b7aa7dc6949aad129311e5d41/scriptaf67/source/digest에결속한review를반환했고Manager가실제그결과만0600sidecar로기록했다. Reviewer별도셸환경과controlledrun의a297환경을구분하며Reviewer재실행PASS로표현하지않았다.
+
+### F891-030 후속 · 정식 0.147.0 승격과 독립 최종 QA
+
+고유SHA publisher는2026-11-15T06:10:20.941Z~2026-11-15T06:19:17.143Z29단계PASS/VERIFIED였고,07:17:52.127Z정식승격은PASS였다. annotatedv0.147.0 object3323aa85b10dcb75feff405130bbfe0cf106efbb→sourcef45f7c0a25960a34970005cae93bd7b55ace2831;GHCR0.147.0/0.147/0/latest/SHA모두index`sha256:5ac1904dac65ef88c64952b67866a84d078a39dc74bea007f254c7a5a1fa10f8`다. preflight32+promote64=96명령/192AESstreams(AAD/hash/bytes/권한/trunc0),기존498tag names보존+신규2=500,기존Git420ref lines보존+새2였다. 선정9descriptor중옛0.145.0/0.145.1/0.145.2/0.145는불변이며미선정descriptor전수불변으로확대하지않는다. 재빌드0·허용4개registrytag쓰기와Git새tag외기존태그삭제/덮기0이다.
+
+실제동일digest runtime/API/auth/SQLite는preflight에서PASS했고승격후에는새exactdigestPull이PASS했다. 추가post-promote runtime재실행으로주장하지않는다. SBOM371packages/SPDX·SLSAv1·17blob결속을확인했다. 최종qa_release891은07:21:35Z미해결0/PASS를반환했다. 최종receiptintegrityb842c6b473457acb157a585d84b09703a8758a06b16aa96e59e8a3bbe2f5b72c다. 외부writer의서버CAS는없으며live재조회/공통local lock으로경쟁창을줄인범위다. 운영배포/운영DB접근은없고oldformalrefs는유지했다.
+
+## F891-031 · 로컬 receipt 진단의 count 자료형 오독
+
+보조Python조회에서graph.blobs정수를list로읽어`TypeError: int object is not subscriptable`/exit1이었다(개별exact시각미수집). actualgraph count17과OCI tar member의실제크기55,229,482/35,133,237/28,232,655bytes를다시읽고CLIhelp의옵션을확인한조회는exit0이었다. source/registry/정식검사변경0이며제품장애나새Graph검증PASS로확대하지않는다. LOCAL:891-F031원본/정정메타를보존했다.
+
+## 종료 증거 문서의 경계
+
+이추가는이미게시한제품sourcef45f7c0a25960a34970005cae93bd7b55ace2831뒤의문서전용변경이다. app/src/package/lock/Docker/검증도구는변경하지않고0.147.0과immutableGit/GHCRdigest를유지한다. 새문서Head의공통검사·직접원장Unit·admission·독립문서QA·일반mainFF는별도로수행하며그결과/최종Issue상태는GitHubFINAL에결속한다. 이문서를썼다는사실로아직끝나지않은문서gate나Issue종료를PASS로표시하지않는다.

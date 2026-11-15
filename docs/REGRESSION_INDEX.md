@@ -187,3 +187,8 @@ F898-009~012를 [Primary 원장](ISSUE_898_FAILURE_ANALYSIS.md)에 추가했다.
 ## #891 기존 메뉴의 viewport·native scroll 준비 경합
 
 [F891-028](ISSUE_891_FAILURE_ANALYSIS.md)은menuvisible직후실제document130→108px이동과메뉴count0의기능FAIL을보존한다. 정확닫힘listener는UNKNOWN이며기존publicreadiness/3RAF/Core/native정착검사를재사용해진단한다. closeguard/실제메뉴경로/timeout/5폭/assertion은유지하고새source전체gate전게시금지다. 같은run의#13022.1초PASS와전체86PASS/1FAIL·sourceguardPASS를구분한다.
+
+
+## #891 최종 exact source와 정식 게시·운영 보조 오류
+
+[F891-029/030/031](ISSUE_891_FAILURE_ANALYSIS.md)에보조조회옵션오타/graphcount자료형오독과정정,원본20분Pull정지BLOCKED및동시성만1로낮춘새빈layout의전수graph/runtime검증을append했다. sourcef45f7c0a25960a34970005cae93bd7b55ace2831의fast4013·영향Unit142/Chromium87·Docker10·admit와독립QA/PASS는원본실패를지우지않는다. 0.147.0/Gitannotatedtag와동일indexsha256:5ac1904dac65ef88c64952b67866a84d078a39dc74bea007f254c7a5a1fa10f8의정식aliases·선정oldrefs/전체이름보존을실제확인했다. 전체과거descriptor/외부CAS/수동UAT/운영배포는그범위가아니다. F028정확listenerUNKNOWN과F029원문stderr/시각미수집을유지한다. 문서전용후속source는별도gate/QA/main반영뒤IssueFINAL에서종료한다.
