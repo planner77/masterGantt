@@ -40,7 +40,7 @@ Manager는 #395의 로컬 runtime-security 재평가 [#914](https://github.com/p
 
 ## 3. 매 Push 절차
 
-1. 동일 소스의 로컬 공통/영향/위험별 검사·문서·QA와 admission을 완료한다. clean exact commit·base/main·fixture/환경을 보고서와 대조한다.
+1. 매 Push 직전에 인증된 읽기 전용 API로 repository Actions `enabled=false`, main에 적용되는 active rule과 force push·branch deletion 보호, 현재 actor의 Push 권한을 확인한다. #911의 최초 전환 결과만 재사용하지 않는다. PR/required check 등 현행 직접 Push와 충돌하는 조건, Actions 재활성화 또는 권한·보호 상태 미확인은 BLOCKED이며 임의 관리자 변경이나 우회로 진행하지 않는다. 동일 소스의 로컬 공통/영향/위험별 검사·문서·QA와 admission을 완료하고 clean exact commit·base/main·fixture/환경을 보고서와 대조한다.
 2. `git fetch origin main`으로 최신 원격 main을 읽고 검증 baseline과 ancestry·fast-forward 가능성을 확인한다. 원격 main 이동/충돌이나 소스 변경은 새 검증이 필요하다.
 3. Owner 권한으로 일반 fast-forward Push한다. `--force`, `--force-with-lease`와 history rewrite는 사용하지 않는다. 활성 PR branch에 Push해 자동 실행시키지 않는다.
 4. 원격 main exact SHA와 해당 변경의 자동 Run 0건을 재조회해 MAIN_PUSHED 근거로 남긴다. 동시 원격 변경·자동 Run 발생 시 EXCEPTION을 기록하고 Publish/Close를 중단한다.

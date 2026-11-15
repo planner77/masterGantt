@@ -42,3 +42,12 @@
 - [#905 Owner 운영 정책](https://github.com/planner77/masterGantt/issues/905)
 - [#911 관리자 전환 완료](https://github.com/planner77/masterGantt/issues/911)
 - [현행 ISSUE_LIFECYCLE](ISSUE_LIFECYCLE.md), [TEST_PLAN](TEST_PLAN.md), [GITHUB_OPERATIONS](GITHUB_OPERATIONS.md)
+
+
+## 2026-11-15 로컬 대조·통합 재개
+
+원본 작업공간의 `git diff -- AGENTS.md`는 비어 있으며 48,119 bytes는 오래된 #593 branch의 tracked blob `c35fa2028f2f8672cf4466d0b9253ea5ccefedf0`과 같다. 따라서 미커밋 신규 정책이 아니라 #905 이전 지침이다. 원본 파일 SHA256 `ce26b3399f0b755b1e128749bf5acd34bf7ee6372b52a604623c10180da04a84`를 소유자 전용 외부 백업과 대조했고 원본 worktree·Compose 사용자 변경·실측 산출물은 수정하지 않았다. 기존 보존 구역과 최신 책임 문서를 비교해 보안·레이어·문서 동기화·독립 검토·정확 증거 규칙을 유지하고 퇴역 CI/PR 명령은 복원하지 않는다.
+
+Owner는 #918 완료 후 #891과 버전 규칙에 따른 정식 GHCR 게시·수동 종료를 명시 요청했다. 이에 후보를 로컬 통합 검증하고 정상 main fast-forward하는 범위로 확장했다. #918 단독 제품/버전/이미지 변경은 N/A이며 실제 공통·영향 검사와 독립 qa918 검토·admission 뒤에만 반영한다. 이전 섹션의 미실행 상태는 후보 준비 당시 이력이며 최신 결과는 [Work Packet](exec-plans/active/ISSUE_918.md)과 Issue FINAL을 따른다.
+
+독립 검토에서 매 Push 조회의 목적지가 최초 전환 절차만 설명하는 누락을 확인해 GITHUB_OPERATIONS §3에 Actions 비활성·적용 rule·actor Push 권한의 실제 읽기 전용 확인과 불일치 BLOCKED를 명시했다. 관리자 전환을 다시 수행하거나 보호를 완화하는 변경은 없다.
