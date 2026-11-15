@@ -39,3 +39,15 @@ UPDATED: DESIGN, PROJECT_UX, UI_UX_GUIDELINES, GANTT_STATE_CONSISTENCY, TEST_PLA
 
 
 최종 준비 배치: 테스트 공통 `beforeEach`에서 같은 missing-Project GET404/no Set-Cookie를 확인한다. 이 spec의 각 격리 서버에만 적용하며 shared fixture/config와 원래 테스트 timeout/assertion/retry는 변경0이다. 전체 #880과 신규 #920의 집중46.2초/49.1초·2PASS를 확인했고 다음 source의 공식 gate를 새로 실행한다. 제품 src/의존성/버전은799의 후보와 같다.
+
+
+## 2026-11-15 후속 실제 검증과 Owner 승인
+
+최종 제품 source `df1468250566e840ccf00e94c276ab4aeeeb06bd`/0.147.1은 fast02 4013PASS·기존3SKIP, targeted02 164Unit+133Chromium/0FAIL0SKIP, Docker10단계·admit PASS 후 main에 일반 fast-forward 반영했다. Git/API exact SHA와 새 Actions Run0건을 확인했다. 이전 실패를 지우지 않으며 [실제 검증 기록](https://github.com/planner77/masterGantt/issues/920#issuecomment-6893948260)을 따른다.
+
+Owner는0.147.1 정식 GHCR/annotated v0.147.1/0.147·0·latest 승격 및 새 백업·복원 확인 후 운영 재배포 요청에 “네.”로 [정확 범위 승인](https://github.com/planner77/masterGantt/issues/920#issuecomment-6893982288)했다. 앞 절의 미승인은 당시 상태의 보존이며 이후 승인 범위를 여기 연결한다. 고유 SHA publisher01은29단계·17blob·actual exact digest runtime/SQLite PASS다. index는 `sha256:a87b9a3e2157aae2e5bb4e8f4a84bc2ba03c19d59e1fc01e3b446a200121f54a`, source는위df다.
+
+정식 승격 preflight01의 외부143 중단과 새 전체 phase의 검산은 F920-006에 누적한다. 제품 source·정식 tag/운영 source와 이 후속 docs-only source는 구별하며 제품/빌드 입력 변경0으로 새 이미지 N/A다. 실제 정식 승격/운영 배포·최종 Owner 수용/종료 상태는 #920/#919 후속 STATUS/FINAL을 원본으로 사용한다. Windows 실장치·pinch/pen/AT·Owner 최종 UAT를 기계 검증 PASS로 추론하지 않는다.
+
+
+정식 승격과 실제 운영 교체도 [STATUS](https://github.com/planner77/masterGantt/issues/920#issuecomment-6894271081)로 PASS를 확인했다. annotated `v0.147.1`과 고유 SHA/0.147.1/0.147/0/latest는 위 a87 index로 일치한다. 새 최종 백업의 exact 복원·이전/신규 호환 검증 후 schema39와 모든 원본 행·project/volume/env/port/network를 보존했다. Owner는 실제 Windows11/Chrome의 Ctrl+휠 정상 작동·UAT 승인과 #919/#920 종료를 명시 위임했다. 현재 후속 원장은14Issue·117Failure·257event이며 기존 원본은 불변이다. 후속 docs-only 공통 검사/admission과 일반 main Push·FINAL/종료 API의 실제 결과까지 마무리한다.

@@ -23,3 +23,10 @@
 최종 실행은08:51:27.231948Z~08:51:40.771557Z PASS다. 이는 전체 검증 구간이며 정확한 HTTP 중단시간 측정이 아니다. 새 최종 backup `mg-quiesced-01470-20261115T085127Z-849f5578`의 AES·출처/신선도·old/new SQL verify 후 같은 project/volume/환경/port/network의 app1개를 exact digest로 교체했다. 운영 SQL38→39·모든 기존 table row 보존·integrity ok/FK0, 목록API200/기존 공개Project2개 읽기 및 loopback/canonical HTTP의 HTML/live/ready200을 확인했다. env의 image 선택만 지속 반영했고 사용자 파일·옛image·backup/key를 보존했다. 운영 자동 mutation/restore0이다.
 
 receipt SHA256은9aee53b715a7dae1fed2b75415cadc3cacc9da55f19dd1517cec63155c35b887이다. Manager deployment ACCEPT, qa_method=OWNER_MANAGED_LOCAL/이번 운영 독립 Reviewer=N/A이며 #891의 실제 독립 QA와 구별한다. 사용자 “다른 항목은 문제 없음”은 그 진술 범위로 기록하고, Ctrl+휠 실패는 [#920](ISSUE_920_FAILURE_ANALYSIS.md)으로 인계한다. 전체 Owner UAT는 재확인 전 NOT TESTED/미완료이며 off-host·AT/실기기도 PASS로 표시하지 않는다.
+
+
+## #920 후속0.147.1 운영 교체·실제 Owner UAT
+
+[#920 원장](ISSUE_920_FAILURE_ANALYSIS.md)에 기존 Ctrl+휠 coarse44px 고정의 재현·수정·실패 보존·최종133Chromium PASS·사전검증 중단/회복과 실제 운영 교체를 연결했다. 정식 source df146825/0.147.1/index `sha256:a87b9a3e2157aae2e5bb4e8f4a84bc2ba03c19d59e1fc01e3b446a200121f54a`, 최종 백업 `mg-quiesced-01471-20261115T122246Z-95c81e8a`의 exact 복원 검증 후2026-11-15T12:23:00.859Z 운영 PASS다. schema39→39·원본행/설정/volume 보존·healthy1app·실제HTTP/readiness200·운영 Mutation0이며 DB 되감기는 없다. [배포 STATUS](https://github.com/planner77/masterGantt/issues/919#issuecomment-6894271399).
+
+Owner는 실제 Windows11/Chrome에서 Ctrl+F5 후 Ctrl+휠 정상 작동과 UAT 승인·#919/#920 종료 위임을 회신했다. 자동 emulation과 이 실제 장치 확인을 구별한다. 기존 네 배포 실패와0.147.0의 백업/운영 증거를 보존하며 후속 docs-only 검증·최종 main/종료 API 결과는 각 Issue FINAL을 따른다.

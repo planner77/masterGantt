@@ -200,3 +200,8 @@ F898-009~012를 [Primary 원장](ISSUE_898_FAILURE_ANALYSIS.md)에 추가했다.
 
 
 [F920-005](ISSUE_920_FAILURE_ANALYSIS.md)은799정식영향132PASS/1FAIL·source/env불변과 첫Source대기/healthtimeout을 보존한다. 단독 cold/warm은둘다PASS라원본내부지연UNKNOWN을남기며, missing-Project GET404준비로개발route비용을분리한다. 원래UI5초/전체180초/91행·viewport·mutation/sourceguard를유지한집중40.9초PASS는새clean전체gate의대체가아니다.
+
+
+## #920 최종 제품 회귀·정식 승격 사전검증 중단
+
+기존14Issue·115Failure·249event와 원장 Markdown prefix를 보존하고 F920-001/F920-005의 최종 exact 제품 회귀 및 새F920-006을 누적한다. 현재14Issue·117Failure·257event다. [#920 원장](ISSUE_920_FAILURE_ANALYSIS.md)은 원래799의132PASS/1FAIL과 최종df146825의133PASS를 구분한다. 읽기 전용 preflight01 외부143/원인UNKNOWN·정식/운영쓰기0와 새 preflight02 전체 검산을 별도 기록한다. 기존 publisher helper 테스트는 자동 SIGTERM 회귀가 아니며 private operator/AES 원문과 실제 source/digest 근거를 함께 사용한다. 이 후속 문서는 제품/빌드 입력을 바꾸지 않으며 새 이미지 N/A다.

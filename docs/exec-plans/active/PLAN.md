@@ -63,3 +63,8 @@ SQLite Online Backup과 격리 복원·HTTP/권한/쓰기/export/restart 검증 
 [Work Packet](ISSUE_917.md)에 baseline `1b8437fd199ff8f3bb2359ba7acc0d38f1ff67ca`의 기존 단일 editor/CRUD·nullable migration0039·Copy/Template7·조회 소비자 확장과 AC1~8을 고정했다. HIGH 위험이며 [원장](../../ISSUE_917_FAILURE_ANALYSIS.md)에 최초 실패·재검증을 보존한다. Owner는 분석/설계/구현/로컬 검사/정식 GHCR 게시/이슈 종료를 요청했으며 운영 배포는 미요청이다. 현행 로컬 direct Push·고유SHA 게시·exact digest smoke를 적용하며 필수 검증 전 Push/Publish/Close하지 않는다. 최신 실제 상태는 Work Packet 및 Issue STATUS/FINAL을 따른다.
 
 제품source `9d0e6b8b0d2f38ea4e287d09c21979e18dfa863b`/0.146.0의전체로컬gate·독립제품QA·Manager게시범위ACCEPT·mainFF·같은OCI정식게시/exactdigest Pull이PASS다. index `sha256:0c60ffe02a98018abc1b81c5a147a1f2d0575804de7cd5cd25403bff164a7f78`. F024/F025/F026와게시후근거를append하는후속문서전용fast/admit·독립QA·mainFF·최종AC8/수동종료의실제결과는IssueFINAL에서해당Head에귀속하며운영배포는하지않았다. 최신근거는위Work Packet과[원장](../../ISSUE_917_FAILURE_ANALYSIS.md)을따른다.
+
+
+## 2026-11-15 #920 운영 수정·Owner 수용 후속
+
+제품 source df146825/정식0.147.1은 동일 source 공통4013Unit·영향164Unit/133Chromium·Docker/admission PASS 후 main 반영, 고유 SHA/annotatedv0.147.1/SemVer·0.147/0/latest 승격, 새 백업/격리 복원, 실제 운영 교체를 완료했다. index는 `sha256:a87b9a3e2157aae2e5bb4e8f4a84bc2ba03c19d59e1fc01e3b446a200121f54a`이며 schema39→39와 원본 행·설정·volume을 보존했다. Owner의 실제 Windows Chrome Ctrl+휠 정상 확인과 #919/#920 종료 위임을 받았으며, 남은 단계는 후속 docs-only 공통 검사/admission, 정상 main Push와 FINAL/종료 API다. 실제 최종 상태는 [#920](https://github.com/planner77/masterGantt/issues/920)·[#919](https://github.com/planner77/masterGantt/issues/919)를 따른다. 제품/빌드 변경0으로 후속 문서 source의 새 image/tag는 N/A이며 정식 제품/tag/digest source는 df를 유지한다.

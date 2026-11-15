@@ -14367,6 +14367,108 @@
             "imageDigest": null,
             "backupId": null
           }
+        },
+        {
+          "id": "verified02-full-regression",
+          "at": "2026-11-15T11:51:15.833Z",
+          "timeNote": "Exact final targeted report completion; individual case durations from runner JSON",
+          "stage": "PLAYWRIGHT",
+          "status": "PASS",
+          "sourceSha": "df1468250566e840ccf00e94c276ab4aeeeb06bd",
+          "fixSourceSha": "df1468250566e840ccf00e94c276ab4aeeeb06bd",
+          "sourceFingerprint": "185ac2fc3a93c81595935f64844ba0bbbcb1da7f7b263c308c08c9b0bb710a34",
+          "sourceNote": null,
+          "environment": "controlled environment fingerprint b091905f0b3955b0186bb413e4823686f9ffbad5cbd6ef8623a855bcc78dadca; Node22.14.0/npm11.10.0 Linux/WSL2 amd64; installed Playwright1.63.0 Chromium1243; operator ORAS1.3.6 where noted",
+          "environmentVersion": "masterGantt0.147.1",
+          "command": [
+            "node",
+            "scripts/verify-prepr.mjs",
+            "--mode=targeted",
+            "--base=fc8b0858f467bec0cd0a13a0fd14f1edd752c8a7",
+            "--issue=920",
+            "--include=tests/features/gantt/gantt-density.test.ts",
+            "--include=tests/scripts/issue-ledger-verifier.test.ts",
+            "--report-dir=.prepr-reports/920-targeted02"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "Same clean final source passes all original and new selected consumers",
+          "actual": "Final source hybrid regression44.197s/retry0 PASS;48 real mouse/touch observations across3Views/Grid+Chart; original wheel, bounds, zoom, instance and canonical assertions pass; full targeted164Unit+133Chromium0FAIL0SKIP",
+          "input": "Synthetic isolated fixture; actual operating database only in explicitly identified #919 backup/deployment steps; no public raw data",
+          "classification": "PRODUCT",
+          "recovery": "Fresh final fast02/targeted02/docker02/admit02 PASS; first799 failure and diagnostics retained",
+          "residualRisk": "Windows11 physical Chrome Owner UAT pending; CDP emulation not physical device proof; original F005 internal stall UNKNOWN",
+          "evidenceScope": "EXACT",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:920-targeted02-report-and-runner"
+            },
+            {
+              "kind": "PUBLIC_URL",
+              "reference": "https://github.com/planner77/masterGantt/issues/920#issuecomment-6893948260"
+            }
+          ],
+          "verification": {
+            "sourceSha": "df1468250566e840ccf00e94c276ab4aeeeb06bd",
+            "environment": "controlled environment fingerprint b091905f0b3955b0186bb413e4823686f9ffbad5cbd6ef8623a855bcc78dadca; Node22.14.0/npm11.10.0 Linux/WSL2 amd64; installed Playwright1.63.0 Chromium1243; operator ORAS1.3.6 where noted",
+            "imageDigest": null,
+            "backupId": null
+          }
+        },
+        {
+          "id": "operating-image-only-deployment",
+          "at": "2026-11-15T12:23:00.859353+00:00",
+          "timeNote": "Exact production deployment receipt completion",
+          "stage": "DEPLOY",
+          "status": "PASS",
+          "sourceSha": "df1468250566e840ccf00e94c276ab4aeeeb06bd",
+          "fixSourceSha": null,
+          "sourceFingerprint": "185ac2fc3a93c81595935f64844ba0bbbcb1da7f7b263c308c08c9b0bb710a34",
+          "sourceNote": "SCOPED private operator controller with exact product/script/config/report/archive/environment pins; all critical subprocess exits and promotion supervisor exit0 recorded",
+          "environment": "controlled environment fingerprint b091905f0b3955b0186bb413e4823686f9ffbad5cbd6ef8623a855bcc78dadca; Node22.14.0/npm11.10.0 Linux/WSL2 amd64; installed Playwright1.63.0 Chromium1243; operator ORAS1.3.6 where noted",
+          "environmentVersion": "masterGantt0.147.1",
+          "command": [
+            "python3",
+            "LOCAL:920-deploy.private.py"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "Exact verified0.147.1 replaces0.147.0 after fresh consistent backup and restore checks, existing rows/settings preserved",
+          "actual": "PASS/externalexit0;healthy1app;schema39→39;all original table row hashes preserved;integrityok/FK0;canonical+loopback/live/ready200;2existing publicProject reads;operating mutations0;only IMAGE_NAME persisted",
+          "input": "Approved actual production backup/deployment; no business data/addresses/raw logs publicly disclosed; synthetic write/auth/export/restart only in network-none restored clone",
+          "classification": "PRODUCT",
+          "recovery": "Fresh final quiesced encrypted archive restored and read by previous/current images before app replacement; online archive full isolated runtime checksPASS; no operating DB restore/rewind",
+          "residualRisk": "Physical Windows Owner confirmed Ctrl-wheel normal and explicitly authorized issue closure; broad device/pen/pinch/AT and off-host not claimed PASS",
+          "evidenceScope": "SCOPED",
+          "synthetic": false,
+          "imageDigest": "sha256:a87b9a3e2157aae2e5bb4e8f4a84bc2ba03c19d59e1fc01e3b446a200121f54a",
+          "backupId": "mg-quiesced-01471-20261115T122246Z-95c81e8a",
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "PUBLIC_URL",
+              "reference": "https://github.com/planner77/masterGantt/issues/920#issuecomment-6894271081"
+            },
+            {
+              "kind": "PUBLIC_URL",
+              "reference": "https://github.com/planner77/masterGantt/issues/919#issuecomment-6894271399"
+            },
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:920-production-deployment-receipt"
+            }
+          ],
+          "verification": {
+            "sourceSha": "df1468250566e840ccf00e94c276ab4aeeeb06bd",
+            "environment": "controlled environment fingerprint b091905f0b3955b0186bb413e4823686f9ffbad5cbd6ef8623a855bcc78dadca; Node22.14.0/npm11.10.0 Linux/WSL2 amd64; installed Playwright1.63.0 Chromium1243; operator ORAS1.3.6 where noted",
+            "imageDigest": "sha256:a87b9a3e2157aae2e5bb4e8f4a84bc2ba03c19d59e1fc01e3b446a200121f54a",
+            "backupId": "mg-quiesced-01471-20261115T122246Z-95c81e8a"
+          }
         }
       ]
     },
@@ -14968,6 +15070,339 @@
           "verification": {
             "sourceSha": "1ed3160839d6419506bcb612fca47c0d10062e3b",
             "environment": "Linux/WSL2 x64; Node22.14.0/npm11.10.0; installed Chromium1243; Docker runtime Node26.8.2 linux/amd64 where applicable; full supplemental environment fingerprint not collected",
+            "imageDigest": null,
+            "backupId": null
+          }
+        },
+        {
+          "id": "verified02-full-regression",
+          "at": "2026-11-15T11:51:15.833Z",
+          "timeNote": "Exact final targeted report completion; individual case durations from runner JSON",
+          "stage": "PLAYWRIGHT",
+          "status": "PASS",
+          "sourceSha": "df1468250566e840ccf00e94c276ab4aeeeb06bd",
+          "fixSourceSha": "df1468250566e840ccf00e94c276ab4aeeeb06bd",
+          "sourceFingerprint": "185ac2fc3a93c81595935f64844ba0bbbcb1da7f7b263c308c08c9b0bb710a34",
+          "sourceNote": null,
+          "environment": "controlled environment fingerprint b091905f0b3955b0186bb413e4823686f9ffbad5cbd6ef8623a855bcc78dadca; Node22.14.0/npm11.10.0 Linux/WSL2 amd64; installed Playwright1.63.0 Chromium1243; operator ORAS1.3.6 where noted",
+          "environmentVersion": "masterGantt0.147.1",
+          "command": [
+            "node",
+            "scripts/verify-prepr.mjs",
+            "--mode=targeted",
+            "--base=fc8b0858f467bec0cd0a13a0fd14f1edd752c8a7",
+            "--issue=920",
+            "--include=tests/features/gantt/gantt-density.test.ts",
+            "--include=tests/scripts/issue-ledger-verifier.test.ts",
+            "--report-dir=.prepr-reports/920-targeted02"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "Same clean final source passes all original and new selected consumers",
+          "actual": "Original full #880 nonzero viewport45.120s/retry0 PASS with unchanged5s/180s contracts; full targeted164Unit+133Chromium0FAIL0SKIP; source/environment stable; original internal stall cause remains UNKNOWN",
+          "input": "Synthetic isolated fixture; actual operating database only in explicitly identified #919 backup/deployment steps; no public raw data",
+          "classification": "TOOLING",
+          "recovery": "Fresh final fast02/targeted02/docker02/admit02 PASS; first799 failure and diagnostics retained",
+          "residualRisk": "Windows11 physical Chrome Owner UAT pending; CDP emulation not physical device proof; original F005 internal stall UNKNOWN",
+          "evidenceScope": "EXACT",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:920-targeted02-report-and-runner"
+            },
+            {
+              "kind": "PUBLIC_URL",
+              "reference": "https://github.com/planner77/masterGantt/issues/920#issuecomment-6893948260"
+            }
+          ],
+          "verification": {
+            "sourceSha": "df1468250566e840ccf00e94c276ab4aeeeb06bd",
+            "environment": "controlled environment fingerprint b091905f0b3955b0186bb413e4823686f9ffbad5cbd6ef8623a855bcc78dadca; Node22.14.0/npm11.10.0 Linux/WSL2 amd64; installed Playwright1.63.0 Chromium1243; operator ORAS1.3.6 where noted",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F920-006",
+      "issue": 920,
+      "ledger": "docs/ISSUE_920_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        919,
+        891
+      ],
+      "domain": "release-operations",
+      "layer": "operator-process",
+      "keywords": [
+        "SIGTERM",
+        "interruption",
+        "preflight",
+        "exact-digest",
+        "stale-owned-lock"
+      ],
+      "cause": "Read-only promotion preflight outer session exit143 after recorded successful graph copy; exact signal sender UNKNOWN",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/scripts/local-publish.test.ts",
+          "case": "Existing source/auth/graph/fail-closed consumer plus actual complete fresh operator preflight",
+          "historical": false,
+          "coverageArea": "Existing helper regression only; real interrupted process and recovery are operator evidence, not automatic SIGTERM coverage"
+        }
+      ],
+      "residualRisk": "Original interruption UNKNOWN; preserve source/script/config/AES receipts and complete fresh checks; no claim of deterministic signal reproduction",
+      "events": [
+        {
+          "id": "preflight01-interrupted",
+          "at": "2026-11-15T12:12:58.748207+00:00",
+          "timeNote": "Observation/review time; exact original signal timestamp and sender not collected",
+          "stage": "GHCR_PULL",
+          "status": "BLOCKED",
+          "sourceSha": "df1468250566e840ccf00e94c276ab4aeeeb06bd",
+          "fixSourceSha": null,
+          "sourceFingerprint": "185ac2fc3a93c81595935f64844ba0bbbcb1da7f7b263c308c08c9b0bb710a34",
+          "sourceNote": "SCOPED private operator controller; exact product source/OCI/script pins retained; outer process interruption lacks completed environment/source end record; detached second outer OS exit not collected; critical subprocess exits and review exit recorded",
+          "environment": "controlled environment fingerprint b091905f0b3955b0186bb413e4823686f9ffbad5cbd6ef8623a855bcc78dadca; Node22.14.0/npm11.10.0 Linux/WSL2 amd64; installed Playwright1.63.0 Chromium1243; operator ORAS1.3.6 where noted",
+          "environmentVersion": "masterGantt0.147.1",
+          "command": [
+            "node",
+            "LOCAL:920-release-preflight01"
+          ],
+          "exit": 143,
+          "exitNote": null,
+          "expected": "Fresh admission, complete exact OCI graph bytes, runtime/API/SQLite and ref checks before any formal write",
+          "actual": "Outer session143; last recorded cp exit0/signalnull; controller completionNOT TESTED; no formal Git/registry/operating writes",
+          "input": "Synthetic exact-image smoke only; no production DB or registry/Git writes in preflight",
+          "classification": "UNKNOWN",
+          "recovery": "Retain original receipt/log/AES evidence; validate dead owner and nonce/inode before stale own lock removal; fresh directory/layout/full phase with same script bytes and controlled env; no timeout/retry/graph weakening",
+          "residualRisk": "Exact SIGTERM sender UNKNOWN; separate fresh completed phase does not rewrite interruption. No automated SIGTERM regression claimed; physical Windows Owner UAT pending",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": "sha256:a87b9a3e2157aae2e5bb4e8f4a84bc2ba03c19d59e1fc01e3b446a200121f54a",
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:920-release-preflight01-interruption"
+            },
+            {
+              "kind": "PUBLIC_URL",
+              "reference": "https://github.com/planner77/masterGantt/issues/920#issuecomment-6894134630"
+            }
+          ]
+        },
+        {
+          "id": "preflight02-reviewed",
+          "at": "2026-11-15T12:18:39.931Z",
+          "timeNote": "Observation/review time; exact original signal timestamp and sender not collected",
+          "stage": "GHCR_PULL",
+          "status": "PASS",
+          "sourceSha": "df1468250566e840ccf00e94c276ab4aeeeb06bd",
+          "fixSourceSha": null,
+          "sourceFingerprint": "185ac2fc3a93c81595935f64844ba0bbbcb1da7f7b263c308c08c9b0bb710a34",
+          "sourceNote": "SCOPED private operator controller; exact product source/OCI/script pins retained; outer process interruption lacks completed environment/source end record; detached second outer OS exit not collected; critical subprocess exits and review exit recorded",
+          "environment": "controlled environment fingerprint b091905f0b3955b0186bb413e4823686f9ffbad5cbd6ef8623a855bcc78dadca; Node22.14.0/npm11.10.0 Linux/WSL2 amd64; installed Playwright1.63.0 Chromium1243; operator ORAS1.3.6 where noted",
+          "environmentVersion": "masterGantt0.147.1",
+          "command": [
+            "node",
+            "LOCAL:920-review-preflight02.mjs"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "Fresh admission, complete exact OCI graph bytes, runtime/API/SQLite and ref checks before any formal write",
+          "actual": "New layout/full phase34steps,17graph blobs, exact runtime/API/auth/SQLite/restart PASS;68AES streams/no truncation; owner-managed verifier actual exit0 and normal owned-lock cleanup; outer detached Node OS exit not collected",
+          "input": "Synthetic exact-image smoke only; no production DB or registry/Git writes in preflight",
+          "classification": "TOOLING",
+          "recovery": "Retain original receipt/log/AES evidence; validate dead owner and nonce/inode before stale own lock removal; fresh directory/layout/full phase with same script bytes and controlled env; no timeout/retry/graph weakening",
+          "residualRisk": "Exact SIGTERM sender UNKNOWN; separate fresh completed phase does not rewrite interruption. No automated SIGTERM regression claimed; physical Windows Owner UAT pending",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": "sha256:a87b9a3e2157aae2e5bb4e8f4a84bc2ba03c19d59e1fc01e3b446a200121f54a",
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:920-release-preflight02-owner-review"
+            },
+            {
+              "kind": "PUBLIC_URL",
+              "reference": "https://github.com/planner77/masterGantt/issues/920#issuecomment-6894134630"
+            }
+          ],
+          "verification": {
+            "sourceSha": "df1468250566e840ccf00e94c276ab4aeeeb06bd",
+            "environment": "controlled environment fingerprint b091905f0b3955b0186bb413e4823686f9ffbad5cbd6ef8623a855bcc78dadca; Node22.14.0/npm11.10.0 Linux/WSL2 amd64; installed Playwright1.63.0 Chromium1243; operator ORAS1.3.6 where noted",
+            "imageDigest": "sha256:a87b9a3e2157aae2e5bb4e8f4a84bc2ba03c19d59e1fc01e3b446a200121f54a",
+            "backupId": null
+          }
+        },
+        {
+          "id": "formal-promotion-verified",
+          "at": "2026-11-15T12:21:52.660Z",
+          "timeNote": "Exact promotion controller receipt completion; supervisor separately recorded OS exit0",
+          "stage": "GHCR_PUSH",
+          "status": "PASS",
+          "sourceSha": "df1468250566e840ccf00e94c276ab4aeeeb06bd",
+          "fixSourceSha": null,
+          "sourceFingerprint": "185ac2fc3a93c81595935f64844ba0bbbcb1da7f7b263c308c08c9b0bb710a34",
+          "sourceNote": "SCOPED private operator controller with exact product/script/config/report/archive/environment pins; all critical subprocess exits and promotion supervisor exit0 recorded",
+          "environment": "controlled environment fingerprint b091905f0b3955b0186bb413e4823686f9ffbad5cbd6ef8623a855bcc78dadca; Node22.14.0/npm11.10.0 Linux/WSL2 amd64; installed Playwright1.63.0 Chromium1243; operator ORAS1.3.6 where noted",
+          "environmentVersion": "masterGantt0.147.1",
+          "command": [
+            "node",
+            "LOCAL:920-release-serial.mjs",
+            "promote",
+            "LOCAL:920-release-config02"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "Approved exact Git/SemVer/rolling writes all VERIFIED; old refs preserved",
+          "actual": "102 total steps/outerexit0, v0.147.1 verified;0.147.1/0.147/0/latest samea87digest;502tag names preserved→503;6selected old descriptors/all old Git tags unchanged;AES204streams/truncation0",
+          "input": "Synthetic exact-image smoke only; no production DB or registry/Git writes in preflight",
+          "classification": "TOOLING",
+          "recovery": "Fresh34step preflight plus Owner-managed verifierPASS followed by actual full promotion; original interrupted preflight retained",
+          "residualRisk": "Exact SIGTERM sender UNKNOWN; separate fresh completed phase does not rewrite interruption. No automated SIGTERM regression claimed; physical Windows Owner UAT pending",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": "sha256:a87b9a3e2157aae2e5bb4e8f4a84bc2ba03c19d59e1fc01e3b446a200121f54a",
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "PUBLIC_URL",
+              "reference": "https://github.com/planner77/masterGantt/issues/920#issuecomment-6894271081"
+            },
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:920-final-promotion-review"
+            }
+          ],
+          "verification": {
+            "sourceSha": "df1468250566e840ccf00e94c276ab4aeeeb06bd",
+            "environment": "controlled environment fingerprint b091905f0b3955b0186bb413e4823686f9ffbad5cbd6ef8623a855bcc78dadca; Node22.14.0/npm11.10.0 Linux/WSL2 amd64; installed Playwright1.63.0 Chromium1243; operator ORAS1.3.6 where noted",
+            "imageDigest": "sha256:a87b9a3e2157aae2e5bb4e8f4a84bc2ba03c19d59e1fc01e3b446a200121f54a",
+            "backupId": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "F920-007",
+      "issue": 920,
+      "ledger": "docs/ISSUE_920_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        919
+      ],
+      "domain": "local-ledger-tooling",
+      "layer": "operator-cli",
+      "keywords": [
+        "invalid-option",
+        "ledger-validator",
+        "base",
+        "CLI"
+      ],
+      "cause": "Manager used unsupported --previous-ref instead of existing --base in draft docs validation; CLI failed closed",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/scripts/issue-ledger-verifier.test.ts",
+          "case": "Existing CLI/index/append-only contract; actual corrected command separately recorded",
+          "historical": false
+        }
+      ],
+      "residualRisk": "Operator argument error only; no product/gate implementation change or remote write; final clean docs verification remains required",
+      "events": [
+        {
+          "id": "unsupported-previous-ref",
+          "at": "2026-11-15T12:22:05.134213+00:00",
+          "timeNote": "Observation record of preceding CLI invocation; exact subprocess start not collected",
+          "stage": "LOCAL_PREP",
+          "status": "BLOCKED",
+          "sourceSha": "df1468250566e840ccf00e94c276ab4aeeeb06bd",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "Draft docs checkout based on df146825; no clean final docs source or full supplemental fingerprint yet",
+          "environment": "controlled environment fingerprint b091905f0b3955b0186bb413e4823686f9ffbad5cbd6ef8623a855bcc78dadca; Node22.14.0/npm11.10.0 Linux/WSL2 amd64; installed Playwright1.63.0 Chromium1243; operator ORAS1.3.6 where noted",
+          "environmentVersion": "masterGantt0.147.1",
+          "command": [
+            "node",
+            "scripts/verify-issue-ledger.mjs",
+            "--previous-ref=df1468250566e840ccf00e94c276ab4aeeeb06bd"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "Compare appended docs ledger against fixed product-source baseline",
+          "actual": "BLOCKED: unknown or empty option; no ledger validation occurred",
+          "input": "Synthetic exact-image smoke only; no production DB or registry/Git writes in preflight",
+          "classification": "TOOLING",
+          "recovery": "Read actual CLI parser/help; use existing --base without changing validator or policy",
+          "residualRisk": "Operator argument error only; no product/gate implementation change or remote write; final clean docs verification remains required",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:920-opsdocs-ledger-option-blocked"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_920_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "existing-base-option-validated",
+          "at": "2026-11-15T12:26:45.301087+00:00",
+          "timeNote": "Observation of actual preceding corrected command exit0",
+          "stage": "LOCAL_PREP",
+          "status": "PASS",
+          "sourceSha": "df1468250566e840ccf00e94c276ab4aeeeb06bd",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "Draft docs checkout based on df146825; no clean final docs source or full supplemental fingerprint yet",
+          "environment": "controlled environment fingerprint b091905f0b3955b0186bb413e4823686f9ffbad5cbd6ef8623a855bcc78dadca; Node22.14.0/npm11.10.0 Linux/WSL2 amd64; installed Playwright1.63.0 Chromium1243; operator ORAS1.3.6 where noted",
+          "environmentVersion": "masterGantt0.147.1",
+          "command": [
+            "node",
+            "scripts/verify-issue-ledger.mjs",
+            "--base=df1468250566e840ccf00e94c276ab4aeeeb06bd"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "Actual schema and all existing index/Markdown prefixes remain valid",
+          "actual": "PASS14Issue/117Failure/254event; all14Markdown prefixes preserved; no validator or product changes",
+          "input": "Synthetic exact-image smoke only; no production DB or registry/Git writes in preflight",
+          "classification": "TOOLING",
+          "recovery": "Correct invocation uses documented existing --base; final clean docs common/admission still separate",
+          "residualRisk": "Operator argument error only; no product/gate implementation change or remote write; final clean docs verification remains required",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:920-opsdocs-ledger-option-blocked"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_920_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "df1468250566e840ccf00e94c276ab4aeeeb06bd",
+            "environment": "controlled environment fingerprint b091905f0b3955b0186bb413e4823686f9ffbad5cbd6ef8623a855bcc78dadca; Node22.14.0/npm11.10.0 Linux/WSL2 amd64; installed Playwright1.63.0 Chromium1243; operator ORAS1.3.6 where noted",
             "imageDigest": null,
             "backupId": null
           }
