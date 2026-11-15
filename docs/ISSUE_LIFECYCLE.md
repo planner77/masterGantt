@@ -28,7 +28,7 @@ PLAN → REUSE_REVIEW → LOCAL_IMPLEMENTED → LOCAL_VERIFIED
 
 ## 2. 역할과 실행 순서
 
-1. 첫 전환 중 Actions가 활성이라면 Issue 댓글도 원격 Run을 만들 수 있다. 읽기 전용 snapshot과 #911 Actions 비활성을 먼저 확인하고 원격 진행 댓글을 남긴다. Manager가 Issue·관련 원장·현재 main/작업 branch·설치 환경을 조회하고 [Work Packet](AGENT_PROMPTS.md)을 확정한다. 여러 이슈 통합은 Primary 원본을 하나 정하고 타 이슈에서 링크한다. GitHub 개발 Issue와 제품 내 Project Issue는 별도 원장이다.
+1. **최초 전환 이력(#911, 2026-11-11 완료):** Actions 활성 시 Issue 댓글도 원격 Run을 만들 수 있었으므로 당시 읽기 전용 snapshot·비활성을 먼저 확인했다. 신규 Issue에서는 이 초기 전환을 재실행하지 않고 현재 live 설정을 확인한다. Manager가 Issue·관련 원장·현재 main/작업 branch·설치 환경을 조회하고 [Work Packet](AGENT_PROMPTS.md)을 확정한다. 여러 이슈 통합은 Primary 원본을 하나 정하고 타 이슈에서 링크한다. GitHub 개발 Issue와 제품 내 Project Issue는 별도 원장이다.
 2. `REUSE_REVIEW`에 `REUSE_DECISION`, 후보, 호환 조건, Owner 근거를 기록한다. #895가 요구하는 재사용 결정이 불명확하고 기존 명시 승인으로 확인할 수 없으면 구현 전에 질문한다. 같은 승인 범위를 반복 질문하지 않는다.
 3. 구현 Agent는 지정 파일만 수정하며 다른 Agent의 변경을 되돌리지 않는다. 단일 writer와 공용 interface 소유권을 유지한다. 독립 ui_ux/researcher/qa_docs는 read-only다.
 4. 로컬 검사 전에 source/base HEAD·tracked diff/untracked bytes·fixture digest·Node/npm/lock/browser 환경을 고정한다. 제품 소스 수정과 최종 검증을 동시에 실행하지 않는다. 각 검사 명령·exit·케이스 수·선택/제외·trace를 [실패 원장 계약](#5-실패재작업-원장)에 연결한다.

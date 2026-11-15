@@ -1,80 +1,45 @@
-# masterGantt Agent 실행 지침
+# masterGantt — Agent 공통 실행 지침
 
-## 1. 현행 운영 정책
+이 파일은 **모든 작업의 필수 규칙·순서·상황별 문서 경로**만 정의한다. 세부 조건·명령·테스트/게시 기준은 아래 링크된 **현행 문서**에서 확인한다. 과거 기록은 신규 실행 지침이 아니다.
 
-Owner의 2026-11-10 최종 결정([#905](https://github.com/planner77/masterGantt/issues/905), [#906](https://github.com/planner77/masterGantt/issues/906), [#908](https://github.com/planner77/masterGantt/issues/908))을 적용한다. 모든 Issue는 위험도와 관계없이 로컬에서 검증하고 main에 직접 fast-forward Push한다. **PR 생성, GitHub Actions·원격 CI·Trusted QA·자동 Finalizer 실행은 사용하지 않는다.** 기존 workflow 파일·PR·Run·immutable tag·digest와 실패 이력은 보존한다.
+## 1. 모든 작업의 필수 규칙
 
-작업 전 [Issue Lifecycle](docs/ISSUE_LIFECYCLE.md)을 읽고, 실제 Issue·현재 main·기존 코드/테스트·실패 원장을 조회한다. 상태·완료 조건은 해당 문서 한 곳에서 정의한다. 문서 변경은 실제 GitHub 관리자 설정 변경이 아니다. 첫 Push 전 #911의 live Ruleset/Actions 전환 증거가 없으면 `BLOCKED`이며 PR이나 `[skip ci]`로 우회하지 않는다.
+- **현행 운영:** Owner의 2026-11-10 결정([#905](https://github.com/planner77/masterGantt/issues/905))을 따른다. 위험도에 관계없이 **Issue → 로컬 구현·검증 → 일반 fast-forward main Push → 승인된 수동 GHCR 게시·운영 배포 → 수동 종료** 순서다. 신규 PR, GitHub Actions/원격 CI, Trusted QA, 자동 Finalizer는 실행하지 않는다. 단계별 gate는 [ISSUE_LIFECYCLE](docs/ISSUE_LIFECYCLE.md)이 원본이다.
+- **공개 보안:** 이 저장소는 PUBLIC이다. 운영 DB/WAL/SHM·백업, 비밀번호/토큰/세션, 사내 IP/URL, 고객·생산 원시 자료와 민감 화면·로그를 Git/Issue/이미지에 넣지 않는다. 합성 fixture·정제한 증거만 사용한다([SECURITY](docs/SECURITY.md), [GITHUB_OPERATIONS](docs/GITHUB_OPERATIONS.md)).
+- **실제 근거:** 현재 Issue·main·코드/테스트·실패 원장과 명시된 Owner 결정을 확인하고, 실행하지 않은 테스트·QA·게시·배포를 PASS/완료로 표시하지 않는다. 기존 재사용 조건이 명시되지 않아 판단 불가하면 구현 전에 질문하고, 확정된 동일 범위는 재질문하지 않는다.
+- **차단:** 필수 검사의 FAIL/BLOCKED/NOT TESTED, UNKNOWN, source/base·fixture·환경 drift, 승인 없는 게시/배포, 미확인 GitHub 보호 설정은 후속 Push/Publish/Close를 차단한다. Owner 위험 수용을 검증 PASS로 바꾸지 않는다.
+- **역사 자료:** [2026-11-10 이전 정책 보존본](docs/history/owner-ci-retired-20261110/README.md)의 PR/CI/Finalizer 명령은 신규 작업에 적용하지 않는다. #911의 관리자 전환은 [완료된 이력](https://github.com/planner77/masterGantt/issues/911)이고, 현재 Push마다 **live 상태**를 [GITHUB_OPERATIONS](docs/GITHUB_OPERATIONS.md)에 따라 재확인한다.
 
-## 2. 프로젝트와 Source of Truth
+## 2. 필수 작업 순서
 
-SVAR React Gantt Core 기반 소규모 Project 일정 관리 시스템이다. Project 직접 링크·편집 비밀번호·SQLite·Excel Import/Export·독립 Scheduling Engine·Docker 단일 인스턴스를 사용한다.
+1. **PLAN** — 실제 Issue·AC·범위·현재 main·기존 구현·실패/회귀 이력·위험·Owner 요청 종료점을 확인하고 [Work Packet](docs/AGENT_PROMPTS.md)을 작성한다.
+2. **REUSE_REVIEW** — 기존 구현/테스트·대체 가능성을 검토하고 `REUSE_DECISION`·`TEST_LIFECYCLE_REVIEW`와 근거를 확정한다. 불명확하면 `REUSE_DECISION_REQUIRED/IMPLEMENTATION_BLOCKED`로 중단한다.
+3. **LOCAL_IMPLEMENTED** — 합의한 범위와 파일 소유권에서 구현·테스트를 수정하고 관련 계약 문서 변경을 준비한다.
+4. **LOCAL_VERIFIED** — 같은 정확 source/fixture/환경에서 [TEST_PLAN](docs/TEST_PLAN.md)의 공통·영향·위험별 검사를 실제 실행하고 [LOCAL_PREPR](docs/LOCAL_PREPR.md) 결과와 admission을 검산한다. 지침/검증 정책 변경은 자동으로 단순 docs-only 위험으로 낮추지 않는다.
+5. **DOCUMENTATION_SYNC** — 영향 문서를 갱신하거나 항목별 N/A 사유를 기록하고, 기존 실패 원장·[Regression Index](docs/REGRESSION_INDEX.md)를 보존·연결한다.
+6. **MAIN_PUSHED** — 최신 main·fast-forward 가능 여부, 검증 source 동일성, [#911 현행 설정](docs/GITHUB_OPERATIONS.md)을 확인한 뒤 승인된 일반 Push만 수행한다. force Push/우회는 금지한다.
+7. **GHCR / DEPLOY (조건부)** — 코드 변경 및 명시 승인 범위에서만 exact source 수동 GHCR digest 검증과 필요한 운영 배포·호환 DB 복원 준비를 수행한다. 문서만 바뀐 경우 이미지는 N/A(reason)다.
+8. **OWNER_FINAL / CLOSED** — AC·실제 테스트/미실행·원장·source SHA·게시·배포·위험을 구분해 보고하고, 모든 요청 gate 충족과 Owner 최종 수용(또는 같은 범위의 명시 위임) 후 수동 종료한다.
 
-- 요구사항/구조 변경: [REQUIREMENTS](docs/REQUIREMENTS.md), [ARCHITECTURE](docs/ARCHITECTURE.md).
-- API/서버/DB/인증 변경: [API](docs/API.md), [DB_SCHEMA](docs/DB_SCHEMA.md), [SECURITY](docs/SECURITY.md).
-- 일정/Calendar/Dependency 변경: [SCHEDULING_ENGINE](docs/SCHEDULING_ENGINE.md). Algorithm 변경에는 Unit Test를 작성한다. SVAR PRO 비공개 구현을 복제하지 않는다.
-- Import/Excel/VBA 변경: [IMPORT_SCHEMA](docs/IMPORT_SCHEMA.md), [IMPORT_EXPORT](docs/IMPORT_EXPORT.md), [VBA_EXPORT](docs/VBA_EXPORT.md). DRM 해제·우회 금지.
-- UI 배치/시각 언어 변경: [DESIGN](DESIGN.md). 메뉴·탭·모달·keyboard/focus·반응형 변경: [UI_UX_GUIDELINES](docs/UI_UX_GUIDELINES.md)와 해당 화면 UX 문서. 설치 버전 Core/API·공식 SVAR 자료를 확인하고 URL 조회와 실제 조작을 구분한다.
-- 테스트 계획·재사용·수명주기: [TEST_PLAN](docs/TEST_PLAN.md). CLI·환경·source admission: [LOCAL_PREPR](docs/LOCAL_PREPR.md).
-- 로컬 GHCR 게시/배포/복원: [CI_CD](docs/CI_CD.md), [DEPLOYMENT](docs/DEPLOYMENT.md).
-- Issue/Owner 역할·관리자 전환: [GITHUB_OPERATIONS](docs/GITHUB_OPERATIONS.md), 위임 서식: [AGENT_PROMPTS](docs/AGENT_PROMPTS.md).
-- 현재 작업: [PLAN](docs/exec-plans/active/PLAN.md). 최신 제품 용어는 DESIGN의 Product Terminology를 따른다.
+## 3. 상황별 필독 문서
 
-제품 계약 문서의 과거 PR/CI 실행 결과는 해당 시점의 증거이며 현재 작업 gate가 아니다. 이전 Agent·CI 정책의 전체 원문은 [보존 구역](docs/history/owner-ci-retired-20261110/README.md)에 있다. 신규 작업에서는 이 구역의 실행 지침을 적용하지 않는다.
+| 상황 | 상세 기준 문서 |
+| --- | --- |
+| Issue 상태·실행 gate·수동 종료 | [ISSUE_LIFECYCLE](docs/ISSUE_LIFECYCLE.md), [GITHUB_OPERATIONS](docs/GITHUB_OPERATIONS.md) |
+| Agent 선정·역할·모델·위임·결과 기록 | [AGENT_CONFIGURATION](docs/AGENT_CONFIGURATION.md), [AGENT_PROMPTS](docs/AGENT_PROMPTS.md), [QA_REVIEW_POLICY](docs/QA_REVIEW_POLICY.md) |
+| 테스트 선정·로컬 명령·Chromium/UAT·source 격리 | [TEST_PLAN](docs/TEST_PLAN.md), [LOCAL_PREPR](docs/LOCAL_PREPR.md), [UI_EVIDENCE](docs/UI_EVIDENCE.md) |
+| 오류·재작업·회귀·미검증 | [ISSUE_LEDGER](docs/ISSUE_LEDGER.md), [REGRESSION_INDEX](docs/REGRESSION_INDEX.md), 해당 `docs/ISSUE_<N>_FAILURE_ANALYSIS.md` |
+| 요구사항·일정/업무 구조 변경 | [REQUIREMENTS](docs/REQUIREMENTS.md), [ARCHITECTURE](docs/ARCHITECTURE.md), [PLAN](docs/exec-plans/active/PLAN.md) |
+| UI·Gantt·메뉴/모달·키보드·반응형 | [DESIGN](DESIGN.md), [UI_UX_GUIDELINES](docs/UI_UX_GUIDELINES.md), 해당 화면 설계, [GANTT_ADAPTER_ADR](docs/GANTT_ADAPTER_ADR.md). 설치된 SVAR Core·공식 문서와 호환성 확인 |
+| API·DB·인증/권한·로그 | [API](docs/API.md), [DB_SCHEMA](docs/DB_SCHEMA.md), [SECURITY](docs/SECURITY.md), [LOGGING](docs/LOGGING.md) |
+| 일정 계산·Calendar·Dependency | [SCHEDULING_ENGINE](docs/SCHEDULING_ENGINE.md), [COUNTRY_CALENDAR_DATA](docs/COUNTRY_CALENDAR_DATA.md) |
+| Excel/JSON·VBA·Import/Export | [IMPORT_SCHEMA](docs/IMPORT_SCHEMA.md), [IMPORT_EXPORT](docs/IMPORT_EXPORT.md), [VBA_EXPORT](docs/VBA_EXPORT.md). DRM 우회 금지 |
+| 다국어·표시명 변경 | [I18N_PHASE_A](docs/I18N_PHASE_A.md), [I18N_PHASE_B](docs/I18N_PHASE_B.md), [I18N_PHASE_C](docs/I18N_PHASE_C.md), [DESIGN](DESIGN.md) |
+| GHCR 게시·Docker·백업/복구·배포 | [CI_CD](docs/CI_CD.md), [DEPLOYMENT](docs/DEPLOYMENT.md), [REPOSITORY_STRUCTURE](docs/REPOSITORY_STRUCTURE.md) |
+| 내부망 HTTP·Reverse Proxy | [HTTP_OPERATION](docs/HTTP_OPERATION.md), [SECURITY](docs/SECURITY.md) |
+| 지침 재구성의 중복·충돌 판정 근거 | [AGENT_INSTRUCTION_AUDIT_20261114](docs/AGENT_INSTRUCTION_AUDIT_20261114.md) (감사 이력; 실행 정책 원본 아님) |
 
-## 3. 보안·구조 경계
-
-Project direct access 기본 상태는 Readonly다. 비밀번호/session/secret을 URL·로그·DB 원문에 넣지 않는다. UI 상태를 authorization 근거로 쓰지 않고 보호 mutation은 서버 session/Origin/If-Match/revision·transaction 계약을 지킨다. 공개 Project Issue와 GitHub 개발 Issue는 별도 원장이다.
-
-`Route Handler → Service → Repository → SQLite` 경계를 유지하고 better-sqlite3를 사용한다. DB 변경은 migration+DB_SCHEMA, API 변경은 code+API, Scheduling 변경은 code+tests+SCHEDULING_ENGINE, Import 변경은 IMPORT_SCHEMA, VBA 변경은 VBA_EXPORT, Docker 변경은 DEPLOYMENT를 함께 갱신한다. 로컬 검증·게시 계약 변경은 TEST_PLAN/LOCAL_PREPR/CI_CD/GITHUB_OPERATIONS 영향 분석을 수행한다.
-
-저장소는 PUBLIC이다. 실운영 DB·WAL/SHM·백업·사내 주소·고객/영업/생산 원시 자료·실제 화면·토큰·`.env`·민감 로그를 Git/Issue/공개 이미지에 반입하지 않는다. 공개 증거는 합성 fixture와 정제한 결과만 사용한다.
-
-## 4. 구현과 로컬 검증
-
-Manager는 [Work Packet](docs/AGENT_PROMPTS.md)을 작성하고 `REUSE_REVIEW`와 `TEST_LIFECYCLE_REVIEW`를 확정한 뒤 구현을 배정한다. #895의 Owner 재사용 결정이 없고 기존 승인에서도 추론할 수 없으면 구현을 `REUSE_DECISION_REQUIRED/IMPLEMENTATION_BLOCKED`로 남긴다. 같은 범위의 명시적 결정은 재질문하지 않는다.
-
-공통 필수 정적·Unit/Integration·production build와 영향 테스트를 완료한다. UI 영향은 실제 Chromium/keyboard/반응형/geometry·#896 증거 및 필요한 #897 로컬 격리 UAT를 포함한다. HIGH는 테스트·백업/복원 강도를 높이며 동일 direct Push 경로를 따른다. 위험별 선정·N/A 근거와 누락 처리 기준은 TEST_PLAN에 있다.
-
-필수 검사 `FAIL/BLOCKED/NOT TESTED`, source/base/fixture/환경 drift, 미해결 UNKNOWN은 Push·Publish·Close를 차단한다. Owner의 예외 위험 수용도 실행 결과를 PASS로 바꾸지 않는다. `--dry-run`이나 test list는 실제 실행 증거가 아니다. `--mode=admit`는 같은 소스의 로컬 보고서를 결합해 게시 준비를 검사하며 로컬 JSON은 인증된 서버 gate가 아니다.
-
-버전·게시 범위·Owner 승인, live main 동기화, 고유 태그 부재를 확인한다. main force push·immutable tag overwrite 금지. GHCR 게시와 운영 배포는 별개다. 운영 복구는 새 revert/교정 commit, 검증된 이전 digest, 호환 DB snapshot을 사용한다. forward-only migration 이후 이미지 교체만으로 DB가 복원되지 않는다.
-
-## 5. Multi-Agent 역할
-
-Main Thread가 Manager이며 필요한 전문 역할만 위임한다. 동일 파일에 Write Agent를 겹치지 않는다. Agent는 승인된 범위·phase·파일만 수행하고 version/Push/GHCR/Issue close를 독자 결정하지 않는다. 실제 모델/effort·독립 실행 증거를 기록하며 설정 파일만으로 실행 PASS를 주장하지 않는다.
-
-```text
-Main / Manager → GPT-6.1 Sol / High
-researcher     → GPT-6 Luna / Medium
-ui_ux          → GPT-6.1 Terra / Medium
-frontend       → GPT-6.1 Terra / Medium
-backend        → GPT-6.1 Sol / High
-scheduler      → GPT-6.1 Sol / High
-excel_vba      → GPT-6 Luna / Medium
-infra          → GPT-6.1 Sol / High
-qa_docs        → GPT-6.1 Sol / High
-```
-
-ui_ux는 read-only 설계·구현 비교, frontend는 UI 구현, backend는 API/SQLite/인증, scheduler는 pure 일정 엔진, excel_vba는 승인된 변환, infra는 로컬 build/push/GHCR/운영 증거, qa_docs는 구현자와 분리된 read-only 검토를 담당한다. Manager가 통합·문서·위험 수용과 Owner 최종 결정을 연결한다. 기본값을 조용히 대체하지 않는다. 복잡한 UI/공통 상태·보안 판단은 GPT-6.1 Sol/High로 작업별 승격하고 근거를 기록한다. 세부 모델 선택 이력은 [AGENT_CONFIGURATION](docs/AGENT_CONFIGURATION.md)에 있다.
-
-독립 검토의 실제 실행/신원과 Owner 수용은 [QA_REVIEW_POLICY](docs/QA_REVIEW_POLICY.md)에 기록한다. 자체 검토나 테스트 성공을 독립 QA·Owner ACCEPT로 표시하지 않는다.
-
-## 6. 보고와 완료
-
-결론을 먼저 짧고 평이하게 보고하되 정확한 SHA·digest·수치·범위·미검증/위험·증거를 보존한다. CI/GHCR 운영 관련 사람이 읽는 제목·설명은 한글, 경로/옵션/API 필드·판정 코드와 외부 원문 로그는 원문을 유지한다. 소스/제품 문서는 기존 문체를 따른다.
-
-Issue 기록은 Manager가 PLAN/STATUS/EXCEPTION/DECISION_REQUIRED/RESUME/FINAL로 남긴다. infra의 STATUS/EXCEPTION 쓰기는 Work Packet에 writer/허용 유형이 명시된 경우에만 위임한다. Sub-Agent는 그 외 GitHub 진행 댓글을 직접 쓰지 않고 Result Contract로 반환한다.
-
-최종 보고는 관련 Issue·source SHA·로컬 명령/결과·실패 원장·문서·Push·GHCR exact digest smoke·배포 여부·복원/환경 미검증·실제 Reviewer·Owner 결정·남은 작업을 구분한다. 모든 요청 gate와 FINAL 기록 전 Issue를 닫지 않는다. 원격 실행은 `N/A(Owner 정책상 미사용)`로 기록한다.
-
-## 7. 파일·실행 경로
-
-[REPOSITORY_STRUCTURE](docs/REPOSITORY_STRUCTURE.md)의 `deploy/docker/Dockerfile`, `deploy/compose.yml`, `deploy/docker/container-entrypoint.sh`를 사용한다. 기존 Compose project·SQLite volume·운영 데이터와 루트 도구 진입점을 유지한다.
-
-테스트 설정은 `tests/config/vitest.config.ts`, `tests/config/playwright.config.ts`다. `npm test`, `npm run test:e2e`를 사용한다. 직접 실행은 `npx vitest run --config tests/config/vitest.config.ts`, `npx playwright test --config tests/config/playwright.config.ts`로 지정한다. 기존 Playwright 설정의 E2E 출력은 실행 root의 `.data/playwright.sqlite3`, `.next-e2e`, `test-results/`다. `verify:prepr`의 browser 모드는 clean exact HEAD source snapshot에서 이 설정을 실행하고 원본 source 불변·엄격한 생성 출력 검증을 수행한다([LOCAL_PREPR](docs/LOCAL_PREPR.md)). 기존 운영 URL/DB/서버를 전달하거나 중지하지 않는다.
-
-production HTTPS 기본값과 명시적 `ALLOW_INSECURE_HTTP=true` 내부망 HTTP는 [HTTP_OPERATION](docs/HTTP_OPERATION.md)을 따른다. HTTP에서도 Origin/session/revision 검증을 유지한다.
+각 작업에서는 관련 행의 문서를 읽고 현재 실제 코드/버전과 대조한다. 충돌·오래된 링크·누락된 재사용 승인을 발견하면 임의의 구버전 규칙을 선택하지 말고 Issue에 차이를 기록해 Owner 판단을 요청한다. 세부 실행 명령과 모델 값은 루트에 중복 유지하지 않는다.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

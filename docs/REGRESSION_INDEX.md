@@ -141,6 +141,11 @@ F898-009~012를 [Primary 원장](ISSUE_898_FAILURE_ANALYSIS.md)에 추가했다.
 
 [F917-025/026](ISSUE_917_FAILURE_ANALYSIS.md)에494→496태그관측의원본count-only BLOCKED와정확attestation referrer metadata연결검산,Reviewer의파일순서/glob진단오류·교정실행을각각보존했다. 기존494이름/선정9descriptor불변,미선정486descriptor NOT TESTED,개별PUTactor UNKNOWN범위를명시한다. 제품source/검증/권한/CLI변경없이같은후보graph17blobs및독립게시QA가PASS했으며후속문서최종gate/종료는IssueFINAL을따른다.
 
+
+## #918 Agent 지침 라우팅 소비자
+
+[F918-001](ISSUE_918_FAILURE_ANALYSIS.md)은 모델표를 책임 문서로 이관한 뒤 이전 AGENTS literal을 계속 요구한 실제 targeted/fast FAIL이다. TOML8역할·Manager/effort/read-only/6thread 계약을 유지하고 문서 검사만 AGENTS포인터+AGENT_CONFIGURATION의 동등모델·승격/묵시fallback금지로 이관한다. 최초실패와 새source재검증은 분리한다.
+
 ## Issue #891 공통 Markdown baseline 준비 원본
 
 [F891-001/F891-002](ISSUE_891_FAILURE_ANALYSIS.md)는 실제 baseline harness의 catalog ready 누락과 locale 미고정으로 발생한 최초 exit1을 보존한다. 제품 UI의 FAIL이나 최종 source 검증과 구분하며 기존 isolated fixture/submit helper와 ko-KR 고정을 재사용한다. 이후 actual geometry·hover/focus/keymap·resize·locale/undo/source 회귀는 [Work Packet](exec-plans/active/ISSUE_891.md)의 같은 source 실행에 연결한다. 기존 모든 인덱스/event/원장 prefix는 유지한다.
