@@ -64,3 +64,10 @@ F920-007의 실제 교정 검산은 `node scripts/verify-issue-ledger.mjs --base
 운영 교체는2026-11-15T12:22:45.697Z~12:23:00.859Z PASS였다. 최종 백업 `mg-quiesced-01471-20261115T122246Z-95c81e8a`를 암호화·exact 복원하고 이전/신규 이미지로 원본 hash·schema/ledger·integrity/FK를 대조한 뒤 교체했다. 별도 새 온라인 백업의 network-none 복원 volume에서 실제 권한/Origin/revision/Export·restart를 확인했다. 운영은 schema39→39/추가migration0/모든 원본table row hash 보존, app1개healthy·canonical/loopback/live/ready200, publicProject2개읽기·운영 Mutation0이다. project/volume/env/port/network·사용자Compose를 보존했고 .env는IMAGE_NAME만 바꿨다. 운영DB 복원/되감기는 수행하지 않았다.
 
 Owner는 실제 운영 Chrome에서Ctrl+F5 후 Ctrl+마우스 휠이 정상 작동한다고 확인하고 “UAT 승인하고 #919·#920을 종료해 주세요.”로 최종 수용·종료를 위임했다. 이 실제 Windows11/Chrome 입력 범위를PASS로 기록하며 pen/pinch/AT·전기종/모든조합·off-host로 확대하지 않는다. 후속 docs-only source는 제품/빌드/태그/digest를 바꾸지 않으며 공통 검사와 admission 후 실제 main/Issue 상태를 최종 댓글에 연결한다.
+
+
+## F920-008 — 후속 문서 admission에 실제 targeted 실행 누락
+
+중간 docs source `54ff3f060210875e57d030c0afee1352cc78f483`의 fast01은9단계/4013Unit PASS·기존3SKIP·source/environment 불변이었다. 그러나 첫 admission은 최신 targeted가 dry-run/NOT TESTED여서 실제 단계·exit·log가 없다는 이유로 exit1/BLOCKED했다. 전체 공통 Unit이 수동 선정1개를 포함하더라도 실행기가 요구하는 실제 targeted mode 완료를 대신하지 않는다. Manager의 실행 계획 오류이며 제품·운영 실패가 아니다. 원본 fast/admission/계획 보고서를 삭제하거나 gate를 완화하지 않는다.
+
+새 최종 docs source를 clean checkout으로 고정해 같은 base와 include의 fast + 실제 targeted Unit1파일을 실행한 뒤 새 admission을 수행한다. browser/Docker는 영향 선정0·제품/빌드 입력 변경0인 N/A를 유지하지만 Unit 실행을 N/A로 사용하지 않는다. 이 항목은 실제 미실행 차단 원본이며 향후 PASS를 미리 기록하지 않는다. 실제 최종 결과·main/종료는 #920 FINAL에 연결한다.

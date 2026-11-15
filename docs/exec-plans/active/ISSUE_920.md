@@ -51,3 +51,6 @@ Owner는0.147.1 정식 GHCR/annotated v0.147.1/0.147·0·latest 승격 및 새 �
 
 
 정식 승격과 실제 운영 교체도 [STATUS](https://github.com/planner77/masterGantt/issues/920#issuecomment-6894271081)로 PASS를 확인했다. annotated `v0.147.1`과 고유 SHA/0.147.1/0.147/0/latest는 위 a87 index로 일치한다. 새 최종 백업의 exact 복원·이전/신규 호환 검증 후 schema39와 모든 원본 행·project/volume/env/port/network를 보존했다. Owner는 실제 Windows11/Chrome의 Ctrl+휠 정상 작동·UAT 승인과 #919/#920 종료를 명시 위임했다. 현재 후속 원장은14Issue·117Failure·257event이며 기존 원본은 불변이다. 후속 docs-only 공통 검사/admission과 일반 main Push·FINAL/종료 API의 실제 결과까지 마무리한다.
+
+
+후속 문서 검증 보완: source54ff의 공통 fast는4013PASS였지만 실제 targeted mode를 실행하지 않아 admission은BLOCKED였다(F920-008). 새 clean docs source의 공통 fast + 명시 issue-ledger Unit1파일 실제 targeted + admit를 모두 수행한다. 보고서 삭제·guard 완화 없이 미실행을 실제 실행으로 채운다. 제품/태그/운영 source는df 그대로이며 Owner UAT·종료 위임도 유지한다.

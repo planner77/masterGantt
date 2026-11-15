@@ -205,3 +205,8 @@ F898-009~012를 [Primary 원장](ISSUE_898_FAILURE_ANALYSIS.md)에 추가했다.
 ## #920 최종 제품 회귀·정식 승격 사전검증 중단
 
 기존14Issue·115Failure·249event와 원장 Markdown prefix를 보존하고 F920-001/F920-005의 최종 exact 제품 회귀 및 새F920-006을 누적한다. 현재14Issue·117Failure·257event다. [#920 원장](ISSUE_920_FAILURE_ANALYSIS.md)은 원래799의132PASS/1FAIL과 최종df146825의133PASS를 구분한다. 읽기 전용 preflight01 외부143/원인UNKNOWN·정식/운영쓰기0와 새 preflight02 전체 검산을 별도 기록한다. 기존 publisher helper 테스트는 자동 SIGTERM 회귀가 아니며 private operator/AES 원문과 실제 source/digest 근거를 함께 사용한다. 이 후속 문서는 제품/빌드 입력을 바꾸지 않으며 새 이미지 N/A다.
+
+
+## #920 후속 docs admission의 미실행 차단
+
+F920-008을 추가해 현재14Issue·118Failure·258event다. 앞 절의117/257은 당시 보존된 상태다. source54ff의 공통 fast4013PASS와 실제 targeted 실행이 없는 admission BLOCKED를 구분한다. 새로운 최종 docs source에서 같은 고정 base/include로 공통·실제 targeted Unit·admission을 실행하며 이전 보고서와 dry-run을 지우지 않는다. 제품0.147.1의 게시·배포·Owner UAT PASS와 이 문서 검증 차단은 별도다.

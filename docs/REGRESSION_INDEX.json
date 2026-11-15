@@ -15408,6 +15408,85 @@
           }
         }
       ]
+    },
+    {
+      "id": "F920-008",
+      "issue": 920,
+      "ledger": "docs/ISSUE_920_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        919
+      ],
+      "domain": "local-admission",
+      "layer": "operator-plan",
+      "keywords": [
+        "dry-run",
+        "targeted",
+        "admission",
+        "selected-unit"
+      ],
+      "cause": "Docs finalization supplied common fast plus latest targeted dry-run; admission requires an actual completed targeted mode and correctly blocks missing execution",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/scripts/prepr-verifier.test.ts",
+          "case": "Dry-run/unfinished latest required mode cannot satisfy admission",
+          "historical": false
+        },
+        {
+          "path": "tests/scripts/issue-ledger-verifier.test.ts",
+          "case": "Explicit selected docs ledger consumer actual execution",
+          "historical": false
+        }
+      ],
+      "residualRisk": "New clean docs source must execute fast and actual targeted Unit before admission; no gate/parser exception or product change",
+      "events": [
+        {
+          "id": "docs-admit01-targeted-not-executed",
+          "at": "2026-11-15T12:36:09.156Z",
+          "timeNote": "Exact first docs admission report completion",
+          "stage": "STATIC",
+          "status": "BLOCKED",
+          "sourceSha": "54ff3f060210875e57d030c0afee1352cc78f483",
+          "fixSourceSha": null,
+          "sourceFingerprint": "ea6a93b0f2a2bb20d4676e74a3fd3eb94d4196a07811438186aa1416652a248b",
+          "sourceNote": "Exact clean intermediate docs source54ff and stable controlled environment; no product/build input changes",
+          "environment": "controlled environment fingerprint b091905f0b3955b0186bb413e4823686f9ffbad5cbd6ef8623a855bcc78dadca; Node22.14.0/npm11.10.0 Linux/WSL2 amd64; installed Playwright1.63.0 Chromium1243; operator ORAS1.3.6 where noted",
+          "environmentVersion": "masterGantt0.147.1",
+          "command": [
+            "node",
+            "scripts/verify-prepr.mjs",
+            "--mode=admit",
+            "--base=df1468250566e840ccf00e94c276ab4aeeeb06bd",
+            "--issue=920",
+            "--include=tests/scripts/issue-ledger-verifier.test.ts",
+            "--reports=.prepr-reports/920-opsdocs-fast01/report.json",
+            "--report-dir=.prepr-reports/920-opsdocs-admit01"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "Common plus actual selected consumer execution completes admission",
+          "actual": "BLOCKED: latest targeted is dry-run NOT TESTED and lacks execution step/exit/log. Existing fast4013PASS does not replace required mode completion",
+          "input": "Synthetic exact-image smoke only; no production DB or registry/Git writes in preflight",
+          "classification": "TOOLING",
+          "recovery": "Preserve first blocked report; append cause/history; fresh final docs source executes fast and actual targeted Unit mode, then new admission; do not delete dry-run or relax mode validation",
+          "residualRisk": "New clean docs source must execute fast and actual targeted Unit before admission; no gate/parser exception or product change",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:920-opsdocs-admit01-blocked"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_920_FAILURE_ANALYSIS.md"
+            }
+          ]
+        }
+      ]
     }
   ]
 }
