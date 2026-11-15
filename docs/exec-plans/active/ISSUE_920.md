@@ -29,3 +29,10 @@ REUSE_DECISION=EXTEND. #822/#898의 density 상태·단일 Coordinator·capture 
 UPDATED: DESIGN, PROJECT_UX, UI_UX_GUIDELINES, GANTT_STATE_CONSISTENCY, TEST_PLAN, CHANGELOG, PLAN, 이 Packet, #919/#920 원장·Regression Index. #919의 실제 배포 증거도 후속 UAT 출처로 연결한다. API/DB_SCHEMA/SECURITY/SCHEDULING_ENGINE은 서버·저장·계산·권한 변경0으로 N/A. AGENTS/CI_CD/GITHUB_OPERATIONS/LOCAL_PREPR은 기존 계약 적용이며 검증/게시/권한 정책 변경0으로 N/A. 원격 PR/Actions/Trusted/Finalizer는 현행 Owner 정책상 N/A다.
 
 최종 gate의 명시 추가 소비자는 `--include=tests/features/gantt/gantt-density.test.ts`와 `--include=tests/scripts/issue-ledger-verifier.test.ts`다. fast/targeted/docker/admit 및 후속 publisher가 있으면 같은 두 include를 사용한다. 자동 선정의 직접/인접9 Unit·13 Chromium 파일에 위 Unit2개를 더하며 unknown/missing/excluded0 계획이다. 미선정 전체 Chromium을 실행했다고 주장하지 않는다.
+
+
+## 799 후보의 공식 검증·F920-005 후속
+
+799의 fast9단계/4013PASS·기존3SKIP, Docker10단계와 영향 Unit164는PASS였으나 전체 Chromium은132PASS/1FAIL로 전체FAIL이었다. 첫 Source 준비가5초 안에 끝나지 않은 기존 #880 사례이며 신규 #920/#898/#822는PASS다. 실제 원본/UNKNOWN과 단독 cold/warm 비교·준비 보완을 [F920-005](../../ISSUE_920_FAILURE_ANALYSIS.md)에 보존한다. 사전 missing-Project GET404로 route 준비를 분리한 원래 전체 사례는40.9초PASS지만 새 최종 gate를 대체하지 않는다. 제품 src TypeScript/CSS는799 그대로다.
+
+보완 Source는799의 후속 commit으로 동결하고 새 `issue-920-verified02` checkout에서 frozen npm ci 뒤 전체 같은 source gate를 다시 실행한다. baseline은fc8, include2개와13Chromium/11Unit파일·기존 기준·skip/retry/timeout은 유지한다. 처음 source799의 report/image/preview는 원본 증거로 남기며 새 source PASS/Owner UAT로 자동 전용하지 않는다. 새 정식 게시/운영 승인도 아직 없다.

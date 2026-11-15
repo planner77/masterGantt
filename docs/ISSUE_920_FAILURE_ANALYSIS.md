@@ -19,3 +19,16 @@
 ## F920-004 — 신규 fine hit-area 기대에 row border를 누락
 
 WIP focused02는2case 중1PASS/1FAIL, exit1이었다. 새 마우스32px 상태에서 checkbox target>=32 기대/실제31px였고 원래44px 초기 coarse 검사들은 통과했다. row border를 제외한 내부 content box31px를 새 기대에서 빠뜨린 HARNESS 오류다. target의 row 내부 높이/상하 경계와44px touch 조건을 분리해 기존 인접 행 비침범을 보존했다. 첫44px 축소의34px 진입 계약도 확정했다. focused03은 기존 #822와 신규 #920 모두 PASS이며 original focused02 trace/error-context/log는 private 별도 보존한다. timeout/retry/skip·body owner·원본 데이터 assertion 완화0이다.
+
+
+## F920-005 — 정식 영향 회귀의 첫 Source 대기 실패와 준비 경계
+
+정확 Head799a404fb50ef00ad984b5f65629c30cc4f0cd56의 targeted01은 Unit164PASS/11파일, Chromium132PASS/1FAIL(45.3분)로 전체FAIL이다. sourceFingerprint66e3d3153ee8b7ca818cd805fd263f2e993a77ba2cb81768406a4089d20b4b8a와 environmentFingerprinta33532b6539bb16cf48d4abd10b9c244daf2e675b4365fd5bd7924e847eab976은 전후 일치했다. 같은 Source의 fast9단계/4013PASS·기존3SKIP와 Docker10단계PASS는 이 FAIL을 대신하지 않는다. 원본 report/runner/log/trace/error-context와 자식 서버 진단을 보존했다.
+
+기존 #880 nonzero viewport 사례는 첫 prepare(data-ready=true 기대/false 실제,5000ms)에서 실패했다. Ctrl+휠/실제 nonzero scroll을 하기 전이었다. 첫 Source GET 하나는 취소되고 다음 요청은 미완료였으며 health도1504ms timeout이었다. process alive/OOM0/oomKill0이고, 원본의 정확 compile/GC/스케줄 지연 원인은 UNKNOWN이다. 해당 실패를 새 밀도 코드의 결함 또는 성공으로 소급 분류하지 않는다. 신규 #920 및 기존 #898/#822 실제 입력은 이 정식 run에서도 PASS했다.
+
+같은85행·동일 scope의 첫 View 준비까지 자른 격리 probe는 cold/warm 모두PASS했다. cold UI1775.69ms, 사전 missing-Project GET404 첫1449.29ms/다음119.99ms, 그 뒤 UI522.80ms였다. 따라서 단독에서 원본5초 실패를 재현한 것으로 주장하지 않는다. 다만 개발 route 컴파일 준비가 UI readiness 예산에 섞이는 비용을 실제 확인해 기존 #751의 GET-only 준비 패턴을 이 사례에 한정해 확장했다. missing UUID의404/no Set-Cookie만 확인하며 실제 Project source를 미리 읽거나 UI 결과를 주입하지 않는다.
+
+보완 후 원래 전체 사례는40.9초PASS(전체약1.3분)다. 최초 ready5초·전체180초·91행·nonzero capacity/좌표·재조회·Editor 취소/저장·workspace 복귀·늦은 source/새 wheel 우선권·canonical assertion·timeout/retry/skip을 유지했다. 제품 TypeScript/CSS는799와 동일하고 변경은 테스트 준비와 문서/원장이다. 이 WIP 집중PASS는 새 clean source의 전체 공통/영향/Docker/admit를 대체하지 않는다. 원본 내부 지연 UNKNOWN은 보존하고 실제 새 source 결과는 Issue STATUS/FINAL에 연결한다.
+
+초기 F920-001 observed event는 교차 관측과 regression exit1을 함께 요약한다. CLI protocol Error의 shell exit0과 별도 regression-red의 exit1을 구분하며 최초 CLI를 exit1로 오인하지 않는다. bootstrap F920-002도 직접 wrapper126/후속 browser 부재1을 구별한다. SCOPED 요약을 최종 exact gate 증거로 재사용하지 않는다.

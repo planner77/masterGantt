@@ -14743,6 +14743,184 @@
           }
         }
       ]
+    },
+    {
+      "id": "F920-005",
+      "issue": 920,
+      "ledger": "docs/ISSUE_920_FAILURE_ANALYSIS.md",
+      "relatedIssues": [
+        919,
+        898,
+        822
+      ],
+      "domain": "gantt-input",
+      "layer": "browser",
+      "keywords": [
+        "cold-route",
+        "readiness",
+        "viewport",
+        "source",
+        "dev-compile"
+      ],
+      "cause": "First Resource Source readiness timed out before any wheel/nonzero scroll; dev route prep shares strict UI budget; exact original internal stall UNKNOWN",
+      "historyOnly": false,
+      "tests": [
+        {
+          "path": "tests/e2e/schedule-views.spec.ts",
+          "case": "#880 P2 비WBS nonzero viewport는 재조회·Editor 취소와 저장·workspace 복귀 및 새 사용자 wheel을 보존한다",
+          "historical": false,
+          "coverageArea": "read-only missing-Project compile prep; unchanged original readiness/data/viewport/mutation/source assertions"
+        }
+      ],
+      "residualRisk": "Original exact compile/GC/scheduling stall UNKNOWN; paired minimal probe both PASS; fresh clean full gates required; Windows final Head UAT separate",
+      "events": [
+        {
+          "id": "targeted01-first-ready-fail",
+          "at": "2026-11-15T10:23:15.851Z",
+          "timeNote": "This is exact report completion, not exact failing assertion timestamp",
+          "stage": "PLAYWRIGHT",
+          "status": "FAIL",
+          "sourceSha": "799a404fb50ef00ad984b5f65629c30cc4f0cd56",
+          "fixSourceSha": null,
+          "sourceFingerprint": "66e3d3153ee8b7ca818cd805fd263f2e993a77ba2cb81768406a4089d20b4b8a",
+          "sourceNote": null,
+          "environment": "controlled environment fingerprint a33532b6539bb16cf48d4abd10b9c244daf2e675b4365fd5bd7924e847eab976; Node22.14.0/npm11.10.0 Linux/WSL2 x64 Chromium1243",
+          "environmentVersion": "masterGantt0.147.1",
+          "command": [
+            "node",
+            "scripts/verify-prepr.mjs",
+            "--mode=targeted",
+            "--base=fc8b0858f467bec0cd0a13a0fd14f1edd752c8a7",
+            "--issue=920",
+            "--include=tests/features/gantt/gantt-density.test.ts",
+            "--include=tests/scripts/issue-ledger-verifier.test.ts",
+            "--report-dir=.prepr-reports/920-targeted01"
+          ],
+          "exit": 1,
+          "exitNote": null,
+          "expected": "Original first View ready within5000ms then all viewport assertions",
+          "actual": "Unit164PASS; Chromium132PASS/1FAIL; ready false for5000ms before any wheel/nonzero scroll; health1504ms timeout; alive/OOM0/oomKill0",
+          "input": "Synthetic isolated fixture; actual operating database only in explicitly identified #919 backup/deployment steps; no public raw data",
+          "classification": "UNKNOWN",
+          "recovery": "Original diagnostics retained; isolate first Source preparation without changing UI assertions",
+          "residualRisk": "Windows actual device/Owner repeat UAT, pinch/pen/AT and off-host remain NOT TESTED; previous failures are not rewritten",
+          "evidenceScope": "EXACT",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:920-targeted01-failure120"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_920_FAILURE_ANALYSIS.md"
+            }
+          ]
+        },
+        {
+          "id": "cold-warm-scoped-comparison",
+          "at": null,
+          "timeNote": "2026-11-15; exact individual command timestamp not collected; named private logs retain available times",
+          "stage": "PLAYWRIGHT",
+          "status": "PASS",
+          "sourceSha": "799a404fb50ef00ad984b5f65629c30cc4f0cd56",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED diagnostic/operator execution; sourceSha names baseline/target image; private helper or dirty test diff not a clean commit; full source/environment before-after fingerprints not collected; not final gate evidence",
+          "environment": "Linux/WSL2 x64; Node22.14.0/npm11.10.0; installed Chromium1243; Docker runtime Node26.8.2 linux/amd64 where applicable; full supplemental environment fingerprint not collected",
+          "environmentVersion": "masterGantt0.147.1",
+          "command": [
+            "node",
+            "node_modules/@playwright/test/cli.js",
+            "test",
+            "--config=LOCAL:920-cold-probe01-config"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "Measure first preparation independently; do not claim original failure reproduced when both pass",
+          "actual": "2PASS; cold UI1775.69ms; missing404 first1449.29ms/second119.99ms; warmed UI522.80ms; exact original internal stall remains UNKNOWN",
+          "input": "Synthetic isolated fixture; actual operating database only in explicitly identified #919 backup/deployment steps; no public raw data",
+          "classification": "TOOLING",
+          "recovery": "Retain original failure; use explicitly scoped corrective run; final clean source gate and Owner UAT remain separate",
+          "residualRisk": "Windows actual device/Owner repeat UAT, pinch/pen/AT and off-host remain NOT TESTED; previous failures are not rewritten",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:920-focused03-green"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_920_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "799a404fb50ef00ad984b5f65629c30cc4f0cd56",
+            "environment": "Linux/WSL2 x64; Node22.14.0/npm11.10.0; installed Chromium1243; Docker runtime Node26.8.2 linux/amd64 where applicable; full supplemental environment fingerprint not collected",
+            "imageDigest": null,
+            "backupId": null
+          }
+        },
+        {
+          "id": "missing-project-prep-focused",
+          "at": null,
+          "timeNote": "2026-11-15; exact individual command timestamp not collected; named private logs retain available times",
+          "stage": "PLAYWRIGHT",
+          "status": "PASS",
+          "sourceSha": "799a404fb50ef00ad984b5f65629c30cc4f0cd56",
+          "fixSourceSha": null,
+          "sourceFingerprint": null,
+          "sourceNote": "SCOPED diagnostic/operator execution; sourceSha names baseline/target image; private helper or dirty test diff not a clean commit; full source/environment before-after fingerprints not collected; not final gate evidence",
+          "environment": "Linux/WSL2 x64; Node22.14.0/npm11.10.0; installed Chromium1243; Docker runtime Node26.8.2 linux/amd64 where applicable; full supplemental environment fingerprint not collected",
+          "environmentVersion": "masterGantt0.147.1",
+          "command": [
+            "npm",
+            "run",
+            "test:e2e",
+            "--",
+            "tests/e2e/schedule-views.spec.ts",
+            "--grep",
+            "#880 P2 비WBS nonzero",
+            "--reporter=list"
+          ],
+          "exit": 0,
+          "exitNote": null,
+          "expected": "Whole original case passes with UI5000ms/total180s and all data/viewport/source checks unchanged",
+          "actual": "1PASS40.9s, total1.3min; missing404/no Set-Cookie preflight; no product TS/CSS change; new clean full gates not yet run",
+          "input": "Synthetic isolated fixture; actual operating database only in explicitly identified #919 backup/deployment steps; no public raw data",
+          "classification": "TOOLING",
+          "recovery": "Retain original failure; use explicitly scoped corrective run; final clean source gate and Owner UAT remain separate",
+          "residualRisk": "Windows actual device/Owner repeat UAT, pinch/pen/AT and off-host remain NOT TESTED; previous failures are not rewritten",
+          "evidenceScope": "SCOPED",
+          "synthetic": true,
+          "imageDigest": null,
+          "backupId": null,
+          "remoteCi": "N/A",
+          "evidence": [
+            {
+              "kind": "LOCAL_ONLY",
+              "reference": "LOCAL:920-focused03-green"
+            },
+            {
+              "kind": "DOCUMENT",
+              "reference": "docs/ISSUE_920_FAILURE_ANALYSIS.md"
+            }
+          ],
+          "verification": {
+            "sourceSha": "799a404fb50ef00ad984b5f65629c30cc4f0cd56",
+            "environment": "Linux/WSL2 x64; Node22.14.0/npm11.10.0; installed Chromium1243; Docker runtime Node26.8.2 linux/amd64 where applicable; full supplemental environment fingerprint not collected",
+            "imageDigest": null,
+            "backupId": null
+          }
+        }
+      ]
     }
   ]
 }

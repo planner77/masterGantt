@@ -197,3 +197,6 @@ F898-009~012를 [Primary 원장](ISSUE_898_FAILURE_ANALYSIS.md)에 추가했다.
 ## #919 운영 배포와 #920 하이브리드 입력 UAT
 
 [#919 원장](ISSUE_919_FAILURE_ANALYSIS.md)은 host 권한거부·격리 fixture 한도·helper 경로·임시 sidecar 정리의 최초 실패와 실제0.147.0 배포/새 백업·호환 migration/데이터 보존을 연결한다. 운영 PASS는 사용자 UAT PASS가 아니다. [#920 원장](ISSUE_920_FAILURE_ANALYSIS.md)은 Windows touch-capable mouse 보고, 같은 이미지의 coarse44 고정 red와 fine32 대조, bootstrap/CDP lifetime·fine content-box 기대 오류를 보존한다. 첫 raw trace가 후속 실행에 덮인 한계도 명시한다. 기존 원본 prefix는 보존하고 같은 최종 source의 새 gate를 요구한다.
+
+
+[F920-005](ISSUE_920_FAILURE_ANALYSIS.md)은799정식영향132PASS/1FAIL·source/env불변과 첫Source대기/healthtimeout을 보존한다. 단독 cold/warm은둘다PASS라원본내부지연UNKNOWN을남기며, missing-Project GET404준비로개발route비용을분리한다. 원래UI5초/전체180초/91행·viewport·mutation/sourceguard를유지한집중40.9초PASS는새clean전체gate의대체가아니다.

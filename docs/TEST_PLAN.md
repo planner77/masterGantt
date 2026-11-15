@@ -80,3 +80,6 @@ Windows Excel/VBA/DRM, 실제 reverse proxy/TLS, off-host backup/restore·운영
 ### Issue #920 — touch-capable mouse와 실제 touch 전환
 
 기존 `schedule-views.spec.ts`의 #898 실제 fine wheel을 유지하고 #920을 추가한다. Chromium CDP touch capability를 켠 상태에서 실제 touch와 mouse Ctrl+wheel을 사용해 세 View/Grid·Chart의44상한/34/32/30/28/역방향·row/button bounds≤1px·44px touch 목표·browser zoom 불변·same-instance/canonical 쓰기0를 검사한다. 기존 `project-summary-bar-visual.spec.ts` #822의 초기44px hit area·5폭·제외/빈 본문과 인접 행 비침범도 유지한다. Unit density/coordinator 및 영향 소비자·fast/Docker/admit는 같은 최종 source에서 실행한다. Linux Chromium emulation을 Windows 실장치·pinch/pen/AT·Owner UAT PASS로 확대하지 않는다. [Work Packet](exec-plans/active/ISSUE_920.md).
+
+
+#920의 F920-005에서 관측된 dev API 준비 비용은 기존 #880 nonzero viewport 사례의 사전 missing-Project GET404로 분리한다. #751 GET-only 준비 패턴을 재사용하고 원래 UI ready5000ms/전체180초·데이터/scroll/source guard·retry0를 유지한다. 정상 Project source를 미리 조회하거나 UI를 mock하지 않으며 준비 요청 자체도404/no Set-Cookie를 검증한다. 정식 실패132PASS/1FAIL과 후속 집중PASS를 같은 source의 전체PASS로 합치지 않는다.
